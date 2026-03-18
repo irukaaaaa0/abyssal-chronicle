@@ -1689,10 +1689,20 @@ function doTransfer(){
 //  お知らせ表示（オンラインから取得したもの）
 // ================================================================
 function showOnlineNotices(){
-  const important = ONLINE_NOTICES.filter(n => n.important);
-  if(!important.length) return;
+  if(!ONLINE_NOTICES.length) return;
   const bar = document.getElementById('notice-text-bar');
-  if(bar && important[0]) bar.textContent = important[0].title + ' — ' + important[0].body.split('\n')[0];
+  if(!bar) return;
+  // 重要なものを優先、なければ最新のものを表示
+  const important = ONLINE_NOTICES.filter(n => n.important===true || n.important==='true');
+  const target = important.length ? important[0] : ONLINE_NOTICES[0];
+  if(target){
+    bar.textContent = target.title + ' — ' + (target.body||'').split('\n')[0];
+    // NEWバッジを表示
+    const badge = document.querySelector('.notice-new');
+    if(badge) badge.style.display = 'block';
+  }
+  // お知らせ画面も更新
+  renderNotices();
 }
 </script>
 </body>
