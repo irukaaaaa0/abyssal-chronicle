@@ -384,6 +384,15 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .story-next-btn:hover{background:rgba(20,60,140,.5);}
 .story-battle-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(200,100,30,.5);background:rgba(100,40,10,.4);font-size:13px;color:#e0a060;cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
 .story-battle-btn:hover{background:rgba(140,60,20,.5);}
+/* TURN SYSTEM */
+.phase-indicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;pointer-events:none;opacity:0;transition:opacity .3s;}
+.phase-indicator.show{opacity:1;}
+.phase-txt{font-size:22px;font-weight:700;letter-spacing:.2em;text-shadow:0 0 20px currentColor;text-align:center;padding:8px 20px;border-radius:10px;backdrop-filter:blur(4px);}
+.phase-player{color:#60d0ff;border:1px solid rgba(96,208,255,.4);background:rgba(0,20,60,.7);}
+.phase-enemy{color:#ff6060;border:1px solid rgba(255,96,96,.4);background:rgba(60,0,0,.7);}
+.turn-counter{font-size:11px;font-weight:500;color:var(--text);}
+.enemy-action-txt{font-size:12px;color:#ff8080;text-align:center;margin-top:6px;min-height:18px;}
+
 /* RANK SYSTEM */
 .rank-bar-wrap{display:flex;align-items:center;gap:6px;padding:4px 12px 0;}
 .rank-label{font-size:10px;color:var(--teal);font-weight:500;white-space:nowrap;}
@@ -693,14 +702,18 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   <canvas id="battleCanvas" style="position:fixed;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <div class="battle-header">
     <div class="battle-stage-txt" id="battle-stage">深層1層</div>
-    <div class="battle-turn-txt" id="battle-turn">ターン 1</div>
+    <div class="turn-counter" id="battle-turn">ターン 1</div>
     <div class="combo-txt" id="combo-disp">コンボ: 0</div>
   </div>
   <div class="enemy-area">
+    <div class="phase-indicator" id="phase-indicator">
+      <div class="phase-txt" id="phase-txt">YOUR TURN</div>
+    </div>
     <div class="enemy-ico" id="enemy-ico">🦑</div>
     <div class="enemy-nm" id="enemy-nm">???</div>
     <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
     <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
+    <div class="enemy-action-txt" id="enemy-action-txt"></div>
   </div>
   <div class="party-hp-row" id="party-hp-row"></div>
   <div class="card-hand" style="padding-top:4px;">
@@ -2200,9 +2213,54 @@ function updateComboGauge(){
   }
 }
 
+// ================================================================
+//  TURN CONTROL
+// ================================================================
+let BT_PHASE = 'player'; // 'player' | 'enemy' | 'busy'
+
+function setPhase(phase){
+  BT_PHASE = phase;
+  const indicator = document.getElementById('phase-indicator');
+  const txt = document.getElementById('phase-txt');
+  const atkBtn = document.getElementById('atk-btn');
+  const autoBtn = document.getElementById('auto-btn');
+  // カードのクリック可否
+  document.querySelectorAll('.battle-card:not(.used)').forEach(el=>{
+    el.style.pointerEvents = phase==='player'?'auto':'none';
+  });
+  if(atkBtn) atkBtn.disabled = phase !== 'player';
+  if(atkBtn) atkBtn.style.opacity = phase==='player'?'1':'0.4';
+  if(autoBtn) autoBtn.style.opacity = phase==='player'||phase==='busy'?'1':'0.4';
+
+  if(indicator && txt){
+    if(phase==='player'){
+      txt.textContent='YOUR TURN';
+      txt.className='phase-txt phase-player';
+    } else if(phase==='enemy'){
+      txt.textContent='ENEMY TURN';
+      txt.className='phase-txt phase-enemy';
+    }
+    if(phase!=='busy'){
+      indicator.classList.add('show');
+      setTimeout(()=>indicator.classList.remove('show'), 900);
+    }
+  }
+}
+
+function showPhaseFlash(phase){
+  return new Promise(resolve=>{
+    setPhase(phase);
+    setTimeout(resolve, 700);
+  });
+}
+
 function executeAttack(){
+  if(BT_PHASE !== 'player'){ return; }
   const sel = BT.selectedOrder.map(i=>BT.hand[i]).filter(c=>c&&c.selected&&!c.used);
   if(!sel.length){ showToast('カードを選択してください！'); return; }
+
+  // フェーズをbusyに（連打防止）
+  BT_PHASE = 'busy';
   sfx('attack');
 
   // コンボタイプボーナス計算
@@ -2226,13 +2284,14 @@ function executeAttack(){
   BT.enemyHp = Math.max(0, BT.enemyHp - total);
   showDmg(total, typeBonus>0);
   updateEnemyHP();
-
   document.getElementById('combo-disp').textContent = `コンボ: ${BT.combo}`;
   updateComboGauge();
   renderHand();
 
   if(BT.enemyHp<=0){ setTimeout(winBattle,700); return; }
-  if(!BT.hand.some(c=>!c.used)) setTimeout(enemyTurn,500);
+
+  // ★ターン制: カードを使い切っても使い切らなくても、攻撃したら即敵ターン
+  setTimeout(()=>enemyTurn(), 600);
 }
 
 // ================================================================
@@ -2244,7 +2303,7 @@ function toggleAuto(){
   if(btn) btn.classList.toggle('on', BT.auto);
   if(BT.auto){
     showToast('🤖 オートバトル ON');
-    runAutoTurn();
+    if(BT_PHASE==='player') runAutoTurn();
   } else {
     showToast('🤖 オートバトル OFF');
     if(BT.autoTimer){ clearTimeout(BT.autoTimer); BT.autoTimer=null; }
@@ -2252,15 +2311,16 @@ function toggleAuto(){
 }
 
 function runAutoTurn(){
-  if(!BT.auto || !BT.active) return;
-  // 未使用カードを最大4枚自動選択（ダメージ順）
+  if(!BT.auto || !BT.active || BT_PHASE!=='player') return;
+
+  // 強いカードをダメージ順に最大4枚自動選択
   const available = BT.hand
     .map((c,i)=>({...c,i}))
     .filter(c=>!c.used)
-    .sort((a,b)=>b.dmg-a.dmg)
+    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0)+a.dmg))
     .slice(0, MAX_SELECT);
 
-  if(available.length===0){ return; }
+  if(!available.length){ return; }
 
   BT.selectedOrder = [];
   BT.hand.forEach(c=>c.selected=false);
@@ -2272,29 +2332,89 @@ function runAutoTurn(){
   updateComboGauge();
 
   BT.autoTimer = setTimeout(()=>{
-    if(!BT.auto||!BT.active) return;
+    if(!BT.auto||!BT.active||BT_PHASE!=='player') return;
     executeAttack();
-    // 敵ターン後に次のオートターンを予約
-    BT.autoTimer = setTimeout(()=>{
-      if(BT.auto && BT.active) runAutoTurn();
-    }, 1500);
-  }, 800);
+  }, 700);
 }
 
 function enemyTurn(){
-  const alive=BT.partyHp.filter(m=>m.hp>0);if(!alive.length){loseBattle();return;}
-  const tgt=alive[Math.floor(Math.random()*alive.length)];
-  const dmg=Math.round(BT.quest.enemy.atk*(.8+Math.random()*.5));
-  tgt.hp=Math.max(0,tgt.hp-dmg); sfx('hit'); updatePartyHP();
-  showToast(`${BT.quest.enemy.name}の攻撃！ ダメージ ${dmg}`);
-  if(BT.partyHp.every(m=>m.hp<=0)){setTimeout(loseBattle,700);return;}
-  BT.turn++;BT.combo=0;
+  if(!BT.active) return;
+  if(BT.autoTimer){ clearTimeout(BT.autoTimer); BT.autoTimer=null; }
+
+  // 敵フェーズ表示
+  const indicator = document.getElementById('phase-indicator');
+  const txt = document.getElementById('phase-txt');
+  if(indicator && txt){
+    txt.textContent='ENEMY TURN';
+    txt.className='phase-txt phase-enemy';
+    indicator.classList.add('show');
+  }
+  BT_PHASE='enemy';
+
+  const atkBtn=document.getElementById('atk-btn');
+  if(atkBtn){ atkBtn.disabled=true; atkBtn.style.opacity='0.4'; }
+
+  setTimeout(()=>{
+    if(!BT.active) return;
+    if(indicator) indicator.classList.remove('show');
+
+    const alive=BT.partyHp.filter(m=>m.hp>0);
+    if(!alive.length){ loseBattle(); return; }
+
+    // 敵の攻撃（速度により複数回攻撃）
+    const spd = BT.quest.enemy.spd || 1;
+    const attacks = Math.min(spd, 3);
+    const actionEl = document.getElementById('enemy-action-txt');
+
+    let attackCount = 0;
+    function doNextAttack(){
+      if(!BT.active || attackCount >= attacks){ afterEnemyAttacks(); return; }
+      const aliveNow = BT.partyHp.filter(m=>m.hp>0);
+      if(!aliveNow.length){ loseBattle(); return; }
+      const tgt = aliveNow[Math.floor(Math.random()*aliveNow.length)];
+      const dmg = Math.round(BT.quest.enemy.atk*(.8+Math.random()*.4));
+      tgt.hp = Math.max(0, tgt.hp-dmg);
+      sfx('hit');
+      updatePartyHP();
+      if(actionEl) actionEl.textContent=`${BT.quest.enemy.name}の攻撃！ -${dmg}`;
+      attackCount++;
+      if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,600); return; }
+      setTimeout(doNextAttack, 500);
+    }
+    doNextAttack();
+  }, 600);
+}
+
+function afterEnemyAttacks(){
+  if(!BT.active) return;
+  const actionEl = document.getElementById('enemy-action-txt');
+
+  BT.turn++;
+  BT.combo=0;
   document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
   document.getElementById('combo-disp').textContent='コンボ: 0';
+
+  // 新しい手札を配る
+  const aliveIds = BT.partyHp.filter(m=>m.hp>0).map(m=>m.id);
+  drawHand(aliveIds);
+
+  // プレイヤーターンへ
   setTimeout(()=>{
-    drawHand(BT.partyHp.filter(m=>m.hp>0).map(m=>m.id));
-    if(BT.auto && BT.active) setTimeout(runAutoTurn, 600);
-  },500);
+    if(!BT.active) return;
+    if(actionEl) actionEl.textContent='';
+    const indicator=document.getElementById('phase-indicator');
+    const txt=document.getElementById('phase-txt');
+    if(indicator&&txt){
+      txt.textContent='YOUR TURN';
+      txt.className='phase-txt phase-player';
+      indicator.classList.add('show');
+      setTimeout(()=>indicator.classList.remove('show'),900);
+    }
+    BT_PHASE='player';
+    const atkBtn=document.getElementById('atk-btn');
+    if(atkBtn){ atkBtn.disabled=false; atkBtn.style.opacity='1'; }
+    if(BT.auto && BT.active) setTimeout(runAutoTurn, 500);
+  }, 400);
 }
 
 function showDmg(dmg, comboBonus=false){
