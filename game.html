@@ -384,6 +384,42 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .story-next-btn:hover{background:rgba(20,60,140,.5);}
 .story-battle-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(200,100,30,.5);background:rgba(100,40,10,.4);font-size:13px;color:#e0a060;cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
 .story-battle-btn:hover{background:rgba(140,60,20,.5);}
+/* CHAPTER MAP */
+.chapter-select{padding:0 14px 80px;}
+.chapter-card{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:14px;margin-bottom:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,background .2s;}
+.chapter-card:hover{border-color:rgba(20,100,180,.4);background:rgba(5,30,60,.5);}
+.chapter-card.locked{opacity:.5;cursor:default;}
+.chapter-card.cleared{border-color:rgba(20,120,80,.5);}
+.chapter-header{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+.chapter-icon{font-size:28px;flex-shrink:0;}
+.chapter-info{flex:1;}
+.chapter-num{font-size:10px;color:var(--text3);letter-spacing:.1em;margin-bottom:2px;}
+.chapter-name{font-size:13px;font-weight:500;}
+.chapter-sub{font-size:10px;color:var(--text2);margin-top:2px;}
+.chapter-prog{font-size:9px;margin-top:4px;}
+.chapter-prog-bar{height:2px;background:rgba(255,255,255,.06);border-radius:1px;margin-top:3px;overflow:hidden;}
+.chapter-prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:1px;transition:width .5s;}
+.chapter-expand-btn{padding:0 14px 12px;display:flex;justify-content:flex-end;}
+.chapter-layers{border-top:.5px solid var(--border2);display:none;}
+.chapter-layers.open{display:block;}
+.layer-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:.5px solid rgba(10,30,50,.4);cursor:pointer;transition:background .15s;}
+.layer-item:hover{background:rgba(10,40,80,.3);}
+.layer-item:last-child{border-bottom:none;}
+.layer-item.locked{opacity:.4;cursor:default;}
+.layer-item.cleared{opacity:.8;}
+.layer-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid;}
+.li-unlock{background:rgba(0,30,60,.8);border-color:rgba(30,120,200,.5);}
+.li-locked{background:rgba(0,10,20,.8);border-color:rgba(20,40,60,.4);filter:grayscale(.8);}
+.li-boss{background:rgba(40,0,0,.8);border-color:rgba(160,30,30,.6);}
+.li-clear{background:rgba(0,40,30,.8);border-color:rgba(20,120,80,.6);}
+.layer-info{flex:1;}
+.layer-name{font-size:11px;font-weight:500;}
+.layer-enemy{font-size:9px;color:var(--text2);margin-top:2px;}
+.layer-reward{font-size:9px;color:var(--gold);margin-top:1px;}
+.layer-clear-mark{color:var(--teal);font-size:12px;flex-shrink:0;}
+.back-to-chapters{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;padding:0 0 12px;}
+.back-to-chapters:hover{color:var(--text);}
+
 /* ===== NOTICE BOX ===== */
 .notif-bell{position:relative;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;}
 .notif-bell-icon{font-size:18px;transition:transform .2s;}
@@ -524,7 +560,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
     <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ABYSS MAP</div>
     <div style="width:50px;"></div>
   </div>
-  <div class="content"><div class="map-content"><div class="map-title">― DEEP SEA EXPLORATION ―</div><div id="quest-map"></div></div></div>
+  <div class="content"><div class="map-content"><div class="map-title">― CHAPTER SELECT ―</div><div id="quest-map"></div></div></div>
 </div>
 
 <!-- GACHA -->
@@ -1146,67 +1182,179 @@ const CARDS=[
   {name:'雷撃波', emoji:'⚡',dmg:1.5,comboType:'thunder'},
   {name:'深淵撃', emoji:'🌑',dmg:2.0,comboType:'none'},
 ];
-const QUESTS=[
-  {id:1,name:'第1層 — 霧の浅瀬',    emoji:'🌊',boss:false,enemy:{name:'霧の漂流者', emoji:'🦠',hp:600, atk:50}, gold:200,gem:20,
-   bgColor:['#010a14','#021828'],
-   story:[
-    {char:'司令官',icon:'🌊',text:'…ここは、どこだ。目を開けると、そこは底なしの深海だった。光すら届かない暗闇の中、私は漂っていた。'},
-    {char:'謎の声',icon:'👁️',text:'……目が覚めたか、旅人よ。お前は「旧破の扉」に選ばれた。この深海の果てに眠る真実を、見届けよ。'},
-    {char:'司令官',icon:'🌊',text:'旧破の扉…？何も分からないが、前に進むしかない。霧の向こうに、何かが蠢いている。'},
-    {char:'ナレーター',icon:'📖',text:'霧の浅瀬。かつては穏やかな海域だったこの場所は、今や得体の知れない生命体に侵食されていた。'},
-  ]},
-  {id:2,name:'第2層 — 沈黙の岩礁',  emoji:'🪨',boss:false,enemy:{name:'岩礁の蟹将軍',emoji:'🦀',hp:900, atk:75}, gold:300,gem:30,
-   bgColor:['#0a0800','#1a1000'],
-   story:[
-    {char:'司令官',icon:'🌊',text:'岩礁の群れを抜けた先に、巨大な影が見えた。あれは…甲殻類か。しかし異様に大きい。'},
-    {char:'岩礁の蟹将軍',icon:'🦀',text:'グルルル……侵入者め。この岩礁は我が領域。踏み込んだ者は骨まで砕いてやろう。'},
-    {char:'司令官',icon:'🌊',text:'退くわけにはいかない。この先に旧破の手がかりがあるはずだ。進め！'},
-    {char:'ナレーター',icon:'📖',text:'沈黙の岩礁。何千年もの圧力を受けた岩盤の奥に、古代の何かが封じられているという伝承が残る。'},
-  ]},
-  {id:3,name:'第3層 — 深流の回廊',  emoji:'🌀',boss:false,enemy:{name:'深流の幽霊船',emoji:'⛵',hp:1400,atk:110},gold:500,gem:45,
-   bgColor:['#000510','#001030'],
-   story:[
-    {char:'ナレーター',icon:'📖',text:'深流の回廊。海底を貫く強大な海流が作り出した巨大な通路。その中に、一隻の廃船が漂っていた。'},
-    {char:'司令官',icon:'🌊',text:'あの船は…乗組員がいない。いや、待て。何かが動いている。幽霊か、それとも——'},
-    {char:'幽霊船の声',icon:'⛵',text:'ヒヒヒ…また迷い込んだか。この回廊に入ったが最後、二度と出られぬ。我らと共に深海を彷徨え……'},
-    {char:'司令官',icon:'🌊',text:'ここで立ち止まるな。あの船を突破すれば、次の層が見えてくるはずだ！'},
-  ]},
-  {id:4,name:'第4層 — 暗礁の番所',  emoji:'🏚️',boss:false,enemy:{name:'番所の鎧魚',  emoji:'🐡',hp:1800,atk:140},gold:700,gem:60,
-   bgColor:['#080010','#100020'],
-   story:[
-    {char:'謎の声',icon:'👁️',text:'旅人よ、よく辿り着いた。この先は「旧破の前庭」と呼ばれる領域だ。番人が待ち構えている。'},
-    {char:'司令官',icon:'🌊',text:'番人…？この海底に守るべきものがあるということか。だとすれば、それが旧破の核心に違いない。'},
-    {char:'番所の鎧魚',icon:'🐡',text:'貴様が来ることは分かっていた。旧破神の眠りを妨げる者は、この鎧で串刺しにしてくれる！'},
-    {char:'ナレーター',icon:'📖',text:'番所の鎧魚。旧破神が眠りに就く際、その扉を守るために生み出された古代の番兵。鋼鉄の鱗は如何なる攻撃も弾くという。'},
-  ]},
-  {id:5,name:'中間BOSS — 深海竜',   emoji:'🐉',boss:true, enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:3000,atk:200},gold:1200,gem:100,
-   bgColor:['#0a0000','#200010'],
-   story:[
-    {char:'ナレーター',icon:'📖',text:'深海の最深部へと続く大扉の前。突如として海底が震え、地響きのような咆哮が轟いた。'},
-    {char:'司令官',icon:'🌊',text:'なんだ…この震動は！地震じゃない、何かが目覚めようとしている——！'},
-    {char:'深海竜ヴォルガ',icon:'🐉',text:'GRAAOOOO……！長き眠りを妨げた愚か者めが。旧破の扉は俺が守る。貴様ごときに渡してなるものか！'},
-    {char:'謎の声',icon:'👁️',text:'旅人よ、この竜は旧破神の「夢」が具現化したものだ。倒せば扉が開く。だが覚悟せよ——真の試練はその先にある。'},
-    {char:'司令官',icon:'🌊',text:'退けない。今まで辿り着いた道を、仲間たちとの戦いを、無駄にするわけにはいかない。行くぞ！'},
-  ]},
-  {id:6,name:'第6層 — 崩壊の縁',    emoji:'💀',boss:false,enemy:{name:'崩壊体エラス',emoji:'👾',hp:2500,atk:170},gold:900,gem:80,
-   bgColor:['#050005','#100015'],
-   story:[
-    {char:'ナレーター',icon:'📖',text:'扉の向こうに広がっていたのは、現実が溶け崩れたような異空間だった。空間そのものが崩壊している。'},
-    {char:'司令官',icon:'🌊',text:'これが旧破の領域か…物理法則が狂っている。足元すら信用できない。'},
-    {char:'崩壊体エラス',icon:'👾',text:'フフフ……ここまで来たか。だがここは「旧破の残滓」が満ちた場所。正気を保てるか？お前の意識を、溶かしてやろう。'},
-    {char:'司令官',icon:'🌊',text:'意識を保て。仲間の声を聞け。これはただの幻だ。旧破神の前に、この崩壊体を倒す！'},
-  ]},
-  {id:7,name:'最深BOSS — 旧破の神', emoji:'🌑',boss:true, enemy:{name:'旧破神アビス',emoji:'🌑',hp:6000,atk:350},gold:3000,gem:300,
-   bgColor:['#000000','#050008'],
-   story:[
-    {char:'ナレーター',icon:'📖',text:'最深部。この世界が始まる前から存在する「虚無」の中心に、それはいた。'},
-    {char:'旧破神アビス',icon:'🌑',text:'……よく来た、旅人。お前が最初の挑戦者だ。この世界は既に「旧破」に飲まれている。抗うことに、意味はない。'},
-    {char:'司令官',icon:'🌊',text:'意味がないだと？この深海で出会った全ての存在が、この瞬間のために戦ってきた。お前を倒すことが、俺たちの答えだ。'},
-    {char:'謎の声',icon:'👁️',text:'旅人よ……実は私もずっと旧破神に囚われていた。お前が来るのを、ずっと待っていた。どうか——世界を救ってくれ。'},
-    {char:'旧破神アビス',icon:'🌑',text:'無駄な足掻きを。この深海ごと、お前たちを飲み込んでやろう。これが「旧破」の意志——世界の終焉だ！'},
-    {char:'司令官',icon:'🌊',text:'終わらせてやる。俺たちの手で、この深海に光を取り戻す。全力でかかれ——！'},
-  ]},
+// ================================================================
+//  CHAPTERS & QUESTS (章→層構造)
+// ================================================================
+const CHAPTERS=[
+  // ============================================================
+  // 第1章: 霧の浅瀬 (推奨Lv:1〜20 / R〜SR)
+  // ============================================================
+  {
+    id:1, name:'霧の浅瀬', emoji:'🌊',
+    sub:'旅の始まり。深海の霧に包まれた浅瀬を進め。',
+    bgColor:['#010a14','#021828'],
+    layers:[
+      {id:101, name:'1-1 霧の入口',    emoji:'🌫️',boss:false,
+       enemy:{name:'霧クラゲ',     emoji:'🪼',hp:400, atk:35,spd:1},
+       gold:100,gem:10,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'目を覚ますと、そこは底なしの深海だった。霧が視界を遮り、何も見えない。'},
+        {char:'司令官',   icon:'🌊',text:'…ここは、どこだ。光すら届かないこの場所で、私はただ漂っていた。'},
+        {char:'謎の声',  icon:'👁️',text:'……目が覚めたか。お前は「旧破の扉」に選ばれた者だ。この深海の真実を見届けよ。'},
+       ]},
+      {id:102, name:'1-2 霧の中層',    emoji:'🌊',boss:false,
+       enemy:{name:'霧の泳者',     emoji:'🦑',hp:550, atk:48,spd:1},
+       gold:120,gem:12,
+       story:[
+        {char:'司令官',icon:'🌊',text:'霧の中を進むほど、奇妙な気配が濃くなってくる。何かが…こちらを見ている。'},
+        {char:'謎の声',icon:'👁️',text:'焦るな。この霧は旧破の残滓だ。意識を保て——それだけで突破できる。'},
+       ]},
+      {id:103, name:'1-3 霧の深部',    emoji:'🌀',boss:false,
+       enemy:{name:'霧の捕食者',   emoji:'🦠',hp:700, atk:60,spd:1},
+       gold:150,gem:15,
+       story:[
+        {char:'司令官',icon:'🌊',text:'霧が晴れてきた。だがその先には、さらに暗い闇が広がっていた。'},
+        {char:'ナレーター',icon:'📖',text:'霧の深部。古の魚たちが異形に変わり、侵入者を喰らうために待ち構えている。'},
+       ]},
+      {id:104, name:'1-4 霧の試練',    emoji:'⚡',boss:false,
+       enemy:{name:'霧電鰻',       emoji:'🐍',hp:900, atk:75,spd:2},
+       gold:180,gem:18,
+       story:[
+        {char:'司令官',icon:'🌊',text:'電気を帯びた生物だと…？この海域はただの霧ではない。何か異常なエネルギーが満ちている。'},
+       ]},
+      {id:105, name:'1-5 霧の番人',    emoji:'🐉',boss:true,
+       enemy:{name:'霧竜ミスト',   emoji:'🌫️',hp:2500,atk:120,spd:2},
+       gold:500,gem:50,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'霧の最奥。この層の全ての霧を操る番人が、その巨体を現した。'},
+        {char:'霧竜ミスト',icon:'🌫️',text:'フォオォォ……この霧の領域を乱した者よ。我が息吹で、お前の意識を溶かしてやろう。'},
+        {char:'司令官',  icon:'🌊',text:'第1章の関門……！全力で挑め！'},
+       ]},
+    ]
+  },
+
+  // ============================================================
+  // 第2章: 沈黙の岩礁 (推奨Lv:15〜40 / SR〜SSR)
+  // ============================================================
+  {
+    id:2, name:'沈黙の岩礁', emoji:'🪨',
+    sub:'古の番人が眠る岩礁地帯。Lv.15以上を推奨。',
+    bgColor:['#080600','#181000'],
+    layers:[
+      {id:201, name:'2-1 岩礁の入口',  emoji:'🪨',boss:false,
+       enemy:{name:'岩石ガニ',     emoji:'🦀',hp:1200,atk:100,spd:1},
+       gold:250,gem:25,
+       story:[
+        {char:'司令官',  icon:'🌊',text:'第1章を突破し、新たな海域へ。しかしここは…岩礁が壁のように立ち塞がっている。'},
+        {char:'謎の声',  icon:'👁️',text:'第2章だ。ここからは敵の強さが格段に上がる。油断するな。'},
+       ]},
+      {id:202, name:'2-2 岩礁の迷宮',  emoji:'🌀',boss:false,
+       enemy:{name:'迷宮の魚群',   emoji:'🐟',hp:1500,atk:120,spd:2},
+       gold:300,gem:28,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'岩礁が複雑に絡み合い、まるで迷宮のようだ。方向感覚を失ったものは二度と出られないという。'},
+        {char:'司令官',  icon:'🌊',text:'落ち着け。星もない深海でも、進む道は必ずある。'},
+       ]},
+      {id:203, name:'2-3 古の結界',    emoji:'🔮',boss:false,
+       enemy:{name:'結界守護者',   emoji:'🔮',hp:2000,atk:145,spd:1},
+       gold:380,gem:35,
+       story:[
+        {char:'謎の声',  icon:'👁️',text:'この先に「旧破の鍵」の欠片が眠っている。古の術師たちが作った結界が守っているはずだ。'},
+        {char:'司令官',  icon:'🌊',text:'鍵の欠片…？旧破の扉を開く手がかりか。突破する！'},
+       ]},
+      {id:204, name:'2-4 岩礁の試練',  emoji:'💥',boss:false,
+       enemy:{name:'爆裂岩魚',     emoji:'💣',hp:2400,atk:170,spd:2},
+       gold:430,gem:40,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'体表が火薬のように爆発する魚。触れれば即死。慎重な立ち回りが求められる。'},
+        {char:'司令官',  icon:'🌊',text:'近づくな！遠距離から仕留める方法を考えろ！'},
+       ]},
+      {id:205, name:'2-5 岩礁の覇者',  emoji:'🦀',boss:true,
+       enemy:{name:'蟹将軍カルボス',emoji:'🦀',hp:6000,atk:220,spd:2},
+       gold:1000,gem:100,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'岩礁の最深部。何千年もここを支配してきた古代の蟹将軍が姿を現した。'},
+        {char:'蟹将軍カルボス',icon:'🦀',text:'グルルル……久しぶりの侵入者だな。お前の骨で私の殻を補強してやろう。'},
+        {char:'司令官',  icon:'🌊',text:'第2章のボス…！育成が足りなければ厳しい戦いになる。全力で！'},
+       ]},
+    ]
+  },
+
+  // ============================================================
+  // 第3章: 深淵の回廊 (推奨Lv:35〜60 / SSR〜UR)
+  // ============================================================
+  {
+    id:3, name:'深淵の回廊', emoji:'🌑',
+    sub:'旧破神の前庭。SSR以上必須。URがいても油断禁物。',
+    bgColor:['#040008','#0a0018'],
+    layers:[
+      {id:301, name:'3-1 回廊の入口',  emoji:'🌑',boss:false,
+       enemy:{name:'回廊の亡者',   emoji:'💀',hp:3500,atk:280,spd:2},
+       gold:600,gem:60,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'第3章。ここからは「旧破の領域」だ。空間そのものが歪み、常識は通じない。'},
+        {char:'謎の声',  icon:'👁️',text:'旅人よ……ここから先は、私の力も届きにくくなる。気をつけろ。'},
+        {char:'司令官',  icon:'🌊',text:'怯えるな。ここまで来た。引き返せない。'},
+       ]},
+      {id:302, name:'3-2 崩壊する空間',emoji:'💫',boss:false,
+       enemy:{name:'空間崩壊体',   emoji:'🌀',hp:4500,atk:330,spd:3},
+       gold:700,gem:70,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'物理法則が崩壊している。上と下の概念すら曖昧になり、チームの連携が試される。'},
+        {char:'司令官',  icon:'🌊',text:'…足元が消えていく。意識を繋ぎ止めろ！仲間の声だけを頼りに戦え！'},
+       ]},
+      {id:303, name:'3-3 旧破の残滓',  emoji:'👾',boss:false,
+       enemy:{name:'旧破の使徒',   emoji:'👾',hp:5500,atk:390,spd:3},
+       gold:800,gem:80,
+       story:[
+        {char:'旧破の使徒',icon:'👾',text:'……お前たち、ここまで来たのか。旧破神は今、深い眠りの中にいる。邪魔はさせない。'},
+        {char:'司令官',  icon:'🌊',text:'旧破神の直属か…！ただの雑魚ではないぞ。慎重に、確実に！'},
+       ]},
+      {id:304, name:'3-4 深淵の試練',  emoji:'🔥',boss:false,
+       enemy:{name:'深淵の炎獄鬼', emoji:'👹',hp:7000,atk:450,spd:3},
+       gold:950,gem:90,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'旧破の炎で作られた番兵。通常の攻撃は弾かれる。コンボを重ねて一気に畳み掛けるしかない。'},
+        {char:'司令官',  icon:'🌊',text:'コンボを繋げ！単発では傷一つつけられない。属性コンボを使え！'},
+       ]},
+      {id:305, name:'3-5 中間BOSS 深海竜',emoji:'🐉',boss:true,
+       enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:18000,atk:550,spd:3},
+       gold:2000,gem:200,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'旧破の扉の前。突如として海底が震え、地響きのような咆哮が轟いた。'},
+        {char:'深海竜ヴォルガ',icon:'🐉',text:'GRAAOOOO……！久しぶりに目覚めさせてくれたな。お前たちの命を喰らって、また眠りに就こう！'},
+        {char:'謎の声',  icon:'👁️',text:'旅人よ……この竜は旧破神の「怒り」が具現化したものだ。倒せば扉が開く。だが——URがいても、油断すれば死ぬ。'},
+        {char:'司令官',  icon:'🌊',text:'覚悟しろ！これが第3章の全力だ——！'},
+       ]},
+      {id:306, name:'3-6 崩壊の縁',    emoji:'💀',boss:false,
+       enemy:{name:'崩壊体エラス',  emoji:'💀',hp:9000,atk:480,spd:4},
+       gold:1100,gem:110,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'扉の向こう。現実が溶け崩れた異空間で、崩壊体が待ち構えていた。'},
+        {char:'崩壊体エラス',icon:'💀',text:'ここまで来たか……だがここは「終わりの場所」だ。お前たちの魂は、永遠に崩壊の中で輝き続けるだろう。'},
+       ]},
+      {id:307, name:'3-7 旧破の神',    emoji:'🌑',boss:true,
+       enemy:{name:'旧破神アビス',  emoji:'🌑',hp:35000,atk:700,spd:4},
+       gold:5000,gem:500,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'最深部。この世界が始まる前から存在する「虚無」の中心に、それはいた。'},
+        {char:'旧破神アビス',icon:'🌑',text:'……よく来た。お前が最初の挑戦者だ。この世界は既に「旧破」に飲まれている。抗うことに、意味はない。'},
+        {char:'司令官',  icon:'🌊',text:'意味がないだと？この深海で出会った全ての存在が、この瞬間のために戦ってきた。お前を倒すことが、俺たちの答えだ！'},
+        {char:'謎の声',  icon:'👁️',text:'旅人よ……私もずっと旧破神に囚われていた。お前が来るのを待っていた。どうか——世界を救ってくれ。'},
+        {char:'旧破神アビス',icon:'🌑',text:'無駄な足掻きを。これが「旧破」の意志——世界の終焉だ！'},
+        {char:'司令官',  icon:'🌊',text:'終わらせてやる。俺たちの手で、この深海に光を取り戻す——全力でかかれ！！'},
+       ]},
+    ]
+  },
 ];
+
+// QUESTS: CHAPTERSを平坦化（後方互換）
+const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
+  ...l,
+  chapterId: ch.id,
+  chapterName: ch.name,
+  bgColor: ch.bgColor,
+})));
 
 // ================================================================
 //  SAVE / LOAD (localStorage)
@@ -1330,26 +1478,66 @@ function refreshHome(){
 // ================================================================
 //  MAP
 // ================================================================
+let expandedChapter = -1;
+
 function renderMap(){
-  let html='';
-  QUESTS.forEach((q,i)=>{
-    const cleared=S.cleared.includes(q.id);
-    const locked=i>0&&!S.cleared.includes(QUESTS[i-1].id);
-    const nc=locked?'nc-locked':cleared?'nc-clear':q.boss?'nc-boss':'nc-unlock';
-    const side=i%2===0?'':'right';
-    const cb=cleared?'<div class="clear-badge">✓</div>':'';
-    const nameColor=q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
-    html+=`<div class="quest-node ${side}" onclick="${locked?'showToast(\'前のステージをクリアしてください！\')':('startQuest('+q.id+');sfx(\'click\')')}">
-      <div class="node-circle ${nc}">${q.emoji}${cb}</div>
-      <div class="node-info" style="${side?'text-align:right':''}">
-        <div class="node-name" style="color:${nameColor}">${q.name}</div>
-        <div class="node-desc" style="color:${locked?'var(--text3)':'var(--text2)'}">${q.enemy.name} HP:${q.enemy.hp}</div>
-        <div class="node-reward" style="color:${locked?'var(--text3)':'var(--gold)'}">💰${q.gold} 💎${q.gem}</div>
+  const container = document.getElementById('quest-map');
+  let html = '';
+
+  CHAPTERS.forEach(ch=>{
+    // 章のクリア状況
+    const layerIds = ch.layers.map(l=>l.id);
+    const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
+    const allCleared = clearedCount === layerIds.length;
+    // 章のロック: 前の章の全層クリアが必要
+    const chIdx = CHAPTERS.indexOf(ch);
+    const chLocked = chIdx > 0 && !CHAPTERS[chIdx-1].layers.every(l=>S.cleared.includes(l.id));
+    const isExpanded = expandedChapter === ch.id;
+    const pct = layerIds.length > 0 ? Math.round(clearedCount/layerIds.length*100) : 0;
+
+    html += `<div class="chapter-card ${chLocked?'locked':''} ${allCleared?'cleared':''}" >
+      <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
+        <div class="chapter-icon">${ch.emoji}</div>
+        <div class="chapter-info">
+          <div class="chapter-num">第${ch.id}章${allCleared?' ✓':''}</div>
+          <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
+          <div class="chapter-sub">${ch.sub}</div>
+          <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
+            <div class="chapter-prog-bar"><div class="chapter-prog-fill" style="width:${pct}%"></div></div>
+          </div>
+        </div>
+        <div style="font-size:14px;color:var(--text3);transition:transform .2s;transform:rotate(${isExpanded?'90':'0'}deg)">▶</div>
       </div>
-    </div>`;
-    if(i<QUESTS.length-1)html+=`<div class="path-line" style="margin-left:${side?'auto;margin-right':''}:26px;background:linear-gradient(180deg,${cleared?'rgba(20,140,100,.5)':'rgba(20,80,160,.3)'},transparent);"></div>`;
+      <div class="chapter-layers ${isExpanded?'open':''}" id="chapter-layers-${ch.id}">`;
+
+    ch.layers.forEach((q,li)=>{
+      const cleared = S.cleared.includes(q.id);
+      // 層のロック: 同章内の前の層クリアが必要
+      const prevId = li > 0 ? ch.layers[li-1].id : null;
+      const locked = chLocked || (prevId !== null && !S.cleared.includes(prevId));
+      const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
+      const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
+      html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
+        onclick="${locked?'showToast(\'前の層をクリアしてください！\')':('startQuest('+q.id+');sfx(\'click\')')}">
+        <div class="layer-icon ${liCls}">${q.emoji}</div>
+        <div class="layer-info">
+          <div class="layer-name" style="color:${nameColor}">${q.name}${q.boss?' 👑':''}</div>
+          <div class="layer-enemy">${q.enemy.name} HP:${q.enemy.hp.toLocaleString()} ATK:${q.enemy.atk}</div>
+          <div class="layer-reward">💰${q.gold} 💎${q.gem}</div>
+        </div>
+        <div class="layer-clear-mark">${cleared?'✓':''}</div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
   });
-  document.getElementById('quest-map').innerHTML=html;
+
+  container.innerHTML = html;
+}
+
+function toggleChapter(id){
+  expandedChapter = expandedChapter === id ? -1 : id;
+  renderMap();
 }
 
 // ================================================================
@@ -1797,7 +1985,14 @@ function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.select
 // ================================================================
 function initBattle(quest,pids){
   BT.quest=quest;BT.enemyHp=quest.enemy.hp;
-  BT.partyHp=pids.map(id=>{const c=CHARS.find(ch=>ch.id===id);return{id,hp:c.hp,maxHp:c.hp};});
+  BT.partyHp=pids.map(id=>{
+    const c=CHARS.find(ch=>ch.id===id);
+    const cd=(S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
+    const lvMul=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+    const hp=Math.round(c.hp*lvMul);
+    const atk=Math.round(c.atk*lvMul);
+    return{id,hp,maxHp:hp,atk};
+  });
   BT.turn=1;BT.combo=0;BT.active=true;
   document.getElementById('battle-stage').textContent=quest.name;
   document.getElementById('enemy-ico').textContent=quest.enemy.emoji;
@@ -1842,7 +2037,10 @@ function drawHand(ids){
     const ch=CHARS.find(c=>c.id===id);if(!ch)return;
     for(let i=0;i<CARDS_PER_MEMBER;i++){
       const c=CARDS[Math.floor(Math.random()*CARDS.length)];
-      BT.hand.push({...c,charId:id,charName:ch.name,charAtk:ch.atk,used:false,selected:false});
+      // ★レベル反映: partyHpから実際のatkを取得
+      const memberData = BT.partyHp.find(m=>m.id===id);
+      const actualAtk = memberData ? memberData.atk : ch.atk;
+      BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,used:false,selected:false});
     }
   });
   renderHand();
