@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ABYSSAL CHRONICLE</title>
-<!-- ★★★ favicon 追加 ★★★ -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23020810' width='100' height='100'/><circle cx='50' cy='50' r='30' fill='%231a8aff'/><path d='M50 30 L60 50 L50 70 L40 50 Z' fill='%2310c0a0'/></svg>">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -268,6 +266,34 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .boot-sub{font-size:10px;color:var(--text3);letter-spacing:.25em;}
 .boot-bar{width:180px;height:1px;background:var(--border2);border-radius:1px;overflow:hidden;margin-top:8px;}
 .boot-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));width:0;border-radius:1px;transition:width .05s;}
+
+/* ===== STORY SCREEN ===== */
+.story-screen{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;}
+.story-screen.show{display:flex;}
+.story-bg{position:absolute;inset:0;z-index:0;}
+.story-bg-canvas{position:absolute;inset:0;width:100%;height:100%;}
+.story-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.3) 0%,rgba(0,0,0,.7) 60%,rgba(0,0,0,.92) 100%);}
+.story-top{position:relative;z-index:5;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.story-chapter{font-size:10px;color:rgba(160,200,240,.7);letter-spacing:.15em;}
+.story-skip{font-size:11px;color:rgba(160,200,240,.5);cursor:pointer;padding:4px 10px;border:.5px solid rgba(160,200,240,.2);border-radius:6px;}
+.story-skip:hover{color:rgba(160,200,240,.8);border-color:rgba(160,200,240,.4);}
+.story-content{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:0 0 20px;}
+.story-scene{padding:0 16px 10px;min-height:60px;display:flex;align-items:flex-end;gap:12px;}
+.story-char-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid rgba(160,200,240,.3);background:rgba(0,20,40,.6);}
+.story-char-name{font-size:11px;color:var(--teal);font-weight:500;margin-bottom:4px;letter-spacing:.05em;}
+.story-textbox{background:rgba(2,8,20,.88);border:.5px solid rgba(30,80,140,.5);border-radius:12px;padding:14px 16px;flex:1;backdrop-filter:blur(8px);}
+.story-text{font-size:13px;color:#c8d8e8;line-height:1.8;min-height:44px;}
+.story-cursor{display:inline-block;width:6px;height:13px;background:var(--teal);margin-left:4px;animation:blink .7s infinite;vertical-align:middle;}
+.story-progress{display:flex;gap:4px;justify-content:center;padding:10px 16px 6px;}
+.story-dot{width:6px;height:6px;border-radius:50%;background:rgba(160,200,240,.2);transition:background .3s;}
+.story-dot.active{background:var(--teal);}
+.story-dot.done{background:rgba(160,200,240,.4);}
+.story-bottom{position:relative;z-index:5;padding:10px 16px 16px;display:flex;gap:8px;}
+.story-next-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,40,100,.4);font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
+.story-next-btn:hover{background:rgba(20,60,140,.5);}
+.story-battle-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(200,100,30,.5);background:rgba(100,40,10,.4);font-size:13px;color:#e0a060;cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
+.story-battle-btn:hover{background:rgba(140,60,20,.5);}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -524,6 +550,31 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   </div>
 </div>
 
+<!-- STORY SCREEN -->
+<div class="story-screen" id="story-screen">
+  <div class="story-bg">
+    <canvas class="story-bg-canvas" id="story-canvas"></canvas>
+    <div class="story-overlay"></div>
+  </div>
+  <div class="story-top">
+    <div class="story-chapter" id="story-chapter-label">第1層</div>
+    <div class="story-skip" onclick="skipStory()">スキップ ▶▶</div>
+  </div>
+  <div class="story-content">
+    <div class="story-scene">
+      <div class="story-char-icon" id="story-char-icon">🌊</div>
+      <div class="story-textbox">
+        <div class="story-char-name" id="story-char-name">???</div>
+        <div class="story-text" id="story-text"></div>
+      </div>
+    </div>
+  </div>
+  <div class="story-progress" id="story-progress"></div>
+  <div class="story-bottom" id="story-bottom">
+    <div class="story-next-btn" id="story-next-btn" onclick="nextStoryLine()">タップして続ける</div>
+  </div>
+</div>
+
 <!-- BATTLE END -->
 <div class="battle-end" id="battle-end">
   <div class="end-ttl" id="end-ttl">VICTORY</div>
@@ -771,13 +822,65 @@ const CARDS=[
   {name:'暗礁射',emoji:'🎯',dmg:1.2},{name:'渦流陣',emoji:'💫',dmg:1.4},
 ];
 const QUESTS=[
-  {id:1,name:'第1層 — 霧の浅瀬',    emoji:'🌊',boss:false,enemy:{name:'霧の漂流者', emoji:'🦠',hp:600, atk:50}, gold:200,gem:20},
-  {id:2,name:'第2層 — 沈黙の岩礁',  emoji:'🪨',boss:false,enemy:{name:'岩礁の蟹将軍',emoji:'🦀',hp:900, atk:75}, gold:300,gem:30},
-  {id:3,name:'第3層 — 深流の回廊',  emoji:'🌀',boss:false,enemy:{name:'深流の幽霊船',emoji:'⛵',hp:1400,atk:110},gold:500,gem:45},
-  {id:4,name:'第4層 — 暗礁の番所',  emoji:'🏚️',boss:false,enemy:{name:'番所の鎧魚',  emoji:'🐡',hp:1800,atk:140},gold:700,gem:60},
-  {id:5,name:'中間BOSS — 深海竜',   emoji:'🐉',boss:true, enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:3000,atk:200},gold:1200,gem:1000},
-  {id:6,name:'第6層 — 崩壊の縁',    emoji:'💀',boss:false,enemy:{name:'崩壊体エラス',emoji:'👾',hp:2500,atk:170},gold:900,gem:80},
-  {id:7,name:'最深BOSS — 旧破の神', emoji:'🌑',boss:true, enemy:{name:'旧破神アビス',emoji:'🌑',hp:6000,atk:350},gold:3000,gem:30000},
+  {id:1,name:'第1層 — 霧の浅瀬',    emoji:'🌊',boss:false,enemy:{name:'霧の漂流者', emoji:'🦠',hp:600, atk:50}, gold:200,gem:20,
+   bgColor:['#010a14','#021828'],
+   story:[
+    {char:'司令官',icon:'🌊',text:'…ここは、どこだ。目を開けると、そこは底なしの深海だった。光すら届かない暗闇の中、私は漂っていた。'},
+    {char:'謎の声',icon:'👁️',text:'……目が覚めたか、旅人よ。お前は「旧破の扉」に選ばれた。この深海の果てに眠る真実を、見届けよ。'},
+    {char:'司令官',icon:'🌊',text:'旧破の扉…？何も分からないが、前に進むしかない。霧の向こうに、何かが蠢いている。'},
+    {char:'ナレーター',icon:'📖',text:'霧の浅瀬。かつては穏やかな海域だったこの場所は、今や得体の知れない生命体に侵食されていた。'},
+  ]},
+  {id:2,name:'第2層 — 沈黙の岩礁',  emoji:'🪨',boss:false,enemy:{name:'岩礁の蟹将軍',emoji:'🦀',hp:900, atk:75}, gold:300,gem:30,
+   bgColor:['#0a0800','#1a1000'],
+   story:[
+    {char:'司令官',icon:'🌊',text:'岩礁の群れを抜けた先に、巨大な影が見えた。あれは…甲殻類か。しかし異様に大きい。'},
+    {char:'岩礁の蟹将軍',icon:'🦀',text:'グルルル……侵入者め。この岩礁は我が領域。踏み込んだ者は骨まで砕いてやろう。'},
+    {char:'司令官',icon:'🌊',text:'退くわけにはいかない。この先に旧破の手がかりがあるはずだ。進め！'},
+    {char:'ナレーター',icon:'📖',text:'沈黙の岩礁。何千年もの圧力を受けた岩盤の奥に、古代の何かが封じられているという伝承が残る。'},
+  ]},
+  {id:3,name:'第3層 — 深流の回廊',  emoji:'🌀',boss:false,enemy:{name:'深流の幽霊船',emoji:'⛵',hp:1400,atk:110},gold:500,gem:45,
+   bgColor:['#000510','#001030'],
+   story:[
+    {char:'ナレーター',icon:'📖',text:'深流の回廊。海底を貫く強大な海流が作り出した巨大な通路。その中に、一隻の廃船が漂っていた。'},
+    {char:'司令官',icon:'🌊',text:'あの船は…乗組員がいない。いや、待て。何かが動いている。幽霊か、それとも——'},
+    {char:'幽霊船の声',icon:'⛵',text:'ヒヒヒ…また迷い込んだか。この回廊に入ったが最後、二度と出られぬ。我らと共に深海を彷徨え……'},
+    {char:'司令官',icon:'🌊',text:'ここで立ち止まるな。あの船を突破すれば、次の層が見えてくるはずだ！'},
+  ]},
+  {id:4,name:'第4層 — 暗礁の番所',  emoji:'🏚️',boss:false,enemy:{name:'番所の鎧魚',  emoji:'🐡',hp:1800,atk:140},gold:700,gem:60,
+   bgColor:['#080010','#100020'],
+   story:[
+    {char:'謎の声',icon:'👁️',text:'旅人よ、よく辿り着いた。この先は「旧破の前庭」と呼ばれる領域だ。番人が待ち構えている。'},
+    {char:'司令官',icon:'🌊',text:'番人…？この海底に守るべきものがあるということか。だとすれば、それが旧破の核心に違いない。'},
+    {char:'番所の鎧魚',icon:'🐡',text:'貴様が来ることは分かっていた。旧破神の眠りを妨げる者は、この鎧で串刺しにしてくれる！'},
+    {char:'ナレーター',icon:'📖',text:'番所の鎧魚。旧破神が眠りに就く際、その扉を守るために生み出された古代の番兵。鋼鉄の鱗は如何なる攻撃も弾くという。'},
+  ]},
+  {id:5,name:'中間BOSS — 深海竜',   emoji:'🐉',boss:true, enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:3000,atk:200},gold:1200,gem:100,
+   bgColor:['#0a0000','#200010'],
+   story:[
+    {char:'ナレーター',icon:'📖',text:'深海の最深部へと続く大扉の前。突如として海底が震え、地響きのような咆哮が轟いた。'},
+    {char:'司令官',icon:'🌊',text:'なんだ…この震動は！地震じゃない、何かが目覚めようとしている——！'},
+    {char:'深海竜ヴォルガ',icon:'🐉',text:'GRAAOOOO……！長き眠りを妨げた愚か者めが。旧破の扉は俺が守る。貴様ごときに渡してなるものか！'},
+    {char:'謎の声',icon:'👁️',text:'旅人よ、この竜は旧破神の「夢」が具現化したものだ。倒せば扉が開く。だが覚悟せよ——真の試練はその先にある。'},
+    {char:'司令官',icon:'🌊',text:'退けない。今まで辿り着いた道を、仲間たちとの戦いを、無駄にするわけにはいかない。行くぞ！'},
+  ]},
+  {id:6,name:'第6層 — 崩壊の縁',    emoji:'💀',boss:false,enemy:{name:'崩壊体エラス',emoji:'👾',hp:2500,atk:170},gold:900,gem:80,
+   bgColor:['#050005','#100015'],
+   story:[
+    {char:'ナレーター',icon:'📖',text:'扉の向こうに広がっていたのは、現実が溶け崩れたような異空間だった。空間そのものが崩壊している。'},
+    {char:'司令官',icon:'🌊',text:'これが旧破の領域か…物理法則が狂っている。足元すら信用できない。'},
+    {char:'崩壊体エラス',icon:'👾',text:'フフフ……ここまで来たか。だがここは「旧破の残滓」が満ちた場所。正気を保てるか？お前の意識を、溶かしてやろう。'},
+    {char:'司令官',icon:'🌊',text:'意識を保て。仲間の声を聞け。これはただの幻だ。旧破神の前に、この崩壊体を倒す！'},
+  ]},
+  {id:7,name:'最深BOSS — 旧破の神', emoji:'🌑',boss:true, enemy:{name:'旧破神アビス',emoji:'🌑',hp:6000,atk:350},gold:3000,gem:300,
+   bgColor:['#000000','#050008'],
+   story:[
+    {char:'ナレーター',icon:'📖',text:'最深部。この世界が始まる前から存在する「虚無」の中心に、それはいた。'},
+    {char:'旧破神アビス',icon:'🌑',text:'……よく来た、旅人。お前が最初の挑戦者だ。この世界は既に「旧破」に飲まれている。抗うことに、意味はない。'},
+    {char:'司令官',icon:'🌊',text:'意味がないだと？この深海で出会った全ての存在が、この瞬間のために戦ってきた。お前を倒すことが、俺たちの答えだ。'},
+    {char:'謎の声',icon:'👁️',text:'旅人よ……実は私もずっと旧破神に囚われていた。お前が来るのを、ずっと待っていた。どうか——世界を救ってくれ。'},
+    {char:'旧破神アビス',icon:'🌑',text:'無駄な足掻きを。この深海ごと、お前たちを飲み込んでやろう。これが「旧破」の意志——世界の終焉だ！'},
+    {char:'司令官',icon:'🌊',text:'終わらせてやる。俺たちの手で、この深海に光を取り戻す。全力でかかれ——！'},
+  ]},
 ];
 
 // ================================================================
@@ -915,10 +1018,144 @@ function renderMap(){
   document.getElementById('quest-map').innerHTML=html;
 }
 
+// ================================================================
+//  STORY ENGINE
+// ================================================================
+let storyState = {quest:null, lineIdx:0, typing:false, timer:null, partyIds:[]};
+
 function startQuest(qid){
-  const ap=S.party.filter(id=>id!==-1);
-  if(!ap.length){showModal('パーティ未編成','出撃前にパーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]);return;}
-  initBattle(QUESTS.find(q=>q.id===qid),ap);
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){
+    showModal('パーティ未編成','出撃前にパーティを編成してください。',[
+      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
+    ]);
+    return;
+  }
+  sfx('click');
+  const quest = QUESTS.find(q=>q.id===qid);
+  // 既読チェック
+  const readKey = 'story_read_' + qid;
+  const alreadyRead = localStorage.getItem(readKey);
+  if(alreadyRead){
+    // 既読なら直接戦闘 or 再読オプション
+    showModal(quest.name,
+      '既にこのストーリーは読みました。',
+      [
+        {label:'⚔️ 戦闘開始', action:()=>initBattle(quest, ap), primary:true},
+        {label:'📖 もう一度読む', action:()=>openStory(quest, ap)},
+      ]
+    );
+  } else {
+    openStory(quest, ap);
+  }
+}
+
+function openStory(quest, partyIds){
+  storyState = {quest, lineIdx:0, typing:false, timer:null, partyIds};
+  const sc = document.getElementById('story-screen');
+  sc.classList.add('show');
+  document.getElementById('story-chapter-label').textContent = quest.name;
+  renderStoryProgress();
+  initStoryBg(quest);
+  showStoryLine(0);
+}
+
+function initStoryBg(quest){
+  const cv = document.getElementById('story-canvas');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  const ctx = cv.getContext('2d');
+  const [c1, c2] = quest.bgColor || ['#010a14','#021828'];
+  const pts = Array.from({length:25},()=>({
+    x:Math.random()*cv.width, y:Math.random()*cv.height,
+    r:.5+Math.random()*2, vy:-.08-Math.random()*.2, op:.08+Math.random()*.18
+  }));
+  (function draw(){
+    if(!document.getElementById('story-screen').classList.contains('show')) return;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const g = ctx.createLinearGradient(0,0,0,cv.height);
+    g.addColorStop(0,c1); g.addColorStop(1,c2);
+    ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+    pts.forEach(p=>{
+      p.y+=p.vy; p.x+=Math.sin(p.y*.02)*.2;
+      if(p.y<-5){p.y=cv.height+5;p.x=Math.random()*cv.width;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(80,160,220,${p.op})`; ctx.lineWidth=.5; ctx.stroke();
+    });
+    requestAnimationFrame(draw);
+  })();
+}
+
+function renderStoryProgress(){
+  const lines = storyState.quest.story;
+  document.getElementById('story-progress').innerHTML =
+    lines.map((_,i)=>`<div class="story-dot ${i===storyState.lineIdx?'active':i<storyState.lineIdx?'done':''}"></div>`).join('');
+}
+
+function showStoryLine(idx){
+  const lines = storyState.quest.story;
+  if(idx >= lines.length){ endStory(); return; }
+  storyState.lineIdx = idx;
+  const line = lines[idx];
+  document.getElementById('story-char-icon').textContent = line.icon;
+  document.getElementById('story-char-name').textContent = line.char;
+  const textEl = document.getElementById('story-text');
+  textEl.innerHTML = '';
+  renderStoryProgress();
+
+  // 最後の行かどうかでボタン変更
+  const isLast = idx === lines.length - 1;
+  document.getElementById('story-bottom').innerHTML = isLast
+    ? `<div class="story-battle-btn" onclick="endStory()">⚔️ 戦闘開始！</div>`
+    : `<div class="story-next-btn" onclick="nextStoryLine()">タップして続ける ▶</div>`;
+
+  // タイプライター演出
+  storyState.typing = true;
+  let i = 0;
+  const full = line.text;
+  if(storyState.timer) clearInterval(storyState.timer);
+  storyState.timer = setInterval(()=>{
+    if(i < full.length){
+      textEl.innerHTML = full.slice(0,++i) + '<span class="story-cursor"></span>';
+    } else {
+      textEl.innerHTML = full;
+      storyState.typing = false;
+      clearInterval(storyState.timer);
+    }
+  }, 28);
+}
+
+function nextStoryLine(){
+  sfx('click');
+  if(storyState.typing){
+    // タイプ中はスキップして全文表示
+    clearInterval(storyState.timer);
+    storyState.typing = false;
+    const line = storyState.quest.story[storyState.lineIdx];
+    document.getElementById('story-text').innerHTML = line.text;
+    const isLast = storyState.lineIdx === storyState.quest.story.length - 1;
+    document.getElementById('story-bottom').innerHTML = isLast
+      ? `<div class="story-battle-btn" onclick="endStory()">⚔️ 戦闘開始！</div>`
+      : `<div class="story-next-btn" onclick="nextStoryLine()">タップして続ける ▶</div>`;
+    return;
+  }
+  showStoryLine(storyState.lineIdx + 1);
+}
+
+function skipStory(){
+  sfx('click');
+  showModal('スキップ','ストーリーをスキップして戦闘を開始しますか？',[
+    {label:'⚔️ 戦闘へ', action:()=>endStory(), primary:true},
+    {label:'読み続ける', action:()=>{}},
+  ]);
+}
+
+function endStory(){
+  sfx('click');
+  if(storyState.timer) clearInterval(storyState.timer);
+  // 既読フラグをセット
+  localStorage.setItem('story_read_' + storyState.quest.id, '1');
+  document.getElementById('story-screen').classList.remove('show');
+  initBattle(storyState.quest, storyState.partyIds);
 }
 
 // ================================================================
