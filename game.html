@@ -384,6 +384,41 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .story-next-btn:hover{background:rgba(20,60,140,.5);}
 .story-battle-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(200,100,30,.5);background:rgba(100,40,10,.4);font-size:13px;color:#e0a060;cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
 .story-battle-btn:hover{background:rgba(140,60,20,.5);}
+/* ===== NOTICE BOX ===== */
+.notif-bell{position:relative;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;}
+.notif-bell-icon{font-size:18px;transition:transform .2s;}
+.notif-bell:hover .notif-bell-icon{transform:rotate(20deg);}
+.notif-badge{position:absolute;top:0;right:0;width:14px;height:14px;border-radius:50%;background:var(--red);font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;display:none;}
+.notif-badge.show{display:flex;}
+
+.notif-dropdown{position:absolute;top:52px;right:8px;width:280px;background:rgba(4,12,26,.97);border:.5px solid var(--border3);border-radius:14px;z-index:200;display:none;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.notif-dropdown.show{display:flex;}
+.notif-dropdown-header{padding:10px 14px 8px;border-bottom:.5px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
+.notif-dropdown-title{font-size:12px;font-weight:500;color:var(--text);}
+.notif-dropdown-close{font-size:14px;color:var(--text3);cursor:pointer;padding:2px 6px;}
+.notif-dropdown-close:hover{color:var(--text);}
+.notif-list{max-height:320px;overflow-y:auto;}
+.notif-list::-webkit-scrollbar{width:2px;}
+.notif-list::-webkit-scrollbar-thumb{background:var(--border3);}
+.notif-item{padding:10px 14px;border-bottom:.5px solid rgba(10,30,50,.5);cursor:pointer;transition:background .15s;}
+.notif-item:hover{background:rgba(10,40,80,.4);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.notif-type-badge{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;}
+.ntb-event{background:rgba(60,120,200,.25);color:#60a0e0;border:.5px solid rgba(60,120,200,.4);}
+.ntb-gift{background:rgba(200,160,0,.2);color:#c8a020;border:.5px solid rgba(200,160,0,.3);}
+.ntb-info{background:rgba(20,100,80,.2);color:var(--teal);border:.5px solid rgba(20,100,80,.3);}
+.ntb-update{background:rgba(100,40,160,.2);color:#a060e0;border:.5px solid rgba(100,40,160,.3);}
+.notif-item-title{font-size:11px;font-weight:500;color:var(--text);}
+.notif-item-body{font-size:10px;color:var(--text2);line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.notif-item-date{font-size:9px;color:var(--text3);margin-top:3px;}
+.notif-item.unread .notif-item-title{color:#80c0ff;}
+.notif-unread-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+.notif-empty{padding:20px;text-align:center;font-size:11px;color:var(--text3);}
+.notif-footer{padding:8px 14px;border-top:.5px solid var(--border2);text-align:center;}
+.notif-footer-btn{font-size:10px;color:var(--teal);cursor:pointer;}
+.notif-footer-btn:hover{color:#40e0c0;}
+
 
 </style>
 <!-- Firebase SDK -->
@@ -406,14 +441,34 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 
 <!-- HOME -->
 <div class="screen" id="screen-home">
-  <div class="header">
+  <div class="header" style="position:relative;">
     <div class="player-info">
       <div class="avatar">🌊</div>
       <div><div class="pname">深海司令官</div><div class="prank" id="home-prank">Rank 1</div></div>
     </div>
-    <div class="currencies">
-      <div class="currency"><div class="curr-icon curr-gold"></div><div class="curr-val" id="gold-val">0</div></div>
-      <div class="currency"><div class="curr-icon curr-gem"></div><div class="curr-val" id="gem-val">600</div></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="currencies">
+        <div class="currency"><div class="curr-icon curr-gold"></div><div class="curr-val" id="gold-val">0</div></div>
+        <div class="currency"><div class="curr-icon curr-gem"></div><div class="curr-val" id="gem-val">600</div></div>
+      </div>
+      <!-- お知らせベル -->
+      <div class="notif-bell" id="notif-bell" onclick="toggleNotifDropdown()">
+        <div class="notif-bell-icon">🔔</div>
+        <div class="notif-badge" id="notif-badge">0</div>
+      </div>
+    </div>
+    <!-- お知らせドロップダウン -->
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-dropdown-header">
+        <div class="notif-dropdown-title">📢 お知らせ</div>
+        <div class="notif-dropdown-close" onclick="closeNotifDropdown()">✕</div>
+      </div>
+      <div class="notif-list" id="notif-list-dropdown">
+        <div class="notif-empty">お知らせを読み込み中...</div>
+      </div>
+      <div class="notif-footer">
+        <div class="notif-footer-btn" onclick="goTo('notices');closeNotifDropdown();sfx('click')">すべて見る →</div>
+      </div>
     </div>
   </div>
   <div class="content">
@@ -2307,19 +2362,96 @@ function doTransfer(){
 function showOnlineNotices(){
   if(!ONLINE_NOTICES.length) return;
   const bar = document.getElementById('notice-text-bar');
-  if(!bar) return;
-  // 重要なものを優先、なければ最新のものを表示
-  const important = ONLINE_NOTICES.filter(n => n.important===true || n.important==='true');
-  const target = important.length ? important[0] : ONLINE_NOTICES[0];
-  if(target){
-    bar.textContent = target.title + ' — ' + (target.body||'').split('\n')[0];
-    // NEWバッジを表示
-    const badge = document.querySelector('.notice-new');
-    if(badge) badge.style.display = 'block';
+  if(bar){
+    const important = ONLINE_NOTICES.filter(n => n.important===true || n.important==='true');
+    const target = important.length ? important[0] : ONLINE_NOTICES[0];
+    if(target){
+      bar.textContent = target.title + ' — ' + (target.body||'').split('\n')[0];
+      const badge = document.querySelector('.notice-new');
+      if(badge) badge.style.display='block';
+    }
   }
+  // ドロップダウンを更新
+  renderNotifDropdown();
   // お知らせ画面も更新
   renderNotices();
 }
+
+// ================================================================
+//  NOTICE DROPDOWN
+// ================================================================
+let readNoticeIds = JSON.parse(localStorage.getItem('read_notices')||'[]');
+
+function renderNotifDropdown(){
+  const list = document.getElementById('notif-list-dropdown');
+  if(!list) return;
+  if(!ONLINE_NOTICES.length){
+    list.innerHTML='<div class="notif-empty">お知らせはありません</div>';
+    return;
+  }
+  const unreadCount = ONLINE_NOTICES.filter(n=>!readNoticeIds.includes(n.id||n.title)).length;
+  // バッジ更新
+  const badge = document.getElementById('notif-badge');
+  if(badge){
+    badge.textContent = unreadCount>9?'9+':unreadCount;
+    badge.classList.toggle('show', unreadCount>0);
+  }
+
+  list.innerHTML = ONLINE_NOTICES.slice(0,10).map(n=>{
+    const isUnread = !readNoticeIds.includes(n.id||n.title);
+    const typeMap = {event:'ntb-event',gift:'ntb-gift',info:'ntb-info',update:'ntb-update'};
+    const typeCls = typeMap[n.type]||'ntb-info';
+    const typeLabel = n.type==='event'?'イベント':n.type==='gift'?'配布':n.type==='update'?'更新':'お知らせ';
+    return`<div class="notif-item ${isUnread?'unread':''}" onclick="readNotice('${n.id||n.title}')">
+      <div class="notif-item-top">
+        ${isUnread?'<div class="notif-unread-dot"></div>':''}
+        <div class="notif-type-badge ${typeCls}">${typeLabel}</div>
+        <div class="notif-item-title">${n.title||''}</div>
+      </div>
+      <div class="notif-item-body">${(n.body||'').split('\n')[0]}</div>
+      <div class="notif-item-date">${n.date||''}</div>
+    </div>`;
+  }).join('');
+}
+
+function readNotice(id){
+  if(!readNoticeIds.includes(id)){
+    readNoticeIds.push(id);
+    localStorage.setItem('read_notices', JSON.stringify(readNoticeIds));
+    renderNotifDropdown();
+  }
+}
+
+function toggleNotifDropdown(){
+  sfx('click');
+  const dd = document.getElementById('notif-dropdown');
+  const isShow = dd.classList.contains('show');
+  if(isShow){ dd.classList.remove('show'); }
+  else{
+    dd.classList.add('show');
+    renderNotifDropdown();
+    // 全既読にする（開いたら読んだとみなす）
+    ONLINE_NOTICES.forEach(n=>{
+      const id = n.id||n.title;
+      if(!readNoticeIds.includes(id)) readNoticeIds.push(id);
+    });
+    localStorage.setItem('read_notices', JSON.stringify(readNoticeIds));
+    setTimeout(()=>renderNotifDropdown(), 300);
+  }
+}
+
+function closeNotifDropdown(){
+  document.getElementById('notif-dropdown').classList.remove('show');
+}
+
+// ドロップダウン外クリックで閉じる
+document.addEventListener('click',(e)=>{
+  const bell = document.getElementById('notif-bell');
+  const dd   = document.getElementById('notif-dropdown');
+  if(dd&&!dd.contains(e.target)&&bell&&!bell.contains(e.target)){
+    dd.classList.remove('show');
+  }
+});
 </script>
 </body>
 </html>
