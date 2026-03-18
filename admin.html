@@ -227,14 +227,16 @@ function switchTab(tab){
 //  ダッシュボード
 // ================================================================
 async function loadDashboard(){
-  const [users, notices, gifts] = await Promise.all([
-    db.collection('players').get(),
-    db.collection('notices').get(),
-    db.collection('gifts').where('active','==',true).get()
-  ]);
-  document.getElementById('stat-users').textContent   = users.size;
-  document.getElementById('stat-notices').textContent  = notices.size;
-  document.getElementById('stat-gifts').textContent    = gifts.size;
+  try{
+    const [users, notices, gifts] = await Promise.all([
+      db.collection('players').get().catch(()=>({size:0})),
+      db.collection('notices').get().catch(()=>({size:0})),
+      db.collection('gifts').where('active','==',true).get().catch(()=>({size:0}))
+    ]);
+    document.getElementById('stat-users').textContent   = users.size||0;
+    document.getElementById('stat-notices').textContent  = notices.size||0;
+    document.getElementById('stat-gifts').textContent    = gifts.size||0;
+  }catch(e){ console.error('loadDashboard error:', e); }
 }
 
 // ================================================================
@@ -265,15 +267,16 @@ async function postNotice(){
 }
 
 async function loadNotices(){
-  const snap = await db.collection('notices').orderBy('createdAt','desc').limit(20).get();
+  const snap = await db.collection('notices').limit(20).get();
   const el = document.getElementById('notices-list-admin');
   if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">お知らせはありません</div>'; return; }
-  el.innerHTML = snap.docs.map(d=>{
-    const n=d.data();
+  const sortedNotices = snap.docs.map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  el.innerHTML = sortedNotices.map(d=>{
     return `<div class="notice-item">
       <div>
-        <div class="notice-item-title">${n.important?'⚠️ ':''}${n.title}</div>
-        <div class="notice-item-date">${n.date} — ${n.type}</div>
+        <div class="notice-item-title">${d.important?'⚠️ ':''}${d.title}</div>
+        <div class="notice-item-date">${d.date||''} — ${d.type||''}</div>
       </div>
       <div class="del-btn" onclick="deleteNotice('${d.id}')">削除</div>
     </div>`;
@@ -312,11 +315,13 @@ async function createGift(){
 }
 
 async function loadGifts(){
-  const snap = await db.collection('gifts').orderBy('createdAt','desc').limit(20).get();
+  const snap = await db.collection('gifts').limit(20).get();
   const el = document.getElementById('gifts-list-admin');
   if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">配布履歴がありません</div>'; return; }
-  el.innerHTML = snap.docs.map(d=>{
-    const g=d.data();
+  const sortedGifts = snap.docs.map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>(b.createdAt||'').toString().localeCompare((a.createdAt||'').toString()));
+  el.innerHTML = sortedGifts.map(d=>{
+    const g=d;
     return `<div class="gift-item">
       <div>
         <div style="font-size:12px;font-weight:500;">${g.name}</div>
@@ -324,7 +329,7 @@ async function loadGifts(){
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div class="${g.active?'gift-active':'gift-inactive'}">${g.active?'配布中':'終了'}</div>
-        ${g.active?`<div class="del-btn" onclick="stopGift('${d.id}')">停止</div>`:''}
+        ${g.active?`<div class="del-btn" onclick="stopGift('${g.id}')">停止</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -340,19 +345,29 @@ async function stopGift(id){
 //  ユーザー管理
 // ================================================================
 async function loadUsers(){
-  const snap = await db.collection('players').orderBy('createdAt','desc').limit(20).get().catch(()=>({docs:[]}));
   const el = document.getElementById('users-list-admin');
-  if(!snap.docs||snap.docs.length===0){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">ユーザーがいません</div>'; return; }
-  el.innerHTML = snap.docs.map(d=>{
-    const u=d.data();
-    return `<div class="user-item">
-      <div>
-        <div class="user-id">${u.playerId||'----'}</div>
-        <div class="user-info">💰${u.gold||0} 💎${u.gem||0} | キャラ${(u.owned||[]).length}体 | クリア${(u.cleared||[]).length}章</div>
-      </div>
-      <div style="font-size:10px;color:#3a5060;">${(u.createdAt||'').slice(0,10)}</div>
-    </div>`;
-  }).join('');
+  try{
+    const snap = await db.collection('players').limit(50).get();
+    if(!snap.docs||snap.docs.length===0){
+      el.innerHTML='<div style="font-size:12px;color:#3a5060;">ユーザーがいません（Firestoreにplayersコレクションが未作成の可能性があります）</div>';
+      return;
+    }
+    // createdAtで降順ソート（クライアント側で）
+    const users = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+    el.innerHTML = users.map(u=>`
+      <div class="user-item">
+        <div>
+          <div class="user-id">${u.playerId||'（ID未設定）'}</div>
+          <div class="user-info">💰${u.gold||0} 💎${u.gem||0} | キャラ${(u.owned||[]).length}体 | クリア${(u.cleared||[]).length}章</div>
+          <div class="user-info" style="margin-top:2px;font-size:9px;">UID: ${u.id.slice(0,12)}...</div>
+        </div>
+        <div style="font-size:10px;color:#3a5060;">${(u.createdAt||'').slice(0,10)}</div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML=`<div style="font-size:12px;color:#e06060;">❌ 読み込みエラー: ${e.message}</div>`;
+    console.error('loadUsers error:', e);
+  }
 }
 </script>
 </body>
