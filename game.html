@@ -267,6 +267,42 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .boot-bar{width:180px;height:1px;background:var(--border2);border-radius:1px;overflow:hidden;margin-top:8px;}
 .boot-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));width:0;border-radius:1px;transition:width .05s;}
 
+/* SEARCH & FILTER */
+.filter-bar{display:flex;gap:6px;padding:0 0 10px;flex-wrap:wrap;align-items:center;}
+.search-input{flex:1;min-width:100px;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text);font-family:inherit;outline:none;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:rgba(20,100,180,.5);}
+.rfb{padding:5px 9px;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;border:.5px solid;transition:opacity .15s;flex-shrink:0;}
+.rfb.on{opacity:1;}
+.rfb.off{opacity:.3;}
+.rfb-all{background:rgba(20,50,90,.3);border-color:rgba(60,120,200,.4);color:#80b0e0;}
+.rfb-ur{background:rgba(80,50,0,.3);border-color:rgba(220,180,0,.5);color:#ffe040;}
+.rfb-ssr{background:rgba(80,40,0,.3);border-color:rgba(200,120,0,.5);color:#d4a020;}
+.rfb-sr{background:rgba(50,10,100,.3);border-color:rgba(130,50,200,.5);color:#a060e0;}
+.rfb-r{background:rgba(10,30,80,.3);border-color:rgba(30,80,180,.4);color:#4080c0;}
+.char-count{font-size:9px;color:var(--text3);margin-bottom:6px;}
+
+/* GACHA DETAIL OVERLAY */
+.gdp-overlay{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.88);display:none;align-items:flex-end;justify-content:center;}
+.gdp-overlay.show{display:flex;}
+.gdp-panel{background:var(--bg2);border-top:.5px solid var(--border3);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:18px 16px 40px;max-height:88vh;overflow-y:auto;}
+.gdp-panel::-webkit-scrollbar{width:2px;}
+.gdp-h{font-size:14px;font-weight:500;margin-bottom:12px;}
+.gdp-sec{font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 6px;}
+.rate-tbl{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.rate-tbl th{font-size:9px;color:var(--text3);padding:4px 6px;text-align:left;border-bottom:.5px solid var(--border2);}
+.rate-tbl td{font-size:11px;padding:5px 6px;border-bottom:.5px solid rgba(10,30,50,.4);}
+.gdp-char-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid rgba(10,30,50,.3);}
+.gdp-char-ico{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.gdp-char-nm{font-size:11px;flex:1;}
+.gdp-pu-badge{font-size:8px;background:rgba(200,160,0,.2);border:.5px solid rgba(200,160,0,.4);border-radius:3px;padding:1px 4px;color:#c8a020;}
+.gdp-rate-txt{font-size:10px;color:var(--text2);}
+.gdp-close{width:100%;padding:10px;border-radius:9px;border:.5px solid var(--border3);background:rgba(255,255,255,.03);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);margin-top:6px;}
+
+/* VERSION BADGE */
+.ver-badge{display:inline-block;background:rgba(10,80,60,.3);border:.5px solid rgba(20,160,120,.4);border-radius:6px;padding:3px 8px;font-size:9px;color:var(--teal);letter-spacing:.05em;}
+
+
 /* ===== CHAR DETAIL / GROW ===== */
 .char-detail-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.85);display:none;align-items:flex-end;justify-content:center;}
 .char-detail-overlay.show{display:flex;}
@@ -400,7 +436,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
       <div class="menu-btn" onclick="goTo('quest');sfx('click')"><div class="menu-icon-w mi-q">⚓</div><div class="menu-lbl">クエスト</div></div>
       <div class="menu-btn" onclick="goTo('gacha');sfx('click')"><div class="menu-new">NEW</div><div class="menu-icon-w mi-g">🔮</div><div class="menu-lbl">召喚</div></div>
       <div class="menu-btn" onclick="goTo('party');sfx('click')"><div class="menu-icon-w mi-p">🐙</div><div class="menu-lbl">編成</div></div>
-      <div class="menu-btn" onclick="goTo('party');sfx('click')"><div class="menu-icon-w mi-gr">🧬</div><div class="menu-lbl">育成</div></div>
+      <div class="menu-btn" onclick="goTo('grow');sfx('click')"><div class="menu-icon-w mi-gr">🧬</div><div class="menu-lbl">育成</div></div>
       <div class="menu-btn" onclick="showToast('ショップ — 近日公開');sfx('click')"><div class="menu-icon-w mi-s">🪸</div><div class="menu-lbl">ショップ</div></div>
       <div class="menu-btn" onclick="goTo('settings');sfx('click')"><div class="menu-icon-w mi-m">⚙️</div><div class="menu-lbl">設定</div></div>
     </div>
@@ -450,12 +486,13 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
         <div class="gacha-ttl" id="gacha-banner-title">-</div>
         <div class="gacha-sub" id="gacha-banner-sub">-</div>
       </div>
-      <div class="rate-row">
+      <div class="rate-row" style="align-items:center;">
         <div class="rate-pill ur">UR 0.1%</div>
         <div class="rate-pill ssr">SSR 1.9%</div>
         <div class="rate-pill sr">SR 13%</div>
         <div class="rate-pill r">R 85%</div>
         <div class="rate-pill pity-pill">天井 100回</div>
+        <div onclick="openGachaDetail();sfx('click')" style="margin-left:auto;font-size:9px;color:var(--teal);cursor:pointer;padding:3px 8px;border:.5px solid rgba(16,192,160,.3);border-radius:6px;flex-shrink:0;">詳細 ▶</div>
       </div>
       <div class="gacha-pickup-row" id="gacha-pickup"></div>
       <div class="gacha-btns">
@@ -488,8 +525,40 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
     <div class="party-content">
       <div style="font-size:10px;color:var(--text2);margin-bottom:10px;">スロットを選んでキャラを編成（最大3体）</div>
       <div class="party-slots" id="party-slots"></div>
-      <div style="font-size:10px;color:var(--text2);margin-bottom:8px;">所持キャラクター</div>
+      <div class="filter-bar">
+        <input class="search-input" id="party-search" placeholder="🔍 キャラ名検索..." oninput="renderCharList()">
+        <div class="rfb rfb-all on"  id="pf-all"  onclick="setPartyFilter('all')">全て</div>
+        <div class="rfb rfb-ur off"  id="pf-ur"   onclick="setPartyFilter('UR')">UR</div>
+        <div class="rfb rfb-ssr off" id="pf-ssr"  onclick="setPartyFilter('SSR')">SSR</div>
+        <div class="rfb rfb-sr off"  id="pf-sr"   onclick="setPartyFilter('SR')">SR</div>
+        <div class="rfb rfb-r off"   id="pf-r"    onclick="setPartyFilter('R')">R</div>
+      </div>
+      <div class="char-count" id="party-char-count"></div>
       <div class="char-list" id="char-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GROW SCREEN -->
+<div class="screen" id="screen-grow">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">GROW</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="party-content">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:6px;">タップして育成 | R:💰500〜 SR:💰1,250〜 SSR:💰3,000〜 UR:💰7,500〜</div>
+      <div class="filter-bar">
+        <input class="search-input" id="grow-search" placeholder="🔍 キャラ名検索..." oninput="refreshGrow()">
+        <div class="rfb rfb-all on"  id="gf-all"  onclick="setGrowFilter('all')">全て</div>
+        <div class="rfb rfb-ur off"  id="gf-ur"   onclick="setGrowFilter('UR')">UR</div>
+        <div class="rfb rfb-ssr off" id="gf-ssr"  onclick="setGrowFilter('SSR')">SSR</div>
+        <div class="rfb rfb-sr off"  id="gf-sr"   onclick="setGrowFilter('SR')">SR</div>
+        <div class="rfb rfb-r off"   id="gf-r"    onclick="setGrowFilter('R')">R</div>
+      </div>
+      <div class="char-count" id="grow-char-count"></div>
+      <div class="char-list" id="grow-char-list"></div>
     </div>
   </div>
 </div>
@@ -580,10 +649,44 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
       </div>
       <div class="setting-group">
         <div class="setting-group-title">ℹ️ 情報</div>
-        <div class="setting-row"><div class="setting-label">バージョン</div><div style="font-size:11px;color:var(--text2);" id="ver-display">v0.2.0</div></div>
+        <div class="setting-row">
+          <div><div class="setting-label">バージョン</div><div style="font-size:9px;color:var(--text3);margin-top:2px;">ABYSSAL CHRONICLE</div></div>
+          <div style="text-align:right;"><div class="ver-badge" id="ver-display">v0.3.0</div><div style="font-size:9px;color:var(--text3);margin-top:3px;">進捗度 約45%</div></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">開発進捗</div></div>
+          <div style="width:140px;">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text2);margin-bottom:4px;"><span>v0.1</span><span>v0.3</span><span>v1.0</span></div>
+            <div style="height:4px;background:var(--border2);border-radius:2px;overflow:hidden;">
+              <div style="width:45%;height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;"></div>
+            </div>
+            <div style="font-size:9px;color:var(--text3);margin-top:3px;">残り: 育成強化・PvP・ランキング・ギルド...</div>
+          </div>
+        </div>
         <div class="setting-row"><div class="setting-label">タイトル</div><div style="font-size:11px;color:var(--text2);">ABYSSAL CHRONICLE</div></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- GACHA DETAIL OVERLAY -->
+<div class="gdp-overlay" id="gdp-overlay" onclick="closeGachaDetail(event)">
+  <div class="gdp-panel" id="gdp-panel">
+    <div class="gdp-h" id="gdp-title">排出率詳細</div>
+    <div class="gdp-sec">排出率テーブル</div>
+    <table class="rate-tbl">
+      <tr><th>レアリティ</th><th>確率</th><th>ピックアップ補正</th></tr>
+      <tr><td style="color:#ffe040;font-weight:700;">UR</td><td>0.1%</td><td>ピックアップは50%優先</td></tr>
+      <tr><td style="color:#d4a020;font-weight:700;">SSR</td><td>1.9%</td><td>ピックアップは50%優先</td></tr>
+      <tr><td style="color:#a060e0;font-weight:700;">SR</td><td>13.0%</td><td>—</td></tr>
+      <tr><td style="color:#4080c0;font-weight:700;">R</td><td>85.0%</td><td>—</td></tr>
+      <tr><td style="color:var(--teal);">天井</td><td colspan="2">100回でUR/SSR確定（50%でUR）</td></tr>
+    </table>
+    <div class="gdp-sec">ピックアップキャラクター</div>
+    <div id="gdp-pickup-list"></div>
+    <div class="gdp-sec">全排出キャラクター一覧</div>
+    <div id="gdp-all-list"></div>
+    <button class="gdp-close" onclick="closeGachaDetail()">閉じる</button>
   </div>
 </div>
 
@@ -1153,6 +1256,7 @@ function goTo(sc){
   if(sc==='quest')renderMap();
   if(sc==='gacha')refreshGacha();
   if(sc==='party')refreshParty();
+  if(sc==='grow')refreshGrow();
   if(sc==='notices')renderNotices();
   const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
 }
@@ -1452,6 +1556,54 @@ function showResult(res){
 function closeResult(){document.getElementById('result-overlay').classList.remove('show');}
 
 // ================================================================
+//  GACHA DETAIL
+// ================================================================
+function openGachaDetail(){
+  const b=BANNERS[currentBanner];
+  document.getElementById('gdp-title').textContent=b.name+' — 排出率詳細';
+
+  // ピックアップキャラ
+  const puChars=b.pickupIds.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);
+  document.getElementById('gdp-pickup-list').innerHTML=puChars.map(c=>{
+    const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':'#a060e0';
+    const indivRate=c.rarity==='UR'?'0.05%':c.rarity==='SSR'?'0.95%':'約4.3%';
+    return`<div class="gdp-char-row">
+      <div class="gdp-char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
+      <div class="gdp-char-nm">${c.name} <span class="gdp-pu-badge">PU</span></div>
+      <div style="color:${rarColor};font-size:10px;font-weight:700;">${c.rarity}</div>
+      <div class="gdp-rate-txt">${indivRate}</div>
+    </div>`;
+  }).join('');
+
+  // 全排出キャラ（レアリティ順）
+  const order=['UR','SSR','SR','R'];
+  let allHtml='';
+  order.forEach(rar=>{
+    const pool=CHARS.filter(c=>c.rarity===rar);
+    if(!pool.length)return;
+    const rarColor=rar==='UR'?'#ffe040':rar==='SSR'?'#d4a020':rar==='SR'?'#a060e0':'#4080c0';
+    const totalRate=rar==='UR'?0.1:rar==='SSR'?1.9:rar==='SR'?13:85;
+    const perChar=(totalRate/pool.length).toFixed(2);
+    allHtml+=`<div style="font-size:9px;color:${rarColor};font-weight:700;letter-spacing:.08em;margin:10px 0 4px;">${rar} — 合計${totalRate}% (${pool.length}体)</div>`;
+    allHtml+=pool.map(c=>{
+      const isPu=b.pickupIds.includes(c.id);
+      const adjustedRate=isPu?(totalRate/pool.length*1.5).toFixed(2):perChar;
+      return`<div class="gdp-char-row">
+        <div class="gdp-char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
+        <div class="gdp-char-nm">${c.name}${isPu?'<span class="gdp-pu-badge" style="margin-left:4px;">PU</span>':''}</div>
+        <div class="gdp-rate-txt">${adjustedRate}%</div>
+      </div>`;
+    }).join('');
+  });
+  document.getElementById('gdp-all-list').innerHTML=allHtml;
+  document.getElementById('gdp-overlay').classList.add('show');
+}
+function closeGachaDetail(e){
+  if(e&&e.target!==document.getElementById('gdp-overlay'))return;
+  document.getElementById('gdp-overlay').classList.remove('show');
+}
+
+// ================================================================
 //  NOTICES
 // ================================================================
 function renderNotices(){
@@ -1494,20 +1646,80 @@ function renderNotices(){
 // ================================================================
 //  PARTY
 // ================================================================
+let growFilter='all';
+function setGrowFilter(rar){
+  growFilter=rar;
+  ['all','UR','SSR','SR','R'].forEach(r=>{
+    const el=document.getElementById('gf-'+r.toLowerCase());
+    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(growFilter===r?'on':'off');
+  });
+  refreshGrow();
+}
+function refreshGrow(){
+  const el=document.getElementById('grow-char-list');if(!el)return;
+  const search=(document.getElementById('grow-search')||{value:''}).value.toLowerCase();
+  const filtered=S.owned.filter(id=>{
+    const c=CHARS.find(ch=>ch.id===id);if(!c)return false;
+    if(growFilter!=='all'&&c.rarity!==growFilter)return false;
+    if(search&&!c.name.includes(search))return false;
+    return true;
+  });
+  const countEl=document.getElementById('grow-char-count');
+  if(countEl) countEl.textContent=`${filtered.length}体 / ${S.owned.length}体`;
+  el.innerHTML=filtered.map(id=>{
+    const c=CHARS.find(ch=>ch.id===id);if(!c)return'';
+    const cd=(S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
+    const maxLv=20+(cd.breakthrough||0)*20;
+    const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
+    const lvPct=(cd.level/maxLv*100).toFixed(0);
+    return`<div class="char-card" onclick="openCharDetail(${id})" style="padding:10px 6px;">
+      <div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
+      <div class="char-nm">${c.name}</div>
+      <div class="char-lv">Lv.${cd.level}/${maxLv}</div>
+      <div class="char-rar" style="color:${rarColor}">${c.rarity}</div>
+      <div style="width:100%;height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;margin-top:3px;">
+        <div style="height:100%;width:${lvPct}%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:1px;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function refreshParty(){renderSlots();renderCharList();}
 function renderSlots(){
   document.getElementById('party-slots').innerHTML=S.party.map((id,i)=>{
     const ch=id!==-1?CHARS.find(c=>c.id===id):null,sel=S.selectedSlot===i;
-    if(ch)return`<div class="party-slot ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">✕</div><div class="slot-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div><div class="slot-char-nm">${ch.name}</div><div class="slot-char-lv">Lv.${ch.level} ${ch.rarity}</div></div>`;
+    if(ch){
+      // ★バグ修正: ownedDataから実際のレベルを取得
+      const cd=(S.ownedData&&S.ownedData[id])||{level:1};
+      return`<div class="party-slot ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">✕</div><div class="slot-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div><div class="slot-char-nm">${ch.name}</div><div class="slot-char-lv">Lv.${cd.level} ${ch.rarity}</div></div>`;
+    }
     return`<div class="party-slot empty ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div style="font-size:22px;color:var(--text3)">＋</div><div style="font-size:9px;color:var(--text3)">空きスロット</div></div>`;
   }).join('');
 }
+let partyFilter='all';
+function setPartyFilter(rar){
+  partyFilter=rar;
+  ['all','UR','SSR','SR','R'].forEach(r=>{
+    const el=document.getElementById('pf-'+r.toLowerCase());
+    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(partyFilter===r?'on':'off');
+  });
+  renderCharList();
+}
 function renderCharList(){
-  document.getElementById('char-list').innerHTML=S.owned.map(id=>{
+  const search=(document.getElementById('party-search')||{value:''}).value.toLowerCase();
+  const filtered=S.owned.filter(id=>{
+    const c=CHARS.find(ch=>ch.id===id);if(!c)return false;
+    if(partyFilter!=='all'&&c.rarity!==partyFilter)return false;
+    if(search&&!c.name.includes(search))return false;
+    return true;
+  });
+  const countEl=document.getElementById('party-char-count');
+  if(countEl) countEl.textContent=`${filtered.length}体 / ${S.owned.length}体`;
+  document.getElementById('char-list').innerHTML=filtered.map(id=>{
     const c=CHARS.find(ch=>ch.id===id);if(!c)return'';
     const inp=S.party.includes(id);
-    const cd = (S.ownedData&&S.ownedData[id])||{level:1};
-    const rarColor = c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
+    const cd=(S.ownedData&&S.ownedData[id])||{level:1};
+    const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
     return`<div class="char-card ${inp?'in-party':''}" onclick="${inp?`openCharDetail(${id})`:`addToParty(${id})`}" oncontextmenu="event.preventDefault();openCharDetail(${id})">
       <div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
       <div class="char-nm">${c.name}</div>
@@ -1821,6 +2033,22 @@ function endBattle(){document.getElementById('battle-end').classList.remove('sho
 // ================================================================
 let detailCharId = -1;
 
+// レアリティ別強化コスト係数
+const RARITY_COST = {R:1, SR:2.5, SSR:6, UR:15};
+
+// レベルアップコスト: 基本500 × レアリティ係数 × ceil(lv/10)
+function calcLvCost(rarity, lv){
+  const base = 500;
+  const tier = Math.ceil(lv/10); // 1-10:1倍, 11-20:2倍...
+  return Math.round(base * (RARITY_COST[rarity]||1) * tier);
+}
+
+// 限界突破コスト: 基本200 × レアリティ係数 × (突破段階+1)^1.5
+function calcBreakCost(rarity, stage){
+  const base = 200;
+  return Math.round(base * (RARITY_COST[rarity]||1) * Math.pow(stage+1, 1.5));
+}
+
 function openCharDetail(charId){
   sfx('click');
   detailCharId = charId;
@@ -1859,26 +2087,36 @@ function refreshCharDetail(){
   document.getElementById('cdp-rar2').style.color  = rarColor;
   document.getElementById('cdp-break').textContent = `${charData.breakthrough||0} / 5`;
 
-  const lvCost = lv * 100;
-  const brCost = (charData.breakthrough||0+1) * 50;
-  document.getElementById('lvup-cost').textContent  = `💰 ${lvCost}`;
-  document.getElementById('break-cost').textContent = `💎 ${brCost}`;
+  const lvCost  = calcLvCost(base.rarity, lv);
+  const brStage = charData.breakthrough||0;
+  const brCost  = calcBreakCost(base.rarity, brStage);
+  document.getElementById('lvup-cost').textContent  = `💰 ${lvCost.toLocaleString()}`;
+  document.getElementById('break-cost').textContent = lv < (brStage+1)*20
+    ? `Lv.${(brStage+1)*20}必要`
+    : `💎 ${brCost.toLocaleString()}`;
 }
 
 function levelUpChar(){
   if(detailCharId===-1) return;
   if(!S.ownedData) S.ownedData={};
   if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
-  const cd = S.ownedData[detailCharId];
-  const cost = cd.level * 100;
-  if(cd.level>=100){ showToast('最大レベルに達しています！'); return; }
-  if(S.gold < cost){ showToast(`💰 ゴールドが足りません（必要: ${cost}）`); return; }
+  const cd   = S.ownedData[detailCharId];
+  const base = CHARS.find(c=>c.id===detailCharId);
+  if(!base) return;
+  const maxLv  = 20 + (cd.breakthrough||0)*20; // 突破ごとに+20
+  if(cd.level >= maxLv){
+    if((cd.breakthrough||0)>=5) showToast('最大レベルに達しています！');
+    else showToast(`限界突破が必要です（現在上限Lv.${maxLv}）`);
+    return;
+  }
+  const cost = calcLvCost(base.rarity, cd.level);
+  if(S.gold < cost){ showToast(`💰 ゴールドが足りません
+必要: ${cost.toLocaleString()}`); return; }
   S.gold -= cost;
-  cd.exp = 0;
   cd.level++;
   saveGame();
-  sfx('win');
-  showToast(`✨ Lv.${cd.level} にアップ！`);
+  sfx('select');
+  showToast(`✨ ${base.name} → Lv.${cd.level}！`);
   refreshCharDetail();
   refreshHome();
 }
@@ -1887,15 +2125,22 @@ function breakthroughChar(){
   if(detailCharId===-1) return;
   if(!S.ownedData) S.ownedData={};
   if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
-  const cd = S.ownedData[detailCharId];
-  if((cd.breakthrough||0)>=5){ showToast('最大限界突破済みです！'); return; }
-  const cost = ((cd.breakthrough||0)+1)*50;
-  if(S.gem < cost){ showToast(`💎 深海結晶が足りません（必要: ${cost}）`); return; }
+  const cd   = S.ownedData[detailCharId];
+  const base = CHARS.find(c=>c.id===detailCharId);
+  if(!base) return;
+  const stage   = cd.breakthrough||0;
+  if(stage>=5){ showToast('最大限界突破済みです！'); return; }
+  // 限界突破にはLvが(stage+1)*20に達している必要がある
+  const reqLv = (stage+1)*20;
+  if(cd.level < reqLv){ showToast(`Lv.${reqLv}に達してから限界突破できます`); return; }
+  const cost = calcBreakCost(base.rarity, stage);
+  if(S.gem < cost){ showToast(`💎 深海結晶が足りません
+必要: ${cost.toLocaleString()}`); return; }
   S.gem -= cost;
-  cd.breakthrough = (cd.breakthrough||0)+1;
+  cd.breakthrough = stage+1;
   saveGame();
   sfx('win');
-  showToast(`💥 限界突破 ${cd.breakthrough} 段階！ステータス大幅アップ！`);
+  showToast(`💥 ${base.name} 限界突破${cd.breakthrough}段階！ 上限Lv.${20+cd.breakthrough*20}に解放！`);
   refreshCharDetail();
   refreshHome();
 }
@@ -1959,7 +2204,7 @@ async function loadOnlineData(){
       const nd = await noticeRes.json();
       if(nd.notices)   ONLINE_NOTICES = nd.notices;
       if(nd.updateLog) UPDATE_LOG     = nd.updateLog;
-      if(nd.version)   GAME_VERSION   = nd.version;
+      if(nd.version) GAME_VERSION = nd.version;
       console.log('[ABYSSAL] Notices loaded. version:', GAME_VERSION);
     }
   } catch(e){
@@ -1969,7 +2214,7 @@ async function loadOnlineData(){
 
 let ONLINE_NOTICES = [];
 let UPDATE_LOG = [];
-let GAME_VERSION = '0.2.0';
+let GAME_VERSION = '0.3.0';
 
 // ================================================================
 //  BOOT
