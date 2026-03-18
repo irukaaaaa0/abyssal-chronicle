@@ -554,6 +554,22 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .pvp-opponent-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
 .pvp-opp-ico{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#300060,#600090);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
 
+
+/* GRIND */
+.grind-card{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s,background .2s;}
+.grind-card:hover{border-color:rgba(180,130,0,.4);background:rgba(30,20,0,.4);}
+.grind-card.locked{opacity:.4;cursor:default;}
+.grind-enemy-ico{font-size:28px;flex-shrink:0;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.grind-info{flex:1;}
+.grind-name{font-size:12px;font-weight:500;}
+.grind-stats{font-size:9px;color:var(--text2);margin-top:2px;}
+.grind-reward{font-size:12px;color:var(--gold);font-weight:500;text-align:right;flex-shrink:0;}
+.grind-diff{font-size:8px;border-radius:4px;padding:1px 5px;font-weight:700;margin-top:3px;text-align:center;}
+.diff-easy{background:rgba(20,120,60,.25);color:#40c080;border:.5px solid rgba(20,120,60,.4);}
+.diff-normal{background:rgba(60,120,20,.25);color:#a0d040;border:.5px solid rgba(60,120,20,.4);}
+.diff-hard{background:rgba(180,100,0,.25);color:#e0a040;border:.5px solid rgba(180,100,0,.4);}
+.diff-extreme{background:rgba(160,20,20,.25);color:#ff6060;border:.5px solid rgba(160,20,20,.4);}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -788,6 +804,18 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   </div>
 </div>
 
+<!-- GRIND SCREEN -->
+<div class="screen" id="screen-grind">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">GOLD QUEST</div>
+    <div class="currency"><div class="curr-icon curr-gold"></div><div class="curr-val" id="grind-gold-val">0</div></div>
+  </div>
+  <div class="content">
+    <div style="padding:14px 14px 80px;" id="grind-content"></div>
+  </div>
+</div>
+
 <!-- GROW SCREEN -->
 <div class="screen" id="screen-grow">
   <div class="header">
@@ -947,6 +975,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 <div class="result-overlay" id="result-overlay">
   <div class="result-ttl">SUMMON RESULT</div>
   <div class="result-cards" id="result-cards"></div>
+  <div id="result-dupe-info" style="display:none;font-size:12px;color:#e0a040;background:rgba(60,30,0,.4);border:.5px solid rgba(200,130,0,.3);border-radius:8px;padding:8px 14px;margin-bottom:8px;"></div>
   <button class="result-close" onclick="closeResult();sfx('click')">確認して閉じる</button>
 </div>
 
@@ -1654,6 +1683,7 @@ function goTo(sc){
   if(sc==='grow')refreshGrow();
   if(sc==='notices')renderNotices();
   if(sc==='tower')renderTower();
+  if(sc==='grind')renderGrind();
   if(sc==='achieve')renderAchieve();
   if(sc==='friend')renderFriend();
   if(sc==='pvp')renderPvp();
@@ -1976,21 +2006,42 @@ function doGacha(count){
     const pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
     ch=pool[Math.floor(Math.random()*pool.length)];
 
-    res.push(ch);
-    if(!S.owned.includes(ch.id))S.owned.push(ch.id);
+    const isDupe = S.owned.includes(ch.id);
+    const dupeGold = isDupe ? {R:500,SR:2000,SSR:8000,UR:30000}[ch.rarity]||500 : 0;
+    if(!isDupe) S.owned.push(ch.id);
+    if(isDupe) S.gold += dupeGold;
+    res.push({...ch, isDupe, dupeGold});
   }
   saveGame(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
+  document.getElementById('gold-val').textContent=S.gold.toLocaleString();
 }
 
 function showResult(res){
-  document.getElementById('result-cards').innerHTML=res.map((c,i)=>`
-    <div class="result-card" style="animation-delay:${i*.09}s">
-      <div class="result-card-img" style="background:${c.bg};border-color:${c.border}">${c.emoji}
-        <div class="rarity-badge" style="color:${c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0'};z-index:1">${c.rarity}</div>
+  // 重複まとめ表示
+  const totalDupeGold = res.reduce((s,c)=>s+(c.dupeGold||0),0);
+  document.getElementById('result-cards').innerHTML=res.map((c,i)=>{
+    const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
+    const dupeTag = c.isDupe
+      ? `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#e0a040;padding:1px 0;">💰+${c.dupeGold?.toLocaleString()}</div>`
+      : '';
+    const newTag = !c.isDupe
+      ? `<div style="position:absolute;top:4px;left:4px;font-size:8px;background:rgba(20,160,120,.8);color:#fff;border-radius:3px;padding:1px 4px;">NEW</div>`
+      : '';
+    return`<div class="result-card" style="animation-delay:${i*.09}s;${c.isDupe?'opacity:.75':''}">
+      <div class="result-card-img" style="background:${c.bg};border-color:${c.border};position:relative;">${c.emoji}
+        <div class="rarity-badge" style="color:${rarColor};z-index:1">${c.rarity}</div>
+        ${newTag}${dupeTag}
       </div>
       <div class="result-card-name">${c.name}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  // 重複ゴールド合計表示
+  const dupeInfoEl = document.getElementById('result-dupe-info');
+  if(dupeInfoEl){
+    dupeInfoEl.style.display = totalDupeGold>0 ? 'block' : 'none';
+    dupeInfoEl.textContent = `重複変換: 💰 +${totalDupeGold.toLocaleString()} ゴールド`;
+  }
   document.getElementById('result-overlay').classList.add('show');
 }
 function closeResult(){document.getElementById('result-overlay').classList.remove('show');}
@@ -2578,6 +2629,103 @@ function updatePartyHP(){
 }
 
 // ================================================================
+//  💰 GRIND QUESTS（周回クエスト・ゴールドのみ）
+// ================================================================
+const GRIND_QUESTS=[
+  // ===== 難易度: 入門 =====
+  {id:'g1', name:'霧の浅瀬 — 入門', emoji:'🌊', diff:'easy',  diffLabel:'入門',
+   enemy:{name:'霧クラゲ群',    emoji:'🪼',hp:300, atk:30, spd:1},
+   gold:800,  unlockRank:1,
+   desc:'Lv.1〜でも攻略可能。初心者向け周回。'},
+  {id:'g2', name:'沈黙の岩礁 — 初級', emoji:'🪨', diff:'easy', diffLabel:'初級',
+   enemy:{name:'岩石ガニの群れ', emoji:'🦀',hp:800, atk:70, spd:1},
+   gold:2000,  unlockRank:5,
+   desc:'SR以上があれば安定周回できる。'},
+  // ===== 難易度: 普通 =====
+  {id:'g3', name:'深流の回廊 — 中級', emoji:'🌀', diff:'normal', diffLabel:'中級',
+   enemy:{name:'深流の亡霊艦隊', emoji:'⛵',hp:2000,atk:150, spd:2},
+   gold:5000,  unlockRank:10,
+   desc:'SSRを2体以上育成してから挑戦推奨。'},
+  {id:'g4', name:'暗礁の魔窟 — 中級+', emoji:'🏚️', diff:'normal', diffLabel:'中級+',
+   enemy:{name:'鎧魚の大群',    emoji:'🐡',hp:3500,atk:210, spd:2},
+   gold:8000,  unlockRank:15,
+   desc:'SSR Lv.40以上が安定ライン。'},
+  // ===== 難易度: 上級 =====
+  {id:'g5', name:'深淵の前哨 — 上級', emoji:'💀', diff:'hard', diffLabel:'上級',
+   enemy:{name:'深淵の番兵',    emoji:'👾',hp:7000,atk:350, spd:2},
+   gold:18000, unlockRank:20,
+   desc:'UR or SSR Lv.60以上必須。コンボが重要。'},
+  {id:'g6', name:'崩壊の坩堝 — 上級+', emoji:'🔥', diff:'hard', diffLabel:'上級+',
+   enemy:{name:'崩壊炎獄鬼',   emoji:'👹',hp:12000,atk:480, spd:3},
+   gold:35000, unlockRank:30,
+   desc:'UR複数 or SSR最大育成が必要。属性コンボ必須。'},
+  // ===== 難易度: 極限 =====
+  {id:'g7', name:'虚無の深淵 — 極限', emoji:'🌑', diff:'extreme', diffLabel:'極限',
+   enemy:{name:'旧破の残影',    emoji:'🌑',hp:25000,atk:700, spd:3},
+   gold:80000, unlockRank:40,
+   desc:'URフル強化でも油断禁物。全員Lv.80以上推奨。'},
+  {id:'g8', name:'永劫の虚無 — 最高峰', emoji:'⚫', diff:'extreme', diffLabel:'最高峰',
+   enemy:{name:'永劫の番人',    emoji:'⚫',hp:50000,atk:1000,spd:4},
+   gold:200000,unlockRank:50,
+   desc:'最強クラス。UR Lv.100×3 + 限界突破5が目安。安定周回できれば真のエンドゲーム。'},
+];
+
+function renderGrind(){
+  const rank = S.rank||1;
+  const goldEl = document.getElementById('grind-gold-val');
+  if(goldEl) goldEl.textContent=S.gold.toLocaleString();
+
+  const diffColors={easy:'diff-easy',normal:'diff-normal',hard:'diff-hard',extreme:'diff-extreme'};
+
+  document.getElementById('grind-content').innerHTML=`
+    <div style="font-size:10px;color:var(--text2);margin-bottom:12px;">
+      ゴールドのみ獲得できる専用クエスト。スタミナなし・無制限周回。
+    </div>
+    ${GRIND_QUESTS.map(q=>{
+      const locked = rank < q.unlockRank;
+      return`<div class="grind-card ${locked?'locked':''}"
+        onclick="${locked?`showToast('Rank ${q.unlockRank}で解放！')`:(`startGrind('${q.id}');sfx('click')`)}">
+        <div class="grind-enemy-ico" style="background:rgba(0,20,40,.8);border:.5px solid var(--border2);">${q.emoji}</div>
+        <div class="grind-info">
+          <div class="grind-name">${q.name}</div>
+          <div class="grind-stats">${q.enemy.name} | HP:${q.enemy.hp.toLocaleString()} ATK:${q.enemy.atk} SPD:${q.enemy.spd}</div>
+          <div class="grind-stats" style="margin-top:2px;">${q.desc}</div>
+          ${locked?`<div style="font-size:9px;color:var(--red);margin-top:2px;">🔒 Rank ${q.unlockRank}で解放</div>`:''}
+        </div>
+        <div>
+          <div class="grind-reward">💰${q.gold.toLocaleString()}</div>
+          <div class="grind-diff ${diffColors[q.diff]||''}">${q.diffLabel}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function startGrind(qid){
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){
+    showModal('パーティ未編成','パーティを編成してください。',[
+      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
+    ]);
+    return;
+  }
+  const q=GRIND_QUESTS.find(g=>g.id===qid);
+  if(!q) return;
+  const grindQuest={
+    id:`grind_${qid}`,
+    name: q.name,
+    enemy: q.enemy,
+    gold: q.gold,
+    gem: 0,  // ゴールドのみ
+    boss: false,
+    bgColor:['#050a00','#0a1400'],
+    story:[],
+    isGrind:true,
+  };
+  initBattle(grindQuest, ap);
+}
+
+// ================================================================
 //  🏆 ABYSS TOWER（無限塔）
 // ================================================================
 // 階層ごとの敵データ生成（階層が上がるほど強くなる）
@@ -3104,8 +3252,13 @@ function winBattle(){
   S.gem  += BT.quest.gem;
   S.dailyDone = Math.min(5, S.dailyDone+1);
   if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
-  // 塔・PvP処理
+  // 塔・PvP・周回処理
   if(BT.quest.isTower) onTowerClear(BT.quest);
+  if(BT.quest.isGrind){
+    // 周回クエストのgold-val更新
+    const gv=document.getElementById('grind-gold-val');
+    if(gv) gv.textContent=S.gold.toLocaleString();
+  }
   if(BT.quest.isPvp)   onPvpEnd(true, BT.quest);
   // 実績チェック
   checkAllAchievements();
