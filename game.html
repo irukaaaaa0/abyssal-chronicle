@@ -614,28 +614,49 @@ function generatePlayerId(){
 
 // 匿名ログイン & プレイヤーデータ初期化
 async function initFirebaseUser(){
-  return new Promise((resolve)=>{
+  // タイムアウト付きPromise（5秒でタイムアウト）
+  const timeout = new Promise(resolve => setTimeout(()=>{
+    console.log('[ABYSSAL] Firebase timeout - using local ID');
+    updatePlayerIdDisplay();
+    resolve();
+  }, 5000));
+
+  const firebaseInit = new Promise((resolve)=>{
     auth.onAuthStateChanged(async user=>{
-      if(user){
-        currentUser = user;
-        playerDocRef = db.collection('players').doc(user.uid);
-        await loadCloudSave();
+      try{
+        if(user){
+          currentUser = user;
+          playerDocRef = db.collection('players').doc(user.uid);
+          await loadCloudSave();
+        } else {
+          // 新規匿名ログイン
+          const cred = await auth.signInAnonymously();
+          currentUser = cred.user;
+          playerDocRef = db.collection('players').doc(cred.user.uid);
+          // Firestoreに既存データがあれば読み込む
+          const existing = await playerDocRef.get().catch(()=>null);
+          if(existing && existing.exists){
+            const data = existing.data();
+            // ローカルのplayerIdを優先、なければクラウドのを使う
+            S = {...DEFAULT_S, ...data, playerId: S.playerId || data.playerId};
+          } else {
+            // 新規：今のSのplayerIdをそのままクラウドに保存
+            const newData = {...S, createdAt: new Date().toISOString()};
+            await playerDocRef.set(newData).catch(e=>console.log('set failed:', e));
+          }
+          saveGame();
+        }
+        updatePlayerIdDisplay();
         resolve();
-      } else {
-        // 新規匿名ログイン
-        const cred = await auth.signInAnonymously();
-        currentUser = cred.user;
-        playerDocRef = db.collection('players').doc(cred.user.uid);
-        // 新規プレイヤーデータ作成
-        const playerId = generatePlayerId();
-        const newData = {...DEFAULT_S, playerId, createdAt: new Date().toISOString()};
-        await playerDocRef.set(newData);
-        S = newData;
+      }catch(e){
+        console.log('[ABYSSAL] Firebase auth error:', e.code, e.message);
         updatePlayerIdDisplay();
         resolve();
       }
     });
   });
+
+  return Promise.race([firebaseInit, timeout]);
 }
 
 // クラウドからセーブデータ読み込み
@@ -918,11 +939,18 @@ function saveGame(){
 function loadGame(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
-    if(!raw) return {...DEFAULT_S};
-    const saved = JSON.parse(raw);
-    // デフォルト値とマージ（新キーが増えても壊れない）
-    return {...DEFAULT_S, ...saved};
-  }catch(e){ return {...DEFAULT_S}; }
+    let data = raw ? {...DEFAULT_S, ...JSON.parse(raw)} : {...DEFAULT_S};
+    // playerIdがなければローカルで即生成（Firebase不要）
+    if(!data.playerId){
+      data.playerId = generatePlayerId();
+      try{ localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }catch(e){}
+    }
+    return data;
+  }catch(e){
+    const d = {...DEFAULT_S, playerId: generatePlayerId()};
+    try{ localStorage.setItem(SAVE_KEY, JSON.stringify(d)); }catch(e2){}
+    return d;
+  }
 }
 let S = loadGame();
 let BT={quest:null,enemyHp:0,partyHp:[],hand:[],turn:1,combo:0,active:false,btAnim:null};
@@ -1589,7 +1617,16 @@ document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume()
 // ================================================================
 function updatePlayerIdDisplay(){
   const el = document.getElementById('player-id-display');
-  if(el && S.playerId) el.textContent = S.playerId;
+  if(el){
+    if(S && S.playerId){
+      el.textContent = S.playerId;
+    } else {
+      // S.playerIdがなければここで生成
+      S.playerId = generatePlayerId();
+      saveGame();
+      el.textContent = S.playerId;
+    }
+  }
 }
 
 function copyPlayerId(){
