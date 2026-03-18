@@ -267,6 +267,10 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .boot-bar{width:180px;height:1px;background:var(--border2);border-radius:1px;overflow:hidden;margin-top:8px;}
 .boot-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));width:0;border-radius:1px;transition:width .05s;}
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -297,9 +301,16 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
     <div class="home-visual">
       <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 0;">
+      <div style="font-size:10px;color:var(--text2);">プレイヤーID: <span id="player-id-display" style="color:var(--teal);font-weight:500;letter-spacing:.05em;">----</span></div>
+      <div style="display:flex;gap:6px;">
+        <div onclick="showTransferModal()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">🔄 引継ぎ</div>
+        <div onclick="copyPlayerId()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">📋 IDコピー</div>
+      </div>
+    </div>
     <div class="notice-bar">
       <div class="notice-dot"></div>
-      <div class="notice-text">【深淵崩壊イベント】開催中 — 限定召喚「旧破の番人」登場！</div>
+      <div class="notice-text" id="notice-text-bar">【深淵崩壊イベント】開催中 — 限定召喚「旧破の番人」登場！</div>
       <div class="notice-new">NEW</div>
     </div>
     <div class="menu-grid">
@@ -491,6 +502,26 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   <button class="result-close" onclick="closeResult();sfx('click')">確認して閉じる</button>
 </div>
 
+<!-- 引継ぎモーダル -->
+<div class="modal-overlay" id="transfer-modal">
+  <div class="modal">
+    <div class="modal-ttl">🔄 データ引継ぎ</div>
+    <div class="modal-body">
+      引継ぎIDを入力してください。<br>
+      現在のデータは上書きされます。
+    </div>
+    <div style="margin-bottom:14px;">
+      <input id="transfer-id-input" type="text" placeholder="例: ABCD-1234"
+        style="width:100%;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;letter-spacing:.1em;text-transform:uppercase;"
+        oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn primary" onclick="doTransfer()">引継ぎ実行</button>
+      <button class="modal-btn" onclick="closeTransferModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <!-- BATTLE END -->
 <div class="battle-end" id="battle-end">
   <div class="end-ttl" id="end-ttl">VICTORY</div>
@@ -499,6 +530,171 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 </div>
 
 <script>
+// ================================================================
+//  FIREBASE 初期化
+// ================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
+  authDomain: "abyssal-chronicle.firebaseapp.com",
+  projectId: "abyssal-chronicle",
+  storageBucket: "abyssal-chronicle.firebasestorage.app",
+  messagingSenderId: "601713323896",
+  appId: "1:601713323896:web:92e756bfcae26a1745228d"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ================================================================
+//  ユーザー管理
+// ================================================================
+let currentUser = null;
+let playerDocRef = null;
+
+// 4桁英数字IDを生成
+function generatePlayerId(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id='';
+  for(let i=0;i<8;i++) id+=chars[Math.floor(Math.random()*chars.length)];
+  return id.slice(0,4)+'-'+id.slice(4);
+}
+
+// 匿名ログイン & プレイヤーデータ初期化
+async function initFirebaseUser(){
+  return new Promise((resolve)=>{
+    auth.onAuthStateChanged(async user=>{
+      if(user){
+        currentUser = user;
+        playerDocRef = db.collection('players').doc(user.uid);
+        await loadCloudSave();
+        resolve();
+      } else {
+        // 新規匿名ログイン
+        const cred = await auth.signInAnonymously();
+        currentUser = cred.user;
+        playerDocRef = db.collection('players').doc(cred.user.uid);
+        // 新規プレイヤーデータ作成
+        const playerId = generatePlayerId();
+        const newData = {...DEFAULT_S, playerId, createdAt: new Date().toISOString()};
+        await playerDocRef.set(newData);
+        S = newData;
+        resolve();
+      }
+    });
+  });
+}
+
+// クラウドからセーブデータ読み込み
+async function loadCloudSave(){
+  try{
+    const doc = await playerDocRef.get();
+    if(doc.exists){
+      const data = doc.data();
+      S = {...DEFAULT_S, ...data};
+      // localStorageも更新
+      saveGame();
+      console.log('[ABYSSAL] Cloud save loaded. PlayerID:', S.playerId);
+    }
+  }catch(e){
+    console.log('[ABYSSAL] Cloud load failed, using local save:', e);
+  }
+}
+
+// クラウドにセーブ（重要なデータのみ）
+async function saveToCloud(){
+  if(!playerDocRef) return;
+  try{
+    const saveData = {
+      gold: S.gold, gem: S.gem,
+      owned: S.owned, party: S.party,
+      cleared: S.cleared, dailyDone: S.dailyDone,
+      pityPerBanner: S.pityPerBanner,
+      playerId: S.playerId,
+      lastSaved: new Date().toISOString()
+    };
+    await playerDocRef.update(saveData);
+  }catch(e){
+    console.log('[ABYSSAL] Cloud save failed:', e);
+  }
+}
+
+// データ引継ぎ（IDで検索して自分のアカウントに移行）
+async function transferAccount(inputId){
+  try{
+    const snap = await db.collection('players').where('playerId','==',inputId.toUpperCase()).limit(1).get();
+    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
+    const targetDoc = snap.docs[0];
+    const targetData = targetDoc.data();
+    // 自分のFirestoreドキュメントに上書き
+    await playerDocRef.update({...targetData, uid: currentUser.uid});
+    S = {...DEFAULT_S, ...targetData};
+    saveGame();
+    showToast('✅ データ引継ぎ完了！');
+    refreshHome();
+    closeTransferModal();
+  }catch(e){
+    showToast('❌ 引継ぎに失敗しました');
+    console.log(e);
+  }
+}
+
+// ================================================================
+//  お知らせ・配布をFirestoreから取得
+// ================================================================
+async function loadServerNotices(){
+  try{
+    // お知らせ取得
+    const noticesSnap = await db.collection('notices').orderBy('date','desc').limit(20).get();
+    ONLINE_NOTICES = noticesSnap.docs.map(d=>d.data());
+
+    // アップデートログ取得
+    const logSnap = await db.collection('updateLog').orderBy('date','desc').limit(10).get();
+    UPDATE_LOG = logSnap.docs.map(d=>d.data());
+
+    // 自分へのプレゼント取得
+    await checkGifts();
+
+    showOnlineNotices();
+  }catch(e){
+    console.log('[ABYSSAL] Notices load failed:', e);
+  }
+}
+
+// プレゼント受け取り
+async function checkGifts(){
+  if(!playerDocRef) return;
+  try{
+    // 全員向けギフト
+    const globalGifts = await db.collection('gifts')
+      .where('type','==','global')
+      .where('active','==',true)
+      .get();
+
+    let totalGem=0, totalGold=0;
+    const received = S.receivedGifts || [];
+
+    for(const gift of globalGifts.docs){
+      const gd = gift.data();
+      if(received.includes(gift.id)) continue; // 受取済みスキップ
+      totalGem  += gd.gem  || 0;
+      totalGold += gd.gold || 0;
+      received.push(gift.id);
+    }
+
+    if(totalGem>0 || totalGold>0){
+      S.gem  += totalGem;
+      S.gold += totalGold;
+      S.receivedGifts = received;
+      saveGame();
+      await saveToCloud();
+      showToast(`🎁 プレゼント受取！ 💎+${totalGem} 💰+${totalGold}`);
+      refreshHome();
+    }
+  }catch(e){
+    console.log('[ABYSSAL] Gift check failed:', e);
+  }
+}
+
 // ================================================================
 //  DATA
 // ================================================================
@@ -590,6 +786,8 @@ const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+  // クラウドにも非同期保存（エラーは無視）
+  saveToCloud().catch(()=>{});
 }
 function loadGame(){
   try{
@@ -1126,13 +1324,44 @@ window.addEventListener('load', async ()=>{
 document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();},{once:true});
 
 // ================================================================
+//  プレイヤーID表示・引継ぎUI
+// ================================================================
+function updatePlayerIdDisplay(){
+  const el = document.getElementById('player-id-display');
+  if(el && S.playerId) el.textContent = S.playerId;
+}
+
+function copyPlayerId(){
+  if(!S.playerId){ showToast('IDがまだ発行されていません'); return; }
+  navigator.clipboard.writeText(S.playerId).then(()=>{
+    showToast('📋 IDをコピーしました: '+S.playerId);
+  }).catch(()=>{
+    showToast('ID: '+S.playerId);
+  });
+}
+
+function showTransferModal(){
+  sfx('click');
+  document.getElementById('transfer-modal').classList.add('show');
+  document.getElementById('transfer-id-input').value='';
+}
+function closeTransferModal(){
+  document.getElementById('transfer-modal').classList.remove('show');
+}
+function doTransfer(){
+  const id = document.getElementById('transfer-id-input').value.trim();
+  if(!id || id.length < 8){ showToast('正しいIDを入力してください'); return; }
+  sfx('click');
+  transferAccount(id);
+}
+
+// ================================================================
 //  お知らせ表示（オンラインから取得したもの）
 // ================================================================
 function showOnlineNotices(){
   const important = ONLINE_NOTICES.filter(n => n.important);
   if(!important.length) return;
-  // ホーム画面のお知らせバーを最新のものに更新
-  const bar = document.querySelector('.notice-text');
+  const bar = document.getElementById('notice-text-bar');
   if(bar && important[0]) bar.textContent = important[0].title + ' — ' + important[0].body.split('\n')[0];
 }
 </script>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABYSSAL CHRONICLE — 管理者ダッシュボード</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Yu Gothic','Meiryo',sans-serif;background:#0a0c10;color:#c0c8d8;min-height:100vh;}
+.header{background:#050810;border-bottom:1px solid #1a2030;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:16px;font-weight:700;color:#4a90d0;letter-spacing:.1em;}
+.admin-badge{font-size:10px;background:rgba(200,80,80,.2);border:1px solid rgba(200,80,80,.4);border-radius:4px;padding:3px 8px;color:#e06060;}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;}
+.login-box{background:#0e1220;border:1px solid #1a2838;border-radius:14px;padding:28px;width:340px;}
+.login-title{font-size:16px;font-weight:700;margin-bottom:20px;color:#a0c0e0;}
+input,textarea,select{width:100%;background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:10px 12px;font-size:13px;color:#c0c8d8;font-family:inherit;margin-bottom:10px;}
+textarea{resize:vertical;min-height:80px;}
+button{width:100%;padding:11px;border-radius:8px;border:none;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;}
+.btn-primary{background:#1a5090;color:#fff;}
+.btn-primary:hover{background:#2060a8;}
+.btn-danger{background:#802020;color:#fff;}
+.btn-danger:hover{background:#a02828;}
+.btn-green{background:#1a6040;color:#fff;}
+.btn-green:hover{background:#228050;}
+.main{display:none;padding:24px;max-width:900px;margin:0 auto;}
+.main.show{display:block;}
+.tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #1a2838;padding-bottom:12px;}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;color:#5a7898;border:1px solid transparent;}
+.tab:hover{color:#a0c0d8;}
+.tab.active{background:#0e1a2a;border-color:#1a3050;color:#60a0d0;}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{background:#0e1220;border:1px solid #1a2838;border-radius:12px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:13px;font-weight:700;color:#80b0d0;margin-bottom:14px;}
+label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:12px;text-align:center;}
+.stat-val{font-size:24px;font-weight:700;color:#60a0d0;}
+.stat-lbl{font-size:10px;color:#5a7898;margin-top:4px;}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.notice-item{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.notice-item-title{font-size:12px;font-weight:500;}
+.notice-item-date{font-size:10px;color:#5a7898;margin-top:3px;}
+.del-btn{background:rgba(160,30,30,.3);border:1px solid rgba(160,30,30,.5);border-radius:6px;padding:4px 10px;font-size:10px;color:#e06060;cursor:pointer;white-space:nowrap;width:auto;}
+.user-item{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.user-id{font-size:12px;font-weight:500;color:#60a0d0;letter-spacing:.05em;}
+.user-info{font-size:10px;color:#5a7898;margin-top:2px;}
+.gift-item{background:#060c18;border:1px solid #1a3828;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.gift-active{color:#40c080;font-size:10px;}
+.gift-inactive{color:#806060;font-size:10px;}
+.msg{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:10px;}
+.msg-ok{background:rgba(20,120,60,.2);border:1px solid rgba(20,120,60,.4);color:#40c080;}
+.msg-err{background:rgba(160,30,30,.2);border:1px solid rgba(160,30,30,.4);color:#e06060;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">ABYSSAL CHRONICLE</div>
+  <div class="admin-badge">管理者ダッシュボード</div>
+</div>
+
+<!-- ログイン画面 -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-title">🔐 管理者ログイン</div>
+    <div id="login-msg"></div>
+    <label>メールアドレス</label>
+    <input type="email" id="admin-email" placeholder="admin@example.com">
+    <label>パスワード</label>
+    <input type="password" id="admin-pass" placeholder="パスワード">
+    <button class="btn-primary" onclick="adminLogin()">ログイン</button>
+    <div style="margin-top:12px;font-size:10px;color:#3a5060;text-align:center;">
+      初回：Firebase AuthenticationでEmailユーザーを作成してください
+    </div>
+  </div>
+</div>
+
+<!-- メイン画面 -->
+<div class="main" id="main">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')">📊 ダッシュボード</div>
+    <div class="tab" onclick="switchTab('notices')">📢 お知らせ</div>
+    <div class="tab" onclick="switchTab('gifts')">🎁 プレゼント配布</div>
+    <div class="tab" onclick="switchTab('users')">👥 ユーザー</div>
+  </div>
+
+  <!-- ダッシュボード -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-val" id="stat-users">-</div><div class="stat-lbl">総ユーザー数</div></div>
+      <div class="stat"><div class="stat-val" id="stat-notices">-</div><div class="stat-lbl">お知らせ数</div></div>
+      <div class="stat"><div class="stat-val" id="stat-gifts">-</div><div class="stat-lbl">配布中ギフト</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">クイックアクション</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn-green" onclick="switchTab('notices')">📢 お知らせを投稿</button>
+        <button class="btn-primary" onclick="switchTab('gifts')">🎁 全員に石を配布</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- お知らせ管理 -->
+  <div class="panel" id="panel-notices">
+    <div class="card">
+      <div class="card-title">📢 新しいお知らせを投稿</div>
+      <div id="notice-msg"></div>
+      <label>タイトル</label>
+      <input type="text" id="notice-title" placeholder="例: 🎉 新イベント開始！">
+      <label>内容</label>
+      <textarea id="notice-body" placeholder="お知らせの内容を入力..."></textarea>
+      <div class="form-row">
+        <div>
+          <label>種別</label>
+          <select id="notice-type">
+            <option value="info">お知らせ</option>
+            <option value="event">イベント</option>
+            <option value="maintenance">メンテナンス</option>
+            <option value="update">アップデート</option>
+          </select>
+        </div>
+        <div>
+          <label>重要フラグ（ホームに表示）</label>
+          <select id="notice-important">
+            <option value="true">重要（ホームに表示）</option>
+            <option value="false">通常</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="postNotice()">投稿する</button>
+    </div>
+    <div class="card">
+      <div class="card-title">既存のお知らせ</div>
+      <div id="notices-list-admin">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- プレゼント配布 -->
+  <div class="panel" id="panel-gifts">
+    <div class="card">
+      <div class="card-title">🎁 全ユーザーにプレゼントを配布</div>
+      <div id="gift-msg"></div>
+      <label>配布名（管理用）</label>
+      <input type="text" id="gift-name" placeholder="例: 3周年記念プレゼント">
+      <div class="form-row">
+        <div>
+          <label>💎 深海結晶（ジェム）</label>
+          <input type="number" id="gift-gem" placeholder="0" min="0">
+        </div>
+        <div>
+          <label>💰 ゴールド</label>
+          <input type="number" id="gift-gold" placeholder="0" min="0">
+        </div>
+      </div>
+      <button class="btn-green" onclick="createGift()">配布開始</button>
+    </div>
+    <div class="card">
+      <div class="card-title">配布中・配布済みギフト</div>
+      <div id="gifts-list-admin">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ユーザー管理 -->
+  <div class="panel" id="panel-users">
+    <div class="card">
+      <div class="card-title">👥 ユーザー一覧（最新20件）</div>
+      <div id="users-list-admin">読み込み中...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Firebase初期化
+const firebaseConfig = {
+  apiKey: "AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
+  authDomain: "abyssal-chronicle.firebaseapp.com",
+  projectId: "abyssal-chronicle",
+  storageBucket: "abyssal-chronicle.firebasestorage.app",
+  messagingSenderId: "601713323896",
+  appId: "1:601713323896:web:92e756bfcae26a1745228d"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ================================================================
+//  ログイン
+// ================================================================
+async function adminLogin(){
+  const email = document.getElementById('admin-email').value;
+  const pass  = document.getElementById('admin-pass').value;
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){
+    document.getElementById('login-msg').innerHTML = '<div class="msg msg-err">❌ ログイン失敗: '+e.message+'</div>';
+  }
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main').classList.add('show');
+    loadDashboard();
+    loadNotices();
+    loadGifts();
+    loadUsers();
+  }
+});
+
+// ================================================================
+//  タブ切り替え
+// ================================================================
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs=['dashboard','notices','gifts','users'];
+    t.classList.toggle('active', tabs[i]===tab);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+// ================================================================
+//  ダッシュボード
+// ================================================================
+async function loadDashboard(){
+  const [users, notices, gifts] = await Promise.all([
+    db.collection('players').get(),
+    db.collection('notices').get(),
+    db.collection('gifts').where('active','==',true).get()
+  ]);
+  document.getElementById('stat-users').textContent   = users.size;
+  document.getElementById('stat-notices').textContent  = notices.size;
+  document.getElementById('stat-gifts').textContent    = gifts.size;
+}
+
+// ================================================================
+//  お知らせ
+// ================================================================
+async function postNotice(){
+  const title     = document.getElementById('notice-title').value.trim();
+  const body      = document.getElementById('notice-body').value.trim();
+  const type      = document.getElementById('notice-type').value;
+  const important = document.getElementById('notice-important').value === 'true';
+  const msgEl = document.getElementById('notice-msg');
+
+  if(!title||!body){ msgEl.innerHTML='<div class="msg msg-err">❌ タイトルと内容を入力してください</div>'; return; }
+  try{
+    await db.collection('notices').add({
+      title, body, type, important,
+      date: new Date().toISOString().slice(0,10),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msgEl.innerHTML='<div class="msg msg-ok">✅ お知らせを投稿しました！</div>';
+    document.getElementById('notice-title').value='';
+    document.getElementById('notice-body').value='';
+    loadNotices();
+    loadDashboard();
+  }catch(e){
+    msgEl.innerHTML='<div class="msg msg-err">❌ 投稿失敗: '+e.message+'</div>';
+  }
+}
+
+async function loadNotices(){
+  const snap = await db.collection('notices').orderBy('createdAt','desc').limit(20).get();
+  const el = document.getElementById('notices-list-admin');
+  if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">お知らせはありません</div>'; return; }
+  el.innerHTML = snap.docs.map(d=>{
+    const n=d.data();
+    return `<div class="notice-item">
+      <div>
+        <div class="notice-item-title">${n.important?'⚠️ ':''}${n.title}</div>
+        <div class="notice-item-date">${n.date} — ${n.type}</div>
+      </div>
+      <div class="del-btn" onclick="deleteNotice('${d.id}')">削除</div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteNotice(id){
+  if(!confirm('このお知らせを削除しますか？')) return;
+  await db.collection('notices').doc(id).delete();
+  loadNotices(); loadDashboard();
+}
+
+// ================================================================
+//  プレゼント配布
+// ================================================================
+async function createGift(){
+  const name = document.getElementById('gift-name').value.trim();
+  const gem  = parseInt(document.getElementById('gift-gem').value)||0;
+  const gold = parseInt(document.getElementById('gift-gold').value)||0;
+  const msgEl = document.getElementById('gift-msg');
+  if(!name){ msgEl.innerHTML='<div class="msg msg-err">❌ 配布名を入力してください</div>'; return; }
+  if(gem<=0&&gold<=0){ msgEl.innerHTML='<div class="msg msg-err">❌ ジェムかゴールドを1以上入力してください</div>'; return; }
+  try{
+    await db.collection('gifts').add({
+      name, gem, gold, type:'global', active:true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msgEl.innerHTML=`<div class="msg msg-ok">✅ 配布開始！全ユーザーが次回ログイン時に受け取ります（💎${gem} 💰${gold}）</div>`;
+    document.getElementById('gift-name').value='';
+    document.getElementById('gift-gem').value='';
+    document.getElementById('gift-gold').value='';
+    loadGifts(); loadDashboard();
+  }catch(e){
+    msgEl.innerHTML='<div class="msg msg-err">❌ 失敗: '+e.message+'</div>';
+  }
+}
+
+async function loadGifts(){
+  const snap = await db.collection('gifts').orderBy('createdAt','desc').limit(20).get();
+  const el = document.getElementById('gifts-list-admin');
+  if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">配布履歴がありません</div>'; return; }
+  el.innerHTML = snap.docs.map(d=>{
+    const g=d.data();
+    return `<div class="gift-item">
+      <div>
+        <div style="font-size:12px;font-weight:500;">${g.name}</div>
+        <div style="font-size:10px;color:#5a7898;margin-top:2px;">💎${g.gem||0} 💰${g.gold||0}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="${g.active?'gift-active':'gift-inactive'}">${g.active?'配布中':'終了'}</div>
+        ${g.active?`<div class="del-btn" onclick="stopGift('${d.id}')">停止</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function stopGift(id){
+  if(!confirm('このギフトの配布を停止しますか？')) return;
+  await db.collection('gifts').doc(id).update({active:false});
+  loadGifts(); loadDashboard();
+}
+
+// ================================================================
+//  ユーザー管理
+// ================================================================
+async function loadUsers(){
+  const snap = await db.collection('players').orderBy('createdAt','desc').limit(20).get().catch(()=>({docs:[]}));
+  const el = document.getElementById('users-list-admin');
+  if(!snap.docs||snap.docs.length===0){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">ユーザーがいません</div>'; return; }
+  el.innerHTML = snap.docs.map(d=>{
+    const u=d.data();
+    return `<div class="user-item">
+      <div>
+        <div class="user-id">${u.playerId||'----'}</div>
+        <div class="user-info">💰${u.gold||0} 💎${u.gem||0} | キャラ${(u.owned||[]).length}体 | クリア${(u.cleared||[]).length}章</div>
+      </div>
+      <div style="font-size:10px;color:#3a5060;">${(u.createdAt||'').slice(0,10)}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
