@@ -2064,12 +2064,19 @@ function initBattle(quest,pids){
     return{id,hp,maxHp:hp,atk};
   });
   BT.turn=1;BT.combo=0;BT.active=true;
+  // ★ターン制リセット
+  BT_PHASE='player';
   document.getElementById('battle-stage').textContent=quest.name;
   document.getElementById('enemy-ico').textContent=quest.enemy.emoji;
   document.getElementById('enemy-nm').textContent=quest.enemy.name;
+  if(document.getElementById('enemy-action-txt'))
+    document.getElementById('enemy-action-txt').textContent='';
   updateEnemyHP();updatePartyHP();drawHand(pids);
   document.getElementById('combo-disp').textContent='コンボ: 0';
   document.getElementById('battle-turn').textContent='ターン 1';
+  // ボタンを確実に有効化
+  const atkBtn=document.getElementById('atk-btn');
+  if(atkBtn){atkBtn.disabled=false;atkBtn.style.opacity='1';}
   initBattleBg();
   goTo('battle');
 }
