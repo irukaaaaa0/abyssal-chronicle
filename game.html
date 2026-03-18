@@ -1063,6 +1063,9 @@ async function saveToCloud(){
       pityPerBanner: S.pityPerBanner,
       playerId: S.playerId,
       receivedGifts: S.receivedGifts || [],
+      rank: S.rank || 1,
+      rankExp: S.rankExp || 0,
+      ownedData: S.ownedData || {},
       lastSaved: new Date().toISOString()
     };
     await playerDocRef.update(saveData);
