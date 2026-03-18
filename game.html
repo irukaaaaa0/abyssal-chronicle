@@ -582,7 +582,25 @@ const QUESTS=[
   {id:7,name:'最深BOSS — 旧破の神', emoji:'🌑',boss:true, enemy:{name:'旧破神アビス',emoji:'🌑',hp:6000,atk:350},gold:3000,gem:300},
 ];
 
-let S={gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true};
+// ================================================================
+//  SAVE / LOAD (localStorage)
+// ================================================================
+const SAVE_KEY = 'abyssal_save_v1';
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true};
+
+function saveGame(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+function loadGame(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return {...DEFAULT_S};
+    const saved = JSON.parse(raw);
+    // デフォルト値とマージ（新キーが増えても壊れない）
+    return {...DEFAULT_S, ...saved};
+  }catch(e){ return {...DEFAULT_S}; }
+}
+let S = loadGame();
 let BT={quest:null,enemyHp:0,partyHp:[],hand:[],turn:1,combo:0,active:false,btAnim:null};
 
 // ================================================================
@@ -706,7 +724,7 @@ function startQuest(qid){
 // ================================================================
 //  GACHA BANNERS
 // ================================================================
-const BANNERS=[
+let BANNERS=[
   {
     id:0,name:'深淵崩壊 召喚',icon:'🌑',
     sub:'ピックアップ：旧破神アルカナ（UR）・深淵の番人（SSR）',
@@ -805,7 +823,7 @@ function doGacha(count){
     res.push(ch);
     if(!S.owned.includes(ch.id))S.owned.push(ch.id);
   }
-  showResult(res); refreshGacha();
+  saveGame(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
 }
 
@@ -884,9 +902,9 @@ function addToParty(id){
   sfx('click');
   let slot=S.selectedSlot!==-1?S.selectedSlot:S.party.indexOf(-1);
   if(slot===-1){showToast('パーティが満員です！スロットを選択してください');return;}
-  S.party[slot]=id;S.selectedSlot=-1;renderSlots();renderCharList();showToast('編成しました！');
+  S.party[slot]=id;S.selectedSlot=-1;saveGame();renderSlots();renderCharList();showToast('編成しました！');
 }
-function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.selectedSlot=-1;renderSlots();renderCharList();}
+function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.selectedSlot=-1;saveGame();renderSlots();renderCharList();}
 
 // ================================================================
 //  BATTLE
@@ -998,7 +1016,7 @@ function updatePartyHP(){
 
 function winBattle(){
   BT.active=false;sfx('win');
-  S.gold+=BT.quest.gold;S.gem+=BT.quest.gem;S.dailyDone=Math.min(5,S.dailyDone+1);
+  S.gold+=BT.quest.gold;S.gem+=BT.quest.gem;S.dailyDone=Math.min(5,S.dailyDone+1);saveGame();
   if(!S.cleared.includes(BT.quest.id))S.cleared.push(BT.quest.id);
   document.getElementById('end-ttl').textContent='VICTORY';document.getElementById('end-ttl').className='end-ttl end-win';
   document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold}  💎 +${BT.quest.gem}`;
@@ -1022,13 +1040,13 @@ function fleeConfirm(){
 // ================================================================
 //  SETTINGS
 // ================================================================
-function onSeVol(v){S.seVol=v/100;document.getElementById('se-vol-val').textContent=v;if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;}
-function toggleSe(){S.seOn=!S.seOn;document.getElementById('se-toggle').classList.toggle('on',S.seOn);if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;}
-function toggleBubble(){S.bubbleOn=!S.bubbleOn;document.getElementById('bubble-toggle').classList.toggle('on',S.bubbleOn);}
+function onSeVol(v){S.seVol=v/100;document.getElementById('se-vol-val').textContent=v;if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;saveGame();}
+function toggleSe(){S.seOn=!S.seOn;document.getElementById('se-toggle').classList.toggle('on',S.seOn);if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;saveGame();}
+function toggleBubble(){S.bubbleOn=!S.bubbleOn;document.getElementById('bubble-toggle').classList.toggle('on',S.bubbleOn);saveGame();}
 function confirmReset(){
   sfx('click');
   showModal('データリセット','全ての進行データを削除します。よろしいですか？',[
-    {label:'リセット',action:()=>{S={gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true};showToast('リセットしました');goTo('home');}},
+    {label:'リセット',action:()=>{S={...DEFAULT_S};localStorage.removeItem(SAVE_KEY);showToast('リセットしました');goTo('home');}},
     {label:'キャンセル',action:()=>{},primary:true}
   ]);
 }
@@ -1091,6 +1109,15 @@ let GAME_VERSION = '0.2.0';
 // ================================================================
 window.addEventListener('load', async ()=>{
   initSeaBg();
+  // SE設定をロード済みSに合わせてUIを更新
+  const seSlider=document.getElementById('se-vol');
+  const seValEl=document.getElementById('se-vol-val');
+  const seToggle=document.getElementById('se-toggle');
+  const bubbleToggle=document.getElementById('bubble-toggle');
+  if(seSlider){ seSlider.value=Math.round(S.seVol*100); }
+  if(seValEl){ seValEl.textContent=Math.round(S.seVol*100); }
+  if(seToggle){ seToggle.classList.toggle('on',S.seOn); }
+  if(bubbleToggle){ bubbleToggle.classList.toggle('on',S.bubbleOn); }
   const fill = document.getElementById('boot-fill');
   let w = 0;
   const iv = setInterval(()=>{ w+=3; fill.style.width=w+'%'; if(w>=60) clearInterval(iv); }, 30);
