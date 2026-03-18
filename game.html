@@ -1598,18 +1598,31 @@ window.addEventListener('load', async ()=>{
   if(seValEl){ seValEl.textContent=Math.round(S.seVol*100); }
   if(seToggle){ seToggle.classList.toggle('on',S.seOn); }
   if(bubbleToggle){ bubbleToggle.classList.toggle('on',S.bubbleOn); }
+
   const fill = document.getElementById('boot-fill');
   let w = 0;
-  const iv = setInterval(()=>{ w+=3; fill.style.width=w+'%'; if(w>=60) clearInterval(iv); }, 30);
+  const iv = setInterval(()=>{ w+=2; fill.style.width=w+'%'; if(w>=40) clearInterval(iv); }, 30);
 
-  // オンラインデータ読み込み
-  await loadOnlineData();
+  // Firebase初期化（ユーザーID発行・クラウドセーブ）
+  await initFirebaseUser().catch(e=>console.error('[ABYSSAL] Firebase init error:', e));
 
-  // 残りのロードバー
-  let w2 = 60;
-  const iv2 = setInterval(()=>{
-    w2+=4; fill.style.width=w2+'%';
-    if(w2>=100){ clearInterval(iv2); setTimeout(()=>{ initAudio(); goTo('home'); showOnlineNotices(); }, 300); }
+  let w2 = 40;
+  const iv2 = setInterval(()=>{ w2+=2; fill.style.width=w2+'%'; if(w2>=70) clearInterval(iv2); }, 30);
+
+  // お知らせ・プレゼント取得
+  await loadServerNotices().catch(e=>console.log('[ABYSSAL] Server notices error:', e));
+
+  // ゲームデータ取得
+  await loadOnlineData().catch(()=>{});
+
+  // ロードバー完了
+  let w3 = 70;
+  const iv3 = setInterval(()=>{
+    w3+=3; fill.style.width=w3+'%';
+    if(w3>=100){
+      clearInterval(iv3);
+      setTimeout(()=>{ initAudio(); goTo('home'); updatePlayerIdDisplay(); }, 300);
+    }
   }, 25);
 });
 
