@@ -614,15 +614,18 @@ function generatePlayerId(){
 
 // 匿名ログイン & プレイヤーデータ初期化
 async function initFirebaseUser(){
-  // タイムアウト付きPromise（5秒でタイムアウト）
+  console.log('[ABYSSAL] initFirebaseUser start');
+  // タイムアウト付きPromise（8秒でタイムアウト）
   const timeout = new Promise(resolve => setTimeout(()=>{
-    console.log('[ABYSSAL] Firebase timeout - using local ID');
+    console.warn('[ABYSSAL] Firebase timeout - using local ID:', S.playerId);
     updatePlayerIdDisplay();
     resolve();
-  }, 5000));
+  }, 8000));
 
   const firebaseInit = new Promise((resolve)=>{
+    console.log('[ABYSSAL] auth.onAuthStateChanged registered');
     auth.onAuthStateChanged(async user=>{
+      console.log('[ABYSSAL] onAuthStateChanged fired, user:', user ? user.uid.slice(0,8)+'...' : 'null');
       try{
         if(user){
           currentUser = user;
