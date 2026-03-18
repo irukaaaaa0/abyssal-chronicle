@@ -631,6 +631,7 @@ async function initFirebaseUser(){
         const newData = {...DEFAULT_S, playerId, createdAt: new Date().toISOString()};
         await playerDocRef.set(newData);
         S = newData;
+        updatePlayerIdDisplay();
         resolve();
       }
     });
@@ -644,12 +645,14 @@ async function loadCloudSave(){
     if(doc.exists){
       const data = doc.data();
       S = {...DEFAULT_S, ...data};
-      // localStorageも更新
       saveGame();
       console.log('[ABYSSAL] Cloud save loaded. PlayerID:', S.playerId);
     }
+    // ロード完了後にID表示を更新
+    updatePlayerIdDisplay();
   }catch(e){
     console.log('[ABYSSAL] Cloud load failed, using local save:', e);
+    updatePlayerIdDisplay();
   }
 }
 
@@ -663,6 +666,7 @@ async function saveToCloud(){
       cleared: S.cleared, dailyDone: S.dailyDone,
       pityPerBanner: S.pityPerBanner,
       playerId: S.playerId,
+      receivedGifts: S.receivedGifts || [],
       lastSaved: new Date().toISOString()
     };
     await playerDocRef.update(saveData);
@@ -696,20 +700,29 @@ async function transferAccount(inputId){
 // ================================================================
 async function loadServerNotices(){
   try{
-    // お知らせ取得
-    const noticesSnap = await db.collection('notices').orderBy('date','desc').limit(20).get();
-    ONLINE_NOTICES = noticesSnap.docs.map(d=>d.data());
+    // お知らせ取得（orderByなしでシンプルに取得）
+    const noticesSnap = await db.collection('notices').get();
+    ONLINE_NOTICES = noticesSnap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    console.log('[ABYSSAL] Notices loaded:', ONLINE_NOTICES.length);
 
     // アップデートログ取得
-    const logSnap = await db.collection('updateLog').orderBy('date','desc').limit(10).get();
-    UPDATE_LOG = logSnap.docs.map(d=>d.data());
+    try{
+      const logSnap = await db.collection('updateLog').get();
+      UPDATE_LOG = logSnap.docs.map(d=>d.data())
+        .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    }catch(e2){ console.log('[ABYSSAL] updateLog not found (ok)'); }
 
-    // 自分へのプレゼント取得
+    // プレゼント取得
     await checkGifts();
 
     showOnlineNotices();
   }catch(e){
-    console.log('[ABYSSAL] Notices load failed:', e);
+    console.error('[ABYSSAL] Notices load failed:', e.code, e.message);
+    // エラーコードに応じたガイダンス
+    if(e.code==='permission-denied'){
+      console.warn('[ABYSSAL] Firestoreのセキュリティルールを確認してください');
+    }
   }
 }
 
@@ -738,8 +751,16 @@ async function checkGifts(){
       S.gem  += totalGem;
       S.gold += totalGold;
       S.receivedGifts = received;
-      saveGame();
-      await saveToCloud();
+      // まずlocalStorageに保存
+      try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+      // Firestoreにreceivedも含めて保存
+      try{
+        await playerDocRef.update({
+          gem: S.gem, gold: S.gold,
+          receivedGifts: received,
+          lastSaved: new Date().toISOString()
+        });
+      }catch(e){ console.log('[ABYSSAL] Gift save failed:', e); }
       showToast(`🎁 プレゼント受取！ 💎+${totalGem} 💰+${totalGold}`);
       refreshHome();
     }
@@ -991,6 +1012,7 @@ function refreshHome(){
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
   document.getElementById('daily-sub').textContent=`${S.dailyDone} / 5 完了`;
   document.getElementById('daily-prog').style.width=(S.dailyDone/5*100)+'%';
+  updatePlayerIdDisplay();
 }
 
 // ================================================================
