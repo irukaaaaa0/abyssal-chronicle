@@ -384,6 +384,31 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .story-next-btn:hover{background:rgba(20,60,140,.5);}
 .story-battle-btn{flex:1;padding:12px;border-radius:10px;border:.5px solid rgba(200,100,30,.5);background:rgba(100,40,10,.4);font-size:13px;color:#e0a060;cursor:pointer;font-family:inherit;font-weight:500;text-align:center;transition:background .2s;}
 .story-battle-btn:hover{background:rgba(140,60,20,.5);}
+/* RANK SYSTEM */
+.rank-bar-wrap{display:flex;align-items:center;gap:6px;padding:4px 12px 0;}
+.rank-label{font-size:10px;color:var(--teal);font-weight:500;white-space:nowrap;}
+.rank-exp-bar{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.rank-exp-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .6s;}
+.rank-exp-txt{font-size:9px;color:var(--text3);white-space:nowrap;}
+
+/* RANK UP OVERLAY */
+.rankup-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.rankup-overlay.show{display:flex;animation:rankupFade .4s ease;}
+@keyframes rankupFade{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+.rankup-title{font-size:14px;color:var(--teal);letter-spacing:.2em;}
+.rankup-rank{font-size:52px;font-weight:700;color:#e0c040;text-shadow:0 0 30px rgba(224,192,64,.6);letter-spacing:.1em;}
+.rankup-rewards{background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:14px;padding:14px 22px;text-align:center;min-width:200px;}
+.rankup-rw-title{font-size:10px;color:var(--text2);margin-bottom:8px;letter-spacing:.08em;}
+.rankup-rw-item{font-size:14px;font-weight:500;margin:4px 0;}
+.rankup-btn{background:rgba(10,80,60,.4);border:.5px solid rgba(20,160,120,.4);border-radius:20px;padding:10px 32px;font-size:13px;color:var(--teal);cursor:pointer;font-family:inherit;margin-top:4px;}
+.rankup-btn:hover{background:rgba(20,120,80,.5);}
+
+/* BATTLE RESULT拡張（EXP表示） */
+.end-exp-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.end-exp-bar-wrap{flex:1;background:rgba(255,255,255,.06);border-radius:2px;height:4px;overflow:hidden;}
+.end-exp-bar-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width 1s .3s;}
+.end-exp-txt{font-size:10px;color:var(--teal);white-space:nowrap;}
+
 /* CHAPTER MAP */
 .chapter-select{padding:0 14px 80px;}
 .chapter-card{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:14px;margin-bottom:12px;overflow:hidden;cursor:pointer;transition:border-color .2s,background .2s;}
@@ -480,7 +505,10 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   <div class="header" style="position:relative;">
     <div class="player-info">
       <div class="avatar">🌊</div>
-      <div><div class="pname">深海司令官</div><div class="prank" id="home-prank">Rank 1</div></div>
+      <div>
+          <div class="pname">深海司令官</div>
+          <div class="prank" id="home-prank">Rank 1</div>
+        </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="currencies">
@@ -506,6 +534,12 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
         <div class="notif-footer-btn" onclick="goTo('notices');closeNotifDropdown();sfx('click')">すべて見る →</div>
       </div>
     </div>
+  </div>
+  <!-- Rankバー -->
+  <div class="rank-bar-wrap" id="rank-bar-wrap">
+    <div class="rank-label" id="rank-bar-label">Rank 1</div>
+    <div class="rank-exp-bar"><div class="rank-exp-fill" id="rank-exp-fill" style="width:0%"></div></div>
+    <div class="rank-exp-txt" id="rank-exp-txt">0/100</div>
   </div>
   <div class="content">
     <div class="home-visual">
@@ -868,8 +902,27 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 <!-- BATTLE END -->
 <div class="battle-end" id="battle-end">
   <div class="end-ttl" id="end-ttl">VICTORY</div>
-  <div class="end-rewards"><div class="end-rw-lbl">獲得報酬</div><div class="end-rw-val" id="end-rw-val"></div></div>
+  <div class="end-rewards">
+    <div class="end-rw-lbl">獲得報酬</div>
+    <div class="end-rw-val" id="end-rw-val"></div>
+    <div class="end-exp-row" id="end-exp-row" style="display:none;">
+      <div style="font-size:10px;color:var(--teal);white-space:nowrap;" id="end-exp-label">EXP +0</div>
+      <div class="end-exp-bar-wrap"><div class="end-exp-bar-fill" id="end-exp-bar" style="width:0%"></div></div>
+      <div class="end-exp-txt" id="end-exp-txt">Rank1</div>
+    </div>
+  </div>
   <button class="end-btn" onclick="endBattle()">ホームへ戻る</button>
+</div>
+
+<!-- RANK UP OVERLAY -->
+<div class="rankup-overlay" id="rankup-overlay">
+  <div class="rankup-title">RANK UP !</div>
+  <div class="rankup-rank" id="rankup-rank-num">2</div>
+  <div class="rankup-rewards">
+    <div class="rankup-rw-title">ランクアップ報酬</div>
+    <div id="rankup-rw-list"></div>
+  </div>
+  <button class="rankup-btn" onclick="closeRankup()">受け取る</button>
 </div>
 
 <script>
@@ -1360,7 +1413,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{}};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0};
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
@@ -1473,6 +1526,7 @@ function refreshHome(){
   document.getElementById('daily-sub').textContent=`${S.dailyDone} / 5 完了`;
   document.getElementById('daily-prog').style.width=(S.dailyDone/5*100)+'%';
   updatePlayerIdDisplay();
+  updateRankBar();
 }
 
 // ================================================================
@@ -2266,13 +2320,139 @@ function updatePartyHP(){
   }).join('');
 }
 
+// ================================================================
+//  RANK SYSTEM
+// ================================================================
+// Rankに必要なEXP: Rank * 80 + Rank^2 * 20
+function rankExpNeeded(rank){ return rank * 80 + rank * rank * 20; }
+
+// Rankアップ報酬テーブル
+function getRankupRewards(newRank){
+  const rewards = [];
+  // 全Rankで深海結晶配布
+  const gems = Math.floor(newRank * 1.5) + 10;
+  rewards.push({type:'gem', amount:gems, label:`💎 深海結晶 ×${gems}`});
+  // 5の倍数でゴールド大量
+  if(newRank % 5 === 0){
+    const gold = newRank * 500;
+    rewards.push({type:'gold', amount:gold, label:`💰 ゴールド ×${gold.toLocaleString()}`});
+  }
+  // 10の倍数でガチャチケット（ジェム300換算）
+  if(newRank % 10 === 0){
+    rewards.push({type:'gem', amount:300, label:`🎲 召喚チケット ×1 (💎300)`});
+  }
+  return rewards;
+}
+
+// Rankバー更新
+function updateRankBar(){
+  const rank = S.rank || 1;
+  const exp  = S.rankExp || 0;
+  const need = rankExpNeeded(rank);
+  const pct  = Math.min(exp / need * 100, 100).toFixed(1);
+
+  const label = document.getElementById('rank-bar-label');
+  const fill  = document.getElementById('rank-exp-fill');
+  const txt   = document.getElementById('rank-exp-txt');
+  const prank = document.getElementById('home-prank');
+
+  if(label) label.textContent = `Rank ${rank}`;
+  if(fill)  fill.style.width  = pct + '%';
+  if(txt)   txt.textContent   = `${exp}/${need}`;
+  if(prank) prank.textContent = `Rank ${rank}`;
+}
+
+// EXP付与＆Rankアップ処理
+function addRankExp(exp){
+  if(!S.rank) S.rank = 1;
+  if(!S.rankExp) S.rankExp = 0;
+  S.rankExp += exp;
+  const rankupsQueue = [];
+
+  // 複数段Rankアップ対応
+  while(S.rankExp >= rankExpNeeded(S.rank)){
+    S.rankExp -= rankExpNeeded(S.rank);
+    S.rank++;
+    const rewards = getRankupRewards(S.rank);
+    rewards.forEach(r=>{
+      if(r.type==='gem')  S.gem  += r.amount;
+      if(r.type==='gold') S.gold += r.amount;
+    });
+    rankupsQueue.push({rank: S.rank, rewards});
+  }
+  saveGame();
+  updateRankBar();
+  return rankupsQueue;
+}
+
+function showRankupSequence(queue){
+  if(!queue.length) return;
+  const ru = queue[0];
+  document.getElementById('rankup-rank-num').textContent = ru.rank;
+  document.getElementById('rankup-rw-list').innerHTML = ru.rewards.map(r=>
+    `<div class="rankup-rw-item">${r.label}</div>`
+  ).join('');
+  document.getElementById('rankup-overlay').classList.add('show');
+  sfx('win');
+  // 残りキューをデータ保持
+  document.getElementById('rankup-overlay').dataset.queue = JSON.stringify(queue.slice(1));
+}
+
+function closeRankup(){
+  const overlay = document.getElementById('rankup-overlay');
+  const rest = JSON.parse(overlay.dataset.queue||'[]');
+  overlay.classList.remove('show');
+  if(rest.length) setTimeout(()=>showRankupSequence(rest), 400);
+  else { refreshHome(); }
+}
+
+// ====== EXP量: クエストの強さ基準 ======
+function calcQuestExp(quest){
+  // 敵HPとATKから算出。ボスは3倍
+  const base = Math.floor(quest.enemy.hp / 100 + quest.enemy.atk / 5);
+  return quest.boss ? base * 3 : base;
+}
+
 function winBattle(){
-  BT.active=false;sfx('win');
-  S.gold+=BT.quest.gold;S.gem+=BT.quest.gem;S.dailyDone=Math.min(5,S.dailyDone+1);saveGame();
-  if(!S.cleared.includes(BT.quest.id))S.cleared.push(BT.quest.id);
-  document.getElementById('end-ttl').textContent='VICTORY';document.getElementById('end-ttl').className='end-ttl end-win';
-  document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold}  💎 +${BT.quest.gem}`;
+  BT.active=false; sfx('win');
+  S.gold += BT.quest.gold;
+  S.gem  += BT.quest.gem;
+  S.dailyDone = Math.min(5, S.dailyDone+1);
+  if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
+
+  // EXP付与
+  const gainExp = calcQuestExp(BT.quest);
+  const rankups = addRankExp(gainExp);
+
+  // 結果画面
+  document.getElementById('end-ttl').textContent='VICTORY';
+  document.getElementById('end-ttl').className='end-ttl end-win';
+  document.getElementById('end-rw-val').textContent=
+    `💰 +${BT.quest.gold.toLocaleString()}  💎 +${BT.quest.gem}`;
+
+  // EXPゲージ表示
+  const expRow = document.getElementById('end-exp-row');
+  const expBar = document.getElementById('end-exp-bar');
+  const expLbl = document.getElementById('end-exp-label');
+  const expTxt = document.getElementById('end-exp-txt');
+  if(expRow){
+    expRow.style.display='flex';
+    if(expLbl) expLbl.textContent = `EXP +${gainExp}`;
+    if(expTxt) expTxt.textContent = `Rank ${S.rank}`;
+    // ゲージをアニメーション
+    if(expBar){
+      expBar.style.width='0%';
+      const need = rankExpNeeded(S.rank);
+      const pct  = Math.min(S.rankExp/need*100,100).toFixed(1);
+      setTimeout(()=>{ expBar.style.width=pct+'%'; }, 400);
+    }
+  }
+
+  saveGame();
   document.getElementById('battle-end').classList.add('show');
+
+  // Rankアップ演出（少し遅らせる）
+  if(rankups.length) setTimeout(()=>{ document.getElementById('battle-end').classList.remove('show'); showRankupSequence(rankups); }, 1800);
 }
 function loseBattle(){
   BT.active=false;sfx('lose');
@@ -2421,7 +2601,7 @@ function toggleBubble(){S.bubbleOn=!S.bubbleOn;document.getElementById('bubble-t
 function confirmReset(){
   sfx('click');
   showModal('データリセット','全ての進行データを削除します。よろしいですか？',[
-    {label:'リセット',action:()=>{S={...DEFAULT_S};localStorage.removeItem(SAVE_KEY);showToast('リセットしました');goTo('home');}},
+    {label:'リセット',action:()=>{S={...DEFAULT_S,playerId:S.playerId};localStorage.removeItem(SAVE_KEY);showToast('リセットしました');goTo('home');}},
     {label:'キャンセル',action:()=>{},primary:true}
   ]);
 }
