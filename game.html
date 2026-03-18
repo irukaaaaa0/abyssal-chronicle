@@ -620,7 +620,7 @@ async function initFirebaseUser(){
     console.warn('[ABYSSAL] Firebase timeout - using local ID:', S.playerId);
     updatePlayerIdDisplay();
     resolve();
-  }, 8000));
+  }, 15000));
 
   const firebaseInit = new Promise((resolve)=>{
     console.log('[ABYSSAL] auth.onAuthStateChanged registered');
@@ -665,17 +665,33 @@ async function initFirebaseUser(){
 // クラウドからセーブデータ読み込み
 async function loadCloudSave(){
   try{
+    console.log('[ABYSSAL] loadCloudSave start, uid:', currentUser.uid.slice(0,8));
     const doc = await playerDocRef.get();
+    console.log('[ABYSSAL] doc.exists:', doc.exists);
     if(doc.exists){
       const data = doc.data();
       S = {...DEFAULT_S, ...data};
       saveGame();
       console.log('[ABYSSAL] Cloud save loaded. PlayerID:', S.playerId);
+    } else {
+      // 新規: Firestoreにデータがない → 書き込み
+      console.log('[ABYSSAL] No cloud data, saving new player:', S.playerId);
+      const newData = {
+        gold: S.gold, gem: S.gem,
+        owned: S.owned, party: S.party,
+        cleared: S.cleared, dailyDone: S.dailyDone,
+        pityPerBanner: S.pityPerBanner,
+        playerId: S.playerId,
+        receivedGifts: [],
+        createdAt: new Date().toISOString(),
+        lastSaved: new Date().toISOString()
+      };
+      await playerDocRef.set(newData);
+      console.log('[ABYSSAL] New player saved to Firestore:', S.playerId);
     }
-    // ロード完了後にID表示を更新
     updatePlayerIdDisplay();
   }catch(e){
-    console.log('[ABYSSAL] Cloud load failed, using local save:', e);
+    console.error('[ABYSSAL] Cloud save error:', e.code, e.message);
     updatePlayerIdDisplay();
   }
 }
