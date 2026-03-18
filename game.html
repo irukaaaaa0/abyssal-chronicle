@@ -490,6 +490,70 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .notif-footer-btn:hover{color:#40e0c0;}
 
 
+
+/* ===== TOWER ===== */
+.tower-content{padding:14px 14px 80px;}
+.tower-floor-header{text-align:center;margin-bottom:16px;}
+.tower-floor-num{font-size:36px;font-weight:700;color:var(--teal);letter-spacing:.05em;}
+.tower-floor-lbl{font-size:10px;color:var(--text3);letter-spacing:.15em;margin-top:2px;}
+.tower-best{font-size:11px;color:var(--text2);margin-top:4px;}
+.tower-enemy-card{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;}
+.tower-enemy-ico{font-size:48px;margin-bottom:8px;animation:enemyFloat 2s ease-in-out infinite;}
+.tower-enemy-nm{font-size:14px;font-weight:500;margin-bottom:6px;}
+.tower-enemy-stats{display:flex;gap:10px;justify-content:center;font-size:11px;color:var(--text2);}
+.tower-btn{width:100%;padding:12px;border-radius:12px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.4);font-size:14px;font-weight:500;color:var(--teal);cursor:pointer;font-family:inherit;transition:background .2s;}
+.tower-btn:hover{background:rgba(20,120,80,.5);}
+.tower-rewards{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+.tower-rw-title{font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px;}
+.tower-rw-row{display:flex;gap:10px;font-size:11px;color:var(--gold);}
+
+/* ===== ACHIEVEMENT ===== */
+.achieve-content{padding:14px 14px 80px;}
+.achieve-section-title{font-size:9px;color:var(--text3);letter-spacing:.12em;margin:12px 0 8px;}
+.achieve-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.achieve-card.unlocked{border-color:rgba(200,160,0,.4);background:rgba(40,30,0,.3);}
+.achieve-ico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.achieve-ico.locked{filter:grayscale(1);opacity:.4;}
+.achieve-info{flex:1;}
+.achieve-name{font-size:11px;font-weight:500;}
+.achieve-desc{font-size:9px;color:var(--text2);margin-top:2px;}
+.achieve-prog{font-size:9px;color:var(--teal);margin-top:3px;}
+.achieve-rw{font-size:10px;color:var(--gold);font-weight:500;flex-shrink:0;}
+.title-equip-btn{font-size:8px;background:rgba(200,160,0,.2);border:.5px solid rgba(200,160,0,.4);border-radius:4px;padding:2px 6px;color:#c8a020;cursor:pointer;margin-top:3px;display:inline-block;}
+.title-badge{display:inline-block;font-size:9px;background:rgba(80,40,160,.2);border:.5px solid rgba(120,60,220,.4);border-radius:4px;padding:1px 6px;color:#a060e0;margin-left:6px;}
+
+/* ===== FRIEND ===== */
+.friend-content{padding:14px 14px 80px;}
+.friend-id-box{background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:12px;padding:14px;margin-bottom:14px;}
+.friend-id-label{font-size:10px;color:var(--text2);margin-bottom:6px;}
+.friend-id-val{font-size:18px;font-weight:700;color:var(--teal);letter-spacing:.1em;}
+.friend-search-row{display:flex;gap:8px;margin-bottom:14px;}
+.friend-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.friend-card-ico{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0a3060,#1a6090);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.friend-card-name{font-size:12px;font-weight:500;flex:1;}
+.friend-card-rank{font-size:9px;color:var(--text2);}
+.friend-action-btn{font-size:9px;padding:4px 10px;border-radius:6px;border:.5px solid;cursor:pointer;font-family:inherit;}
+.friend-add-btn{border-color:rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);}
+.friend-remove-btn{border-color:rgba(160,30,30,.4);background:rgba(80,10,10,.3);color:#e06060;}
+.helper-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s;}
+.helper-card:hover{border-color:rgba(20,100,180,.4);}
+.helper-char-ico{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+/* ===== PVP ===== */
+.pvp-content{padding:14px 14px 80px;}
+.pvp-rank-box{background:linear-gradient(135deg,rgba(80,20,160,.3),rgba(20,5,80,.4));border:.5px solid rgba(120,60,220,.4);border-radius:14px;padding:16px;text-align:center;margin-bottom:14px;}
+.pvp-rank-lbl{font-size:10px;color:rgba(180,120,255,.7);letter-spacing:.12em;margin-bottom:4px;}
+.pvp-rank-val{font-size:32px;font-weight:700;color:#c080ff;}
+.pvp-rank-pts{font-size:11px;color:rgba(180,120,255,.6);margin-top:4px;}
+.pvp-record{display:flex;gap:8px;justify-content:center;margin-top:8px;}
+.pvp-rec-item{text-align:center;}
+.pvp-rec-val{font-size:16px;font-weight:700;}
+.pvp-rec-lbl{font-size:9px;color:var(--text3);}
+.pvp-battle-btn{width:100%;padding:13px;border-radius:12px;border:.5px solid rgba(120,60,220,.5);background:rgba(60,10,120,.4);font-size:14px;font-weight:500;color:#c080ff;cursor:pointer;font-family:inherit;margin-bottom:10px;transition:background .2s;}
+.pvp-battle-btn:hover{background:rgba(80,20,160,.5);}
+.pvp-opponent-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+.pvp-opp-ico{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#300060,#600090);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -571,7 +635,10 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
       <div class="menu-btn" onclick="goTo('gacha');sfx('click')"><div class="menu-new">NEW</div><div class="menu-icon-w mi-g">🔮</div><div class="menu-lbl">召喚</div></div>
       <div class="menu-btn" onclick="goTo('party');sfx('click')"><div class="menu-icon-w mi-p">🐙</div><div class="menu-lbl">編成</div></div>
       <div class="menu-btn" onclick="goTo('grow');sfx('click')"><div class="menu-icon-w mi-gr">🧬</div><div class="menu-lbl">育成</div></div>
-      <div class="menu-btn" onclick="showToast('ショップ — 近日公開');sfx('click')"><div class="menu-icon-w mi-s">🪸</div><div class="menu-lbl">ショップ</div></div>
+      <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
+      <div class="menu-btn" onclick="goTo('achieve');sfx('click')"><div class="menu-icon-w" style="background:rgba(200,160,0,.15);">🎖️</div><div class="menu-lbl">実績</div></div>
+      <div class="menu-btn" onclick="goTo('friend');sfx('click')"><div class="menu-icon-w" style="background:rgba(40,120,200,.2);">👥</div><div class="menu-lbl">フレンド</div></div>
+      <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
       <div class="menu-btn" onclick="goTo('settings');sfx('click')"><div class="menu-icon-w mi-m">⚙️</div><div class="menu-lbl">設定</div></div>
     </div>
     <div class="daily-section">
@@ -670,6 +737,54 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
       <div class="char-count" id="party-char-count"></div>
       <div class="char-list" id="char-list"></div>
     </div>
+  </div>
+</div>
+
+<!-- TOWER SCREEN -->
+<div class="screen" id="screen-tower">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ABYSS TOWER</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="tower-content" id="tower-content"></div>
+  </div>
+</div>
+
+<!-- ACHIEVE SCREEN -->
+<div class="screen" id="screen-achieve">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ACHIEVEMENT</div>
+    <div style="font-size:10px;color:var(--text2);" id="achieve-count">0/0</div>
+  </div>
+  <div class="content">
+    <div class="achieve-content" id="achieve-content"></div>
+  </div>
+</div>
+
+<!-- FRIEND SCREEN -->
+<div class="screen" id="screen-friend">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">FRIEND</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="friend-content" id="friend-content"></div>
+  </div>
+</div>
+
+<!-- PVP SCREEN -->
+<div class="screen" id="screen-pvp">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ARENA</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="pvp-content" id="pvp-content"></div>
   </div>
 </div>
 
@@ -1066,6 +1181,14 @@ async function saveToCloud(){
       rank: S.rank || 1,
       rankExp: S.rankExp || 0,
       ownedData: S.ownedData || {},
+      towerFloor: S.towerFloor||1,
+      towerBest: S.towerBest||0,
+      achievements: S.achievements||{},
+      equippedTitle: S.equippedTitle||'',
+      friends: S.friends||[],
+      pvpRank: S.pvpRank||1200,
+      pvpWin: S.pvpWin||0,
+      pvpLose: S.pvpLose||0,
       lastSaved: new Date().toISOString()
     };
     await playerDocRef.update(saveData);
@@ -1429,7 +1552,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pvpRank:1200,pvpWin:0,pvpLose:0};
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
@@ -1530,6 +1653,10 @@ function goTo(sc){
   if(sc==='party')refreshParty();
   if(sc==='grow')refreshGrow();
   if(sc==='notices')renderNotices();
+  if(sc==='tower')renderTower();
+  if(sc==='achieve')renderAchieve();
+  if(sc==='friend')renderFriend();
+  if(sc==='pvp')renderPvp();
   const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
 }
 
@@ -2451,7 +2578,435 @@ function updatePartyHP(){
 }
 
 // ================================================================
+//  🏆 ABYSS TOWER（無限塔）
+// ================================================================
+// 階層ごとの敵データ生成（階層が上がるほど強くなる）
+function getTowerEnemy(floor){
+  const bases=[
+    {name:'深海スライム',emoji:'🟢',hp:300,atk:40},
+    {name:'霧クラゲ',    emoji:'🪼',hp:500,atk:60},
+    {name:'岩石ガニ',    emoji:'🦀',hp:800,atk:90},
+    {name:'深海鰻',      emoji:'🐍',hp:1200,atk:130},
+    {name:'古代魚',      emoji:'🐡',hp:1800,atk:180},
+    {name:'深海竜',      emoji:'🐉',hp:3000,atk:280},
+    {name:'崩壊体',      emoji:'👾',hp:5000,atk:380},
+    {name:'旧破の使徒',  emoji:'💀',hp:8000,atk:500},
+    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700},
+    {name:'永遠の番人',  emoji:'⚫',hp:30000,atk:1000},
+  ];
+  const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
+  const base = bases[tier];
+  const mul  = 1 + (floor-1)*0.15 + Math.floor((floor-1)/10)*0.5;
+  const isBoss = floor%10===0;
+  return {
+    name: isBoss ? `【BOSS】${base.name}` : base.name,
+    emoji: isBoss ? '👑' : base.emoji,
+    hp:  Math.round(base.hp  * mul * (isBoss?3:1)),
+    atk: Math.round(base.atk * mul * (isBoss?2:1)),
+    spd: floor>=30?3:floor>=15?2:1,
+    boss: isBoss,
+  };
+}
+
+function getTowerRewards(floor){
+  const gem  = 5 + Math.floor(floor/5)*3;
+  const gold = 200 + floor*50;
+  return {gem, gold};
+}
+
+function renderTower(){
+  const floor = S.towerFloor || 1;
+  const best  = S.towerBest  || 0;
+  const enemy = getTowerEnemy(floor);
+  const rw    = getTowerRewards(floor);
+  const isBoss= floor%10===0;
+
+  document.getElementById('tower-content').innerHTML=`
+    <div class="tower-floor-header">
+      <div class="tower-floor-num">${floor}F</div>
+      <div class="tower-floor-lbl">${isBoss?'⚠️ BOSS FLOOR':'ABYSS TOWER'}</div>
+      <div class="tower-best">最高到達: ${best}F</div>
+    </div>
+    <div class="tower-enemy-card">
+      <div class="tower-enemy-ico">${enemy.emoji}</div>
+      <div class="tower-enemy-nm" style="color:${isBoss?'#cc4040':'var(--text)'}">${enemy.name}</div>
+      <div class="tower-enemy-stats">
+        <span>HP: ${enemy.hp.toLocaleString()}</span>
+        <span>ATK: ${enemy.atk}</span>
+        <span>SPD: ${enemy.spd}</span>
+      </div>
+    </div>
+    <div class="tower-rewards">
+      <div class="tower-rw-title">クリア報酬</div>
+      <div class="tower-rw-row">
+        <span>💰 ${rw.gold.toLocaleString()}</span>
+        <span>💎 ${rw.gem}</span>
+        ${isBoss?'<span style="color:var(--teal)">+ 実績解除</span>':''}
+      </div>
+    </div>
+    <button class="tower-btn" onclick="startTowerBattle()">⚔️ ${floor}Fに挑む</button>
+    <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--text3);">
+      パーティを編成してから挑戦しましょう
+    </div>
+  `;
+}
+
+function startTowerBattle(){
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){
+    showModal('パーティ未編成','パーティを編成してください。',[
+      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
+    ]);
+    return;
+  }
+  const floor = S.towerFloor||1;
+  const enemy = getTowerEnemy(floor);
+  const rw    = getTowerRewards(floor);
+  // 塔専用クエストオブジェクトを生成
+  const towerQuest = {
+    id: `tower_${floor}`,
+    name: `無限塔 ${floor}F`,
+    enemy,
+    gold: rw.gold,
+    gem:  rw.gem,
+    boss: enemy.boss,
+    bgColor:['#020010','#080020'],
+    story: [],
+    isTower: true,
+  };
+  sfx('click');
+  initBattle(towerQuest, ap);
+}
+
+// 塔クリア処理（winBattleから呼ばれる）
+function onTowerClear(quest){
+  const floor = S.towerFloor||1;
+  S.towerFloor = floor+1;
+  S.towerBest  = Math.max(S.towerBest||0, floor);
+  // 実績チェック
+  checkAchievement('tower10',  S.towerBest>=10);
+  checkAchievement('tower30',  S.towerBest>=30);
+  checkAchievement('tower50',  S.towerBest>=50);
+  checkAchievement('tower100', S.towerBest>=100);
+  saveGame();
+}
+
+// ================================================================
+//  🎖️ ACHIEVEMENT（実績・称号）
+// ================================================================
+const ACHIEVEMENT_LIST=[
+  // クエスト系
+  {id:'first_clear',  name:'冒険の始まり',    emoji:'⚓',desc:'初めてクエストをクリア',          cond:s=>s.cleared&&s.cleared.length>=1,    reward:{gem:50}, title:'新米司令官'},
+  {id:'ch1_clear',    name:'第1章制覇',       emoji:'🌊',desc:'第1章を全層クリア',               cond:s=>CHAPTERS[0]&&CHAPTERS[0].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:100}, title:'霧の覇者'},
+  {id:'ch2_clear',    name:'第2章制覇',       emoji:'🪨',desc:'第2章を全層クリア',               cond:s=>CHAPTERS[1]&&CHAPTERS[1].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:200}, title:'岩礁の征服者'},
+  {id:'ch3_clear',    name:'深淵の覇者',      emoji:'🌑',desc:'第3章を全層クリア',               cond:s=>CHAPTERS[2]&&CHAPTERS[2].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:500}, title:'旧破の終焉者'},
+  // ガチャ系
+  {id:'gacha10',      name:'召喚師見習い',    emoji:'🔮',desc:'10回召喚する',                   cond:s=>(s.owned&&s.owned.length)>=10,      reward:{gem:30},  title:'召喚師'},
+  {id:'gacha_ssr',    name:'SSR獲得',        emoji:'⭐',desc:'SSRキャラを獲得',                 cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='SSR';}), reward:{gem:100}, title:''},
+  {id:'gacha_ur',     name:'UR覚醒',         emoji:'🌟',desc:'URキャラを獲得',                  cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='UR';}),  reward:{gem:300}, title:'深淵の選ばれし者'},
+  // 育成系
+  {id:'lv50',         name:'育成の道',        emoji:'🧬',desc:'いずれかのキャラをLv.50にする',   cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>d.level>=50), reward:{gem:150}, title:'育成マスター'},
+  {id:'breakthrough5',name:'限界超越',        emoji:'💥',desc:'いずれかのキャラを限界突破5段階', cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>(d.breakthrough||0)>=5), reward:{gem:200}, title:'限界突破者'},
+  // タワー系
+  {id:'tower10',      name:'塔の挑戦者',      emoji:'🏆',desc:'無限塔10Fに到達',                cond:s=>(s.towerBest||0)>=10,               reward:{gem:100}, title:'塔の登攀者'},
+  {id:'tower30',      name:'深淵の登山者',    emoji:'🗼',desc:'無限塔30Fに到達',                cond:s=>(s.towerBest||0)>=30,               reward:{gem:300}, title:'深淵の登山者'},
+  {id:'tower50',      name:'塔の征服者',      emoji:'👑',desc:'無限塔50Fに到達',                cond:s=>(s.towerBest||0)>=50,               reward:{gem:500}, title:'無限塔の覇者'},
+  {id:'tower100',     name:'無限の彼方へ',    emoji:'⚫',desc:'無限塔100Fに到達',               cond:s=>(s.towerBest||0)>=100,              reward:{gem:1000},title:'深淵の支配者'},
+  // Rank系
+  {id:'rank10',       name:'指揮官昇進',      emoji:'🎖️',desc:'Rank10に到達',                   cond:s=>(s.rank||1)>=10,                    reward:{gem:100}, title:'歴戦の指揮官'},
+  {id:'rank50',       name:'深海提督',        emoji:'⚓',desc:'Rank50に到達',                   cond:s=>(s.rank||1)>=50,                    reward:{gem:500}, title:'深海提督'},
+  // PvP系
+  {id:'pvp_win10',    name:'闘技場の戦士',    emoji:'⚔️',desc:'PvPで10勝する',                  cond:s=>(s.pvpWin||0)>=10,                  reward:{gem:150}, title:'闘技場の戦士'},
+  {id:'pvp_win50',    name:'闘技場の覇者',    emoji:'🏅',desc:'PvPで50勝する',                  cond:s=>(s.pvpWin||0)>=50,                  reward:{gem:500}, title:'闘技場の覇者'},
+];
+
+function checkAchievement(id, condition){
+  if(!condition) return false;
+  if(S.achievements&&S.achievements[id]) return false; // 既に解除済み
+  const def = ACHIEVEMENT_LIST.find(a=>a.id===id);
+  if(!def) return false;
+  if(!S.achievements) S.achievements={};
+  S.achievements[id] = Date.now();
+  // 報酬付与
+  if(def.reward.gem)  S.gem  += def.reward.gem;
+  if(def.reward.gold) S.gold += def.reward.gold;
+  saveGame();
+  showToast(`🎖️ 実績解除「${def.name}」！ 💎+${def.reward.gem||0}`);
+  sfx('win');
+  return true;
+}
+
+function checkAllAchievements(){
+  ACHIEVEMENT_LIST.forEach(a=>{
+    if(!(S.achievements&&S.achievements[a.id])){
+      checkAchievement(a.id, a.cond(S));
+    }
+  });
+}
+
+function renderAchieve(){
+  const unlocked = ACHIEVEMENT_LIST.filter(a=>S.achievements&&S.achievements[a.id]);
+  const locked   = ACHIEVEMENT_LIST.filter(a=>!(S.achievements&&S.achievements[a.id]));
+  const countEl  = document.getElementById('achieve-count');
+  if(countEl) countEl.textContent=`${unlocked.length}/${ACHIEVEMENT_LIST.length}`;
+
+  // 称号一覧（解除済みで称号があるもの）
+  const titles = unlocked.filter(a=>a.title);
+  let html=`<div class="achieve-section-title">装備中の称号</div>
+    <div style="margin-bottom:12px;">
+      ${S.equippedTitle
+        ?`<span style="font-size:13px;font-weight:500;">「${S.equippedTitle}」</span>
+           <span onclick="equipTitle('')" style="font-size:9px;color:var(--text3);cursor:pointer;margin-left:8px;">はずす</span>`
+        :`<span style="font-size:11px;color:var(--text3);">称号未装備</span>`}
+    </div>`;
+
+  if(titles.length){
+    html+=`<div class="achieve-section-title">取得済み称号</div>`;
+    html+=titles.map(a=>`
+      <div class="achieve-card unlocked">
+        <div class="achieve-ico">${a.emoji}</div>
+        <div class="achieve-info">
+          <div class="achieve-name">「${a.title}」</div>
+          <div class="achieve-desc">${a.desc}で獲得</div>
+        </div>
+        <div onclick="equipTitle('${a.title}')" class="title-equip-btn">装備</div>
+      </div>`).join('');
+  }
+
+  html+=`<div class="achieve-section-title">実績一覧（${unlocked.length}/${ACHIEVEMENT_LIST.length}）</div>`;
+  html+=unlocked.map(a=>`
+    <div class="achieve-card unlocked">
+      <div class="achieve-ico">${a.emoji}</div>
+      <div class="achieve-info">
+        <div class="achieve-name">${a.name}</div>
+        <div class="achieve-desc">${a.desc}</div>
+      </div>
+      <div class="achieve-rw">💎${a.reward.gem||0}</div>
+    </div>`).join('');
+
+  html+=locked.map(a=>`
+    <div class="achieve-card">
+      <div class="achieve-ico locked">${a.emoji}</div>
+      <div class="achieve-info">
+        <div class="achieve-name" style="color:var(--text3);">${a.name}</div>
+        <div class="achieve-desc">${a.desc}</div>
+      </div>
+      <div class="achieve-rw" style="color:var(--text3);">💎${a.reward.gem||0}</div>
+    </div>`).join('');
+
+  document.getElementById('achieve-content').innerHTML=html;
+}
+
+function equipTitle(title){
+  S.equippedTitle = title;
+  saveGame();
+  renderAchieve();
+  updatePlayerNameDisplay();
+}
+
+function updatePlayerNameDisplay(){
+  const el = document.querySelector('.pname');
+  if(el) el.textContent = '深海司令官' + (S.equippedTitle?` 「${S.equippedTitle}」`:'');
+}
+
+// ================================================================
+//  👥 FRIEND（フレンド・助っ人）
+// ================================================================
+function renderFriend(){
+  const friends = S.friends||[];
+  let html=`
+    <div class="friend-id-box">
+      <div class="friend-id-label">あなたのプレイヤーID（フレンド追加に使用）</div>
+      <div class="friend-id-val">${S.playerId||'----'}</div>
+      <div onclick="copyPlayerId()" style="font-size:9px;color:var(--teal);margin-top:6px;cursor:pointer;">📋 IDをコピー</div>
+    </div>
+    <div class="friend-search-row">
+      <input class="search-input" id="friend-search-input" placeholder="フレンドのIDを入力..." style="flex:1;">
+      <button onclick="addFriendById()" style="padding:8px 14px;border-radius:8px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-family:inherit;font-size:12px;">追加</button>
+    </div>`;
+
+  if(friends.length===0){
+    html+=`<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンドがいません<br>IDを交換して追加しましょう！</div>`;
+  } else {
+    html+=`<div style="font-size:10px;color:var(--text2);margin-bottom:8px;">フレンド（${friends.length}人）</div>`;
+    html+=friends.map(f=>`
+      <div class="friend-card">
+        <div class="friend-card-ico">🌊</div>
+        <div>
+          <div class="friend-card-name">${f.name||'司令官'}</div>
+          <div class="friend-card-rank">ID: ${f.id} | Rank ${f.rank||1}</div>
+        </div>
+        <div onclick="removeFriend('${f.id}')" class="friend-action-btn friend-remove-btn">削除</div>
+      </div>`).join('');
+  }
+
+  // 助っ人セクション（所持キャラの最強を表示）
+  html+=`<div style="font-size:10px;color:var(--text2);margin:14px 0 8px;">助っ人（フレンドの最強キャラを借りられます）</div>`;
+  if(friends.length===0){
+    html+=`<div style="font-size:10px;color:var(--text3);">フレンドを追加すると助っ人を借りられます</div>`;
+  } else {
+    html+=friends.map(f=>{
+      const ch = f.topChar ? CHARS.find(c=>c.id===f.topChar) : null;
+      if(!ch) return '';
+      return `<div class="helper-card" onclick="showToast('助っ人機能は近日実装予定！')">
+        <div class="helper-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div>
+        <div>
+          <div style="font-size:11px;font-weight:500;">${ch.name}</div>
+          <div style="font-size:9px;color:var(--text2);">${f.name||'司令官'}の助っ人 | Lv.${f.topLv||1} ${ch.rarity}</div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('') || `<div style="font-size:10px;color:var(--text3);">フレンドのキャラ情報を取得できません</div>`;
+  }
+
+  document.getElementById('friend-content').innerHTML=html;
+}
+
+async function addFriendById(){
+  const input = document.getElementById('friend-search-input');
+  const id = (input?.value||'').trim().toUpperCase();
+  if(!id){ showToast('IDを入力してください'); return; }
+  if(id===S.playerId){ showToast('自分自身は追加できません'); return; }
+  if((S.friends||[]).some(f=>f.id===id)){ showToast('既にフレンドです'); return; }
+
+  try{
+    const snap = await db.collection('players').where('playerId','==',id).limit(1).get();
+    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
+    const data = snap.docs[0].data();
+    // 最強キャラを取得
+    const topCharId = data.owned && data.owned.length > 0 ?
+      data.owned.sort((a,b)=>{
+        const ca=CHARS.find(c=>c.id===a),cb=CHARS.find(c=>c.id===b);
+        const order={UR:4,SSR:3,SR:2,R:1};
+        return (order[cb?.rarity]||0)-(order[ca?.rarity]||0);
+      })[0] : null;
+    const topData = data.ownedData && topCharId ? data.ownedData[topCharId] : null;
+
+    if(!S.friends) S.friends=[];
+    S.friends.push({
+      id: data.playerId,
+      name: '深海司令官',
+      rank: data.rank||1,
+      topChar: topCharId,
+      topLv: topData?.level||1,
+    });
+    saveGame();
+    showToast(`✅ ${data.playerId} をフレンド追加しました！`);
+    renderFriend();
+  }catch(e){
+    showToast('❌ フレンド追加に失敗しました');
+    console.log(e);
+  }
+}
+
+function removeFriend(id){
+  S.friends = (S.friends||[]).filter(f=>f.id!==id);
+  saveGame();
+  renderFriend();
+  showToast('フレンドを削除しました');
+}
+
+// ================================================================
+//  ⚔️ PVP（闘技場）
+// ================================================================
+// 模擬対戦相手（Firebase未対応の場合はダミー）
+const PVP_DUMMY_OPPONENTS=[
+  {name:'深海の猛者',   rank:1150, party:[4,6,13], wins:45,  losses:12},
+  {name:'旧破の戦士',   rank:1280, party:[1,5,8],  wins:78,  losses:20},
+  {name:'崩壊の剣客',   rank:1420, party:[2,7,9],  wins:120, losses:35},
+  {name:'深淵の覇者',   rank:1350, party:[3,10,15],wins:95,  losses:28},
+  {name:'霧の狩人',     rank:1180, party:[4,13,17],wins:60,  losses:18},
+];
+
+function renderPvp(){
+  const rank  = S.pvpRank  || 1200;
+  const wins  = S.pvpWin   || 0;
+  const losses= S.pvpLose  || 0;
+  const rankName = rank>=1800?'深淵王':rank>=1600?'覇者':rank>=1400?'上級戦士':rank>=1200?'戦士':'見習い';
+
+  // 対戦相手をランク近い順に並べる
+  const opponents = [...PVP_DUMMY_OPPONENTS].sort((a,b)=>Math.abs(a.rank-rank)-Math.abs(b.rank-rank));
+
+  document.getElementById('pvp-content').innerHTML=`
+    <div class="pvp-rank-box">
+      <div class="pvp-rank-lbl">ARENA RANK</div>
+      <div class="pvp-rank-val">${rankName}</div>
+      <div class="pvp-rank-pts">${rank} pts</div>
+      <div class="pvp-record">
+        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--teal)">${wins}</div><div class="pvp-rec-lbl">勝利</div></div>
+        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--red)">${losses}</div><div class="pvp-rec-lbl">敗北</div></div>
+        <div class="pvp-rec-item"><div class="pvp-rec-val">${wins+losses>0?Math.round(wins/(wins+losses)*100):0}%</div><div class="pvp-rec-lbl">勝率</div></div>
+      </div>
+    </div>
+    <button class="pvp-battle-btn" onclick="startPvpBattle()">⚔️ マッチング開始</button>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:8px;">対戦相手候補</div>
+    ${opponents.slice(0,5).map(opp=>{
+      const diff = opp.rank - rank;
+      const diffTxt = diff>0?`+${diff}`:diff;
+      const diffCol = diff>0?'#e06060':diff<0?'#40c080':'var(--text2)';
+      return`<div class="pvp-opponent-card">
+        <div class="pvp-opp-ico">⚔️</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:500;">${opp.name}</div>
+          <div style="font-size:9px;color:var(--text2);">${opp.wins}勝 ${opp.losses}敗</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;font-weight:500;">${opp.rank}pts</div>
+          <div style="font-size:9px;color:${diffCol};">${diffTxt}</div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="font-size:9px;color:var(--text3);text-align:center;margin-top:10px;">※ 現在はオフライン模擬戦闘です</div>
+  `;
+}
+
+function startPvpBattle(){
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){
+    showModal('パーティ未編成','闘技場に出るにはパーティを編成してください。',[
+      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
+    ]);
+    return;
+  }
+  const rank = S.pvpRank||1200;
+  // ランク近い相手をランダム選択
+  const opponent = PVP_DUMMY_OPPONENTS[Math.floor(Math.random()*PVP_DUMMY_OPPONENTS.length)];
+  const enemy = {
+    name: opponent.name,
+    emoji:'⚔️',
+    hp: opponent.party.reduce((sum,id)=>{ const c=CHARS.find(ch=>ch.id===id); return sum+(c?c.hp:500); },0),
+    atk: Math.round(Math.max(...opponent.party.map(id=>{ const c=CHARS.find(ch=>ch.id===id); return c?c.atk:80; }))*1.2),
+    spd: rank>=1400?2:1,
+    boss: false,
+  };
+  const pvpQuest={
+    id:`pvp_${Date.now()}`,
+    name:`⚔️ vs ${opponent.name}`,
+    enemy,
+    gold: 100+Math.round((rank-1000)/10),
+    gem: 5+Math.round((rank-1000)/100),
+    boss:false,
+    bgColor:['#050010','#100020'],
+    story:[],
+    isPvp:true,
+    opponent,
+  };
+  sfx('click');
+  initBattle(pvpQuest, ap);
+}
+
+function onPvpEnd(won, quest){
+  const pointChange = won ? Math.round(20+(quest.opponent?.rank||1200)/100) : -15;
+  S.pvpRank = Math.max(0, (S.pvpRank||1200)+pointChange);
+  if(won){ S.pvpWin=(S.pvpWin||0)+1; }
+  else   { S.pvpLose=(S.pvpLose||0)+1; }
+  checkAchievement('pvp_win10', (S.pvpWin||0)>=10);
+  checkAchievement('pvp_win50', (S.pvpWin||0)>=50);
+  saveGame();
+}
+
+// ================================================================
 //  RANK SYSTEM
+
 // ================================================================
 // Rankに必要なEXP: Rank * 80 + Rank^2 * 20
 function rankExpNeeded(rank){ return rank * 80 + rank * rank * 20; }
@@ -2549,6 +3104,11 @@ function winBattle(){
   S.gem  += BT.quest.gem;
   S.dailyDone = Math.min(5, S.dailyDone+1);
   if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
+  // 塔・PvP処理
+  if(BT.quest.isTower) onTowerClear(BT.quest);
+  if(BT.quest.isPvp)   onPvpEnd(true, BT.quest);
+  // 実績チェック
+  checkAllAchievements();
 
   // EXP付与
   const gainExp = calcQuestExp(BT.quest);
@@ -2586,6 +3146,7 @@ function winBattle(){
 }
 function loseBattle(){
   BT.active=false;sfx('lose');
+  if(BT.quest&&BT.quest.isPvp) onPvpEnd(false, BT.quest);
   document.getElementById('end-ttl').textContent='DEFEAT';document.getElementById('end-ttl').className='end-ttl end-lose';
   document.getElementById('end-rw-val').textContent='報酬なし';
   document.getElementById('battle-end').classList.add('show');
