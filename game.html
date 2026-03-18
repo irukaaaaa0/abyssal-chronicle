@@ -1071,32 +1071,22 @@ function showToast(msg){
 // ================================================================
 //  ONLINE DATA LOADER
 // ================================================================
-const DATA_URL    = 'data.json';
 const NOTICES_URL = 'notices.json';
 
 async function loadOnlineData(){
-  // JSONが取得できた場合はそちらを優先、失敗時はビルトインデータで動作
+  // notices.jsonだけ取得（お知らせ・更新ログ）
+  // キャラ・バナー・クエストはHTML内蔵データを使用
   try {
-    const [dataRes, noticeRes] = await Promise.all([
-      fetch(DATA_URL  + '?v=' + Date.now()),
-      fetch(NOTICES_URL + '?v=' + Date.now())
-    ]);
-    if(dataRes.ok){
-      const data = await dataRes.json();
-      // キャラ・バナー・クエストを差し替え
-      if(data.characters) CHARS.splice(0, CHARS.length, ...data.characters.map(c=>({...c,level:1})));
-      if(data.banners)    BANNERS.splice(0, BANNERS.length, ...data.banners.filter(b=>b.active!==false));
-      if(data.quests)     QUESTS.splice(0, QUESTS.length, ...data.quests);
-      if(data.version)    GAME_VERSION = data.version;
-      console.log('[ABYSSAL] Online data loaded. version:', GAME_VERSION);
-    }
+    const noticeRes = await fetch(NOTICES_URL + '?v=' + Date.now());
     if(noticeRes.ok){
       const nd = await noticeRes.json();
-      if(nd.notices) ONLINE_NOTICES = nd.notices;
-      if(nd.updateLog) UPDATE_LOG = nd.updateLog;
+      if(nd.notices)   ONLINE_NOTICES = nd.notices;
+      if(nd.updateLog) UPDATE_LOG     = nd.updateLog;
+      if(nd.version)   GAME_VERSION   = nd.version;
+      console.log('[ABYSSAL] Notices loaded. version:', GAME_VERSION);
     }
   } catch(e){
-    console.log('[ABYSSAL] Offline mode - using built-in data.');
+    console.log('[ABYSSAL] Offline mode.');
   }
 }
 
