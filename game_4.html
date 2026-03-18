@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABYSSAL CHRONICLE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#020810;--bg2:#040e1a;--bg3:#071220;
+  --border:#0a1828;--border2:#102030;--border3:#1a3048;
+  --text:#a0c8e8;--text2:#4a7898;--text3:#1e3a50;
+  --accent:#1a8aff;--accent2:#0a5aaa;
+  --gold:#c8a020;--gem:#2080d0;
+  --red:#cc3030;--green:#208060;
+  --teal:#10c0a0;--deep:#050d18;
+}
+body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sans','Meiryo',sans-serif;min-height:100vh;overflow:hidden;user-select:none;}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+.sea-bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#seaCanvas{position:absolute;inset:0;width:100%;height:100%;}
+.header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(2,8,16,.88);border-bottom:.5px solid var(--border2);backdrop-filter:blur(6px);}
+.player-info{display:flex;align-items:center;gap:10px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0a3060,#1a6090);border:1.5px solid rgba(30,120,200,.5);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.pname{font-size:13px;font-weight:500;}
+.prank{font-size:10px;color:var(--text2);}
+.currencies{display:flex;gap:6px;}
+.currency{display:flex;align-items:center;gap:4px;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:20px;padding:4px 9px;}
+.curr-icon{width:10px;height:10px;border-radius:50%;}
+.curr-gold{background:radial-gradient(#c8a020,#806010);}
+.curr-gem{background:radial-gradient(#2080d0,#104080);}
+.curr-val{font-size:11px;font-weight:500;}
+.bottom-nav{position:relative;z-index:10;display:flex;background:rgba(2,6,14,.95);border-top:.5px solid var(--border2);padding:8px 0 10px;flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:opacity .15s;}
+.nav-item:hover{opacity:.7;}
+.nav-icon-wrap{font-size:18px;transition:filter .2s;}
+.nav-label{font-size:9px;color:var(--text3);}
+.nav-item.active .nav-label{color:var(--teal);}
+.nav-item.active .nav-icon-wrap{filter:drop-shadow(0 0 5px rgba(16,192,160,.8));}
+.content{flex:1;overflow-y:auto;position:relative;z-index:5;}
+.content::-webkit-scrollbar{width:2px;}
+.content::-webkit-scrollbar-thumb{background:var(--border3);}
+
+/* HOME */
+.home-visual{height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.home-char{width:100px;height:160px;position:relative;animation:deepFloat 4s ease-in-out infinite;}
+@keyframes deepFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.home-char-body{width:100%;height:100%;background:linear-gradient(180deg,rgba(10,80,160,.4),rgba(5,30,80,.1));clip-path:polygon(50% 0%,90% 22%,90% 78%,50% 100%,10% 78%,10% 22%);border:1px solid rgba(30,120,200,.3);}
+.home-char-inner{width:60px;height:120px;margin:20px auto 0;background:linear-gradient(180deg,#2080c0,#0a4080 50%,#051020);clip-path:polygon(50% 0%,90% 25%,90% 75%,50% 100%,10% 75%,10% 25%);opacity:.8;}
+.home-char-glow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:16px;background:radial-gradient(ellipse,rgba(10,160,255,.4),transparent 70%);}
+.notice-bar{margin:0 12px 10px;background:rgba(0,20,40,.5);border:.5px solid rgba(20,80,140,.4);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;overflow:hidden;}
+.notice-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.1;}}
+.notice-text{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.notice-new{background:rgba(20,80,140,.4);border:.5px solid rgba(30,120,200,.4);border-radius:3px;padding:1px 5px;font-size:9px;color:#4090c0;flex-shrink:0;}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 10px;}
+.menu-btn{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:12px;padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:background .2s,border-color .2s,transform .1s;position:relative;}
+.menu-btn:hover{background:rgba(10,50,90,.5);border-color:rgba(20,100,180,.4);}
+.menu-btn:active{transform:scale(.93);}
+.menu-icon-w{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.mi-q{background:rgba(20,80,160,.2);}
+.mi-g{background:rgba(80,20,160,.2);}
+.mi-p{background:rgba(10,120,100,.2);}
+.mi-gr{background:rgba(140,100,20,.2);}
+.mi-s{background:rgba(140,40,40,.2);}
+.mi-m{background:rgba(20,60,100,.2);}
+.menu-lbl{font-size:10px;color:var(--text2);}
+.menu-new{position:absolute;top:6px;right:6px;background:#6b0000;border-radius:3px;padding:1px 4px;font-size:7px;color:#ffaaaa;font-weight:500;}
+.daily-section{padding:0 12px 70px;}
+.sec-lbl{font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:7px;}
+.daily-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.daily-icon-w{width:28px;height:28px;border-radius:7px;background:rgba(20,80,160,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.daily-info{flex:1;}
+.daily-title{font-size:11px;font-weight:500;}
+.daily-sub{font-size:9px;color:var(--text2);margin-top:2px;}
+.prog-bar{height:2px;background:rgba(255,255,255,.05);border-radius:1px;margin-top:5px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:1px;transition:width .5s;}
+.daily-rw{font-size:9px;color:var(--text2);text-align:right;flex-shrink:0;}
+.daily-rw span{display:block;color:var(--gold);font-size:12px;font-weight:500;}
+
+/* MAP */
+.map-content{padding:14px 14px 80px;}
+.map-title{font-size:10px;color:var(--text3);letter-spacing:.15em;margin-bottom:16px;text-align:center;}
+.quest-node{display:flex;align-items:center;gap:12px;margin-bottom:4px;cursor:pointer;}
+.quest-node.right{flex-direction:row-reverse;}
+.node-circle{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1.5px solid;position:relative;transition:transform .15s;}
+.node-circle:hover{transform:scale(1.1);}
+.nc-unlock{background:rgba(0,30,60,.8);border-color:rgba(30,120,200,.5);box-shadow:0 0 10px rgba(20,100,180,.2);}
+.nc-locked{background:rgba(0,10,20,.8);border-color:rgba(20,40,60,.4);filter:grayscale(.9);opacity:.4;}
+.nc-boss{background:rgba(30,0,0,.8);border-color:rgba(160,30,30,.6);box-shadow:0 0 14px rgba(160,30,30,.3);}
+.nc-clear{background:rgba(0,40,30,.8);border-color:rgba(20,120,80,.6);box-shadow:0 0 8px rgba(20,120,80,.2);}
+.node-info{flex:1;}
+.node-name{font-size:12px;font-weight:500;}
+.node-desc{font-size:10px;color:var(--text2);margin-top:2px;}
+.node-reward{font-size:9px;color:var(--gold);margin-top:3px;}
+.clear-badge{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:#208060;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;}
+.path-line{height:18px;width:2px;margin:0 26px;background:linear-gradient(180deg,rgba(20,80,160,.4),rgba(20,80,160,.05));}
+
+/* GACHA */
+.gacha-content{padding:14px 14px 20px;}
+.gacha-banner{background:linear-gradient(135deg,rgba(5,20,60,.8),rgba(20,5,80,.6));border:.5px solid rgba(40,60,160,.4);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;}
+.gacha-banner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(60deg,transparent,transparent 18px,rgba(255,255,255,.012) 18px,rgba(255,255,255,.012) 19px);}
+.gacha-ttl{font-size:18px;color:#80a0e0;font-weight:700;margin-bottom:4px;position:relative;}
+.gacha-sub{font-size:10px;color:var(--text2);position:relative;}
+.gacha-pickup-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;}
+.gacha-pickup-row::-webkit-scrollbar{height:2px;}
+.pickup-card{flex-shrink:0;width:76px;text-align:center;}
+.pickup-img{width:70px;height:86px;border-radius:9px;margin:0 auto 5px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden;}
+.pickup-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6));}
+
+/* GACHA BANNER TABS */
+.banner-tabs{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+.banner-tabs::-webkit-scrollbar{height:2px;}
+.banner-tab{flex-shrink:0;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:10px;padding:8px 14px;cursor:pointer;transition:background .2s,border-color .2s;text-align:center;}
+.banner-tab:hover{background:rgba(10,50,100,.6);}
+.banner-tab.active{border-color:var(--teal);background:rgba(10,80,70,.25);}
+.banner-tab-name{font-size:11px;font-weight:500;color:var(--text);}
+.banner-tab-sub{font-size:9px;color:var(--text2);margin-top:2px;}
+.banner-tab-ico{font-size:20px;margin-bottom:4px;}
+/* RATE PILLS */
+.rate-row{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+.rate-pill{font-size:9px;font-weight:700;padding:3px 8px;border-radius:99px;border:.5px solid;}
+.rate-pill.ur{background:rgba(255,200,0,.12);border-color:rgba(255,200,0,.4);color:#d4a820;}
+.rate-pill.ssr{background:rgba(200,100,0,.12);border-color:rgba(200,120,0,.4);color:#c08020;}
+.rate-pill.sr{background:rgba(120,50,200,.12);border-color:rgba(120,50,200,.4);color:#a060e0;}
+.rate-pill.r{background:rgba(20,80,200,.12);border-color:rgba(20,80,200,.4);color:#4080c0;}
+.rate-pill.pity-pill{background:rgba(10,100,80,.12);border-color:rgba(10,100,80,.4);color:var(--teal);}
+/* UR rarity */
+.r-ur{background:linear-gradient(135deg,rgba(200,160,0,.35),rgba(160,100,0,.2));border-color:rgba(240,200,0,.7);}
+.rb-ur{color:#ffe040;}
+
+.r-ssr{background:linear-gradient(135deg,rgba(140,100,20,.3),rgba(100,60,0,.2));border-color:rgba(180,130,20,.5);}
+.r-sr{background:linear-gradient(135deg,rgba(80,20,160,.3),rgba(40,10,100,.2));border-color:rgba(120,50,200,.5);}
+.r-r{background:linear-gradient(135deg,rgba(10,60,160,.3),rgba(5,30,100,.2));border-color:rgba(20,80,200,.4);}
+.rarity-badge{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);font-size:7px;font-weight:700;z-index:1;}
+.rb-ssr{color:#d4a020;}.rb-sr{color:#a060e0;}.rb-r{color:#4080c0;}
+.pickup-name{font-size:9px;color:var(--text2);}
+.gacha-btns{display:flex;flex-direction:column;gap:8px;}
+.gacha-btn{background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .2s,transform .1s;}
+.gacha-btn:hover{background:rgba(10,40,90,.7);}
+.gacha-btn:active{transform:scale(.97);}
+.gacha-btn-name{font-size:13px;font-weight:500;}
+.gacha-btn-cost{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);margin-top:3px;}
+.gacha-btn-ico{font-size:20px;opacity:.6;}
+.pity-info{margin-top:10px;background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
+.pity-prog{height:2px;background:var(--border2);border-radius:1px;overflow:hidden;flex:1;}
+.pity-fill{height:100%;background:linear-gradient(90deg,var(--accent),#8060e0);border-radius:1px;transition:width .3s;}
+
+/* RESULT */
+.result-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.result-overlay.show{display:flex;}
+.result-ttl{font-size:18px;color:#6090c0;margin-bottom:16px;letter-spacing:.12em;}
+.result-cards{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px;}
+.result-card{width:66px;text-align:center;animation:cardReveal .4s ease forwards;opacity:0;}
+@keyframes cardReveal{from{opacity:0;transform:scale(.4) translateY(20px);}to{opacity:1;transform:scale(1);}}
+.result-card-img{width:62px;height:78px;border-radius:9px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:24px;border:1.5px solid;position:relative;overflow:hidden;}
+.result-card-name{font-size:8px;color:var(--text2);}
+.result-close{margin-top:20px;background:rgba(10,40,90,.5);border:.5px solid rgba(30,100,200,.4);border-radius:20px;padding:9px 26px;font-size:13px;color:var(--text);cursor:pointer;}
+.result-close:hover{background:rgba(20,60,120,.6);}
+
+/* PARTY */
+.party-content{padding:14px;}
+.party-slots{display:flex;gap:8px;margin-bottom:16px;}
+.party-slot{flex:1;background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:border-color .2s,background .2s;min-height:100px;position:relative;}
+.party-slot:hover{border-color:rgba(20,100,180,.4);}
+.party-slot.selected{border:1.5px solid var(--teal);background:rgba(10,80,70,.15);}
+.party-slot.empty{border-style:dashed;opacity:.5;}
+.slot-num{position:absolute;top:5px;left:7px;font-size:8px;color:var(--text3);}
+.slot-remove{position:absolute;top:5px;right:7px;font-size:11px;color:var(--text3);cursor:pointer;}
+.slot-remove:hover{color:var(--red);}
+.slot-char-ico{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.slot-char-nm{font-size:9px;font-weight:500;text-align:center;}
+.slot-char-lv{font-size:8px;color:var(--text2);}
+.char-list{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding-bottom:80px;}
+.char-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:9px 5px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:border-color .2s,background .2s;}
+.char-card:hover{border-color:rgba(20,100,180,.5);background:rgba(10,50,90,.4);}
+.char-card.in-party{border-color:var(--teal);opacity:.4;cursor:default;}
+.char-ico{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.char-nm{font-size:9px;font-weight:500;text-align:center;}
+.char-lv{font-size:8px;color:var(--text2);}
+.char-rar{font-size:7px;font-weight:700;}
+
+/* BATTLE */
+.battle-header{position:relative;z-index:10;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,6,14,.9);border-bottom:.5px solid var(--border2);flex-shrink:0;backdrop-filter:blur(4px);}
+.battle-stage-txt{font-size:11px;color:var(--text2);}
+.battle-turn-txt{font-size:11px;font-weight:500;}
+.combo-txt{font-size:11px;color:var(--teal);}
+.enemy-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;position:relative;z-index:5;}
+.enemy-ico{font-size:68px;animation:enemyFloat 2.5s ease-in-out infinite;}
+@keyframes enemyFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.enemy-nm{font-size:14px;font-weight:500;margin:8px 0 4px;}
+.enemy-hp-bar{width:200px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.enemy-hp-fill{height:100%;background:linear-gradient(90deg,#cc3030,#802020);border-radius:3px;transition:width .5s;}
+.enemy-hp-txt{font-size:10px;color:var(--text2);margin-top:3px;}
+.dmg-popup{position:absolute;font-size:26px;font-weight:700;pointer-events:none;animation:dmgAnim .9s forwards;}
+@keyframes dmgAnim{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-70px);}}
+.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.85);flex-shrink:0;position:relative;z-index:10;}
+.member-hp{flex:1;background:rgba(0,15,35,.6);border:.5px solid var(--border2);border-radius:7px;padding:5px 7px;}
+.member-nm{font-size:8px;color:var(--text2);margin-bottom:3px;}
+.member-hp-bar{height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;}
+.member-hp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#20d0a0);border-radius:1px;transition:width .4s;}
+.member-hp-val{font-size:8px;color:var(--text3);margin-top:2px;}
+.card-hand{padding:8px 12px 10px;background:rgba(2,6,14,.9);border-top:.5px solid var(--border2);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(4px);}
+.hand-lbl{font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;}
+.cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;}
+.cards-row::-webkit-scrollbar{height:2px;}
+.battle-card{flex-shrink:0;width:60px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:9px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;}
+.battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-4px);}
+.battle-card.selected{border-color:var(--teal);background:rgba(10,80,70,.3);transform:translateY(-6px);}
+.battle-card.used{opacity:.25;cursor:default;pointer-events:none;}
+.card-em{font-size:18px;}
+.card-nm{font-size:7px;color:var(--text2);text-align:center;}
+.card-dmg{font-size:9px;font-weight:700;}
+.card-own{font-size:6px;color:var(--text3);}
+.battle-actions{display:flex;gap:7px;padding:0 12px 10px;position:relative;z-index:10;flex-shrink:0;}
+.battle-btn{flex:1;padding:9px;border-radius:9px;border:.5px solid;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:background .15s,transform .1s;}
+.battle-btn:active{transform:scale(.96);}
+.btn-atk{background:rgba(10,40,100,.4);border-color:rgba(20,100,200,.4);color:var(--text);}
+.btn-atk:hover{background:rgba(10,60,140,.5);}
+.btn-flee{background:rgba(0,10,25,.4);border-color:var(--border2);color:var(--text2);}
+.battle-end{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.battle-end.show{display:flex;}
+.end-ttl{font-size:32px;font-weight:700;letter-spacing:.15em;}
+.end-win{color:#c8a020;text-shadow:0 0 20px rgba(180,140,0,.5);}
+.end-lose{color:#cc3030;text-shadow:0 0 20px rgba(180,30,30,.5);}
+.end-rewards{background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:12px;padding:14px 22px;text-align:center;}
+.end-rw-lbl{font-size:10px;color:var(--text2);margin-bottom:6px;}
+.end-rw-val{font-size:16px;font-weight:500;color:var(--gold);}
+.end-btn{background:rgba(10,40,100,.4);border:.5px solid rgba(20,100,200,.4);border-radius:18px;padding:10px 28px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;margin-top:6px;}
+.end-btn:hover{background:rgba(20,60,140,.5);}
+
+/* SETTINGS */
+.settings-content{padding:16px 14px 80px;}
+.setting-group{margin-bottom:20px;}
+.setting-group-title{font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:10px;padding-bottom:6px;border-bottom:.5px solid var(--border2);}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:.5px solid rgba(10,30,50,.5);}
+.setting-label{font-size:12px;color:var(--text);}
+.setting-sub{font-size:9px;color:var(--text2);margin-top:2px;}
+.vol-slider{-webkit-appearance:none;appearance:none;width:120px;height:3px;border-radius:2px;background:var(--border3);outline:none;cursor:pointer;}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg);}
+.vol-val{font-size:11px;color:var(--teal);min-width:28px;text-align:right;}
+.toggle-btn{width:40px;height:22px;border-radius:11px;background:var(--border3);border:none;cursor:pointer;position:relative;transition:background .2s;}
+.toggle-btn.on{background:var(--teal);}
+.toggle-btn::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;}
+.toggle-btn.on::after{left:21px;}
+.setting-btn{background:rgba(0,20,50,.5);border:.5px solid var(--border3);border-radius:8px;padding:7px 14px;font-size:11px;color:var(--text2);cursor:pointer;font-family:inherit;}
+.setting-btn:hover{color:var(--text);}
+
+/* MODAL & TOAST */
+.modal-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg2);border:.5px solid var(--border3);border-radius:16px;padding:18px;max-width:300px;width:88%;}
+.modal-ttl{font-size:14px;font-weight:500;margin-bottom:12px;}
+.modal-body{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px;}
+.modal-btns{display:flex;gap:7px;}
+.modal-btn{flex:1;padding:9px;border-radius:9px;border:.5px solid var(--border3);background:rgba(255,255,255,.03);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);transition:background .15s;}
+.modal-btn:hover{background:rgba(10,50,100,.3);}
+.modal-btn.primary{border-color:rgba(20,100,200,.4);background:rgba(10,50,120,.3);}
+.toast{position:fixed;top:75px;left:50%;transform:translateX(-50%);background:rgba(0,20,50,.95);border:.5px solid var(--border3);border-radius:9px;padding:9px 16px;font-size:12px;z-index:300;white-space:nowrap;animation:toastIn .25s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+/* BOOT */
+.boot-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.boot-logo{font-size:26px;font-weight:700;color:#3a80c0;letter-spacing:.2em;text-align:center;line-height:1.4;}
+.boot-sub{font-size:10px;color:var(--text3);letter-spacing:.25em;}
+.boot-bar{width:180px;height:1px;background:var(--border2);border-radius:1px;overflow:hidden;margin-top:8px;}
+.boot-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));width:0;border-radius:1px;transition:width .05s;}
+</style>
+</head>
+<body>
+
+<div class="sea-bg"><canvas id="seaCanvas"></canvas></div>
+
+<!-- BOOT -->
+<div class="screen active" id="screen-boot">
+  <div class="boot-inner">
+    <div class="boot-logo">ABYSSAL<br>CHRONICLE</div>
+    <div class="boot-sub">― DEEP SEA FRONTIER ―</div>
+    <div class="boot-bar"><div class="boot-fill" id="boot-fill"></div></div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <div class="header">
+    <div class="player-info">
+      <div class="avatar">🌊</div>
+      <div><div class="pname">深海司令官</div><div class="prank" id="home-prank">Rank 1</div></div>
+    </div>
+    <div class="currencies">
+      <div class="currency"><div class="curr-icon curr-gold"></div><div class="curr-val" id="gold-val">0</div></div>
+      <div class="currency"><div class="curr-icon curr-gem"></div><div class="curr-val" id="gem-val">600</div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="home-visual">
+      <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
+    </div>
+    <div class="notice-bar">
+      <div class="notice-dot"></div>
+      <div class="notice-text">【深淵崩壊イベント】開催中 — 限定召喚「旧破の番人」登場！</div>
+      <div class="notice-new">NEW</div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-btn" onclick="goTo('quest');sfx('click')"><div class="menu-icon-w mi-q">⚓</div><div class="menu-lbl">クエスト</div></div>
+      <div class="menu-btn" onclick="goTo('gacha');sfx('click')"><div class="menu-new">NEW</div><div class="menu-icon-w mi-g">🔮</div><div class="menu-lbl">召喚</div></div>
+      <div class="menu-btn" onclick="goTo('party');sfx('click')"><div class="menu-icon-w mi-p">🐙</div><div class="menu-lbl">編成</div></div>
+      <div class="menu-btn" onclick="goTo('notices');sfx('click')"><div class="menu-icon-w mi-gr">📢</div><div class="menu-lbl">お知らせ</div></div>
+      <div class="menu-btn" onclick="showToast('ショップ — 近日公開');sfx('click')"><div class="menu-icon-w mi-s">🪸</div><div class="menu-lbl">ショップ</div></div>
+      <div class="menu-btn" onclick="goTo('settings');sfx('click')"><div class="menu-icon-w mi-m">⚙️</div><div class="menu-lbl">設定</div></div>
+    </div>
+    <div class="daily-section">
+      <div class="sec-lbl">DAILY MISSION</div>
+      <div class="daily-card">
+        <div class="daily-icon-w">📜</div>
+        <div class="daily-info">
+          <div class="daily-title">深海探索デイリー</div>
+          <div class="daily-sub" id="daily-sub">0 / 5 完了</div>
+          <div class="prog-bar"><div class="prog-fill" id="daily-prog" style="width:0%"></div></div>
+        </div>
+        <div class="daily-rw">報酬<span>×150</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="goTo('home')"><div class="nav-icon-wrap">🏠</div><div class="nav-label">ホーム</div></div>
+    <div class="nav-item" onclick="goTo('quest');sfx('click')"><div class="nav-icon-wrap">⚓</div><div class="nav-label">クエスト</div></div>
+    <div class="nav-item" onclick="goTo('gacha');sfx('click')"><div class="nav-icon-wrap">🔮</div><div class="nav-label">召喚</div></div>
+    <div class="nav-item" onclick="goTo('party');sfx('click')"><div class="nav-icon-wrap">🐙</div><div class="nav-label">編成</div></div>
+    <div class="nav-item" onclick="goTo('settings');sfx('click')"><div class="nav-icon-wrap">⚙️</div><div class="nav-label">設定</div></div>
+  </div>
+</div>
+
+<!-- QUEST MAP -->
+<div class="screen" id="screen-quest">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ABYSS MAP</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content"><div class="map-content"><div class="map-title">― DEEP SEA EXPLORATION ―</div><div id="quest-map"></div></div></div>
+</div>
+
+<!-- GACHA -->
+<div class="screen" id="screen-gacha">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">SUMMON</div>
+    <div class="currency"><div class="curr-icon curr-gem"></div><div class="curr-val" id="gacha-gem">600</div></div>
+  </div>
+  <div class="content">
+    <div class="gacha-content">
+      <div class="banner-tabs" id="banner-tabs"></div>
+      <div class="gacha-banner" id="gacha-banner-box">
+        <div class="gacha-ttl" id="gacha-banner-title">-</div>
+        <div class="gacha-sub" id="gacha-banner-sub">-</div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-pill ur">UR 0.1%</div>
+        <div class="rate-pill ssr">SSR 1.9%</div>
+        <div class="rate-pill sr">SR 13%</div>
+        <div class="rate-pill r">R 85%</div>
+        <div class="rate-pill pity-pill">天井 100回</div>
+      </div>
+      <div class="gacha-pickup-row" id="gacha-pickup"></div>
+      <div class="gacha-btns">
+        <div class="gacha-btn" onclick="doGacha(1)">
+          <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>300</div></div>
+          <div class="gacha-btn-ico">🎲</div>
+        </div>
+        <div class="gacha-btn" onclick="doGacha(10)">
+          <div><div class="gacha-btn-name">10連召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>3000（1回おまけ）</div></div>
+          <div class="gacha-btn-ico">🌊</div>
+        </div>
+      </div>
+      <div class="pity-info">
+        <div style="flex-shrink:0;"><div style="font-size:9px;color:var(--text2);">天井まで</div><div style="font-size:11px;font-weight:500;" id="pity-remain">100回</div></div>
+        <div class="pity-prog"><div class="pity-fill" id="pity-fill" style="width:0%"></div></div>
+        <div style="font-size:9px;color:var(--gold);flex-shrink:0;">UR/SSR確定</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PARTY -->
+<div class="screen" id="screen-party">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">PARTY</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="party-content">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:10px;">スロットを選んでキャラを編成（最大3体）</div>
+      <div class="party-slots" id="party-slots"></div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:8px;">所持キャラクター</div>
+      <div class="char-list" id="char-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE -->
+<div class="screen" id="screen-battle">
+  <canvas id="battleCanvas" style="position:fixed;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;"></canvas>
+  <div class="battle-header">
+    <div class="battle-stage-txt" id="battle-stage">深層1層</div>
+    <div class="battle-turn-txt" id="battle-turn">ターン 1</div>
+    <div class="combo-txt" id="combo-disp">コンボ: 0</div>
+  </div>
+  <div class="enemy-area">
+    <div class="enemy-ico" id="enemy-ico">🦑</div>
+    <div class="enemy-nm" id="enemy-nm">???</div>
+    <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
+    <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
+  </div>
+  <div class="party-hp-row" id="party-hp-row"></div>
+  <div class="card-hand">
+    <div class="hand-lbl">HAND — カードを選んでコンボを繋げよう</div>
+    <div class="cards-row" id="cards-row"></div>
+  </div>
+  <div class="battle-actions">
+    <button class="battle-btn btn-atk" id="atk-btn" onclick="executeAttack()">⚡ 選択して攻撃</button>
+    <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪 撤退</button>
+  </div>
+</div>
+
+<!-- NOTICES -->
+<div class="screen" id="screen-notices">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">NOTICES</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content" style="padding:14px 14px 80px;">
+    <div id="notices-list"></div>
+    <div style="margin-top:20px;">
+      <div style="font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:10px;">UPDATE LOG</div>
+      <div id="update-log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">SETTINGS</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div class="settings-content">
+      <div class="setting-group">
+        <div class="setting-group-title">🎵 サウンド設定</div>
+        <div class="setting-row">
+          <div><div class="setting-label">SE音量</div><div class="setting-sub">効果音・ボタン音</div></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="range" class="vol-slider" id="se-vol" min="0" max="100" value="80" oninput="onSeVol(this.value)">
+            <div class="vol-val" id="se-vol-val">80</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">SE ON/OFF</div>
+          <button class="toggle-btn on" id="se-toggle" onclick="toggleSe()"></button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-group-title">🎮 ゲーム設定</div>
+        <div class="setting-row">
+          <div><div class="setting-label">泡エフェクト</div><div class="setting-sub">背景の泡アニメーション</div></div>
+          <button class="toggle-btn on" id="bubble-toggle" onclick="toggleBubble()"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">データリセット</div><div class="setting-sub">全進行状況を削除</div></div>
+          <button class="setting-btn" onclick="confirmReset()">リセット</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-group-title">ℹ️ 情報</div>
+        <div class="setting-row"><div class="setting-label">バージョン</div><div style="font-size:11px;color:var(--text2);" id="ver-display">v0.2.0</div></div>
+        <div class="setting-row"><div class="setting-label">タイトル</div><div style="font-size:11px;color:var(--text2);">ABYSSAL CHRONICLE</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="result-overlay">
+  <div class="result-ttl">SUMMON RESULT</div>
+  <div class="result-cards" id="result-cards"></div>
+  <button class="result-close" onclick="closeResult();sfx('click')">確認して閉じる</button>
+</div>
+
+<!-- BATTLE END -->
+<div class="battle-end" id="battle-end">
+  <div class="end-ttl" id="end-ttl">VICTORY</div>
+  <div class="end-rewards"><div class="end-rw-lbl">獲得報酬</div><div class="end-rw-val" id="end-rw-val"></div></div>
+  <button class="end-btn" onclick="endBattle()">ホームへ戻る</button>
+</div>
+
+<script>
+// ================================================================
+//  DATA
+// ================================================================
+const CHARS=[
+  // UR (超激レア)
+  {id:1, name:'旧破神アルカナ',  emoji:'🌑',rarity:'UR', bg:'rgba(0,0,0,.6)',     border:'rgba(255,215,0,.9)',  hp:1500,atk:280,level:1},
+  {id:2, name:'深淵の使徒イグリス',emoji:'🕳️',rarity:'UR', bg:'rgba(10,0,30,.6)',  border:'rgba(200,180,255,.8)',hp:1400,atk:300,level:1},
+  {id:3, name:'崩壊の始原神',   emoji:'💀',rarity:'UR', bg:'rgba(30,0,0,.6)',    border:'rgba(255,80,80,.8)',  hp:1600,atk:260,level:1},
+  // SSR
+  {id:4, name:'深淵の番人',     emoji:'🦑',rarity:'SSR',bg:'rgba(80,20,160,.25)',border:'rgba(120,50,200,.6)', hp:900,atk:130,level:1},
+  {id:5, name:'崩壊の炎神',     emoji:'🔥',rarity:'SSR',bg:'rgba(180,80,20,.25)',border:'rgba(220,100,30,.6)', hp:800,atk:150,level:1},
+  {id:6, name:'蒼海の覇王',     emoji:'🌊',rarity:'SSR',bg:'rgba(0,80,160,.25)', border:'rgba(30,140,255,.6)', hp:850,atk:140,level:1},
+  {id:7, name:'天崩の雷竜',     emoji:'⚡',rarity:'SSR',bg:'rgba(100,80,0,.25)', border:'rgba(255,220,30,.6)', hp:820,atk:145,level:1},
+  {id:8, name:'虚無の祭司',     emoji:'🔮',rarity:'SSR',bg:'rgba(60,0,100,.25)', border:'rgba(180,80,255,.6)', hp:780,atk:155,level:1},
+  {id:9, name:'氷獄の女神',     emoji:'❄️',rarity:'SSR',bg:'rgba(0,80,120,.25)', border:'rgba(100,220,255,.6)',hp:900,atk:120,level:1},
+  {id:10,name:'血潮の剣聖',     emoji:'🗡️',rarity:'SSR',bg:'rgba(120,0,40,.25)', border:'rgba(255,60,100,.6)', hp:760,atk:160,level:1},
+  {id:11,name:'星砕の魔王',     emoji:'🌟',rarity:'SSR',bg:'rgba(80,60,0,.25)',   border:'rgba(255,200,80,.6)', hp:830,atk:138,level:1},
+  {id:12,name:'深海の福音',     emoji:'🐋',rarity:'SSR',bg:'rgba(0,60,80,.25)',   border:'rgba(80,200,220,.6)', hp:880,atk:125,level:1},
+  // SR
+  {id:13,name:'海流の剣士',     emoji:'🌊',rarity:'SR', bg:'rgba(20,100,180,.2)', border:'rgba(30,140,220,.5)', hp:750,atk:100,level:1},
+  {id:14,name:'氷海の聖者',     emoji:'🧊',rarity:'SR', bg:'rgba(60,160,200,.2)', border:'rgba(80,200,230,.5)', hp:950,atk:70, level:1},
+  {id:15,name:'珊瑚の守護',     emoji:'🪸',rarity:'SR', bg:'rgba(160,40,70,.2)',  border:'rgba(200,60,100,.5)', hp:1050,atk:60,level:1},
+  {id:16,name:'暗渦の術士',     emoji:'🌀',rarity:'SR', bg:'rgba(60,0,120,.2)',   border:'rgba(140,60,220,.5)', hp:700,atk:105,level:1},
+  {id:17,name:'深海の斬艦刀',   emoji:'⚓',rarity:'SR', bg:'rgba(20,60,100,.2)',  border:'rgba(40,120,200,.5)', hp:800,atk:95, level:1},
+  {id:18,name:'灼熱の踊り子',   emoji:'💃',rarity:'SR', bg:'rgba(160,60,20,.2)',  border:'rgba(220,100,40,.5)', hp:720,atk:102,level:1},
+  {id:19,name:'霧中の狙撃手',   emoji:'🎯',rarity:'SR', bg:'rgba(40,80,40,.2)',   border:'rgba(80,160,80,.5)',  hp:740,atk:98, level:1},
+  {id:20,name:'鉄壁の守護神',   emoji:'🛡️',rarity:'SR', bg:'rgba(80,80,80,.2)',   border:'rgba(160,160,160,.5)',hp:1100,atk:55,level:1},
+  {id:21,name:'翠嵐の風使い',   emoji:'🌿',rarity:'SR', bg:'rgba(40,120,40,.2)',  border:'rgba(80,200,80,.5)',  hp:780,atk:88, level:1},
+  {id:22,name:'幻影の忍者',     emoji:'🥷',rarity:'SR', bg:'rgba(20,20,60,.2)',   border:'rgba(80,80,180,.5)',  hp:690,atk:108,level:1},
+  {id:23,name:'金剛の力士',     emoji:'💪',rarity:'SR', bg:'rgba(100,60,20,.2)',  border:'rgba(200,120,40,.5)', hp:1000,atk:75,level:1},
+  {id:24,name:'閃光の剣姫',     emoji:'⚔️',rarity:'SR', bg:'rgba(120,100,20,.2)', border:'rgba(240,200,40,.5)', hp:730,atk:103,level:1},
+  {id:25,name:'深淵の吟遊詩人', emoji:'🎵',rarity:'SR', bg:'rgba(80,20,80,.2)',   border:'rgba(180,60,180,.5)', hp:760,atk:90, level:1},
+  {id:26,name:'荒波の船長',     emoji:'🏴‍☠️',rarity:'SR', bg:'rgba(40,30,20,.2)',  border:'rgba(120,90,60,.5)',  hp:820,atk:92, level:1},
+  {id:27,name:'氷結の術師',     emoji:'🧙',rarity:'SR', bg:'rgba(20,80,120,.2)',  border:'rgba(60,160,220,.5)', hp:710,atk:106,level:1},
+  {id:28,name:'炎舞の戦姫',     emoji:'🔥',rarity:'SR', bg:'rgba(160,40,20,.2)',  border:'rgba(240,80,40,.5)',  hp:760,atk:100,level:1},
+  // R
+  {id:29,name:'沈黙の鎧',       emoji:'⚙️',rarity:'R',  bg:'rgba(60,100,130,.2)', border:'rgba(80,130,160,.4)', hp:700,atk:90, level:1},
+  {id:30,name:'暗礁の弓手',     emoji:'🏹',rarity:'R',  bg:'rgba(110,130,40,.2)', border:'rgba(140,160,50,.4)', hp:660,atk:95, level:1},
+  {id:31,name:'渦の魔導師',     emoji:'💫',rarity:'R',  bg:'rgba(100,70,200,.2)', border:'rgba(130,100,220,.4)',hp:620,atk:85, level:1},
+  {id:32,name:'海底の漁師',     emoji:'🎣',rarity:'R',  bg:'rgba(20,60,80,.2)',   border:'rgba(40,100,130,.4)', hp:640,atk:88, level:1},
+  {id:33,name:'さびれた騎士',   emoji:'🗡️',rarity:'R',  bg:'rgba(60,60,60,.2)',   border:'rgba(100,100,100,.4)',hp:680,atk:82, level:1},
+  {id:34,name:'密林の罠師',     emoji:'🌿',rarity:'R',  bg:'rgba(40,80,30,.2)',   border:'rgba(70,130,50,.4)',  hp:610,atk:92, level:1},
+  {id:35,name:'流浪の商人',     emoji:'💼',rarity:'R',  bg:'rgba(100,80,30,.2)',  border:'rgba(150,120,50,.4)', hp:590,atk:80, level:1},
+  {id:36,name:'砂塵の踊り子',   emoji:'🎭',rarity:'R',  bg:'rgba(120,90,40,.2)',  border:'rgba(170,130,60,.4)', hp:600,atk:87, level:1},
+  {id:37,name:'錆びた砲手',     emoji:'💣',rarity:'R',  bg:'rgba(70,50,30,.2)',   border:'rgba(110,80,50,.4)',  hp:650,atk:93, level:1},
+  {id:38,name:'海霧の斥候',     emoji:'🌫️',rarity:'R',  bg:'rgba(80,90,100,.2)',  border:'rgba(110,120,140,.4)',hp:630,atk:86, level:1},
+  {id:39,name:'古参の衛兵',     emoji:'🪖',rarity:'R',  bg:'rgba(60,70,40,.2)',   border:'rgba(90,110,60,.4)',  hp:700,atk:78, level:1},
+  {id:40,name:'海底の蟹兵',     emoji:'🦀',rarity:'R',  bg:'rgba(140,40,20,.2)',  border:'rgba(190,60,30,.4)',  hp:670,atk:84, level:1},
+  {id:41,name:'呪われた人形',   emoji:'🪆',rarity:'R',  bg:'rgba(80,30,80,.2)',   border:'rgba(120,50,120,.4)', hp:580,atk:94, level:1},
+  {id:42,name:'波間の見張り',   emoji:'👁️',rarity:'R',  bg:'rgba(20,50,80,.2)',   border:'rgba(30,80,130,.4)',  hp:615,atk:89, level:1},
+  {id:43,name:'朽ちた剣士',     emoji:'🧟',rarity:'R',  bg:'rgba(40,60,20,.2)',   border:'rgba(70,100,40,.4)',  hp:660,atk:91, level:1},
+  {id:44,name:'深底の採掘者',   emoji:'⛏️',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,80,60,.4)',  hp:645,atk:83, level:1},
+  {id:45,name:'嵐の伝令',       emoji:'🌪️',rarity:'R',  bg:'rgba(70,80,100,.2)',  border:'rgba(100,120,150,.4)',hp:595,atk:96, level:1},
+  {id:46,name:'錨鎖の守門',     emoji:'⛓️',rarity:'R',  bg:'rgba(50,50,70,.2)',   border:'rgba(80,80,120,.4)',  hp:710,atk:77, level:1},
+  {id:47,name:'深淵の下僕',     emoji:'👾',rarity:'R',  bg:'rgba(30,20,60,.2)',   border:'rgba(60,40,120,.4)',  hp:570,atk:97, level:1},
+  {id:48,name:'海月の幻師',     emoji:'🪼',rarity:'R',  bg:'rgba(60,80,120,.2)',  border:'rgba(90,120,180,.4)', hp:605,atk:88, level:1},
+  {id:49,name:'廃船の亡霊',     emoji:'👻',rarity:'R',  bg:'rgba(80,90,80,.2)',   border:'rgba(120,140,120,.4)',hp:620,atk:85, level:1},
+  {id:50,name:'鉄爪の捕食者',   emoji:'🦈',rarity:'R',  bg:'rgba(30,60,90,.2)',   border:'rgba(50,100,150,.4)', hp:680,atk:90, level:1},
+  {id:51,name:'泥沼の伏兵',     emoji:'🐊',rarity:'R',  bg:'rgba(40,70,30,.2)',   border:'rgba(70,120,50,.4)',  hp:655,atk:86, level:1},
+  {id:52,name:'古代の番犬',     emoji:'🐺',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,90,70,.4)',  hp:635,atk:92, level:1},
+  {id:53,name:'深海の案内人',   emoji:'🐠',rarity:'R',  bg:'rgba(10,80,100,.2)',  border:'rgba(20,130,160,.4)', hp:590,atk:84, level:1},
+  {id:54,name:'闇夜の密偵',     emoji:'🦇',rarity:'R',  bg:'rgba(30,20,40,.2)',   border:'rgba(60,40,80,.4)',   hp:600,atk:93, level:1},
+  {id:55,name:'砂嵐の剣士',     emoji:'🏜️',rarity:'R',  bg:'rgba(110,90,40,.2)',  border:'rgba(160,130,60,.4)', hp:640,atk:87, level:1},
+  {id:56,name:'岩礁の重撃兵',   emoji:'🪨',rarity:'R',  bg:'rgba(70,70,60,.2)',   border:'rgba(110,110,90,.4)', hp:720,atk:79, level:1},
+  {id:57,name:'霜の見習い',     emoji:'🌨️',rarity:'R',  bg:'rgba(160,180,200,.15)',border:'rgba(200,220,240,.4)',hp:580,atk:88, level:1},
+  {id:58,name:'炎の見習い',     emoji:'🕯️',rarity:'R',  bg:'rgba(160,80,20,.15)', border:'rgba(220,130,50,.4)', hp:575,atk:91, level:1},
+];
+const CARDS=[
+  {name:'深海斬',emoji:'⚔️',dmg:1.0},{name:'連波刃',emoji:'🌊',dmg:1.2},
+  {name:'大深撃',emoji:'🔱',dmg:1.9},{name:'崩壊炎',emoji:'🔥',dmg:1.5},
+  {name:'雷穿孔',emoji:'⚡',dmg:1.3},{name:'氷柱牙',emoji:'❄️',dmg:1.1},
+  {name:'暗礁射',emoji:'🎯',dmg:1.2},{name:'渦流陣',emoji:'💫',dmg:1.4},
+];
+const QUESTS=[
+  {id:1,name:'第1層 — 霧の浅瀬',    emoji:'🌊',boss:false,enemy:{name:'霧の漂流者', emoji:'🦠',hp:600, atk:50}, gold:200,gem:20},
+  {id:2,name:'第2層 — 沈黙の岩礁',  emoji:'🪨',boss:false,enemy:{name:'岩礁の蟹将軍',emoji:'🦀',hp:900, atk:75}, gold:300,gem:30},
+  {id:3,name:'第3層 — 深流の回廊',  emoji:'🌀',boss:false,enemy:{name:'深流の幽霊船',emoji:'⛵',hp:1400,atk:110},gold:500,gem:45},
+  {id:4,name:'第4層 — 暗礁の番所',  emoji:'🏚️',boss:false,enemy:{name:'番所の鎧魚',  emoji:'🐡',hp:1800,atk:140},gold:700,gem:60},
+  {id:5,name:'中間BOSS — 深海竜',   emoji:'🐉',boss:true, enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:3000,atk:200},gold:1200,gem:100},
+  {id:6,name:'第6層 — 崩壊の縁',    emoji:'💀',boss:false,enemy:{name:'崩壊体エラス',emoji:'👾',hp:2500,atk:170},gold:900,gem:80},
+  {id:7,name:'最深BOSS — 旧破の神', emoji:'🌑',boss:true, enemy:{name:'旧破神アビス',emoji:'🌑',hp:6000,atk:350},gold:3000,gem:300},
+];
+
+let S={gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true};
+let BT={quest:null,enemyHp:0,partyHp:[],hand:[],turn:1,combo:0,active:false,btAnim:null};
+
+// ================================================================
+//  AUDIO
+// ================================================================
+let AC=null,seGain=null;
+
+function initAudio(){
+  if(AC)return;
+  AC=new(window.AudioContext||window.webkitAudioContext)();
+  seGain=AC.createGain();  seGain.gain.value=S.seVol;   seGain.connect(AC.destination);
+}
+
+
+function sfx(type){
+  if(!AC||!S.seOn)return;
+  const t=AC.currentTime;
+  const play=(freq,freq2,dur,vol,wave='sine')=>{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type=wave; o.connect(g); g.connect(seGain);
+    o.frequency.setValueAtTime(freq,t);
+    if(freq2)o.frequency.exponentialRampToValueAtTime(freq2,t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur+.02);
+    o.start(t); o.stop(t+dur+.05);
+  };
+  if(type==='click'){ play(380,180,.09,.12); }
+  else if(type==='gacha'){ play(300,900,.15,.18,'triangle'); play(900,400,.3,.1); }
+  else if(type==='attack'){ play(160,55,.22,.25,'sawtooth'); play(1200,350,.18,.07); }
+  else if(type==='hit'){ play(90,35,.16,.3,'square'); }
+  else if(type==='win'){ [0,.14,.28,.42].forEach((d,i)=>{ const o=AC.createOscillator(),g=AC.createGain(); o.type='sine'; o.connect(g); g.connect(seGain); o.frequency.value=[523,659,784,1047][i]; g.gain.setValueAtTime(.14,t+d); g.gain.exponentialRampToValueAtTime(.001,t+d+.28); o.start(t+d); o.stop(t+d+.32); }); }
+  else if(type==='lose'){ play(200,55,.55,.2,'sawtooth'); }
+  else if(type==='select'){ play(500,600,.07,.09); }
+}
+
+// ================================================================
+//  SEA BG CANVAS
+// ================================================================
+function initSeaBg(){
+  const cv=document.getElementById('seaCanvas'),ctx=cv.getContext('2d');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const pts=Array.from({length:35},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:.8+Math.random()*2.5,vy:-.15-Math.random()*.35,op:.1+Math.random()*.25}));
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const g=ctx.createLinearGradient(0,0,0,cv.height);
+    g.addColorStop(0,'#020810'); g.addColorStop(.6,'#040e1a'); g.addColorStop(1,'#000408');
+    ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+    for(let i=0;i<3;i++){
+      const lx=cv.width*(.2+i*.3);
+      const lg=ctx.createLinearGradient(lx,0,lx,cv.height*.7);
+      lg.addColorStop(0,'rgba(8,50,120,.07)'); lg.addColorStop(1,'transparent');
+      ctx.beginPath(); ctx.moveTo(lx-25,0); ctx.lineTo(lx+25,0); ctx.lineTo(lx+90,cv.height*.7); ctx.lineTo(lx-90,cv.height*.7);
+      ctx.fillStyle=lg; ctx.fill();
+    }
+    if(S.bubbleOn) pts.forEach(p=>{
+      p.y+=p.vy; p.x+=Math.sin(p.y*.018)*.25;
+      if(p.y<-8){p.y=cv.height+8;p.x=Math.random()*cv.width;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(20,90,180,${p.op})`; ctx.lineWidth=.5; ctx.stroke();
+    });
+    requestAnimationFrame(draw);
+  })();
+}
+
+// ================================================================
+//  NAV
+// ================================================================
+function goTo(sc){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+sc).classList.add('active');
+  const navMap={home:0,quest:1,gacha:2,party:3,settings:4};
+  document.querySelectorAll('#screen-home .nav-item').forEach((n,i)=>n.classList.toggle('active',i===navMap[sc]));
+  if(sc==='home')refreshHome();
+  if(sc==='quest')renderMap();
+  if(sc==='gacha')refreshGacha();
+  if(sc==='party')refreshParty();
+  if(sc==='notices')renderNotices();
+  const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
+}
+
+// ================================================================
+//  HOME
+// ================================================================
+function refreshHome(){
+  document.getElementById('gold-val').textContent=S.gold.toLocaleString();
+  document.getElementById('gem-val').textContent=S.gem.toLocaleString();
+  document.getElementById('daily-sub').textContent=`${S.dailyDone} / 5 完了`;
+  document.getElementById('daily-prog').style.width=(S.dailyDone/5*100)+'%';
+}
+
+// ================================================================
+//  MAP
+// ================================================================
+function renderMap(){
+  let html='';
+  QUESTS.forEach((q,i)=>{
+    const cleared=S.cleared.includes(q.id);
+    const locked=i>0&&!S.cleared.includes(QUESTS[i-1].id);
+    const nc=locked?'nc-locked':cleared?'nc-clear':q.boss?'nc-boss':'nc-unlock';
+    const side=i%2===0?'':'right';
+    const cb=cleared?'<div class="clear-badge">✓</div>':'';
+    const nameColor=q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
+    html+=`<div class="quest-node ${side}" onclick="${locked?'showToast(\'前のステージをクリアしてください！\')':('startQuest('+q.id+');sfx(\'click\')')}">
+      <div class="node-circle ${nc}">${q.emoji}${cb}</div>
+      <div class="node-info" style="${side?'text-align:right':''}">
+        <div class="node-name" style="color:${nameColor}">${q.name}</div>
+        <div class="node-desc" style="color:${locked?'var(--text3)':'var(--text2)'}">${q.enemy.name} HP:${q.enemy.hp}</div>
+        <div class="node-reward" style="color:${locked?'var(--text3)':'var(--gold)'}">💰${q.gold} 💎${q.gem}</div>
+      </div>
+    </div>`;
+    if(i<QUESTS.length-1)html+=`<div class="path-line" style="margin-left:${side?'auto;margin-right':''}:26px;background:linear-gradient(180deg,${cleared?'rgba(20,140,100,.5)':'rgba(20,80,160,.3)'},transparent);"></div>`;
+  });
+  document.getElementById('quest-map').innerHTML=html;
+}
+
+function startQuest(qid){
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){showModal('パーティ未編成','出撃前にパーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]);return;}
+  initBattle(QUESTS.find(q=>q.id===qid),ap);
+}
+
+// ================================================================
+//  GACHA BANNERS
+// ================================================================
+const BANNERS=[
+  {
+    id:0,name:'深淵崩壊 召喚',icon:'🌑',
+    sub:'ピックアップ：旧破神アルカナ（UR）・深淵の番人（SSR）',
+    color:'rgba(40,0,80,.4)',border:'rgba(160,80,255,.4)',
+    pickup:['UR','SSR'],
+    pickupIds:[1,4,5],
+  },
+  {
+    id:1,name:'炎獄の試練 召喚',icon:'🔥',
+    sub:'ピックアップ：崩壊の始原神（UR）・崩壊の炎神（SSR）',
+    color:'rgba(80,20,0,.4)',border:'rgba(255,100,30,.4)',
+    pickup:['UR','SSR'],
+    pickupIds:[3,5,6],
+  },
+  {
+    id:2,name:'常設 深海召喚',icon:'🌊',
+    sub:'全キャラクター排出 — 常時開催',
+    color:'rgba(0,30,80,.4)',border:'rgba(30,120,220,.4)',
+    pickup:['SSR','SR'],
+    pickupIds:[6,7,8,13,14],
+  },
+];
+
+let currentBanner=0;
+
+function refreshGacha(){
+  document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
+  renderBannerTabs();
+  renderBannerDetail();
+}
+
+function renderBannerTabs(){
+  document.getElementById('banner-tabs').innerHTML=BANNERS.map((b,i)=>`
+    <div class="banner-tab ${i===currentBanner?'active':''}" onclick="selectBanner(${i});sfx('click')">
+      <div class="banner-tab-ico">${b.icon}</div>
+      <div class="banner-tab-name">${b.name}</div>
+      <div class="banner-tab-sub">${b.pickup.join('・')}ピックアップ</div>
+    </div>`).join('');
+}
+
+function selectBanner(idx){
+  currentBanner=idx;
+  renderBannerTabs();
+  renderBannerDetail();
+}
+
+function renderBannerDetail(){
+  const b=BANNERS[currentBanner];
+  const box=document.getElementById('gacha-banner-box');
+  box.style.background=`linear-gradient(135deg,${b.color},rgba(0,10,30,.6))`;
+  box.style.borderColor=b.border;
+  document.getElementById('gacha-banner-title').textContent=b.name;
+  document.getElementById('gacha-banner-sub').textContent=b.sub;
+
+  const pity=S.pityPerBanner[currentBanner]||0;
+  document.getElementById('pity-remain').textContent=(100-pity)+'回';
+  document.getElementById('pity-fill').style.width=pity+'%';
+
+  // ピックアップキャラ表示
+  const pickupChars=b.pickupIds.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);
+  document.getElementById('gacha-pickup').innerHTML=pickupChars.map(c=>{
+    const rcls=c.rarity==='UR'?'r-ur':c.rarity==='SSR'?'r-ssr':c.rarity==='SR'?'r-sr':'r-r';
+    const rbcls=c.rarity==='UR'?'rb-ur':c.rarity==='SSR'?'rb-ssr':c.rarity==='SR'?'rb-sr':'rb-r';
+    return`<div class="pickup-card"><div class="pickup-img ${rcls}">${c.emoji}<div class="rarity-badge ${rbcls}">${c.rarity}</div></div><div class="pickup-name">${c.name}</div></div>`;
+  }).join('');
+}
+
+function doGacha(count){
+  const cost=count===1?300:3000;
+  if(S.gem<cost){showToast('💎 深海結晶が足りません！');return;}
+  sfx('gacha'); S.gem-=cost;
+  if(!S.pityPerBanner)S.pityPerBanner=BANNERS.map(()=>0);
+
+  const b=BANNERS[currentBanner];
+  const res=[];
+  for(let i=0;i<count;i++){
+    S.pityPerBanner[currentBanner]++;
+    const pity=S.pityPerBanner[currentBanner];
+    let rar,ch;
+    const r=Math.random();
+    if(pity>=100){
+      // 天井: UR or SSR 50/50
+      rar=Math.random()<0.05?'UR':'SSR';
+      S.pityPerBanner[currentBanner]=0;
+    } else if(r<0.001){ rar='UR'; S.pityPerBanner[currentBanner]=0; }
+    else if(r<0.02){    rar='SSR'; }
+    else if(r<0.15){    rar='SR'; }
+    else{               rar='R'; }
+
+    // ピックアップキャラを優先（50%でピックアップ）
+    const pickupPool=CHARS.filter(c=>c.rarity===rar&&b.pickupIds.includes(c.id));
+    const normalPool=CHARS.filter(c=>c.rarity===rar);
+    const pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
+    ch=pool[Math.floor(Math.random()*pool.length)];
+
+    res.push(ch);
+    if(!S.owned.includes(ch.id))S.owned.push(ch.id);
+  }
+  showResult(res); refreshGacha();
+  document.getElementById('gem-val').textContent=S.gem.toLocaleString();
+}
+
+function showResult(res){
+  document.getElementById('result-cards').innerHTML=res.map((c,i)=>`
+    <div class="result-card" style="animation-delay:${i*.09}s">
+      <div class="result-card-img" style="background:${c.bg};border-color:${c.border}">${c.emoji}
+        <div class="rarity-badge" style="color:${c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0'};z-index:1">${c.rarity}</div>
+      </div>
+      <div class="result-card-name">${c.name}</div>
+    </div>`).join('');
+  document.getElementById('result-overlay').classList.add('show');
+}
+function closeResult(){document.getElementById('result-overlay').classList.remove('show');}
+
+// ================================================================
+//  NOTICES
+// ================================================================
+function renderNotices(){
+  // お知らせ一覧
+  const nl = document.getElementById('notices-list');
+  if(!nl) return;
+  if(ONLINE_NOTICES.length === 0){
+    nl.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:30px 0;">お知らせはありません</div>';
+  } else {
+    nl.innerHTML = ONLINE_NOTICES.map(n=>`
+      <div style="background:rgba(0,20,40,.4);border:.5px solid ${n.important?'rgba(200,160,0,.4)':'var(--border2)'};border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          ${n.important?'<span style="font-size:8px;background:rgba(200,160,0,.2);border:.5px solid rgba(200,160,0,.4);border-radius:4px;padding:2px 6px;color:#c8a020;">重要</span>':''}
+          <span style="font-size:9px;color:var(--text3);">${n.date}</span>
+        </div>
+        <div style="font-size:12px;font-weight:500;margin-bottom:5px;">${n.title}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.6;">${n.body.replace(/\n/g,'<br>')}</div>
+      </div>`).join('');
+  }
+
+  // アップデートログ
+  const ul = document.getElementById('update-log-list');
+  if(!ul) return;
+  if(UPDATE_LOG.length === 0){
+    ul.innerHTML = '<div style="font-size:11px;color:var(--text3);">ログなし</div>';
+  } else {
+    ul.innerHTML = UPDATE_LOG.map(u=>`
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:500;color:var(--teal);">v${u.version}</span>
+          <span style="font-size:9px;color:var(--text3);">${u.date}</span>
+        </div>
+        <ul style="list-style:none;padding:0;">
+          ${u.changes.map(c=>`<li style="font-size:11px;color:var(--text2);padding:3px 0;border-bottom:.5px solid rgba(10,30,50,.5);">・${c}</li>`).join('')}
+        </ul>
+      </div>`).join('');
+  }
+}
+
+// ================================================================
+//  PARTY
+// ================================================================
+function refreshParty(){renderSlots();renderCharList();}
+function renderSlots(){
+  document.getElementById('party-slots').innerHTML=S.party.map((id,i)=>{
+    const ch=id!==-1?CHARS.find(c=>c.id===id):null,sel=S.selectedSlot===i;
+    if(ch)return`<div class="party-slot ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">✕</div><div class="slot-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div><div class="slot-char-nm">${ch.name}</div><div class="slot-char-lv">Lv.${ch.level} ${ch.rarity}</div></div>`;
+    return`<div class="party-slot empty ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div style="font-size:22px;color:var(--text3)">＋</div><div style="font-size:9px;color:var(--text3)">空きスロット</div></div>`;
+  }).join('');
+}
+function renderCharList(){
+  document.getElementById('char-list').innerHTML=S.owned.map(id=>{
+    const c=CHARS.find(ch=>ch.id===id);if(!c)return'';
+    const inp=S.party.includes(id);
+    return`<div class="char-card ${inp?'in-party':''}" onclick="${inp?'':'addToParty('+id+')'}"><div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div><div class="char-nm">${c.name}</div><div class="char-lv">Lv.${c.level}</div><div class="char-rar" style="color:${c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0'}">${c.rarity}</div></div>`;
+  }).join('');
+}
+function selectSlot(i){sfx('select');S.selectedSlot=S.selectedSlot===i?-1:i;renderSlots();}
+function addToParty(id){
+  sfx('click');
+  let slot=S.selectedSlot!==-1?S.selectedSlot:S.party.indexOf(-1);
+  if(slot===-1){showToast('パーティが満員です！スロットを選択してください');return;}
+  S.party[slot]=id;S.selectedSlot=-1;renderSlots();renderCharList();showToast('編成しました！');
+}
+function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.selectedSlot=-1;renderSlots();renderCharList();}
+
+// ================================================================
+//  BATTLE
+// ================================================================
+function initBattle(quest,pids){
+  BT.quest=quest;BT.enemyHp=quest.enemy.hp;
+  BT.partyHp=pids.map(id=>{const c=CHARS.find(ch=>ch.id===id);return{id,hp:c.hp,maxHp:c.hp};});
+  BT.turn=1;BT.combo=0;BT.active=true;
+  document.getElementById('battle-stage').textContent=quest.name;
+  document.getElementById('enemy-ico').textContent=quest.enemy.emoji;
+  document.getElementById('enemy-nm').textContent=quest.enemy.name;
+  updateEnemyHP();updatePartyHP();drawHand(pids);
+  document.getElementById('combo-disp').textContent='コンボ: 0';
+  document.getElementById('battle-turn').textContent='ターン 1';
+  initBattleBg();
+  goTo('battle');
+}
+
+function initBattleBg(){
+  const cv=document.getElementById('battleCanvas'),ctx=cv.getContext('2d');
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  const pts=Array.from({length:20},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:.8+Math.random()*2,vy:-.12-Math.random()*.25}));
+  if(BT.btAnim)cancelAnimationFrame(BT.btAnim);
+  (function draw(){
+    if(!BT.active)return;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const g=ctx.createLinearGradient(0,0,0,cv.height);
+    g.addColorStop(0,'#010510');g.addColorStop(1,'#030a1e');
+    ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height);
+    pts.forEach(p=>{p.y+=p.vy;p.x+=Math.sin(p.y*.02)*.2;if(p.y<-5)p.y=cv.height+5;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle='rgba(15,70,160,.2)';ctx.lineWidth=.5;ctx.stroke();});
+    BT.btAnim=requestAnimationFrame(draw);
+  })();
+}
+
+function drawHand(ids){
+  BT.hand=[];
+  ids.forEach(id=>{
+    const ch=CHARS.find(c=>c.id===id);if(!ch)return;
+    for(let i=0;i<2;i++){const c=CARDS[Math.floor(Math.random()*CARDS.length)];BT.hand.push({...c,charId:id,charName:ch.name,charAtk:ch.atk,used:false,selected:false});}
+  });
+  renderHand();
+}
+
+function renderHand(){
+  document.getElementById('cards-row').innerHTML=BT.hand.map((c,i)=>{
+    const d=Math.round(c.charAtk*c.dmg);
+    const col=c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)';
+    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}" onclick="toggleCard(${i})"><div class="card-em">${c.emoji}</div><div class="card-nm">${c.name}</div><div class="card-dmg" style="color:${col}">${d}</div><div class="card-own">${c.charName}</div></div>`;
+  }).join('');
+}
+
+function toggleCard(i){
+  if(BT.hand[i].used)return;
+  BT.hand[i].selected=!BT.hand[i].selected;
+  sfx('select');renderHand();
+  const n=BT.hand.filter(c=>c.selected).length;
+  document.getElementById('atk-btn').textContent=n>0?`⚡ ${n}枚で攻撃`:'⚡ 選択して攻撃';
+}
+
+function executeAttack(){
+  const sel=BT.hand.filter(c=>c.selected&&!c.used);
+  if(!sel.length){showToast('カードを選択してください！');return;}
+  sfx('attack');
+  let total=0,cb=1.0;
+  sel.forEach(c=>{total+=Math.round(c.charAtk*c.dmg*cb);BT.combo++;cb=1+BT.combo*.12;c.used=true;c.selected=false;});
+  BT.enemyHp=Math.max(0,BT.enemyHp-total);
+  showDmg(total);updateEnemyHP();
+  document.getElementById('combo-disp').textContent=`コンボ: ${BT.combo}`;
+  renderHand();
+  document.getElementById('atk-btn').textContent='⚡ 選択して攻撃';
+  if(BT.enemyHp<=0){setTimeout(winBattle,700);return;}
+  if(!BT.hand.some(c=>!c.used))setTimeout(enemyTurn,500);
+}
+
+function enemyTurn(){
+  const alive=BT.partyHp.filter(m=>m.hp>0);if(!alive.length){loseBattle();return;}
+  const tgt=alive[Math.floor(Math.random()*alive.length)];
+  const dmg=Math.round(BT.quest.enemy.atk*(.8+Math.random()*.5));
+  tgt.hp=Math.max(0,tgt.hp-dmg); sfx('hit'); updatePartyHP();
+  showToast(`${BT.quest.enemy.name}の攻撃！ ダメージ ${dmg}`);
+  if(BT.partyHp.every(m=>m.hp<=0)){setTimeout(loseBattle,700);return;}
+  BT.turn++;BT.combo=0;
+  document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
+  document.getElementById('combo-disp').textContent='コンボ: 0';
+  setTimeout(()=>drawHand(BT.partyHp.filter(m=>m.hp>0).map(m=>m.id)),500);
+}
+
+function showDmg(dmg){
+  const el=document.createElement('div');el.className='dmg-popup';el.textContent=`-${dmg}`;
+  el.style.cssText=`top:${20+Math.random()*30}%;left:${25+Math.random()*50}%;color:${dmg>300?'#d4a020':dmg>150?'var(--teal)':'#fff'};text-shadow:0 0 8px currentColor;`;
+  document.querySelector('.enemy-area').appendChild(el);
+  setTimeout(()=>el.remove(),950);
+}
+
+function updateEnemyHP(){
+  const pct=BT.enemyHp/BT.quest.enemy.hp*100;
+  document.getElementById('enemy-hp-fill').style.width=pct+'%';
+  document.getElementById('enemy-hp-txt').textContent=`HP: ${BT.enemyHp} / ${BT.quest.enemy.hp}`;
+}
+
+function updatePartyHP(){
+  document.getElementById('party-hp-row').innerHTML=BT.partyHp.map(m=>{
+    const ch=CHARS.find(c=>c.id===m.id),pct=m.hp/m.maxHp*100;
+    const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
+    return`<div class="member-hp"><div class="member-nm">${ch.emoji} ${ch.name}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${pct}%;background:${col}"></div></div><div class="member-hp-val">${m.hp}/${m.maxHp}</div></div>`;
+  }).join('');
+}
+
+function winBattle(){
+  BT.active=false;sfx('win');
+  S.gold+=BT.quest.gold;S.gem+=BT.quest.gem;S.dailyDone=Math.min(5,S.dailyDone+1);
+  if(!S.cleared.includes(BT.quest.id))S.cleared.push(BT.quest.id);
+  document.getElementById('end-ttl').textContent='VICTORY';document.getElementById('end-ttl').className='end-ttl end-win';
+  document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold}  💎 +${BT.quest.gem}`;
+  document.getElementById('battle-end').classList.add('show');
+}
+function loseBattle(){
+  BT.active=false;sfx('lose');
+  document.getElementById('end-ttl').textContent='DEFEAT';document.getElementById('end-ttl').className='end-ttl end-lose';
+  document.getElementById('end-rw-val').textContent='報酬なし';
+  document.getElementById('battle-end').classList.add('show');
+}
+function endBattle(){document.getElementById('battle-end').classList.remove('show');goTo('home');}
+function fleeConfirm(){
+  sfx('click');
+  showModal('撤退確認','クエストを中断しますか？',[
+    {label:'撤退する',action:()=>{BT.active=false;document.getElementById('battle-end').classList.remove('show');goTo('home');}},
+    {label:'続ける',action:()=>{},primary:true}
+  ]);
+}
+
+// ================================================================
+//  SETTINGS
+// ================================================================
+function onSeVol(v){S.seVol=v/100;document.getElementById('se-vol-val').textContent=v;if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;}
+function toggleSe(){S.seOn=!S.seOn;document.getElementById('se-toggle').classList.toggle('on',S.seOn);if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;}
+function toggleBubble(){S.bubbleOn=!S.bubbleOn;document.getElementById('bubble-toggle').classList.toggle('on',S.bubbleOn);}
+function confirmReset(){
+  sfx('click');
+  showModal('データリセット','全ての進行データを削除します。よろしいですか？',[
+    {label:'リセット',action:()=>{S={gold:0,gem:600,pityPerBanner:[0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true};showToast('リセットしました');goTo('home');}},
+    {label:'キャンセル',action:()=>{},primary:true}
+  ]);
+}
+
+// ================================================================
+//  MODAL & TOAST
+// ================================================================
+function showModal(title,body,btns){
+  const ov=document.createElement('div');ov.className='modal-overlay show';
+  ov.innerHTML=`<div class="modal"><div class="modal-ttl">${title}</div><div class="modal-body">${body}</div><div class="modal-btns">${btns.map((b,i)=>`<button class="modal-btn ${b.primary?'primary':''}" data-i="${i}">${b.label}</button>`).join('')}</div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelectorAll('.modal-btn').forEach(btn=>btn.addEventListener('click',()=>{sfx('click');btns[+btn.dataset.i].action();ov.remove();}));
+}
+function showToast(msg){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2200);
+}
+
+// ================================================================
+//  BOOT
+// ================================================================
+// ================================================================
+//  ONLINE DATA LOADER
+// ================================================================
+const DATA_URL    = 'data.json';
+const NOTICES_URL = 'notices.json';
+
+async function loadOnlineData(){
+  // JSONが取得できた場合はそちらを優先、失敗時はビルトインデータで動作
+  try {
+    const [dataRes, noticeRes] = await Promise.all([
+      fetch(DATA_URL  + '?v=' + Date.now()),
+      fetch(NOTICES_URL + '?v=' + Date.now())
+    ]);
+    if(dataRes.ok){
+      const data = await dataRes.json();
+      // キャラ・バナー・クエストを差し替え
+      if(data.characters) CHARS.splice(0, CHARS.length, ...data.characters.map(c=>({...c,level:1})));
+      if(data.banners)    BANNERS.splice(0, BANNERS.length, ...data.banners.filter(b=>b.active!==false));
+      if(data.quests)     QUESTS.splice(0, QUESTS.length, ...data.quests);
+      if(data.version)    GAME_VERSION = data.version;
+      console.log('[ABYSSAL] Online data loaded. version:', GAME_VERSION);
+    }
+    if(noticeRes.ok){
+      const nd = await noticeRes.json();
+      if(nd.notices) ONLINE_NOTICES = nd.notices;
+      if(nd.updateLog) UPDATE_LOG = nd.updateLog;
+    }
+  } catch(e){
+    console.log('[ABYSSAL] Offline mode - using built-in data.');
+  }
+}
+
+let ONLINE_NOTICES = [];
+let UPDATE_LOG = [];
+let GAME_VERSION = '0.2.0';
+
+// ================================================================
+//  BOOT
+// ================================================================
+window.addEventListener('load', async ()=>{
+  initSeaBg();
+  const fill = document.getElementById('boot-fill');
+  let w = 0;
+  const iv = setInterval(()=>{ w+=3; fill.style.width=w+'%'; if(w>=60) clearInterval(iv); }, 30);
+
+  // オンラインデータ読み込み
+  await loadOnlineData();
+
+  // 残りのロードバー
+  let w2 = 60;
+  const iv2 = setInterval(()=>{
+    w2+=4; fill.style.width=w2+'%';
+    if(w2>=100){ clearInterval(iv2); setTimeout(()=>{ initAudio(); goTo('home'); showOnlineNotices(); }, 300); }
+  }, 25);
+});
+
+document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();},{once:true});
+
+// ================================================================
+//  お知らせ表示（オンラインから取得したもの）
+// ================================================================
+function showOnlineNotices(){
+  const important = ONLINE_NOTICES.filter(n => n.important);
+  if(!important.length) return;
+  // ホーム画面のお知らせバーを最新のものに更新
+  const bar = document.querySelector('.notice-text');
+  if(bar && important[0]) bar.textContent = important[0].title + ' — ' + important[0].body.split('\n')[0];
+}
+</script>
+</body>
+</html>
