@@ -3218,11 +3218,11 @@ function getAttrBadgeHtml(c){
   return `<span class="attr-badge attr-${c.attribute}" style="font-size:7px;">${a.emoji}</span>`;
 }
 function getPartyMaxSelect(){
-  // アタッカーで特殊スキルのキャラがいれば+1
+  // カード選択+1スキル持ちの人数分だけ加算（1体→5枚、2体→6枚、3体→7枚）
   const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
   let bonus = 0;
   ap.forEach(c=>{
-    if(c.role==='attacker' && (c.id===1||c.id===59)) bonus=Math.max(bonus,1); // フルドライブ系
+    if(c.id===1||c.id===59) bonus+=1; // フルドライブ系：1体につき+1
   });
   return 4+bonus;
 }
