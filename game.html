@@ -4672,111 +4672,12 @@ function pvpUpdateComboGauge(){
 }
 
 // ===== 攻撃 =====
-function pvpAttack(){
-  const st=pvpBattleState;
-  if(!st||!st.myTurn||st.done) return;
-  if(!st.selectedOrder||!st.selectedOrder.length){showToast('カードを選択してください！');return;}
-  stopPvpTurnTimer();
-  st.myTurn=false; updatePvpPhaseUI(); sfx('attack');
 
-  const selCards=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&c.selected&&!c.used);
-  if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();startPvpTurnTimer();return;}
-
-  // コンボ計算
-  const tc={};
-  selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
-  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
-  const tb=me?(COMBO_TYPE_BONUS[me[0]]||0)*me[1]:0;
-
-  let total=0,cb=1.0;
-  selCards.forEach(c=>{
-    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+tb));
-    total+=dmg; st.combo++; cb=1+st.combo*0.1;
-    c.used=true; c.selected=false;
-  });
-  st.selectedOrder=[];
-
-  // 相手HP更新
-  st.oppHp=Math.max(0,st.oppHp-total);
-  const aOpp=st.oppParty.filter(m=>m.hp>0);
-  if(aOpp.length){
-    const t=aOpp[Math.floor(Math.random()*aOpp.length)];
-    t.hp=Math.max(0,t.hp-total);
-  }
-
-  showDmg(total,tb>0); updatePvpHP(); renderPvpHand(); pvpUpdateComboGauge();
-
-  console.log('[PVP] 攻撃 total:', total, 'oppHp:', st.oppHp);
-
-  // ★相手HP0で即勝利（Firestoreを待たない）
-  if(st.oppHp<=0){
-    console.log('[PVP] 相手全滅→勝利');
-    // Firestoreに非同期で書き込み（結果を待たない）
-    const rk=st.amHost?'hostAction':'guestAction';
-    st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},winner:st.role,lastAction:Date.now()}).catch(()=>{});
-    endRtPvpBattle(true,'all_dead');
-    return;
-  }
-
-  // Firestoreに攻撃データを非同期書き込み（結果を待たない）
-  const rk=st.amHost?'hostAction':'guestAction';
-  st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},lastAction:Date.now()}).catch(e=>console.log('[PVP]write err',e));
-}
 
 // ===== Firestore受信 =====
-function onPvpRoomUpdate(data){
-  const st=pvpBattleState; if(!st||st.done) return;
-  // 勝者確定（攻撃側からFirestoreに書き込まれたwinner）
-  if(data.winner){
-    const iWon = data.winner===st.role;
-    endRtPvpBattle(iWon,'all_dead');
-    return;
-  }
-  const ok=st.amHost?'guestAction':'hostAction';
-  const action=data[ok];
-  if(action&&action.ts&&action.role!==st.role&&action.ts>(st.lastOppActionTs||0)){
-    st.lastOppActionTs=action.ts;
-    processOppAction(action);
-  }
-}
 
-function processOppAction(action){
-  const st=pvpBattleState; if(!st||st.done) return;
-  const {dmg}=action;
-  sfx('hit');
 
-  // 自分のランダムメンバーにダメージ
-  const alive=st.myParty.filter(m=>m.hp>0);
-  if(!alive.length){endRtPvpBattle(false,'all_dead');return;}
-  const tgt=alive[Math.floor(Math.random()*alive.length)];
-  tgt.hp=Math.max(0,tgt.hp-dmg);
-  st.myHp=Math.max(0,st.myHp-dmg);
 
-  // ダメージポップアップ
-  const myRow=document.getElementById('pvp-my-hp-row');
-  if(myRow){
-    const pop=document.createElement('div');
-    pop.className='dmg-popup'; pop.textContent='-'+dmg;
-    pop.style.cssText='position:absolute;top:-20px;left:40%;color:#ff8080;font-size:20px;text-shadow:0 0 8px #ff4040;pointer-events:none;animation:dmgAnim .9s forwards;z-index:20;';
-    myRow.style.position='relative'; myRow.appendChild(pop);
-    setTimeout(()=>pop.remove(),950);
-  }
-  updatePvpMyHP();
-
-  console.log('[PVP] 被弾 dmg:', dmg, 'myHp:', st.myHp);
-
-  // ★自分HP0で即敗北（Firestoreを待たない）
-  if(st.myHp<=0 || st.myParty.every(m=>m.hp<=0)){
-    console.log('[PVP] 自分全滅→敗北');
-    endRtPvpBattle(false,'all_dead');
-    return;
-  }
-
-  // 次のターン（自分のターン）
-  st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
-  pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
-  startPvpTurnTimer();
-}
 
 // ===== タイマー =====
 function startPvpTurnTimer(){
@@ -4842,6 +4743,147 @@ function confirmPvpForfeit(){
     {label:'降参する',action:()=>endRtPvpBattle(false,'forfeit')},
     {label:'続ける',action:()=>{},primary:true},
   ]);
+}
+
+// ================================================================
+//  PvP 攻撃・受信（残HPを共有する方式）
+// ================================================================
+function pvpAttack(){
+  const st=pvpBattleState;
+  if(!st||!st.myTurn||st.done) return;
+  if(!st.selectedOrder||!st.selectedOrder.length){showToast('カードを選択してください！');return;}
+
+  stopPvpTurnTimer();
+  st.myTurn=false; updatePvpPhaseUI(); sfx('attack');
+
+  const selCards=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&c.selected&&!c.used);
+  if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();startPvpTurnTimer();return;}
+
+  // コンボ計算
+  const tc={};
+  selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
+  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  const tb=me?(COMBO_TYPE_BONUS[me[0]]||0)*me[1]:0;
+
+  let total=0,cb=1.0;
+  selCards.forEach(c=>{
+    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+tb));
+    total+=dmg; st.combo++; cb=1+st.combo*0.1;
+    c.used=true; c.selected=false;
+  });
+  st.selectedOrder=[];
+
+  // 自分画面で相手HP更新
+  st.oppHp=Math.max(0,st.oppHp-total);
+  const aOpp=st.oppParty.filter(m=>m.hp>0);
+  if(aOpp.length){
+    const t=aOpp[Math.floor(Math.random()*aOpp.length)];
+    t.hp=Math.max(0,t.hp-total);
+  }
+
+  showDmg(total,tb>0); updatePvpHP(); renderPvpHand(); pvpUpdateComboGauge();
+
+  console.log('[PVP] 攻撃 total:',total,'→ oppHp:',st.oppHp);
+
+  // Firestoreに「残HP」を書き込む（ダメージではなく残HP）
+  const myKey =st.amHost?'hostHp':'guestHp';   // 自分の残HP
+  const atkKey=st.amHost?'hostAction':'guestAction';
+  const data = {
+    [atkKey]:{
+      dmg:total,
+      myRemainHp:st.myHp,   // 自分の残HP（相手が参照）
+      ts:Date.now(),
+      role:st.role,
+      turn:st.turn,
+    },
+    [myKey]:st.myHp,
+    lastAction:Date.now(),
+  };
+
+  if(st.oppHp<=0){
+    // 勝利確定
+    data.winner=st.role;
+    st.roomRef.update(data).catch(()=>{});
+    console.log('[PVP] 相手全滅→勝利');
+    endRtPvpBattle(true,'all_dead');
+    return;
+  }
+
+  st.roomRef.update(data).catch(e=>console.log('[PVP]write err',e));
+}
+
+function onPvpRoomUpdate(data){
+  const st=pvpBattleState; if(!st||st.done) return;
+
+  // 勝者確定チェック
+  if(data.winner){
+    console.log('[PVP] winner受信:', data.winner, '自分:', st.role);
+    endRtPvpBattle(data.winner===st.role,'all_dead');
+    return;
+  }
+
+  // 相手の攻撃データを受信
+  const oppAtkKey=st.amHost?'guestAction':'hostAction';
+  const action=data[oppAtkKey];
+  if(action&&action.ts&&action.role!==st.role&&action.ts>(st.lastOppActionTs||0)){
+    st.lastOppActionTs=action.ts;
+    processOppAction(action);
+  }
+
+  // 相手残HPを直接反映（表示同期）
+  const oppHpKey=st.amHost?'guestHp':'hostHp';
+  if(data[oppHpKey]!==undefined){
+    const newOppHp=data[oppHpKey];
+    if(newOppHp!==st.oppHp){
+      st.oppHp=Math.max(0,newOppHp);
+      updatePvpHP();
+    }
+  }
+}
+
+function processOppAction(action){
+  const st=pvpBattleState; if(!st||st.done) return;
+  const {dmg}=action;
+  sfx('hit');
+
+  // 自分パーティにダメージ
+  const alive=st.myParty.filter(m=>m.hp>0);
+  if(!alive.length){endRtPvpBattle(false,'all_dead');return;}
+  const tgt=alive[Math.floor(Math.random()*alive.length)];
+  tgt.hp=Math.max(0,tgt.hp-dmg);
+  st.myHp=Math.max(0,st.myHp-dmg);
+
+  // ダメージポップアップ
+  const myRow=document.getElementById('pvp-my-hp-row');
+  if(myRow){
+    const pop=document.createElement('div');
+    pop.className='dmg-popup'; pop.textContent='-'+dmg;
+    pop.style.cssText='position:absolute;top:-20px;left:40%;color:#ff8080;font-size:20px;text-shadow:0 0 8px #ff4040;pointer-events:none;animation:dmgAnim .9s forwards;z-index:20;';
+    myRow.style.position='relative'; myRow.appendChild(pop);
+    setTimeout(()=>pop.remove(),950);
+  }
+  updatePvpMyHP();
+
+  console.log('[PVP] 被弾 dmg:',dmg,'myHp:',st.myHp);
+
+  // 自分全滅チェック
+  if(st.myHp<=0||st.myParty.every(m=>m.hp<=0)){
+    console.log('[PVP] 自分全滅→敗北');
+    // 相手側にも敗北を通知
+    const myAtkKey=st.amHost?'hostAction':'guestAction';
+    st.roomRef.update({winner:st.amHost?'guest':'host',lastAction:Date.now()}).catch(()=>{});
+    endRtPvpBattle(false,'all_dead');
+    return;
+  }
+
+  // 自分残HPをFirestoreに書き込み（相手の表示に反映）
+  const myHpKey=st.amHost?'hostHp':'guestHp';
+  st.roomRef.update({[myHpKey]:st.myHp,lastAction:Date.now()}).catch(()=>{});
+
+  // 次のターン
+  st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
+  pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
+  startPvpTurnTimer();
 }
 </script>
 </body>
