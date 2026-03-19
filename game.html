@@ -3162,22 +3162,43 @@ function processPartyStatuses(){
 // ターン開始時に敵状態異常を処理
 function processEnemyStatuses(){
   let totalDmg=0;
+  let isFrozen=false;  // 凍結→行動スキップ
+  let isParalyzed=false; // 麻痺→攻撃ミス率UP
+
   enemyStatuses=enemyStatuses.filter(s=>{
     if(s.type==='burn'){
       const dmg=Math.round(BT.quest.enemy.hp*0.03*s.stacks);
       BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+      showEnemyStatusEffect('burn', dmg);
     }
     if(s.type==='poison'){
       const dmg=Math.round(BT.quest.enemy.hp*0.02*s.stacks);
       BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+      showEnemyStatusEffect('poison', dmg);
     }
+    if(s.type==='freeze') isFrozen=true;
+    if(s.type==='para')   isParalyzed=true;
     s.turns--;
     return s.turns>0;
   });
-  if(totalDmg>0){ updateEnemyHP(); showDmg(totalDmg); }
-  if(BT.enemyHp<=0){ setTimeout(winBattle,400); return false; }
+
+  if(totalDmg>0){ updateEnemyHP(); showDmg(totalDmg,false); }
+  if(BT.enemyHp<=0){ setTimeout(winBattle,400); return {proceed:false}; }
   renderEnemyStatuses();
-  return true;
+  return {proceed:true, isFrozen, isParalyzed};
+}
+
+// 敵の状態異常エフェクト表示
+function showEnemyStatusEffect(type, dmg){
+  const el=document.getElementById('enemy-action-txt');
+  if(!el) return;
+  const cfg={
+    burn:{emoji:'🔥',label:'炎症',color:'#ff9060'},
+    poison:{emoji:'☠️',label:'毒',color:'#80ff40'},
+    freeze:{emoji:'❄️',label:'凍結',color:'#80d8ff'},
+    para:{emoji:'⚡',label:'麻痺',color:'#ffe860'},
+  }[type]||{emoji:'☠️',label:'状態異常',color:'#fff'};
+  el.innerHTML='<span style="color:'+cfg.color+';font-weight:700;">'+cfg.emoji+' 敵に'+cfg.label+'！ -'+dmg.toLocaleString()+'</span>';
 }
 
 function renderEnemyStatuses(){
@@ -3564,16 +3585,41 @@ function enemyTurn(){
     const alive=BT.partyHp.filter(m=>m.hp>0);
     if(!alive.length){ loseBattle(); return; }
 
+    const actionEl = document.getElementById('enemy-action-txt');
+
+    // 敵の状態異常ターン処理（ダメージ・凍結・麻痺チェック）
+    const statusResult = processEnemyStatuses();
+    if(!statusResult.proceed) return;
+
+    // ❄️凍結：敵の行動を完全スキップ
+    if(statusResult.isFrozen){
+      if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;font-weight:700;">❄️ 凍結！敵の行動がスキップされた！</span>';
+      sfx('hit');
+      setTimeout(()=>afterEnemyAttacks(), 1200);
+      return;
+    }
+
+    // 麻痺フラグを保持（各攻撃でミス判定に使用）
+    const enemyParalyzed = statusResult.isParalyzed;
+
     // 敵の攻撃（速度により複数回攻撃）
     const spd = BT.quest.enemy.spd || 1;
     const attacks = Math.min(spd, 3);
-    const actionEl = document.getElementById('enemy-action-txt');
 
     let attackCount = 0;
     function doNextAttack(){
       if(!BT.active || attackCount >= attacks){ afterEnemyAttacks(); return; }
       const aliveNow = BT.partyHp.filter(m=>m.hp>0);
       if(!aliveNow.length){ loseBattle(); return; }
+
+      // ⚡麻痺：50%の確率で攻撃ミス
+      if(enemyParalyzed && Math.random()<0.5){
+        if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ 麻痺で攻撃がはずれた！</span>';
+        attackCount++;
+        setTimeout(doNextAttack, 700);
+        return;
+      }
+
       // タンクヘイト補正
       const hateTgt = applyTankHate();
       const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
@@ -3585,10 +3631,13 @@ function enemyTurn(){
       sfx('hit');
       updatePartyHP();
       renderPartyStatuses();
-      const reductionTxt = reduction>0?` (軽減${Math.round(reduction*100)}%)`:'';
-      if(actionEl) actionEl.textContent=`${BT.quest.enemy.name}の攻撃！ ${tgt.name||'味方'} -${dmg}${reductionTxt}`;
+      const reductionTxt = reduction>0?' (軽減'+Math.round(reduction*100)+'%)':'';
+      // キャラ名を取得
+      const tgtChar=CHARS.find(c=>c.id===tgt.id);
+      const tgtName=tgtChar?tgtChar.name:'味方';
+      if(actionEl) actionEl.textContent=BT.quest.enemy.name+'の攻撃！ '+tgtName+' -'+dmg+reductionTxt;
 
-      // 敵の状態異常付与
+      // 敵の状態異常付与（プレイヤーへ）
       const enemy = BT.quest.enemy;
       if(enemy.statusPatterns){
         enemy.statusPatterns.forEach(p=>{
@@ -3609,9 +3658,9 @@ function afterEnemyAttacks(){
   if(!BT.active) return;
   const actionEl = document.getElementById('enemy-action-txt');
 
-  // 状態異常ダメージ処理（毒・炎症）
+  // 状態異常ダメージ処理（味方の毒・炎症）
   if(!processPartyStatuses()) return;
-  processEnemyStatuses();
+  // ※敵の状態異常はenemyTurn開始時に処理済み
 
   // サポートキャラによる毎ターン回復
   const healRate=getPartyHealRate();
@@ -6076,6 +6125,18 @@ function openBattleInfoPanel(){
       '凍結中のキャラはカードを選択できない。全員凍結で<strong>ターン強制スキップ</strong>。3ターン持続。')
     +makeStatusRow('⚡','麻痺','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
       '麻痺中のキャラのカード選択上限が<strong>-2枚</strong>される（最低1枚）。3ターン持続。');
+
+  // 敵に付与するデバフ説明
+  statusHtml += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">⚔️ 敵に付与するデバフ効果</div>';
+  statusHtml +=
+    makeStatusRow('🔥','炎症（敵）','#ff9060','rgba(180,60,0,.3)','rgba(220,80,0,.5)',
+      'デバッファーが付与。毎ターン敵の最大HPの<strong>3%×スタック数</strong>をダメージ。炎属性デバッファーが付与しやすい。')
+    +makeStatusRow('☠️','毒（敵）','#80ff40','rgba(40,100,0,.3)','rgba(60,140,0,.5)',
+      'デバッファーが付与。毎ターン敵の最大HPの<strong>2%×スタック数</strong>をダメージ。<strong>最大5スタック</strong>まで重複可能。')
+    +makeStatusRow('❄️','凍結（敵）','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
+      'デバッファーが付与。<strong>1ターン敵の行動を完全スキップ</strong>させる。敵は攻撃せず即プレイヤーターンへ。')
+    +makeStatusRow('⚡','麻痺（敵）','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
+      'デバッファーが付与。麻痺中は<strong>攻撃が50%の確率でミス（外れる）</strong>。複数回攻撃の敵に特に効果的。');
 
   // コンボ説明
   var comboHtml=
