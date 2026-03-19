@@ -570,6 +570,13 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .diff-hard{background:rgba(180,100,0,.25);color:#e0a040;border:.5px solid rgba(180,100,0,.4);}
 .diff-extreme{background:rgba(160,20,20,.25);color:#ff6060;border:.5px solid rgba(160,20,20,.4);}
 
+
+/* GRIND COUNT */
+.grind-count-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.grind-count-btn{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:.5px solid rgba(180,130,0,.3);background:rgba(30,20,0,.3);color:#c0a040;transition:background .15s,border-color .15s;flex-shrink:0;}
+.grind-count-btn:hover{background:rgba(60,40,0,.4);border-color:rgba(220,160,0,.5);}
+.grind-count-btn.selected{background:rgba(120,80,0,.5);border-color:rgba(255,200,0,.6);color:#ffe080;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1606,7 +1613,7 @@ function loadGame(){
   }
 }
 let S = loadGame();
-let BT={quest:null,enemyHp:0,partyHp:[],hand:[],turn:1,combo:0,active:false,btAnim:null,auto:false,autoTimer:null,selectedOrder:[],comboTypeCount:{},fromScreen:'quest'};
+let BT={quest:null,enemyHp:0,partyHp:[],hand:[],turn:1,combo:0,active:false,btAnim:null,auto:false,autoTimer:null,selectedOrder:[],comboTypeCount:{},fromScreen:'quest',grindRemain:0,grindQid:'',grindParty:[]};
 
 // ================================================================
 //  AUDIO
@@ -2684,12 +2691,16 @@ const GRIND_QUESTS=[
    desc:'最強クラス。UR Lv.100×3 + 限界突破5が目安。安定周回できれば真のエンドゲーム。'},
 ];
 
+// 周回回数の選択状態
+const grindCountSel = {};
+
 function renderGrind(){
   const rank = S.rank||1;
   const goldEl = document.getElementById('grind-gold-val');
   if(goldEl) goldEl.textContent=S.gold.toLocaleString();
 
   const diffColors={easy:'diff-easy',normal:'diff-normal',hard:'diff-hard',extreme:'diff-extreme'};
+  const countOptions=[2,3,5,7,10];
 
   document.getElementById('grind-content').innerHTML=`
     <div style="font-size:10px;color:var(--text2);margin-bottom:12px;">
@@ -2697,25 +2708,50 @@ function renderGrind(){
     </div>
     ${GRIND_QUESTS.map(q=>{
       const locked = rank < q.unlockRank;
-      return`<div class="grind-card ${locked?'locked':''}"
-        onclick="${locked?`showToast('Rank ${q.unlockRank}で解放！')`:(`startGrind('${q.id}');sfx('click')`)}">
-        <div class="grind-enemy-ico" style="background:rgba(0,20,40,.8);border:.5px solid var(--border2);">${q.emoji}</div>
-        <div class="grind-info">
-          <div class="grind-name">${q.name}</div>
-          <div class="grind-stats">${q.enemy.name} | HP:${q.enemy.hp.toLocaleString()} ATK:${q.enemy.atk} SPD:${q.enemy.spd}</div>
-          <div class="grind-stats" style="margin-top:2px;">${q.desc}</div>
-          ${locked?`<div style="font-size:9px;color:var(--red);margin-top:2px;">🔒 Rank ${q.unlockRank}で解放</div>`:''}
+      const sel = grindCountSel[q.id] || 1;
+      const totalGold = q.gold * sel;
+      const countBtns = locked ? '' : `
+        <div style="margin-top:8px;border-top:.5px solid rgba(255,255,255,.06);padding-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="font-size:9px;color:var(--text3);flex-shrink:0;">周回:</div>
+          <div onclick="event.stopPropagation();startGrind('${q.id}',1);sfx('click')"
+            style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:.5px solid rgba(20,160,120,.3);background:rgba(10,80,60,.3);color:var(--teal);">
+            1回
+          </div>
+          ${countOptions.map(n=>`
+            <div onclick="event.stopPropagation();startGrind('${q.id}',${n});sfx('click')"
+              style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:.5px solid rgba(180,130,0,.3);background:rgba(30,20,0,.3);color:#c0a040;">
+              ${n}回<br><span style="font-size:8px;color:#a08030;">💰${(q.gold*n).toLocaleString()}</span>
+            </div>
+          `).join('')}
+        </div>`;
+      return`<div class="grind-card ${locked?'locked':''}" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;align-items:center;gap:12px;"
+          onclick="${locked?`showToast('Rank ${q.unlockRank}で解放！')`:(`startGrind('${q.id}',1);sfx('click')`)}">
+          <div class="grind-enemy-ico" style="background:rgba(0,20,40,.8);border:.5px solid var(--border2);">${q.emoji}</div>
+          <div class="grind-info">
+            <div class="grind-name">${q.name}</div>
+            <div class="grind-stats">${q.enemy.name} | HP:${q.enemy.hp.toLocaleString()} ATK:${q.enemy.atk} SPD:${q.enemy.spd}</div>
+            <div class="grind-stats" style="margin-top:2px;">${q.desc}</div>
+            ${locked?`<div style="font-size:9px;color:var(--red);margin-top:2px;">🔒 Rank ${q.unlockRank}で解放</div>`:''}
+          </div>
+          <div style="flex-shrink:0;text-align:right;">
+            <div class="grind-reward">💰${q.gold.toLocaleString()}</div>
+            <div class="grind-diff ${diffColors[q.diff]||''}">${q.diffLabel}</div>
+          </div>
         </div>
-        <div>
-          <div class="grind-reward">💰${q.gold.toLocaleString()}</div>
-          <div class="grind-diff ${diffColors[q.diff]||''}">${q.diffLabel}</div>
-        </div>
+        ${countBtns}
       </div>`;
     }).join('')}
   `;
 }
 
-function startGrind(qid){
+function setGrindCount(qid, n){
+  grindCountSel[qid] = n;
+  sfx('select');
+  renderGrind();
+}
+
+function startGrind(qid, count){
   const ap=S.party.filter(id=>id!==-1);
   if(!ap.length){
     showModal('パーティ未編成','パーティを編成してください。',[
@@ -2725,16 +2761,22 @@ function startGrind(qid){
   }
   const q=GRIND_QUESTS.find(g=>g.id===qid);
   if(!q) return;
+  count = count || grindCountSel[qid] || 1;
+  // 周回残数をBTに記録（1回目はここで開始、残りはwinBattle後に自動継続）
+  BT.grindRemain = count - 1;
+  BT.grindQid    = qid;
+  BT.grindParty  = ap;
   const grindQuest={
     id:`grind_${qid}`,
-    name: q.name,
+    name: count>1 ? `${q.name} (残${count}回)` : q.name,
     enemy: q.enemy,
     gold: q.gold,
-    gem: 0,  // ゴールドのみ
+    gem: 0,
     boss: false,
     bgColor:['#050a00','#0a1400'],
     story:[],
     isGrind:true,
+    grindQid: qid,
   };
   BT.fromScreen='grind';
   initBattle(grindQuest, ap);
@@ -3423,9 +3465,35 @@ function winBattle(){
   // 塔・PvP・周回処理
   if(BT.quest.isTower) onTowerClear(BT.quest);
   if(BT.quest.isGrind){
-    // 周回クエストのgold-val更新
     const gv=document.getElementById('grind-gold-val');
     if(gv) gv.textContent=S.gold.toLocaleString();
+    // 周回残数があれば自動継続
+    if(BT.grindRemain > 0){
+      BT.grindRemain--;
+      const qid = BT.grindQid;
+      const ap  = BT.grindParty;
+      const q   = GRIND_QUESTS.find(g=>g.id===qid);
+      if(q && ap && ap.length){
+        // 結果画面を短時間表示してから次の戦闘へ
+        document.getElementById('end-ttl').textContent='VICTORY';
+        document.getElementById('end-ttl').className='end-ttl end-win';
+        document.getElementById('end-rw-val').textContent=
+          `💰 +${BT.quest.gold.toLocaleString()}  残り${BT.grindRemain}回`;
+        document.getElementById('battle-end').classList.add('show');
+        setTimeout(()=>{
+          document.getElementById('battle-end').classList.remove('show');
+          const nextQuest={
+            id:`grind_${qid}`,
+            name:`${q.name} (残${BT.grindRemain}回)`,
+            enemy:q.enemy, gold:q.gold, gem:0, boss:false,
+            bgColor:['#050a00','#0a1400'], story:[], isGrind:true, grindQid:qid,
+          };
+          BT.fromScreen='grind';
+          initBattle(nextQuest, ap);
+        }, 1200);
+        return; // 通常の勝利処理をスキップして早期return
+      }
+    }
   }
   if(BT.quest.isPvp)   onPvpEnd(true, BT.quest);
   // 実績チェック
