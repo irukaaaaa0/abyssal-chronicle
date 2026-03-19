@@ -6311,7 +6311,11 @@ async function sendFriendRequest(){
   var id=(input?input.value:'').trim().toUpperCase();
   if(!id){ showToast('IDを入力してください'); return; }
   if(id===S.playerId){ showToast('自分自身には申請できません'); return; }
-  if((S.friends||[]).some(function(f){return f.id===id;})){showToast('既にフレンドです');return;}
+
+  // 既にフレンドか確認
+  if((S.friends||[]).some(function(f){return f.id===id;})){
+    showToast('💬 既にフレンドです！'); return;
+  }
 
   try{
     var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
@@ -6319,9 +6323,27 @@ async function sendFriendRequest(){
     var targetDoc=snap.docs[0];
     var targetData=targetDoc.data();
 
-    // 相手のpendingRequestsに追加
+    // 相手が既に自分をフレンド登録しているか（相互フレンド済み）
+    var theirFriends=targetData.friends||[];
+    if(theirFriends.some(function(f){return f.id===S.playerId;})){
+      showToast('💬 既につながっています！');
+      // 自分側のfriendにも追加（片方だけの場合修復）
+      if(!(S.friends||[]).some(function(f){return f.id===id;})){
+        if(!S.friends) S.friends=[];
+        S.friends.push({
+          id:id, uid:targetDoc.id,
+          name:targetData.playerName||'司令官',
+          rank:targetData.rank||1,
+          helperChar:targetData.helperChar||null,
+        });
+        saveGame();
+        renderFriend();
+      }
+      return;
+    }
+
+    // 申請重複チェック
     var requests=targetData.pendingRequests||[];
-    // 重複チェック
     if(requests.some(function(r){return r.fromId===S.playerId;})){
       showToast('既に申請済みです'); return;
     }
@@ -6340,29 +6362,38 @@ async function sendFriendRequest(){
 // ----------------------------------------------------------------
 async function acceptFriendRequest(fromId, fromName){
   try{
-    // 相手のデータ取得
     var snap=await db.collection('players').where('playerId','==',fromId).limit(1).get();
     if(snap.empty){showToast('相手のデータが見つかりません');return;}
     var fromDoc=snap.docs[0];
     var fromData=fromDoc.data();
+    var myUid=auth.currentUser?auth.currentUser.uid:'';
 
-    // 自分のfriends・pendingを更新
+    // 自分のfriendsに追加・pendingから削除
     if(!S.friends) S.friends=[];
-    S.friends.push({
-      id:fromId,
-      uid:fromDoc.id,
-      name:fromData.playerName||fromName||'司令官',
-      rank:fromData.rank||1,
-      helperChar:fromData.helperChar||null,
-    });
+    if(!S.friends.some(function(f){return f.id===fromId;})){
+      S.friends.push({
+        id:fromId, uid:fromDoc.id,
+        name:fromData.playerName||fromName||'司令官',
+        rank:fromData.rank||1,
+        helperChar:fromData.helperChar||null,
+      });
+    }
     S.pendingRequests=(S.pendingRequests||[]).filter(function(r){return r.fromId!==fromId;});
 
-    // 相手のfriendsにも自分を追加
+    // Firestoreに自分のデータを先に保存
+    if(playerDocRef){
+      await playerDocRef.update({
+        friends: S.friends,
+        pendingRequests: S.pendingRequests,
+      });
+    }
+    saveGame();
+
+    // 相手のfriendsにも自分を追加（Firestore直接更新）
     var theirFriends=fromData.friends||[];
     if(!theirFriends.some(function(f){return f.id===S.playerId;})){
       theirFriends.push({
-        id:S.playerId,
-        uid:(await auth.currentUser)?auth.currentUser.uid:'',
+        id:S.playerId, uid:myUid,
         name:S.playerName||'深海司令官',
         rank:S.rank||1,
         helperChar:S.helperChar||null,
@@ -6370,7 +6401,6 @@ async function acceptFriendRequest(fromId, fromName){
       await db.collection('players').doc(fromDoc.id).update({friends:theirFriends});
     }
 
-    saveGame();
     showToast('✅ '+fromName+'とフレンドになりました！');
     renderFriend();
   }catch(e){
@@ -6390,13 +6420,32 @@ function rejectFriendRequest(fromId){
 }
 
 // ----------------------------------------------------------------
-// フレンド削除
+// フレンド削除（双方から削除）
 // ----------------------------------------------------------------
-function removeFriend(id){
+async function removeFriend(id){
+  var targetFriend=( S.friends||[]).find(function(f){return f.id===id;});
   S.friends=(S.friends||[]).filter(function(f){return f.id!==id;});
+
+  // Firestoreに自分のfriends更新
+  if(playerDocRef){
+    await playerDocRef.update({friends:S.friends}).catch(function(e){console.log('[FRIEND]',e);});
+  }
   saveGame();
+
+  // 相手のfriendsからも自分を削除
+  if(targetFriend){
+    try{
+      var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
+      if(!snap.empty){
+        var theirData=snap.docs[0].data();
+        var theirFriends=(theirData.friends||[]).filter(function(f){return f.id!==S.playerId;});
+        await db.collection('players').doc(snap.docs[0].id).update({friends:theirFriends});
+      }
+    }catch(e){console.log('[FRIEND delete]',e);}
+  }
+
   renderFriend();
-  showToast('フレンドを削除しました');
+  showToast('フレンドを削除しました（双方から）');
 }
 
 // ----------------------------------------------------------------
