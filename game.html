@@ -919,9 +919,16 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 
   <!-- アクション -->
   <div class="pvp-action-area">
-    <div class="pvp-action-info" id="pvp-action-info">カードを選択して攻撃</div>
+    <div class="pvp-action-info" id="pvp-action-info">カードを選択してコンボ攻撃（最大4枚）</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <div style="font-size:9px;color:var(--text3);flex-shrink:0;">コンボ</div>
+      <div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
+        <div id="pvp-combo-gauge" style="height:100%;width:0%;background:linear-gradient(90deg,#10c0a0,#4a90ff,#e0a020);border-radius:2px;transition:width .3s;"></div>
+      </div>
+      <div id="pvp-combo-txt" style="font-size:9px;color:var(--text2);flex-shrink:0;">コンボなし</div>
+    </div>
     <div id="pvp-action-btn-wrap">
-      <button class="pvp-atk-btn" id="pvp-atk-btn" onclick="pvpAttack()">⚔️ 攻撃する</button>
+      <button class="pvp-atk-btn" id="pvp-atk-btn" onclick="pvpAttack()">⚔️ カードを選択</button>
     </div>
   </div>
 </div>
@@ -3434,6 +3441,7 @@ async function startRtPvpBattle(roomRef, code, role, myCards, initData){
     turn: 1,
     myTurn: iFirstTurn,
     selectedCard: -1,
+    pvpSelectedOrder: [],
     turnTimer: null,
     roomUnsub: null,
     log: [],
@@ -3496,6 +3504,7 @@ function openPvpBattleScreen(){
 function renderPvpCards(){
   const st = pvpBattleState;
   if(!st) return;
+  const selOrder = st.pvpSelectedOrder||[];
 
   // 相手カード
   document.getElementById('pvp-opp-hp-row').innerHTML = st.oppCards.map((c,i)=>{
@@ -3503,20 +3512,27 @@ function renderPvpCards(){
     return`<div class="pvp-opp-card-hp" id="pvp-opp-card-${i}">
       <div class="pvp-opp-card-name">${c.emoji} ${c.name}</div>
       <div class="pvp-opp-card-bar"><div class="pvp-opp-card-fill" style="width:${pct}%"></div></div>
-      <div class="pvp-opp-card-val">${c.hp}/${c.maxHp}</div>
+      <div class="pvp-opp-card-val">${Math.max(0,c.hp)}/${c.maxHp}</div>
     </div>`;
   }).join('');
 
-  // 自分カード
+  // 自分カード（コンボ選択対応）
   document.getElementById('pvp-my-card-row').innerHTML = st.myCards.map((c,i)=>{
     const pct = Math.max(0, c.hp/c.maxHp*100);
     const dead = c.hp<=0;
-    const sel  = st.selectedCard===i;
-    const col  = pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
+    const selIdx = selOrder.indexOf(i);
+    const sel = selIdx>=0;
+    const col = pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
+    const comboBadge = c.comboType&&c.comboType!=='none'
+      ? `<div style="font-size:7px;margin-top:1px;color:${c.comboType==='fire'?'#e0a060':c.comboType==='ice'?'#60c0ff':'#e0d040'}">${c.comboType==='fire'?'🔥':c.comboType==='ice'?'❄️':'⚡'}</div>` : '';
+    const orderBadge = sel?`<div style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--teal);color:#000;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">${selIdx+1}</div>`:'';
     return`<div class="pvp-my-card ${dead?'dead':''} ${sel&&!dead?'selected':''}" id="pvp-my-card-${i}"
-      onclick="${dead||!st.myTurn?'':'selectPvpCard('+i+')'}" >
+      style="position:relative;"
+      onclick="${dead||!st.myTurn?'':'pvpToggleCard('+i+')'}" >
+      ${orderBadge}
       <div class="pvp-card-emoji">${c.emoji}</div>
       <div class="pvp-card-name">${c.name}</div>
+      ${comboBadge}
       <div class="pvp-card-hp-bar"><div class="pvp-card-hp-fill" style="width:${pct}%;background:${col}"></div></div>
       <div class="pvp-card-hp-val">${Math.max(0,c.hp)}/${c.maxHp}</div>
       <div class="pvp-card-atk">ATK ${c.atk}</div>
@@ -3525,16 +3541,7 @@ function renderPvpCards(){
   }).join('');
 }
 
-function selectPvpCard(i){
-  if(!pvpBattleState?.myTurn) return;
-  pvpBattleState.selectedCard = pvpBattleState.selectedCard===i ? -1 : i;
-  sfx('select');
-  renderPvpCards();
-  const btn = document.getElementById('pvp-atk-btn');
-  if(btn) btn.textContent = pvpBattleState.selectedCard>=0
-    ? `⚔️ ${pvpBattleState.myCards[pvpBattleState.selectedCard]?.name}で攻撃`
-    : '⚔️ 攻撃する';
-}
+function selectPvpCard(i){ pvpToggleCard(i); }
 
 function updatePvpPhaseUI(){
   const st = pvpBattleState;
@@ -3588,37 +3595,110 @@ function stopPvpTurnTimer(){
 }
 
 // 攻撃実行
+// ================================================================
+// PvP コンボカード選択システム
+// ================================================================
+const PVP_MAX_SELECT = 4;
+const PVP_COMBO_BONUS = {fire:0.25, ice:0.2, thunder:0.3};
+
+function pvpToggleCard(cardIdx){
+  const st = pvpBattleState;
+  if(!st||!st.myTurn) return;
+  if(st.myCards[cardIdx].hp<=0) return;
+  if(!st.pvpSelectedOrder) st.pvpSelectedOrder=[];
+
+  if(st.pvpSelectedOrder.includes(cardIdx)){
+    st.pvpSelectedOrder = st.pvpSelectedOrder.filter(i=>i!==cardIdx);
+  } else {
+    if(st.pvpSelectedOrder.length>=PVP_MAX_SELECT){ showToast(`最大${PVP_MAX_SELECT}枚まで`); return; }
+    st.pvpSelectedOrder.push(cardIdx);
+  }
+  sfx('select');
+  renderPvpCards();
+  updatePvpComboGauge();
+}
+
+function updatePvpComboGauge(){
+  const st = pvpBattleState;
+  if(!st) return;
+  const sel = (st.pvpSelectedOrder||[]).map(i=>st.myCards[i]).filter(Boolean);
+  const typeCounts={};
+  sel.forEach(c=>{ if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+  const maxEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+  const comboLv = maxEntry?maxEntry[1]:0;
+  const bonusPct = maxEntry?Math.round((PVP_COMBO_BONUS[maxEntry[0]]||0)*comboLv*100):0;
+  const gauge = document.getElementById('pvp-combo-gauge');
+  const txt   = document.getElementById('pvp-combo-txt');
+  if(gauge) gauge.style.width=Math.min(comboLv/4*100,100)+'%';
+  if(txt)   txt.textContent = comboLv>=2?`${maxEntry[0]}Lv.${comboLv}(+${bonusPct}%)`:'コンボなし';
+  const btn = document.getElementById('pvp-atk-btn');
+  const n = (st.pvpSelectedOrder||[]).length;
+  if(btn) btn.textContent = n>0?`⚔️ ${n}枚で攻撃`:'⚔️ カードを選択';
+}
+
 async function pvpAttack(){
   const st = pvpBattleState;
   if(!st||!st.myTurn) return;
-  const selIdx = st.selectedCard;
-  if(selIdx<0||selIdx>=st.myCards.length){ showToast('カードを選択してください'); return; }
-  const card = st.myCards[selIdx];
-  if(card.hp<=0){ showToast('このカードはすでに倒れています'); return; }
+  const sel = (st.pvpSelectedOrder||[]);
+  if(!sel.length){ showToast('カードを選択してください'); return; }
 
   stopPvpTurnTimer();
   st.myTurn = false;
   updatePvpPhaseUI();
 
-  // 攻撃対象: 相手の生きているカードからランダム
-  const aliveOpp = st.oppCards.map((c,i)=>({c,i})).filter(x=>x.c.hp>0);
-  if(!aliveOpp.length){ await endRtPvpBattle(true, 'all_dead'); return; }
-  const tgt = aliveOpp[Math.floor(Math.random()*aliveOpp.length)];
+  // コンボ計算（通常戦闘と同じ）
+  const selCards = sel.map(i=>st.myCards[i]).filter(c=>c&&c.hp>0);
+  if(!selCards.length){ showToast('生きているカードを選んでください'); st.myTurn=true; updatePvpPhaseUI(); return; }
 
-  const dmg = Math.round(card.atk * (0.85+Math.random()*0.3));
-  const roleKey = st.amHost ? 'hostAction' : 'guestAction';
+  const typeCounts={};
+  selCards.forEach(c=>{ if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+  const maxEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+  const typeBonus = maxEntry?(PVP_COMBO_BONUS[maxEntry[0]]||0)*maxEntry[1]:0;
 
-  // Firestoreに行動を書き込み
+  // 各カードのダメージ計算
+  let total=0, cb=1.0;
+  const hitResults=[];
+  selCards.forEach((c,idx)=>{
+    const aliveOpp=st.oppCards.map((oc,i)=>({oc,i})).filter(x=>x.oc.hp>0);
+    if(!aliveOpp.length) return;
+    const tgt=aliveOpp[Math.floor(Math.random()*aliveOpp.length)];
+    const dmg=Math.round(c.atk*((c.dmg||1.0))*cb*(1+typeBonus)*(0.85+Math.random()*0.3));
+    total+=dmg;
+    cb=1+((idx+1)*0.1);
+    hitResults.push({attackerIdx:sel[idx], targetIdx:tgt.i, dmg});
+  });
+
+  st.pvpSelectedOrder=[];
+  const roleKey = st.amHost?'hostAction':'guestAction';
+  const myTurnNum = st.turn;
+
+  // Firestoreに書き込み（ターン番号も含める）
   await st.roomRef.update({
     [roleKey]: {
-      attacker: selIdx,
-      target: tgt.i,
-      dmg,
+      hits: hitResults,
+      total,
+      turn: myTurnNum,
+      role: st.role,
       ts: Date.now(),
     },
+    [`${roleKey}Turn`]: myTurnNum,
     lastAction: Date.now(),
-    turn: st.turn,
   });
+
+  // 自分画面に即反映（自分の攻撃ログ）
+  hitResults.forEach(h=>{
+    const oppCard=st.oppCards[h.targetIdx];
+    if(oppCard) oppCard.hp=Math.max(0,oppCard.hp-h.dmg);
+    addPvpLog(`🟢 ${st.myCards[h.attackerIdx]?.name||'?'} → ${oppCard?.name||'?'} に ${h.dmg} ダメージ！`,'atk');
+  });
+  if(typeBonus>0) addPvpLog(`🔥 コンボボーナス！ 合計 ${total} ダメージ`,'atk');
+  sfx('attack');
+  renderPvpCards();
+
+  // 相手全滅チェック
+  if(st.oppCards.every(c=>c.hp<=0)){
+    await endRtPvpBattle(true,'all_dead');
+  }
 }
 
 // Firestoreの更新を受け取って処理
@@ -3626,12 +3706,12 @@ function onPvpRoomUpdate(data){
   const st = pvpBattleState;
   if(!st||st.done) return;
 
-  const myActionKey  = st.amHost ? 'hostAction'  : 'guestAction';
-  const oppActionKey = st.amHost ? 'guestAction' : 'hostAction';
+  const oppActionKey = st.amHost?'guestAction':'hostAction';
   const action = data[oppActionKey];
 
-  // 相手の行動が来たら処理
-  if(action && action.ts && (!st.lastOppActionTs || action.ts > st.lastOppActionTs)){
+  // 相手の行動が来たか確認（自分の送信した更新を無視するためroleで判定）
+  if(action && action.ts && action.role !== st.role &&
+     (!st.lastOppActionTs || action.ts > st.lastOppActionTs)){
     st.lastOppActionTs = action.ts;
     processOppAction(action);
   }
@@ -3641,34 +3721,35 @@ async function processOppAction(action){
   const st = pvpBattleState;
   if(!st||st.done) return;
 
-  const {attacker, target, dmg} = action;
-  const oppCard = st.oppCards[attacker];
-  const myCard  = st.myCards[target];
-
-  // 相手の攻撃エフェクト
-  const cardEl = document.getElementById(`pvp-my-card-${target}`);
-  if(cardEl) cardEl.classList.add('hit');
-  setTimeout(()=>{ if(cardEl) cardEl.classList.remove('hit'); }, 500);
+  const {hits, total} = action;
   sfx('hit');
 
-  // ダメージ適用
-  myCard.hp = Math.max(0, myCard.hp - dmg);
-  addPvpLog(`🔴 ${oppCard?.name||'相手'} → ${myCard.name} に ${dmg} ダメージ！`, 'recv');
+  // 相手の攻撃を自分カードに適用
+  (hits||[]).forEach(h=>{
+    const myCard=st.myCards[h.targetIdx];
+    if(!myCard) return;
+    myCard.hp=Math.max(0,myCard.hp-h.dmg);
+    const cardEl=document.getElementById(`pvp-my-card-${h.targetIdx}`);
+    if(cardEl){ cardEl.classList.add('hit'); setTimeout(()=>cardEl.classList.remove('hit'),500); }
+    addPvpLog(`🔴 ${st.oppCards[h.attackerIdx]?.name||'相手'} → ${myCard.name} に ${h.dmg} ダメージ！`,'recv');
+  });
+  if(total>0) addPvpLog(`💥 相手の合計 ${total} ダメージ`,'recv');
   renderPvpCards();
 
   // 自分全滅チェック
   if(st.myCards.every(c=>c.hp<=0)){
-    await endRtPvpBattle(false, 'all_dead');
+    await endRtPvpBattle(false,'all_dead');
     return;
   }
 
   // ターン交代 → 自分のターン
   st.turn++;
-  st.myTurn = true;
-  st.selectedCard = -1;
+  st.myTurn=true;
+  st.pvpSelectedOrder=[];
   renderPvpCards();
   updatePvpPhaseUI();
-  addPvpLog(`🟢 あなたのターン (ターン${st.turn})`, 'sys');
+  updatePvpComboGauge();
+  addPvpLog(`🟢 あなたのターン (ターン${st.turn})`,'sys');
   startPvpTurnTimer();
 }
 
