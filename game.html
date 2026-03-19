@@ -650,7 +650,17 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 
 </style>
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+function onPvpEnd(won, quest){
+  const pointChange = won ? Math.round(20+(quest.opponent?.rank||1200)/100) : -15;
+  S.pvpRank = Math.max(0, (S.pvpRank||1200)+pointChange);
+  if(won){ S.pvpWin=(S.pvpWin||0)+1; }
+  else   { S.pvpLose=(S.pvpLose||0)+1; }
+  checkAchievement('pvp_win10', (S.pvpWin||0)>=10);
+  checkAchievement('pvp_win50', (S.pvpWin||0)>=50);
+  saveGame();
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
@@ -4884,6 +4894,14 @@ function processOppAction(action){
   st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
   pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
   startPvpTurnTimer();
+}
+
+function onPvpEnd(won, quest){
+  const ptChange = won ? Math.round(20+(((quest&&quest.opponent)||{rank:1200}).rank||1200)/100) : -15;
+  S.pvpRank = Math.max(0, (S.pvpRank||1200)+ptChange);
+  if(won){ S.pvpWin=(S.pvpWin||0)+1; }
+  else   { S.pvpLose=(S.pvpLose||0)+1; }
+  saveGame();
 }
 </script>
 </body>
