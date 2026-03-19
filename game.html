@@ -3325,89 +3325,7 @@ async function loadPvpRanking(){
 //  合言葉マッチング（リアルタイムPvP）
 // ================================================================
 
-async function joinPvpRoom(){
-  const ap = S.party.filter(id=>id!==-1);
-  if(!ap.length){ showToast('パーティを編成してください'); return; }
-  const code = (document.getElementById('pvp-code-input')?.value||'').trim().toLowerCase();
-  if(!code){ showToast('合言葉を入力してください'); return; }
 
-  const statusEl = document.getElementById('pvp-match-status');
-  if(statusEl) statusEl.textContent='🔍 マッチング中...';
-
-  try{
-    const roomRef = db.collection('pvp_rooms').doc(code);
-    const room = await roomRef.get();
-
-    // 自分のカードデータ（パーティHP合計）
-    const myCards = ap.map(id=>{
-      const c = CHARS.find(ch=>ch.id===id);
-      const cd = (S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-      const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
-      return {
-        id, name:c.name, emoji:c.emoji,
-        hp: Math.round(c.hp*lvMul),
-        maxHp: Math.round(c.hp*lvMul),
-        atk: Math.round(c.atk*lvMul),
-      };
-    });
-
-    if(!room.exists){
-      // 部屋作成（待機）
-      await roomRef.set({
-        hostId: S.playerId,
-        hostCards: myCards,
-        hostRank: S.pvpRank||1200,
-        createdAt: Date.now(),
-        status:'waiting',
-        turn:1, phase:'cointoss',
-        hostReady:false, guestReady:false,
-        hostSelectedCard:-1, guestSelectedCard:-1,
-        lastAction: Date.now(),
-      });
-      if(statusEl) statusEl.textContent='⏳ 相手を待っています... (合言葉: '+code+')';
-
-      // タイムアウト30秒
-      const timer = setTimeout(async()=>{
-        try{ await roomRef.delete(); }catch(e){}
-        if(pvpMatchState) pvpMatchState=null;
-        const s=document.getElementById('pvp-match-status');
-        if(s) s.textContent='⌛ タイムアウト — 相手が見つかりませんでした';
-      }, 30000);
-
-      // リアルタイム監視
-      const unsub = roomRef.onSnapshot(snap=>{
-        if(!snap.exists) return;
-        const data=snap.data();
-        if(data.status==='matched'){
-          clearTimeout(timer); unsub();
-          pvpMatchState=null;
-          if(statusEl) statusEl.textContent='✅ マッチング成立！';
-          startRtPvpBattle(roomRef, code, 'host', myCards, data);
-        }
-      });
-      pvpMatchState={code,role:'host',timer,unsub};
-
-    } else {
-      const data = room.data();
-      if(data.status!=='waiting'){ showToast('この合言葉は使用中です'); if(statusEl)statusEl.textContent=''; return; }
-      if(data.hostId===S.playerId){ showToast('自分自身とは対戦できません'); if(statusEl)statusEl.textContent=''; return; }
-
-      await roomRef.update({
-        guestId: S.playerId,
-        guestCards: myCards,
-        guestRank: S.pvpRank||1200,
-        status:'matched',
-        lastAction: Date.now(),
-      });
-      if(statusEl) statusEl.textContent='✅ マッチング成立！';
-      startRtPvpBattle(roomRef, code, 'guest', myCards, {...data, guestCards:myCards});
-    }
-  }catch(e){
-    const s=document.getElementById('pvp-match-status');
-    if(s) s.textContent='❌ エラー: '+e.message;
-    console.log('[PVP]',e);
-  }
-}
 
 // ================================================================
 //  リアルタイムPvP戦闘
@@ -3417,88 +3335,17 @@ async function joinPvpRoom(){
 // ================================================================
 // 手札生成（通常戦闘と同じロジック）
 // ================================================================
-function pvpDrawHand(){
-  const st = pvpBattleState;
-  if(!st) return;
-  st.hand = [];
-  st.selectedOrder = [];
-  st.myParty.filter(m=>m.hp>0).forEach(member=>{
-    for(let i=0;i<3;i++){
-      const c = CARDS[Math.floor(Math.random()*CARDS.length)];
-      st.hand.push({...c, charId:member.id, charName:member.name,
-        charAtk:member.atk, used:false, selected:false});
-    }
-  });
-  renderPvpHand();
-  pvpUpdateComboGauge();
-}
 
-function renderPvpHand(){
-  const st = pvpBattleState;
-  if(!st) return;
-  const row = document.getElementById('pvp-cards-row');
-  if(!row) return;
-  row.innerHTML = st.hand.map((c,i)=>{
-    const d = Math.round(c.charAtk*c.dmg);
-    const col = c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)';
-    const orderIdx = st.selectedOrder.indexOf(i);
-    const orderBadge = c.selected?`<div class="selected-order">${orderIdx+1}</div>`:'';
-    const comboCls = c.comboType!=='none'?`combo-${c.comboType}`:'combo-none';
-    const comboLabel = c.comboType!=='none'
-      ?`<div class="card-combo-badge ${comboCls}">${c.comboType==='fire'?'🔥炎':c.comboType==='ice'?'❄️氷':'⚡雷'}</div>`:'' ;
-    const canClick = !c.used && st.myTurn;
-    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
-      style="position:relative;${canClick?'':'pointer-events:none;'}"
-      onclick="${canClick?`pvpToggleCard(${i})`:''}"
-      onmousedown="${canClick?`pvpStartLongPress(${i})`:''}"
-      onmouseup="pvpEndLongPress()" onmouseleave="pvpEndLongPress()"
-      ontouchstart="${canClick?`pvpStartLongPress(${i})`:''}" ontouchend="pvpEndLongPress()">
-      ${orderBadge}
-      <div class="card-em">${c.emoji}</div>
-      <div class="card-nm">${c.name}</div>
-      <div class="card-dmg" style="color:${col}">${d}</div>
-      ${comboLabel}
-      <div class="card-own">${c.charName}</div>
-    </div>`;
-  }).join('');
-
-  const n = st.hand.filter(c=>c.selected).length;
-  const info = document.getElementById('pvp-card-select-info');
-  if(info) info.textContent=`${n} / 4 枚選択`;
-  const btn = document.getElementById('pvp-atk-btn');
-  if(btn && st.myTurn) btn.textContent = n>0?`⚔️ ${n}枚で攻撃`:'⚔️ 選択して攻撃';
-}
-
-let pvpLongPressTimer=null;
-function pvpStartLongPress(i){
-  pvpLongPressTimer=setTimeout(()=>{
-    const st=pvpBattleState; if(!st) return;
-    const charId=st.hand[i]?.charId;
-    st.hand.forEach((c,idx)=>{
-      if(c.charId===charId&&!c.used&&!c.selected&&st.selectedOrder.length<4){
-        c.selected=true; st.selectedOrder.push(idx);
-      }
-    });
-    sfx('select'); renderPvpHand(); pvpUpdateComboGauge();
-  },400);
-}
-function pvpEndLongPress(){ if(pvpLongPressTimer){clearTimeout(pvpLongPressTimer);pvpLongPressTimer=null;} }
 
 
 
-function pvpUpdateComboGauge(){
-  const st=pvpBattleState; if(!st) return;
-  const sel=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&!c.used&&c.selected);
-  const typeCounts={};
-  sel.forEach(c=>{if(c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1;});
-  const maxEntry=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
-  const comboLv=maxEntry?maxEntry[1]:0;
-  const bonusPct=maxEntry?Math.round((COMBO_TYPE_BONUS[maxEntry[0]]||0)*comboLv*100):0;
-  const gauge=document.getElementById('pvp-combo-gauge-fill');
-  const txt=document.getElementById('pvp-combo-lv-txt');
-  if(gauge) gauge.style.width=Math.min(comboLv/4*100,100)+'%';
-  if(txt) txt.textContent=comboLv>=2?`${maxEntry[0]}Lv.${comboLv}(+${bonusPct}%)`:'Lv.0 (x1.0)';
-}
+let pvpLongPressTimer=null;
+
+
+
+
+
+
 
 // HP表示更新
 
@@ -3557,89 +3404,7 @@ function addPvpLog(txt,type){ pvpAddLog(txt,type); }
 // ================================================================
 let pvpBattleState = null; // リアルタイム戦闘状態
 
-async function joinPvpRoom(){
-  const ap = S.party.filter(id=>id!==-1);
-  if(!ap.length){ showToast('パーティを編成してください'); return; }
-  const code = (document.getElementById('pvp-code-input')?.value||'').trim().toLowerCase();
-  if(!code){ showToast('合言葉を入力してください'); return; }
 
-  const statusEl = document.getElementById('pvp-match-status');
-  if(statusEl) statusEl.textContent='🔍 マッチング中...';
-
-  try{
-    const roomRef = db.collection('pvp_rooms').doc(code);
-    const room = await roomRef.get();
-
-    // 自分のカードデータ（パーティHP合計）
-    const myCards = ap.map(id=>{
-      const c = CHARS.find(ch=>ch.id===id);
-      const cd = (S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-      const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
-      return {
-        id, name:c.name, emoji:c.emoji,
-        hp: Math.round(c.hp*lvMul),
-        maxHp: Math.round(c.hp*lvMul),
-        atk: Math.round(c.atk*lvMul),
-      };
-    });
-
-    if(!room.exists){
-      // 部屋作成（待機）
-      await roomRef.set({
-        hostId: S.playerId,
-        hostCards: myCards,
-        hostRank: S.pvpRank||1200,
-        createdAt: Date.now(),
-        status:'waiting',
-        turn:1, phase:'cointoss',
-        hostReady:false, guestReady:false,
-        hostSelectedCard:-1, guestSelectedCard:-1,
-        lastAction: Date.now(),
-      });
-      if(statusEl) statusEl.textContent='⏳ 相手を待っています... (合言葉: '+code+')';
-
-      // タイムアウト30秒
-      const timer = setTimeout(async()=>{
-        try{ await roomRef.delete(); }catch(e){}
-        if(pvpMatchState) pvpMatchState=null;
-        const s=document.getElementById('pvp-match-status');
-        if(s) s.textContent='⌛ タイムアウト — 相手が見つかりませんでした';
-      }, 30000);
-
-      // リアルタイム監視
-      const unsub = roomRef.onSnapshot(snap=>{
-        if(!snap.exists) return;
-        const data=snap.data();
-        if(data.status==='matched'){
-          clearTimeout(timer); unsub();
-          pvpMatchState=null;
-          if(statusEl) statusEl.textContent='✅ マッチング成立！';
-          startRtPvpBattle(roomRef, code, 'host', myCards, data);
-        }
-      });
-      pvpMatchState={code,role:'host',timer,unsub};
-
-    } else {
-      const data = room.data();
-      if(data.status!=='waiting'){ showToast('この合言葉は使用中です'); if(statusEl)statusEl.textContent=''; return; }
-      if(data.hostId===S.playerId){ showToast('自分自身とは対戦できません'); if(statusEl)statusEl.textContent=''; return; }
-
-      await roomRef.update({
-        guestId: S.playerId,
-        guestCards: myCards,
-        guestRank: S.pvpRank||1200,
-        status:'matched',
-        lastAction: Date.now(),
-      });
-      if(statusEl) statusEl.textContent='✅ マッチング成立！';
-      startRtPvpBattle(roomRef, code, 'guest', myCards, {...data, guestCards:myCards});
-    }
-  }catch(e){
-    const s=document.getElementById('pvp-match-status');
-    if(s) s.textContent='❌ エラー: '+e.message;
-    console.log('[PVP]',e);
-  }
-}
 
 // ================================================================
 //  リアルタイムPvP戦闘
@@ -3715,22 +3480,7 @@ function selectPvpCard(i){ pvpToggleCard(i); }
 const PVP_MAX_SELECT = 4;
 const PVP_COMBO_BONUS = {fire:0.25, ice:0.2, thunder:0.3};
 
-function pvpToggleCard(cardIdx){
-  const st = pvpBattleState;
-  if(!st||!st.myTurn) return;
-  if(st.myCards[cardIdx].hp<=0) return;
-  if(!st.pvpSelectedOrder) st.pvpSelectedOrder=[];
 
-  if(st.pvpSelectedOrder.includes(cardIdx)){
-    st.pvpSelectedOrder = st.pvpSelectedOrder.filter(i=>i!==cardIdx);
-  } else {
-    if(st.pvpSelectedOrder.length>=PVP_MAX_SELECT){ showToast(`最大${PVP_MAX_SELECT}枚まで`); return; }
-    st.pvpSelectedOrder.push(cardIdx);
-  }
-  sfx('select');
-  renderPvpCards();
-  updatePvpComboGauge();
-}
 
 function updatePvpComboGauge(){
   const st = pvpBattleState;
@@ -4616,99 +4366,177 @@ function startPvpBattle(){
 // ================================================================
 //  PvP リアルタイム戦闘メイン
 // ================================================================
-async function startRtPvpBattle(roomRef, code, role, myCards, initData){
-  const amHost  = role==='host';
-  const oppName = amHost?(initData.guestId||'相手'):(initData.hostId||'相手');
-  const oppCards= amHost?initData.guestCards:initData.hostCards;
 
-  // コイントス先攻決定
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ================================================================
+//  PvP 完全版
+// ================================================================
+
+async function joinPvpRoom(){
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){ showToast('パーティを編成してください'); return; }
+  const code = (document.getElementById('pvp-code-input')?.value||'').trim().toLowerCase();
+  if(!code){ showToast('合言葉を入力してください'); return; }
+  const statusEl = document.getElementById('pvp-match-status');
+  if(statusEl) statusEl.textContent='🔍 マッチング中...';
+
+  // パーティデータ（HP×10倍）
+  const myCards = ap.map(id=>{
+    const c = CHARS.find(ch=>ch.id===id);
+    const cd = (S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
+    const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+    const baseHp = Math.round(c.hp*lvMul);
+    return {
+      id, name:c.name, emoji:c.emoji,
+      hp: baseHp*10,    // ×10倍
+      maxHp: baseHp*10,
+      atk: Math.round(c.atk*lvMul),
+    };
+  });
+
+  try{
+    const roomRef = db.collection('pvp_rooms').doc(code);
+    const room = await roomRef.get();
+
+    if(!room.exists){
+      await roomRef.set({
+        hostId:S.playerId, hostCards:myCards, hostRank:S.pvpRank||1200,
+        createdAt:Date.now(), status:'waiting', lastAction:Date.now(),
+      });
+      if(statusEl) statusEl.textContent='⏳ 相手を待っています... ('+code+')';
+
+      const timer = setTimeout(async()=>{
+        try{await roomRef.delete();}catch(e){}
+        pvpMatchState=null;
+        const s=document.getElementById('pvp-match-status');
+        if(s) s.textContent='⌛ タイムアウト';
+      },30000);
+
+      const unsub = roomRef.onSnapshot(snap=>{
+        if(!snap.exists) return;
+        const data=snap.data();
+        if(data.status==='matched'){
+          clearTimeout(timer); unsub(); pvpMatchState=null;
+          if(statusEl) statusEl.textContent='✅ マッチング成立！';
+          startRtPvpBattle(roomRef, code, 'host', myCards, data);
+        }
+      });
+      pvpMatchState={code,role:'host',timer,unsub};
+
+    } else {
+      const data=room.data();
+      if(data.status!=='waiting'){showToast('この合言葉は使用中です');if(statusEl)statusEl.textContent='';return;}
+      if(data.hostId===S.playerId){showToast('自分自身とは対戦できません');if(statusEl)statusEl.textContent='';return;}
+      await roomRef.update({
+        guestId:S.playerId, guestCards:myCards, guestRank:S.pvpRank||1200,
+        status:'matched', lastAction:Date.now(),
+      });
+      if(statusEl) statusEl.textContent='✅ マッチング成立！';
+      startRtPvpBattle(roomRef, code, 'guest', myCards, {...data, guestCards:myCards});
+    }
+  }catch(e){
+    const s=document.getElementById('pvp-match-status');
+    if(s) s.textContent='❌ エラー: '+e.message;
+    console.log('[PVP]',e);
+  }
+}
+
+async function startRtPvpBattle(roomRef, code, role, myCards, initData){
+  const amHost   = role==='host';
+  const oppName  = amHost?(initData.guestId||'相手'):(initData.hostId||'相手');
+  const oppCards = (amHost?initData.guestCards:initData.hostCards)||[];
+
+  // 先攻決定
   let firstTurn;
   if(amHost){
     firstTurn=Math.random()<0.5?'host':'guest';
-    await roomRef.update({firstTurn,phase:'cointoss_done'});
+    await roomRef.update({firstTurn});
   } else {
     firstTurn=await new Promise(resolve=>{
       const u=roomRef.onSnapshot(s=>{const d=s.data();if(d&&d.firstTurn){u();resolve(d.firstTurn);}});
     });
   }
-  const iFirst=firstTurn===role;
+  const iFirst = firstTurn===role;
 
   // コイントス演出
   await showCointoss(iFirst, oppName);
 
-  // パーティ総合HP
-  const myTotalHp =myCards.reduce((s,c)=>s+c.maxHp,0);
-  const oppTotalHp=oppCards.reduce((s,c)=>s+c.maxHp,0);
+  // パーティ合計HP（×10済みのものを合算）
+  const myTotalHp  = myCards.reduce((s,c)=>s+c.maxHp,0);
+  const oppTotalHp = oppCards.reduce((s,c)=>s+c.maxHp,0);
 
-  // 戦闘状態初期化
   pvpBattleState={
     roomRef,code,role,amHost,
-    myParty:  myCards.map(c=>({...c})),
-    oppParty: oppCards.map(c=>({...c})),
+    myParty:myCards.map(c=>({...c})),
+    oppParty:oppCards.map(c=>({...c})),
     myHp:myTotalHp, myMaxHp:myTotalHp,
     oppHp:oppTotalHp, oppMaxHp:oppTotalHp,
     oppName,
-    turn:1,
-    myTurn:iFirst,
-    hand:[],
-    selectedOrder:[],
-    combo:0,
-    turnTimer:null,
-    roomUnsub:null,
-    done:false,
-    lastOppActionTs:0,
+    turn:1, myTurn:iFirst,
+    hand:[], selectedOrder:[], combo:0,
+    turnTimer:null, roomUnsub:null, done:false, lastOppActionTs:0,
   };
 
-  // 画面表示
-  const screen=document.getElementById('pvp-battle-screen');
-  if(screen) screen.classList.add('show');
+  document.getElementById('pvp-battle-screen').classList.add('show');
+  document.getElementById('pvp-opp-name').textContent='相手: '+oppName;
+  const partyEl=document.getElementById('pvp-opp-party-name');
+  if(partyEl) partyEl.textContent=oppCards.map(c=>c.emoji+c.name).join(' / ');
 
-  // 相手名・相手パーティ表示
-  const oppNameEl=document.getElementById('pvp-opp-name');
-  if(oppNameEl) oppNameEl.textContent='相手: '+oppName;
-  const oppPartyEl=document.getElementById('pvp-opp-party-name');
-  if(oppPartyEl) oppPartyEl.textContent=oppCards.map(c=>c.emoji).join(' ');
+  updatePvpHP(); updatePvpMyHP(); pvpDrawHand(); updatePvpPhaseUI();
 
-  // HP更新
-  updatePvpHP();
-  updatePvpMyHP();
-
-  // 初期手札を配る
-  pvpDrawHand();
-
-  // フェーズ表示
-  updatePvpPhaseUI();
-
-  // Firestore監視開始
   const unsub=roomRef.onSnapshot(snap=>{
     if(!snap.exists||pvpBattleState?.done) return;
     onPvpRoomUpdate(snap.data());
   });
   pvpBattleState.roomUnsub=unsub;
-
-  // 先攻ならタイマー開始
   if(iFirst) startPvpTurnTimer();
 }
 
-function showCointoss(isFirst, oppName){
+function showCointoss(isFirst,oppName){
   return new Promise(resolve=>{
-    const overlay=document.getElementById('cointoss-overlay');
+    const ov=document.getElementById('cointoss-overlay');
     const coin=document.getElementById('cointoss-coin');
     const result=document.getElementById('cointoss-result');
     const sub=document.getElementById('cointoss-sub');
-    if(!overlay){resolve();return;}
-    overlay.classList.add('show');
-    coin.style.animation='coinSpin 0.4s linear infinite';
-    result.classList.remove('show'); result.textContent='';
+    if(!ov){resolve();return;}
+    ov.classList.add('show');
+    if(coin) coin.style.animation='coinSpin 0.4s linear infinite';
+    if(result){result.classList.remove('show');result.textContent='';}
     setTimeout(()=>{
-      coin.style.animation='none';
-      coin.textContent=isFirst?'⚡':'🛡️';
-      result.textContent=isFirst?'先攻！':'後攻...';
-      result.style.color=isFirst?'#60d0ff':'#c080ff';
-      result.classList.add('show');
-      sub.textContent='vs '+oppName;
+      if(coin) coin.style.animation='none';
+      if(coin) coin.textContent=isFirst?'⚡':'🛡️';
+      if(result){result.textContent=isFirst?'先攻！':'後攻...';result.style.color=isFirst?'#60d0ff':'#c080ff';result.classList.add('show');}
+      if(sub) sub.textContent='vs '+oppName;
     },1800);
-    setTimeout(()=>{overlay.classList.remove('show');resolve();},3500);
+    setTimeout(()=>{ov.classList.remove('show');resolve();},3500);
   });
 }
 
@@ -4728,11 +4556,9 @@ function updatePvpMyHP(){
   row.innerHTML=st.myParty.map(m=>{
     const pct=Math.max(0,m.hp/m.maxHp*100);
     const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
-    return`<div class="member-hp">
-      <div class="member-nm">${m.emoji} ${m.name}</div>
+    return`<div class="member-hp"><div class="member-nm">${m.emoji} ${m.name}</div>
       <div class="member-hp-bar"><div class="member-hp-fill" style="width:${pct}%;background:${col}"></div></div>
-      <div class="member-hp-val">${Math.max(0,m.hp)}/${m.maxHp}</div>
-    </div>`;
+      <div class="member-hp-val">${Math.max(0,m.hp).toLocaleString()}/${m.maxHp.toLocaleString()}</div></div>`;
   }).join('');
 }
 
@@ -4741,95 +4567,167 @@ function updatePvpPhaseUI(){
   const turnEl=document.getElementById('pvp-btl-turn');
   if(turnEl) turnEl.textContent='ターン '+st.turn;
 
-  const indicator=document.getElementById('pvp-phase-indicator');
+  const ind=document.getElementById('pvp-phase-indicator');
   const ptxt=document.getElementById('pvp-phase-txt');
-  if(indicator&&ptxt){
+  if(ind&&ptxt){
     ptxt.textContent=st.myTurn?'YOUR TURN':'ENEMY TURN';
     ptxt.className='phase-txt '+(st.myTurn?'phase-player':'phase-enemy');
-    indicator.classList.add('show');
-    setTimeout(()=>indicator.classList.remove('show'),900);
+    ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'),900);
   }
 
   const btn=document.getElementById('pvp-atk-btn');
   const wait=document.getElementById('pvp-wait-txt');
-  if(btn){
-    btn.style.display=st.myTurn?'block':'none';
-    btn.disabled=!st.myTurn;
-    const n=(st.selectedOrder||[]).length;
-    btn.textContent=n>0?`⚔️ ${n}枚で攻撃`:'⚔️ 選択して攻撃';
-  }
+  if(btn){ btn.style.display=st.myTurn?'block':'none'; btn.disabled=!st.myTurn; }
   if(wait) wait.style.display=st.myTurn?'none':'block';
-
   document.querySelectorAll('#pvp-cards-row .battle-card:not(.used)').forEach(el=>{
     el.style.pointerEvents=st.myTurn?'auto':'none';
   });
 }
 
+// ===== 手札 =====
+function pvpDrawHand(){
+  const st=pvpBattleState; if(!st) return;
+  st.hand=[]; st.selectedOrder=[];
+  st.myParty.filter(m=>m.hp>0).forEach(member=>{
+    for(let i=0;i<3;i++){
+      const c=CARDS[Math.floor(Math.random()*CARDS.length)];
+      st.hand.push({...c,charId:member.id,charName:member.name,charAtk:member.atk,used:false,selected:false});
+    }
+  });
+  renderPvpHand(); pvpUpdateComboGauge();
+}
+
+function renderPvpHand(){
+  const st=pvpBattleState; if(!st) return;
+  const row=document.getElementById('pvp-cards-row'); if(!row) return;
+  row.innerHTML=st.hand.map((c,i)=>{
+    const d=Math.round(c.charAtk*c.dmg);
+    const col=c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)';
+    const oi=st.selectedOrder.indexOf(i);
+    const badge=c.selected?`<div class="selected-order">${oi+1}</div>`:'';
+    const comboCls=c.comboType!=='none'?`combo-${c.comboType}`:'combo-none';
+    const comboLbl=c.comboType!=='none'?`<div class="card-combo-badge ${comboCls}">${c.comboType==='fire'?'🔥炎':c.comboType==='ice'?'❄️氷':'⚡雷'}</div>`:'';
+    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
+      style="position:relative;" 
+      onclick="pvpToggleCard(${i})"
+      onmousedown="pvpStartLongPress(${i})" onmouseup="pvpEndLongPress()"
+      onmouseleave="pvpEndLongPress()" ontouchstart="pvpStartLongPress(${i})" ontouchend="pvpEndLongPress()">
+      ${badge}
+      <div class="card-em">${c.emoji}</div>
+      <div class="card-nm">${c.name}</div>
+      <div class="card-dmg" style="color:${col}">${d}</div>
+      ${comboLbl}
+      <div class="card-own">${c.charName}</div>
+    </div>`;
+  }).join('');
+  const n=st.hand.filter(c=>c.selected).length;
+  const info=document.getElementById('pvp-card-select-info');
+  if(info) info.textContent=n+' / 4 枚選択';
+  const btn=document.getElementById('pvp-atk-btn');
+  if(btn&&st.myTurn) btn.textContent=n>0?`⚔️ ${n}枚で攻撃`:'⚔️ 選択して攻撃';
+}
+
+// ===== カード選択（クリックで即選択） =====
+function pvpToggleCard(i){
+  const st=pvpBattleState; if(!st||!st.myTurn) return;
+  if(st.hand[i].used) return;
+  if(!st.hand[i].selected){
+    if((st.selectedOrder||[]).length>=4){showToast('最大4枚まで');return;}
+    st.hand[i].selected=true;
+    st.selectedOrder.push(i);
+  } else {
+    st.hand[i].selected=false;
+    st.selectedOrder=st.selectedOrder.filter(x=>x!==i);
+  }
+  sfx('select'); renderPvpHand(); pvpUpdateComboGauge();
+}
+
+
+function pvpStartLongPress(i){
+  pvpLongPressTimer=setTimeout(()=>{
+    const st=pvpBattleState; if(!st||!st.myTurn) return;
+    const charId=st.hand[i]?.charId;
+    st.hand.forEach((c,idx)=>{
+      if(c.charId===charId&&!c.used&&!c.selected&&(st.selectedOrder||[]).length<4){
+        c.selected=true; if(!st.selectedOrder) st.selectedOrder=[]; st.selectedOrder.push(idx);
+      }
+    });
+    sfx('select'); renderPvpHand(); pvpUpdateComboGauge();
+  },500);
+}
+function pvpEndLongPress(){if(pvpLongPressTimer){clearTimeout(pvpLongPressTimer);pvpLongPressTimer=null;}}
+
+function pvpUpdateComboGauge(){
+  const st=pvpBattleState; if(!st) return;
+  const sel=(st.selectedOrder||[]).map(i=>st.hand[i]).filter(c=>c&&!c.used&&c.selected);
+  const tc={};
+  sel.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
+  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  const lv=me?me[1]:0;
+  const bp=me?Math.round((COMBO_TYPE_BONUS[me[0]]||0)*lv*100):0;
+  const g=document.getElementById('pvp-combo-gauge-fill');
+  const t=document.getElementById('pvp-combo-lv-txt');
+  if(g) g.style.width=Math.min(lv/4*100,100)+'%';
+  if(t) t.textContent=lv>=2?me[0]+'Lv.'+lv+'(+'+bp+'%)':'Lv.0 (x1.0)';
+}
+
+// ===== 攻撃 =====
 async function pvpAttack(){
   const st=pvpBattleState;
   if(!st||!st.myTurn) return;
   if(!st.selectedOrder||!st.selectedOrder.length){showToast('カードを選択してください！');return;}
-
   stopPvpTurnTimer();
-  st.myTurn=false;
-  updatePvpPhaseUI();
-  sfx('attack');
+  st.myTurn=false; updatePvpPhaseUI(); sfx('attack');
 
   const selCards=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&c.selected&&!c.used);
-  if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();return;}
+  if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();startPvpTurnTimer();return;}
 
-  // コンボ計算
-  const typeCounts={};
-  selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1;});
-  const maxEntry=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
-  const typeBonus=maxEntry?(COMBO_TYPE_BONUS[maxEntry[0]]||0)*maxEntry[1]:0;
+  const tc={};
+  selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
+  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  const tb=me?(COMBO_TYPE_BONUS[me[0]]||0)*me[1]:0;
 
   let total=0,cb=1.0;
   selCards.forEach(c=>{
-    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+typeBonus));
+    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+tb));
     total+=dmg; st.combo++; cb=1+st.combo*0.1;
     c.used=true; c.selected=false;
   });
   st.selectedOrder=[];
 
-  // 相手HP減少
+  // 相手HP更新
   st.oppHp=Math.max(0,st.oppHp-total);
   let rem=total;
-  while(rem>0&&st.oppParty.some(m=>m.hp>0)){
-    const a=st.oppParty.filter(m=>m.hp>0);
-    const t=a[Math.floor(Math.random()*a.length)];
-    const d=Math.min(rem,t.hp); t.hp-=d; rem-=d;
+  const aOpp=st.oppParty.filter(m=>m.hp>0);
+  if(aOpp.length){
+    const t=aOpp[Math.floor(Math.random()*aOpp.length)];
+    t.hp=Math.max(0,t.hp-rem);
   }
 
-  showDmg(total,typeBonus>0);
-  updatePvpHP();
-  renderPvpHand();
-  pvpUpdateComboGauge();
-  pvpAddLog('🟢 攻撃 '+total+'ダメージ'+(typeBonus>0?' コンボ!':''));
+  showDmg(total,tb>0); updatePvpHP(); renderPvpHand(); pvpUpdateComboGauge();
 
-  // 相手全滅→勝利
+  // 相手全滅チェック
   if(st.oppHp<=0){
-    await roomRef_safe(st).update({winner:st.role,lastAction:Date.now()}).catch(()=>{});
+    // Firestoreにwinner書き込んで勝利
+    try{await st.roomRef.update({winner:st.role,lastAction:Date.now()});}catch(e){}
     await endRtPvpBattle(true,'all_dead');
     return;
   }
 
-  // Firestoreに行動書き込み
-  const roleKey=st.amHost?'hostAction':'guestAction';
-  await roomRef_safe(st).update({
-    [roleKey]:{dmg:total,ts:Date.now(),role:st.role},
-    lastAction:Date.now(),
-  }).catch(e=>console.log('[PVP]write error',e));
+  // Firestoreに攻撃データ書き込み
+  const rk=st.amHost?'hostAction':'guestAction';
+  try{
+    await st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},lastAction:Date.now()});
+  }catch(e){console.log('[PVP]write error',e);}
 }
 
-function roomRef_safe(st){ return st&&st.roomRef?st.roomRef:{update:()=>Promise.resolve(),delete:()=>Promise.resolve()}; }
-
+// ===== Firestore受信 =====
 function onPvpRoomUpdate(data){
-  const st=pvpBattleState;
-  if(!st||st.done) return;
-  if(data.winner&&!st.done){endRtPvpBattle(data.winner===st.role,'all_dead');return;}
-  const oppKey=st.amHost?'guestAction':'hostAction';
-  const action=data[oppKey];
+  const st=pvpBattleState; if(!st||st.done) return;
+  // 勝者確定
+  if(data.winner){endRtPvpBattle(data.winner===st.role,'all_dead');return;}
+  const ok=st.amHost?'guestAction':'hostAction';
+  const action=data[ok];
   if(action&&action.ts&&action.role!==st.role&&action.ts>(st.lastOppActionTs||0)){
     st.lastOppActionTs=action.ts;
     processOppAction(action);
@@ -4837,8 +4735,7 @@ function onPvpRoomUpdate(data){
 }
 
 async function processOppAction(action){
-  const st=pvpBattleState;
-  if(!st||st.done) return;
+  const st=pvpBattleState; if(!st||st.done) return;
   const {dmg}=action;
   sfx('hit');
 
@@ -4848,37 +4745,29 @@ async function processOppAction(action){
   tgt.hp=Math.max(0,tgt.hp-dmg);
   st.myHp=Math.max(0,st.myHp-dmg);
 
+  // ダメージポップアップ
   const myRow=document.getElementById('pvp-my-hp-row');
   if(myRow){
     const pop=document.createElement('div');
-    pop.className='dmg-popup';
-    pop.textContent='-'+dmg;
+    pop.className='dmg-popup'; pop.textContent='-'+dmg;
     pop.style.cssText='position:absolute;top:-20px;left:40%;color:#ff8080;font-size:20px;text-shadow:0 0 8px #ff4040;pointer-events:none;animation:dmgAnim .9s forwards;z-index:20;';
-    myRow.style.position='relative';
-    myRow.appendChild(pop);
+    myRow.style.position='relative'; myRow.appendChild(pop);
     setTimeout(()=>pop.remove(),950);
   }
-  pvpAddLog('🔴 '+tgt.name+' に '+dmg+' ダメージ！');
   updatePvpMyHP();
 
+  // 自分全滅
   if(st.myParty.every(m=>m.hp<=0)||st.myHp<=0){
-    await endRtPvpBattle(false,'all_dead');
-    return;
+    await endRtPvpBattle(false,'all_dead'); return;
   }
 
   // 次のターン
-  st.turn++;
-  st.myTurn=true;
-  st.combo=0;
-  st.selectedOrder=[];
-  pvpDrawHand();
-  updatePvpHP();
-  updatePvpMyHP();
-  updatePvpPhaseUI();
-  pvpAddLog('🟢 あなたのターン (ターン'+st.turn+')');
+  st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
+  pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
   startPvpTurnTimer();
 }
 
+// ===== タイマー =====
 function startPvpTurnTimer(){
   const st=pvpBattleState; if(!st) return;
   let sec=60;
@@ -4889,11 +4778,7 @@ function startPvpTurnTimer(){
     if(!pvpBattleState||pvpBattleState.done){clearInterval(st.turnTimer);return;}
     sec--;
     if(timerEl){timerEl.textContent=sec;if(sec<=10)timerEl.classList.add('warn');}
-    if(sec<=0){
-      clearInterval(st.turnTimer);
-      pvpAddLog('⌛ 時間切れ！負けです');
-      await endRtPvpBattle(false,'timeout');
-    }
+    if(sec<=0){clearInterval(st.turnTimer);await endRtPvpBattle(false,'timeout');}
   },1000);
 }
 
@@ -4904,10 +4789,7 @@ function stopPvpTurnTimer(){
   if(timerEl){timerEl.textContent='--';timerEl.classList.remove('warn');}
 }
 
-function pvpAddLog(txt){
-  console.log('[PVP]',txt);
-}
-
+// ===== 戦闘終了 =====
 async function endRtPvpBattle(won,reason){
   const st=pvpBattleState;
   if(!st||st.done) return;
@@ -4916,8 +4798,7 @@ async function endRtPvpBattle(won,reason){
   if(st.roomUnsub) st.roomUnsub();
   try{await st.roomRef.delete();}catch(e){}
   onPvpEnd(won,{opponent:{rank:1400}});
-  refreshHome();
-  sfx(won?'win':'lose');
+  refreshHome(); sfx(won?'win':'lose');
   pvpBattleState=null;
 
   const existing=document.getElementById('pvp-result-overlay');
@@ -4927,7 +4808,7 @@ async function endRtPvpBattle(won,reason){
   ov.id='pvp-result-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;';
   ov.innerHTML=`
-    <div style="font-size:36px;font-weight:700;letter-spacing:.15em;color:${won?'#c8a020':'#cc3030'};text-shadow:0 0 20px currentColor;">${won?'VICTORY':'DEFEAT'}</div>
+    <div style="font-size:36px;font-weight:700;color:${won?'#c8a020':'#cc3030'};text-shadow:0 0 20px currentColor;">${won?'VICTORY':'DEFEAT'}</div>
     <div style="font-size:12px;color:var(--text2);">${reason==='timeout'?'⌛ 時間切れ':reason==='forfeit'?'🏳️ 降参':won?'🎉 相手を全滅！':'💀 自分が全滅...'}</div>
     <div style="font-size:14px;font-weight:500;color:${won?'var(--teal)':'#ff6060'};">ランク ${ptChange>0?'+':''}${ptChange} pts → ${S.pvpRank||1200}pts</div>
     <button id="pvp-result-close-btn" style="padding:11px 32px;border-radius:18px;border:.5px solid rgba(20,100,200,.4);background:rgba(10,40,100,.4);font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;margin-top:6px;">⚔️ 闘技場に戻る</button>
@@ -4939,13 +4820,13 @@ async function endRtPvpBattle(won,reason){
 function closePvpBattleScreen(){
   const ov=document.getElementById('pvp-result-overlay');
   if(ov) ov.remove();
-  const screen=document.getElementById('pvp-battle-screen');
-  if(screen) screen.classList.remove('show');
+  const sc=document.getElementById('pvp-battle-screen');
+  if(sc) sc.classList.remove('show');
   goTo('pvp');
 }
 
 function confirmPvpForfeit(){
-  showModal('降参','本当に降参しますか？ランクが下がります。',[
+  showModal('降参','本当に降参しますか？',[
     {label:'降参する',action:()=>endRtPvpBattle(false,'forfeit')},
     {label:'続ける',action:()=>{},primary:true},
   ]);
