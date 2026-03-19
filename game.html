@@ -6455,11 +6455,14 @@ async function renderFriend(){
   },100);
 
   document.getElementById('friend-content').innerHTML =
-    // 自分のID
+    // 自分のUID
     '<div class="friend-id-box">'
-    +'<div class="friend-id-label">あなたのID（フレンド追加に使用）</div>'
-    +'<div class="friend-id-val">'+myId+'</div>'
-    +'<div onclick="copyPlayerId()" style="font-size:9px;color:var(--teal);margin-top:6px;cursor:pointer;">📋 IDをコピー</div>'
+    +'<div class="friend-id-label">あなたのUID（フレンド追加に使用）</div>'
+    +'<div class="friend-id-val" style="font-size:11px;word-break:break-all;letter-spacing:.02em;">'+myUid+'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;">'
+    +'<div onclick="copyMyUid()" style="font-size:9px;color:var(--teal);cursor:pointer;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 10px;">📋 UIDコピー</div>'
+    +'<div style="font-size:8px;color:var(--text3);">PlayerID: '+myId+'</div>'
+    +'</div>'
     +'</div>'
     // タブ
     +'<div style="display:flex;gap:6px;margin-bottom:12px;">'
@@ -6530,38 +6533,48 @@ async function sendFriendRequest(){
   var input=document.getElementById('friend-search-input');
   var rawInput=(input?input.value:'').trim();
   if(!rawInput){ showToast('UIDまたはPlayerIDを入力してください'); return; }
-  var myUidCheck=auth.currentUser?auth.currentUser.uid:'';
-  if(rawInput===myUidCheck||rawInput.toUpperCase()===S.playerId){
+  var myUid=auth.currentUser?auth.currentUser.uid:'';
+  // 自分自身チェック
+  if(rawInput===myUid||rawInput.toUpperCase()===S.playerId){
     showToast('自分自身には申請できません'); return;
   }
 
   try{
-    var myUid=auth.currentUser?auth.currentUser.uid:'';
-    var targetDoc, targetData;
-    // UIDまたはPlayerIDで検索（28文字以上=UID）
+    var targetDocId, targetData;
+
+    // UID（20文字以上）で直接検索
     if(rawInput.length>=20){
       var docSnap=await db.collection('players').doc(rawInput).get();
       if(!docSnap.exists){ showToast('❌ UIDが見つかりません'); return; }
-      targetDoc={id:docSnap.id, data:function(){return docSnap.data();}};
+      targetDocId=rawInput;
       targetData=docSnap.data();
     } else {
-      var id=rawInput.toUpperCase();
-      var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
+      // PlayerIDで検索
+      var pid=rawInput.toUpperCase();
+      var snap=await db.collection('players').where('playerId','==',pid).limit(1).get();
       if(snap.empty){ showToast('❌ PlayerIDが見つかりません'); return; }
-      targetDoc=snap.docs[0];
-      targetData=targetDoc.data();
+      targetDocId=snap.docs[0].id;
+      targetData=snap.docs[0].data();
     }
 
-    // 自分のfriendリストに追加
-    if(!S.friends) S.friends=[];
-    if(!S.friends.some(function(f){return f.id===id;})){
-      S.friends.push({
-        id:id, uid:targetDoc.id,
-        name:targetData.playerName||'司令官',
-        rank:targetData.rank||1,
-        helperChar:targetData.helperChar||null,
-      });
+    // 相手のplayerIdをフレンドIDとして使用
+    var targetPlayerId=targetData.playerId||targetDocId;
+
+    // 既にフレンドかチェック
+    if((S.friends||[]).some(function(f){return f.uid===targetDocId||f.id===targetPlayerId;})){
+      showToast('既にフレンドです！');
+      return;
     }
+
+    // 自分のfriendsに追加
+    if(!S.friends) S.friends=[];
+    S.friends.push({
+      id:targetPlayerId,
+      uid:targetDocId,
+      name:targetData.playerName||'司令官',
+      rank:targetData.rank||1,
+      helperChar:targetData.helperChar||null,
+    });
 
     // 自分のFirestoreを更新
     if(playerDocRef){
@@ -6571,18 +6584,20 @@ async function sendFriendRequest(){
 
     // 相手のfriendsにも自分を追加
     var theirFriends=targetData.friends||[];
-    if(!theirFriends.some(function(f){return f.id===S.playerId;})){
+    var alreadyIn=theirFriends.some(function(f){return f.uid===myUid||f.id===S.playerId;});
+    if(!alreadyIn){
       theirFriends.push({
-        id:S.playerId, uid:myUid,
+        id:S.playerId,
+        uid:myUid,
         name:S.playerName||'深海司令官',
         rank:S.rank||1,
         helperChar:S.helperChar||null,
       });
-      await db.collection('players').doc(targetDoc.id).update({friends:theirFriends});
+      await db.collection('players').doc(targetDocId).update({friends:theirFriends});
     }
 
-    console.log('[FRIEND] Added friend:', id);
-    showToast('✅ '+id+' をフレンドに追加しました！');
+    console.log('[FRIEND] Added:', targetPlayerId, 'uid:', targetDocId);
+    showToast('✅ '+(targetData.playerName||targetPlayerId)+' をフレンドに追加しました！');
     if(input) input.value='';
     renderFriend();
   }catch(e){
