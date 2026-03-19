@@ -648,6 +648,150 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .pvp-log-line.recv{color:#ff8080;}
 .pvp-log-line.sys{color:var(--text2);}
 
+
+/* ===== 属性バッジ ===== */
+.attr-badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px;}
+.attr-fire{background:rgba(200,60,0,.25);color:#ff8040;border:.5px solid rgba(200,60,0,.4);}
+.attr-ice{background:rgba(0,80,160,.25);color:#60c0ff;border:.5px solid rgba(0,100,200,.4);}
+.attr-thunder{background:rgba(160,140,0,.25);color:#ffe040;border:.5px solid rgba(160,140,0,.4);}
+.attr-water{background:rgba(0,80,120,.25);color:#40d0ff;border:.5px solid rgba(0,100,160,.4);}
+.attr-dark{background:rgba(60,0,100,.25);color:#c080ff;border:.5px solid rgba(80,0,140,.4);}
+.attr-light{background:rgba(160,140,0,.25);color:#fff080;border:.5px solid rgba(200,180,0,.4);}
+.attr-none{background:rgba(80,80,80,.2);color:#c0c0c0;border:.5px solid rgba(120,120,120,.3);}
+
+/* ===== ロールバッジ ===== */
+.role-badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;}
+.role-tank{background:rgba(0,80,160,.25);color:#60a0ff;border:.5px solid rgba(0,80,160,.4);}
+.role-attacker{background:rgba(160,0,0,.25);color:#ff6060;border:.5px solid rgba(160,0,0,.4);}
+.role-support{background:rgba(0,120,60,.25);color:#40e080;border:.5px solid rgba(0,120,60,.4);}
+.role-debuffer{background:rgba(80,0,80,.25);color:#e060e0;border:.5px solid rgba(80,0,80,.4);}
+
+/* ===== 状態異常 ===== */
+.status-area{display:flex;gap:4px;flex-wrap:wrap;padding:2px 12px 0;min-height:22px;}
+.status-badge{font-size:9px;padding:2px 6px;border-radius:5px;display:flex;align-items:center;gap:3px;animation:statusPulse 1.5s ease-in-out infinite;}
+@keyframes statusPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.sb-burn{background:rgba(180,60,0,.35);color:#ff8040;border:.5px solid rgba(200,80,0,.5);}
+.sb-poison{background:rgba(60,100,0,.35);color:#80e040;border:.5px solid rgba(60,120,0,.5);}
+.sb-freeze{background:rgba(0,80,160,.35);color:#80d0ff;border:.5px solid rgba(0,100,200,.5);}
+.sb-para{background:rgba(140,120,0,.35);color:#ffe040;border:.5px solid rgba(160,140,0,.5);}
+
+/* ===== 敵状態異常表示 ===== */
+.enemy-status-area{display:flex;gap:4px;justify-content:center;margin-top:4px;flex-wrap:wrap;}
+
+/* ===== キャラ詳細オーバーレイ（編成画面） ===== */
+.party-char-detail{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;}
+.party-char-detail.show{display:flex;}
+.pcd-box{background:rgba(4,12,26,.98);border:.5px solid var(--border3);border-radius:18px;width:min(360px,92vw);max-height:85vh;overflow-y:auto;padding:20px;}
+.pcd-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.pcd-ico{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.pcd-info{flex:1;}
+.pcd-name{font-size:16px;font-weight:600;}
+.pcd-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.pcd-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.pcd-stat{background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:8px;padding:8px 10px;}
+.pcd-stat-lbl{font-size:9px;color:var(--text3);margin-bottom:2px;}
+.pcd-stat-val{font-size:14px;font-weight:600;}
+.pcd-skill-box{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:12px;}
+.pcd-skill-name{font-size:12px;font-weight:500;margin-bottom:4px;}
+.pcd-skill-desc{font-size:10px;color:var(--text2);line-height:1.5;}
+
+
+/* ===== 状態異常フルスクリーン演出 ===== */
+.status-flash{
+  position:fixed;inset:0;z-index:500;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+}
+.status-flash.show{opacity:1;}
+.status-flash-inner{
+  font-size:28px;font-weight:700;letter-spacing:.08em;
+  text-shadow:0 0 30px currentColor;
+  padding:10px 24px;border-radius:14px;
+  border:2px solid currentColor;
+  backdrop-filter:blur(4px);
+  animation:statusFlashAnim .6s ease-out forwards;
+}
+@keyframes statusFlashAnim{
+  0%{transform:scale(.7);opacity:0;}
+  40%{transform:scale(1.08);opacity:1;}
+  100%{transform:scale(1);opacity:1;}
+}
+
+/* ===== 状態異常パネル（戦闘中常時表示） ===== */
+.battle-status-panel{
+  display:flex;gap:5px;padding:4px 12px;flex-wrap:wrap;
+  min-height:28px;background:rgba(0,0,0,.2);
+}
+.status-chip{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10px;font-weight:600;padding:3px 8px;border-radius:8px;
+  position:relative;cursor:default;
+  transition:transform .15s;
+}
+.status-chip:hover{transform:scale(1.05);}
+.status-chip .chip-turns{
+  font-size:8px;font-weight:400;
+  background:rgba(0,0,0,.3);border-radius:3px;padding:0 3px;margin-left:2px;
+}
+.status-chip .chip-stack{
+  position:absolute;top:-5px;right:-5px;
+  width:14px;height:14px;border-radius:50%;
+  background:#ff4040;color:#fff;font-size:8px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.chip-burn{background:rgba(180,60,0,.4);color:#ff9060;border:.5px solid rgba(220,80,0,.6);}
+.chip-poison{background:rgba(40,100,0,.4);color:#80ff40;border:.5px solid rgba(60,140,0,.6);}
+.chip-freeze{background:rgba(0,80,180,.4);color:#80d8ff;border:.5px solid rgba(0,120,220,.6);}
+.chip-para{background:rgba(160,140,0,.4);color:#ffe860;border:.5px solid rgba(200,180,0,.6);}
+
+/* ===== 特殊攻撃演出 ===== */
+.special-atk-banner{
+  position:fixed;top:35%;left:50%;transform:translateX(-50%);
+  z-index:400;pointer-events:none;
+  font-size:16px;font-weight:700;
+  padding:8px 20px;border-radius:12px;
+  opacity:0;white-space:nowrap;
+  animation:none;
+}
+.special-atk-banner.show{
+  animation:bannerPop .9s ease-out forwards;
+}
+@keyframes bannerPop{
+  0%{opacity:0;transform:translateX(-50%) scale(.6) translateY(20px);}
+  25%{opacity:1;transform:translateX(-50%) scale(1.05) translateY(0);}
+  70%{opacity:1;transform:translateX(-50%) scale(1) translateY(0);}
+  100%{opacity:0;transform:translateX(-50%) scale(1) translateY(-20px);}
+}
+
+/* ===== メンバーHP行の状態異常 ===== */
+.member-hp{position:relative;}
+.member-hp.frozen::after{
+  content:'❄️ 凍結中';position:absolute;inset:0;
+  background:rgba(0,80,180,.55);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:#80d8ff;font-weight:600;letter-spacing:.1em;
+  pointer-events:none;
+}
+.member-hp.burned::before{
+  content:'';position:absolute;inset:0;border-radius:8px;
+  box-shadow:inset 0 0 8px 2px rgba(255,100,0,.5);pointer-events:none;
+}
+.member-hp.poisoned::before{
+  content:'';position:absolute;inset:0;border-radius:8px;
+  box-shadow:inset 0 0 8px 2px rgba(80,200,0,.4);pointer-events:none;
+}
+
+/* ===== デバフ攻撃エフェクト（敵→プレイヤー） ===== */
+.debuff-hit-overlay{
+  position:fixed;inset:0;z-index:300;pointer-events:none;
+  opacity:0;
+}
+.debuff-hit-overlay.show{animation:debuffHit .5s ease-out forwards;}
+@keyframes debuffHit{
+  0%{opacity:.7;}
+  100%{opacity:0;}
+}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1003,6 +1147,8 @@ function onPvpEnd(won, quest){
     <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
     <div class="enemy-action-txt" id="enemy-action-txt"></div>
   </div>
+  <!-- 味方状態異常パネル -->
+  <div class="battle-status-panel" id="battle-status-panel"></div>
   <div class="party-hp-row" id="party-hp-row"></div>
   <div class="card-hand" style="padding-top:4px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -1021,6 +1167,14 @@ function onPvpEnd(won, quest){
     <button class="auto-btn" id="auto-btn" onclick="toggleAuto()">🤖 オート</button>
     <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪 撤退</button>
   </div>
+  <!-- 状態異常フルスクリーン演出 -->
+  <div class="status-flash" id="status-flash">
+    <div class="status-flash-inner" id="status-flash-inner"></div>
+  </div>
+  <!-- 特殊攻撃バナー -->
+  <div class="special-atk-banner" id="special-atk-banner"></div>
+  <!-- デバフヒットオーバーレイ -->
+  <div class="debuff-hit-overlay" id="debuff-hit-overlay"></div>
 </div>
 
 <!-- NOTICES -->
@@ -1470,131 +1624,201 @@ async function checkGifts(){
 // ================================================================
 const CHARS=[
   // UR (超激レア)
-  {id:1, name:'旧破神アルカナ',  emoji:'🌑',rarity:'UR', bg:'rgba(0,0,0,.6)',     border:'rgba(255,215,0,.9)',  hp:1500,atk:280,level:1},
-  {id:2, name:'深淵の使徒イグリス',emoji:'🕳️',rarity:'UR', bg:'rgba(10,0,30,.6)',  border:'rgba(200,180,255,.8)',hp:1400,atk:300,level:1},
-  {id:3, name:'崩壊の始原神',   emoji:'💀',rarity:'UR', bg:'rgba(30,0,0,.6)',    border:'rgba(255,80,80,.8)',  hp:1600,atk:260,level:1},
+  {id:1, name:'旧破神アルカナ',  emoji:'🌑',rarity:'UR', bg:'rgba(0,0,0,.6)',     border:'rgba(255,215,0,.9)',  hp:1500,atk:280,level:1,attribute:'dark',role:'attacker',skillName:'フルドライブ',skillDesc:'全カード+1枚選択可能'},
+  {id:2, name:'深淵の使徒イグリス',emoji:'🕳️',rarity:'UR', bg:'rgba(10,0,30,.6)',  border:'rgba(200,180,255,.8)',hp:1400,atk:300,level:1,attribute:'dark',role:'debuffer',skillName:'深淵の呪縛',skillDesc:'攻撃時30%で麻痺を付与'},
+  {id:3, name:'崩壊の始原神',   emoji:'💀',rarity:'UR', bg:'rgba(30,0,0,.6)',    border:'rgba(255,80,80,.8)',  hp:1600,atk:260,level:1,attribute:'fire',role:'attacker',skillName:'崩壊炎撃',skillDesc:'炎コンボのボーナス+15%'},
   // SSR
-  {id:4, name:'深淵の番人',     emoji:'🦑',rarity:'SSR',bg:'rgba(80,20,160,.25)',border:'rgba(120,50,200,.6)', hp:900,atk:130,level:1},
-  {id:5, name:'崩壊の炎神',     emoji:'🔥',rarity:'SSR',bg:'rgba(180,80,20,.25)',border:'rgba(220,100,30,.6)', hp:800,atk:150,level:1},
-  {id:6, name:'蒼海の覇王',     emoji:'🌊',rarity:'SSR',bg:'rgba(0,80,160,.25)', border:'rgba(30,140,255,.6)', hp:850,atk:140,level:1},
-  {id:7, name:'天崩の雷竜',     emoji:'⚡',rarity:'SSR',bg:'rgba(100,80,0,.25)', border:'rgba(255,220,30,.6)', hp:820,atk:145,level:1},
-  {id:8, name:'虚無の祭司',     emoji:'🔮',rarity:'SSR',bg:'rgba(60,0,100,.25)', border:'rgba(180,80,255,.6)', hp:780,atk:155,level:1},
-  {id:9, name:'氷獄の女神',     emoji:'❄️',rarity:'SSR',bg:'rgba(0,80,120,.25)', border:'rgba(100,220,255,.6)',hp:900,atk:120,level:1},
-  {id:10,name:'血潮の剣聖',     emoji:'🗡️',rarity:'SSR',bg:'rgba(120,0,40,.25)', border:'rgba(255,60,100,.6)', hp:760,atk:160,level:1},
-  {id:11,name:'星砕の魔王',     emoji:'🌟',rarity:'SSR',bg:'rgba(80,60,0,.25)',   border:'rgba(255,200,80,.6)', hp:830,atk:138,level:1},
-  {id:12,name:'深海の福音',     emoji:'🐋',rarity:'SSR',bg:'rgba(0,60,80,.25)',   border:'rgba(80,200,220,.6)', hp:880,atk:125,level:1},
+  {id:4, name:'深淵の番人',     emoji:'🦑',rarity:'SSR',bg:'rgba(80,20,160,.25)',border:'rgba(120,50,200,.6)', hp:900,atk:130,level:1,attribute:'dark',role:'tank',skillName:'深淵の殻',skillDesc:'被ダメージ-15%、ヘイト高'},
+  {id:5, name:'崩壊の炎神',     emoji:'🔥',rarity:'SSR',bg:'rgba(180,80,20,.25)',border:'rgba(220,100,30,.6)', hp:800,atk:150,level:1,attribute:'fire',role:'attacker',skillName:'炎神の加護',skillDesc:'炎属性ダメージ+10%'},
+  {id:6, name:'蒼海の覇王',     emoji:'🌊',rarity:'SSR',bg:'rgba(0,80,160,.25)', border:'rgba(30,140,255,.6)', hp:850,atk:140,level:1,attribute:'water',role:'tank',skillName:'蒼海の盾',skillDesc:'被ダメージ-10%、HP高め'},
+  {id:7, name:'天崩の雷竜',     emoji:'⚡',rarity:'SSR',bg:'rgba(100,80,0,.25)', border:'rgba(255,220,30,.6)', hp:820,atk:145,level:1,attribute:'thunder',role:'attacker',skillName:'雷竜の牙',skillDesc:'雷コンボボーナス+10%'},
+  {id:8, name:'虚無の祭司',     emoji:'🔮',rarity:'SSR',bg:'rgba(60,0,100,.25)', border:'rgba(180,80,255,.6)', hp:780,atk:155,level:1,attribute:'dark',role:'debuffer',skillName:'虚無の呪詛',skillDesc:'攻撃時20%で毒を付与'},
+  {id:9, name:'氷獄の女神',     emoji:'❄️',rarity:'SSR',bg:'rgba(0,80,120,.25)', border:'rgba(100,220,255,.6)',hp:900,atk:120,level:1,attribute:'ice',role:'support',skillName:'氷獄の加護',skillDesc:'毎ターン味方HP1%回復'},
+  {id:10,name:'血潮の剣聖',     emoji:'🗡️',rarity:'SSR',bg:'rgba(120,0,40,.25)', border:'rgba(255,60,100,.6)', hp:760,atk:160,level:1,attribute:'fire',role:'attacker',skillName:'血刃の舞',skillDesc:'3枚以上コンボでATK+15%'},
+  {id:11,name:'星砕の魔王',     emoji:'🌟',rarity:'SSR',bg:'rgba(80,60,0,.25)',   border:'rgba(255,200,80,.6)', hp:830,atk:138,level:1,attribute:'light',role:'attacker',skillName:'星砕の魔力',skillDesc:'ランダムな追加ダメージ'},
+  {id:12,name:'深海の福音',     emoji:'🐋',rarity:'SSR',bg:'rgba(0,60,80,.25)',   border:'rgba(80,200,220,.6)', hp:880,atk:125,level:1,attribute:'water',role:'support',skillName:'深海の福音',skillDesc:'戦闘開始時味方HP+5%回復'},
   // SR
-  {id:13,name:'海流の剣士',     emoji:'🌊',rarity:'SR', bg:'rgba(20,100,180,.2)', border:'rgba(30,140,220,.5)', hp:750,atk:100,level:1},
-  {id:14,name:'氷海の聖者',     emoji:'🧊',rarity:'SR', bg:'rgba(60,160,200,.2)', border:'rgba(80,200,230,.5)', hp:950,atk:70, level:1},
-  {id:15,name:'珊瑚の守護',     emoji:'🪸',rarity:'SR', bg:'rgba(160,40,70,.2)',  border:'rgba(200,60,100,.5)', hp:1050,atk:60,level:1},
-  {id:16,name:'暗渦の術士',     emoji:'🌀',rarity:'SR', bg:'rgba(60,0,120,.2)',   border:'rgba(140,60,220,.5)', hp:700,atk:105,level:1},
-  {id:17,name:'深海の斬艦刀',   emoji:'⚓',rarity:'SR', bg:'rgba(20,60,100,.2)',  border:'rgba(40,120,200,.5)', hp:800,atk:95, level:1},
-  {id:18,name:'灼熱の踊り子',   emoji:'💃',rarity:'SR', bg:'rgba(160,60,20,.2)',  border:'rgba(220,100,40,.5)', hp:720,atk:102,level:1},
-  {id:19,name:'霧中の狙撃手',   emoji:'🎯',rarity:'SR', bg:'rgba(40,80,40,.2)',   border:'rgba(80,160,80,.5)',  hp:740,atk:98, level:1},
-  {id:20,name:'鉄壁の守護神',   emoji:'🛡️',rarity:'SR', bg:'rgba(80,80,80,.2)',   border:'rgba(160,160,160,.5)',hp:1100,atk:55,level:1},
-  {id:21,name:'翠嵐の風使い',   emoji:'🌿',rarity:'SR', bg:'rgba(40,120,40,.2)',  border:'rgba(80,200,80,.5)',  hp:780,atk:88, level:1},
-  {id:22,name:'幻影の忍者',     emoji:'🥷',rarity:'SR', bg:'rgba(20,20,60,.2)',   border:'rgba(80,80,180,.5)',  hp:690,atk:108,level:1},
-  {id:23,name:'金剛の力士',     emoji:'💪',rarity:'SR', bg:'rgba(100,60,20,.2)',  border:'rgba(200,120,40,.5)', hp:1000,atk:75,level:1},
-  {id:24,name:'閃光の剣姫',     emoji:'⚔️',rarity:'SR', bg:'rgba(120,100,20,.2)', border:'rgba(240,200,40,.5)', hp:730,atk:103,level:1},
-  {id:25,name:'深淵の吟遊詩人', emoji:'🎵',rarity:'SR', bg:'rgba(80,20,80,.2)',   border:'rgba(180,60,180,.5)', hp:760,atk:90, level:1},
-  {id:26,name:'荒波の船長',     emoji:'🏴‍☠️',rarity:'SR', bg:'rgba(40,30,20,.2)',  border:'rgba(120,90,60,.5)',  hp:820,atk:92, level:1},
-  {id:27,name:'氷結の術師',     emoji:'🧙',rarity:'SR', bg:'rgba(20,80,120,.2)',  border:'rgba(60,160,220,.5)', hp:710,atk:106,level:1},
-  {id:28,name:'炎舞の戦姫',     emoji:'🔥',rarity:'SR', bg:'rgba(160,40,20,.2)',  border:'rgba(240,80,40,.5)',  hp:760,atk:100,level:1},
+  {id:13,name:'海流の剣士',     emoji:'🌊',rarity:'SR', bg:'rgba(20,100,180,.2)', border:'rgba(30,140,220,.5)', hp:750,atk:100,level:1,attribute:'water',role:'attacker',skillName:'海流の太刀',skillDesc:'水属性ダメージ+8%'},
+  {id:14,name:'氷海の聖者',     emoji:'🧊',rarity:'SR', bg:'rgba(60,160,200,.2)', border:'rgba(80,200,230,.5)', hp:950,atk:70, level:1,attribute:'ice',role:'tank',skillName:'氷海の守護',skillDesc:'被ダメージ-8%'},
+  {id:15,name:'珊瑚の守護',     emoji:'🪸',rarity:'SR', bg:'rgba(160,40,70,.2)',  border:'rgba(200,60,100,.5)', hp:1050,atk:60,level:1,attribute:'water',role:'tank',skillName:'珊瑚の盾',skillDesc:'被ダメージ-5%、HP高め'},
+  {id:16,name:'暗渦の術士',     emoji:'🌀',rarity:'SR', bg:'rgba(60,0,120,.2)',   border:'rgba(140,60,220,.5)', hp:700,atk:105,level:1,attribute:'dark',role:'debuffer',skillName:'暗渦の呪縛',skillDesc:'攻撃時15%で麻痺付与'},
+  {id:17,name:'深海の斬艦刀',   emoji:'⚓',rarity:'SR', bg:'rgba(20,60,100,.2)',  border:'rgba(40,120,200,.5)', hp:800,atk:95, level:1,attribute:'water',role:'attacker',skillName:'深海の重撃',skillDesc:'水コンボ時ダメージ+10%'},
+  {id:18,name:'灼熱の踊り子',   emoji:'💃',rarity:'SR', bg:'rgba(160,60,20,.2)',  border:'rgba(220,100,40,.5)', hp:720,atk:102,level:1,attribute:'fire',role:'attacker',skillName:'灼熱の舞',skillDesc:'炎属性ダメージ+8%'},
+  {id:19,name:'霧中の狙撃手',   emoji:'🎯',rarity:'SR', bg:'rgba(40,80,40,.2)',   border:'rgba(80,160,80,.5)',  hp:740,atk:98, level:1,attribute:'none',role:'attacker',skillName:'精密射撃',skillDesc:'ノーマルコンボ+10%'},
+  {id:20,name:'鉄壁の守護神',   emoji:'🛡️',rarity:'SR', bg:'rgba(80,80,80,.2)',   border:'rgba(160,160,160,.5)',hp:1100,atk:55,level:1,attribute:'none',role:'tank',skillName:'鉄壁守護',skillDesc:'被ダメージ-15%、ヘイト最大'},
+  {id:21,name:'翠嵐の風使い',   emoji:'🌿',rarity:'SR', bg:'rgba(40,120,40,.2)',  border:'rgba(80,200,80,.5)',  hp:780,atk:88, level:1,attribute:'water',role:'support',skillName:'翠嵐の癒し',skillDesc:'毎ターンHP0.8%回復'},
+  {id:22,name:'幻影の忍者',     emoji:'🥷',rarity:'SR', bg:'rgba(20,20,60,.2)',   border:'rgba(80,80,180,.5)',  hp:690,atk:108,level:1,attribute:'dark',role:'attacker',skillName:'幻影の一閃',skillDesc:'暗闇属性ダメージ+8%'},
+  {id:23,name:'金剛の力士',     emoji:'💪',rarity:'SR', bg:'rgba(100,60,20,.2)',  border:'rgba(200,120,40,.5)', hp:1000,atk:75,level:1,attribute:'none',role:'tank',skillName:'金剛の壁',skillDesc:'被ダメージ-10%、ヘイト高'},
+  {id:24,name:'閃光の剣姫',     emoji:'⚔️',rarity:'SR', bg:'rgba(120,100,20,.2)', border:'rgba(240,200,40,.5)', hp:730,atk:103,level:1,attribute:'light',role:'attacker',skillName:'閃光の剣技',skillDesc:'光属性ダメージ+8%'},
+  {id:25,name:'深淵の吟遊詩人', emoji:'🎵',rarity:'SR', bg:'rgba(80,20,80,.2)',   border:'rgba(180,60,180,.5)', hp:760,atk:90, level:1,attribute:'none',role:'support',skillName:'吟遊の加護',skillDesc:'味方全体ATK+5%'},
+  {id:26,name:'荒波の船長',     emoji:'🏴‍☠️',rarity:'SR', bg:'rgba(40,30,20,.2)',  border:'rgba(120,90,60,.5)',  hp:820,atk:92, level:1,attribute:'water',role:'attacker',skillName:'荒波の突撃',skillDesc:'水コンボ+8%'},
+  {id:27,name:'氷結の術師',     emoji:'🧙',rarity:'SR', bg:'rgba(20,80,120,.2)',  border:'rgba(60,160,220,.5)', hp:710,atk:106,level:1,attribute:'ice',role:'debuffer',skillName:'氷結の呪縛',skillDesc:'攻撃時20%で凍結付与'},
+  {id:28,name:'炎舞の戦姫',     emoji:'🔥',rarity:'SR', bg:'rgba(160,40,20,.2)',  border:'rgba(240,80,40,.5)',  hp:760,atk:100,level:1,attribute:'fire',role:'attacker',skillName:'炎舞の連撃',skillDesc:'炎コンボ+8%'},
   // R
-  {id:29,name:'沈黙の鎧',       emoji:'⚙️',rarity:'R',  bg:'rgba(60,100,130,.2)', border:'rgba(80,130,160,.4)', hp:700,atk:90, level:1},
-  {id:30,name:'暗礁の弓手',     emoji:'🏹',rarity:'R',  bg:'rgba(110,130,40,.2)', border:'rgba(140,160,50,.4)', hp:660,atk:95, level:1},
-  {id:31,name:'渦の魔導師',     emoji:'💫',rarity:'R',  bg:'rgba(100,70,200,.2)', border:'rgba(130,100,220,.4)',hp:620,atk:85, level:1},
-  {id:32,name:'海底の漁師',     emoji:'🎣',rarity:'R',  bg:'rgba(20,60,80,.2)',   border:'rgba(40,100,130,.4)', hp:640,atk:88, level:1},
-  {id:33,name:'さびれた騎士',   emoji:'🗡️',rarity:'R',  bg:'rgba(60,60,60,.2)',   border:'rgba(100,100,100,.4)',hp:680,atk:82, level:1},
-  {id:34,name:'密林の罠師',     emoji:'🌿',rarity:'R',  bg:'rgba(40,80,30,.2)',   border:'rgba(70,130,50,.4)',  hp:610,atk:92, level:1},
-  {id:35,name:'流浪の商人',     emoji:'💼',rarity:'R',  bg:'rgba(100,80,30,.2)',  border:'rgba(150,120,50,.4)', hp:590,atk:80, level:1},
-  {id:36,name:'砂塵の踊り子',   emoji:'🎭',rarity:'R',  bg:'rgba(120,90,40,.2)',  border:'rgba(170,130,60,.4)', hp:600,atk:87, level:1},
-  {id:37,name:'錆びた砲手',     emoji:'💣',rarity:'R',  bg:'rgba(70,50,30,.2)',   border:'rgba(110,80,50,.4)',  hp:650,atk:93, level:1},
-  {id:38,name:'海霧の斥候',     emoji:'🌫️',rarity:'R',  bg:'rgba(80,90,100,.2)',  border:'rgba(110,120,140,.4)',hp:630,atk:86, level:1},
-  {id:39,name:'古参の衛兵',     emoji:'🪖',rarity:'R',  bg:'rgba(60,70,40,.2)',   border:'rgba(90,110,60,.4)',  hp:700,atk:78, level:1},
-  {id:40,name:'海底の蟹兵',     emoji:'🦀',rarity:'R',  bg:'rgba(140,40,20,.2)',  border:'rgba(190,60,30,.4)',  hp:670,atk:84, level:1},
-  {id:41,name:'呪われた人形',   emoji:'🪆',rarity:'R',  bg:'rgba(80,30,80,.2)',   border:'rgba(120,50,120,.4)', hp:580,atk:94, level:1},
-  {id:42,name:'波間の見張り',   emoji:'👁️',rarity:'R',  bg:'rgba(20,50,80,.2)',   border:'rgba(30,80,130,.4)',  hp:615,atk:89, level:1},
-  {id:43,name:'朽ちた剣士',     emoji:'🧟',rarity:'R',  bg:'rgba(40,60,20,.2)',   border:'rgba(70,100,40,.4)',  hp:660,atk:91, level:1},
-  {id:44,name:'深底の採掘者',   emoji:'⛏️',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,80,60,.4)',  hp:645,atk:83, level:1},
-  {id:45,name:'嵐の伝令',       emoji:'🌪️',rarity:'R',  bg:'rgba(70,80,100,.2)',  border:'rgba(100,120,150,.4)',hp:595,atk:96, level:1},
-  {id:46,name:'錨鎖の守門',     emoji:'⛓️',rarity:'R',  bg:'rgba(50,50,70,.2)',   border:'rgba(80,80,120,.4)',  hp:710,atk:77, level:1},
-  {id:47,name:'深淵の下僕',     emoji:'👾',rarity:'R',  bg:'rgba(30,20,60,.2)',   border:'rgba(60,40,120,.4)',  hp:570,atk:97, level:1},
-  {id:48,name:'海月の幻師',     emoji:'🪼',rarity:'R',  bg:'rgba(60,80,120,.2)',  border:'rgba(90,120,180,.4)', hp:605,atk:88, level:1},
-  {id:49,name:'廃船の亡霊',     emoji:'👻',rarity:'R',  bg:'rgba(80,90,80,.2)',   border:'rgba(120,140,120,.4)',hp:620,atk:85, level:1},
-  {id:50,name:'鉄爪の捕食者',   emoji:'🦈',rarity:'R',  bg:'rgba(30,60,90,.2)',   border:'rgba(50,100,150,.4)', hp:680,atk:90, level:1},
-  {id:51,name:'泥沼の伏兵',     emoji:'🐊',rarity:'R',  bg:'rgba(40,70,30,.2)',   border:'rgba(70,120,50,.4)',  hp:655,atk:86, level:1},
-  {id:52,name:'古代の番犬',     emoji:'🐺',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,90,70,.4)',  hp:635,atk:92, level:1},
-  {id:53,name:'深海の案内人',   emoji:'🐠',rarity:'R',  bg:'rgba(10,80,100,.2)',  border:'rgba(20,130,160,.4)', hp:590,atk:84, level:1},
-  {id:54,name:'闇夜の密偵',     emoji:'🦇',rarity:'R',  bg:'rgba(30,20,40,.2)',   border:'rgba(60,40,80,.4)',   hp:600,atk:93, level:1},
-  {id:55,name:'砂嵐の剣士',     emoji:'🏜️',rarity:'R',  bg:'rgba(110,90,40,.2)',  border:'rgba(160,130,60,.4)', hp:640,atk:87, level:1},
-  {id:56,name:'岩礁の重撃兵',   emoji:'🪨',rarity:'R',  bg:'rgba(70,70,60,.2)',   border:'rgba(110,110,90,.4)', hp:720,atk:79, level:1},
-  {id:57,name:'霜の見習い',     emoji:'🌨️',rarity:'R',  bg:'rgba(160,180,200,.15)',border:'rgba(200,220,240,.4)',hp:580,atk:88, level:1},
+  {id:29,name:'沈黙の鎧',       emoji:'⚙️',rarity:'R',  bg:'rgba(60,100,130,.2)', border:'rgba(80,130,160,.4)', hp:700,atk:90, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:30,name:'暗礁の弓手',     emoji:'🏹',rarity:'R',  bg:'rgba(110,130,40,.2)', border:'rgba(140,160,50,.4)', hp:660,atk:95, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:31,name:'渦の魔導師',     emoji:'💫',rarity:'R',  bg:'rgba(100,70,200,.2)', border:'rgba(130,100,220,.4)',hp:620,atk:85, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:32,name:'海底の漁師',     emoji:'🎣',rarity:'R',  bg:'rgba(20,60,80,.2)',   border:'rgba(40,100,130,.4)', hp:640,atk:88, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:33,name:'さびれた騎士',   emoji:'🗡️',rarity:'R',  bg:'rgba(60,60,60,.2)',   border:'rgba(100,100,100,.4)',hp:680,atk:82, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:34,name:'密林の罠師',     emoji:'🌿',rarity:'R',  bg:'rgba(40,80,30,.2)',   border:'rgba(70,130,50,.4)',  hp:610,atk:92, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:35,name:'流浪の商人',     emoji:'💼',rarity:'R',  bg:'rgba(100,80,30,.2)',  border:'rgba(150,120,50,.4)', hp:590,atk:80, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:36,name:'砂塵の踊り子',   emoji:'🎭',rarity:'R',  bg:'rgba(120,90,40,.2)',  border:'rgba(170,130,60,.4)', hp:600,atk:87, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:37,name:'錆びた砲手',     emoji:'💣',rarity:'R',  bg:'rgba(70,50,30,.2)',   border:'rgba(110,80,50,.4)',  hp:650,atk:93, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:38,name:'海霧の斥候',     emoji:'🌫️',rarity:'R',  bg:'rgba(80,90,100,.2)',  border:'rgba(110,120,140,.4)',hp:630,atk:86, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:39,name:'古参の衛兵',     emoji:'🪖',rarity:'R',  bg:'rgba(60,70,40,.2)',   border:'rgba(90,110,60,.4)',  hp:700,atk:78, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:40,name:'海底の蟹兵',     emoji:'🦀',rarity:'R',  bg:'rgba(140,40,20,.2)',  border:'rgba(190,60,30,.4)',  hp:670,atk:84, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:41,name:'呪われた人形',   emoji:'🪆',rarity:'R',  bg:'rgba(80,30,80,.2)',   border:'rgba(120,50,120,.4)', hp:580,atk:94, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:42,name:'波間の見張り',   emoji:'👁️',rarity:'R',  bg:'rgba(20,50,80,.2)',   border:'rgba(30,80,130,.4)',  hp:615,atk:89, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:43,name:'朽ちた剣士',     emoji:'🧟',rarity:'R',  bg:'rgba(40,60,20,.2)',   border:'rgba(70,100,40,.4)',  hp:660,atk:91, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:44,name:'深底の採掘者',   emoji:'⛏️',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,80,60,.4)',  hp:645,atk:83, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:45,name:'嵐の伝令',       emoji:'🌪️',rarity:'R',  bg:'rgba(70,80,100,.2)',  border:'rgba(100,120,150,.4)',hp:595,atk:96, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:46,name:'錨鎖の守門',     emoji:'⛓️',rarity:'R',  bg:'rgba(50,50,70,.2)',   border:'rgba(80,80,120,.4)',  hp:710,atk:77, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:47,name:'深淵の下僕',     emoji:'👾',rarity:'R',  bg:'rgba(30,20,60,.2)',   border:'rgba(60,40,120,.4)',  hp:570,atk:97, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:48,name:'海月の幻師',     emoji:'🪼',rarity:'R',  bg:'rgba(60,80,120,.2)',  border:'rgba(90,120,180,.4)', hp:605,atk:88, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:49,name:'廃船の亡霊',     emoji:'👻',rarity:'R',  bg:'rgba(80,90,80,.2)',   border:'rgba(120,140,120,.4)',hp:620,atk:85, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:50,name:'鉄爪の捕食者',   emoji:'🦈',rarity:'R',  bg:'rgba(30,60,90,.2)',   border:'rgba(50,100,150,.4)', hp:680,atk:90, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:51,name:'泥沼の伏兵',     emoji:'🐊',rarity:'R',  bg:'rgba(40,70,30,.2)',   border:'rgba(70,120,50,.4)',  hp:655,atk:86, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:52,name:'古代の番犬',     emoji:'🐺',rarity:'R',  bg:'rgba(60,50,40,.2)',   border:'rgba(100,90,70,.4)',  hp:635,atk:92, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:53,name:'深海の案内人',   emoji:'🐠',rarity:'R',  bg:'rgba(10,80,100,.2)',  border:'rgba(20,130,160,.4)', hp:590,atk:84, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:54,name:'闇夜の密偵',     emoji:'🦇',rarity:'R',  bg:'rgba(30,20,40,.2)',   border:'rgba(60,40,80,.4)',   hp:600,atk:93, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:55,name:'砂嵐の剣士',     emoji:'🏜️',rarity:'R',  bg:'rgba(110,90,40,.2)',  border:'rgba(160,130,60,.4)', hp:640,atk:87, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:56,name:'岩礁の重撃兵',   emoji:'🪨',rarity:'R',  bg:'rgba(70,70,60,.2)',   border:'rgba(110,110,90,.4)', hp:720,atk:79, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:57,name:'霜の見習い',     emoji:'🌨️',rarity:'R',  bg:'rgba(160,180,200,.15)',border:'rgba(200,220,240,.4)',hp:580,atk:88, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
   {id:58,name:'炎の見習い',     emoji:'🕯️',rarity:'R',  bg:'rgba(160,80,20,.15)', border:'rgba(220,130,50,.4)', hp:575,atk:91, level:1},
 
   // ===== 追加UR (id:59〜67) =====
-  {id:59, name:'虚空の支配者ヴォイド',  emoji:'🌌',rarity:'UR',bg:'rgba(0,0,20,.7)',    border:'rgba(100,200,255,.9)',hp:1700,atk:320,level:1},
-  {id:60, name:'炎獄神フレアノス',      emoji:'🌋',rarity:'UR',bg:'rgba(60,0,0,.7)',     border:'rgba(255,60,0,.9)',   hp:1550,atk:340,level:1},
-  {id:61, name:'雷帝ザクライア',        emoji:'⚡',rarity:'UR',bg:'rgba(30,30,0,.7)',    border:'rgba(255,255,0,.9)',  hp:1450,atk:360,level:1},
-  {id:62, name:'氷結の神后アイギス',    emoji:'❄️',rarity:'UR',bg:'rgba(0,20,40,.7)',    border:'rgba(150,230,255,.9)',hp:1800,atk:280,level:1},
-  {id:63, name:'深淵竜王ヴォルガII',   emoji:'🐉',rarity:'UR',bg:'rgba(20,0,0,.7)',     border:'rgba(200,50,50,.9)',  hp:1650,atk:310,level:1},
-  {id:64, name:'星滅の魔神アステリア', emoji:'💫',rarity:'UR',bg:'rgba(20,10,40,.7)',   border:'rgba(200,150,255,.9)',hp:1500,atk:330,level:1},
-  {id:65, name:'海神の申し子トリトス', emoji:'🔱',rarity:'UR',bg:'rgba(0,30,60,.7)',    border:'rgba(30,180,255,.9)', hp:1600,atk:300,level:1},
-  {id:66, name:'崩壊の終焉神エンドロス',emoji:'💀',rarity:'UR',bg:'rgba(20,0,20,.7)',   border:'rgba(180,0,180,.9)', hp:1750,atk:290,level:1},
-  {id:67, name:'旧破の真神ゼロス',     emoji:'⭕',rarity:'UR',bg:'rgba(0,0,0,.8)',      border:'rgba(255,255,255,.9)',hp:2000,atk:350,level:1},
+  {id:59, name:'虚空の支配者ヴォイド',  emoji:'🌌',rarity:'UR',bg:'rgba(0,0,20,.7)',    border:'rgba(100,200,255,.9)',hp:1700,atk:320,level:1,attribute:'dark',role:'attacker',skillName:'虚空掌握',skillDesc:'全カード+1枚選択可能'},
+  {id:60, name:'炎獄神フレアノス',      emoji:'🌋',rarity:'UR',bg:'rgba(60,0,0,.7)',     border:'rgba(255,60,0,.9)',   hp:1550,atk:340,level:1,attribute:'fire',role:'attacker',skillName:'炎帝の怒り',skillDesc:'炎コンボのボーナス+20%'},
+  {id:61, name:'雷帝ザクライア',        emoji:'⚡',rarity:'UR',bg:'rgba(30,30,0,.7)',    border:'rgba(255,255,0,.9)',  hp:1450,atk:360,level:1,attribute:'thunder',role:'attacker',skillName:'雷帝の裁き',skillDesc:'雷コンボのボーナス+20%'},
+  {id:62, name:'氷結の神后アイギス',    emoji:'❄️',rarity:'UR',bg:'rgba(0,20,40,.7)',    border:'rgba(150,230,255,.9)',hp:1800,atk:280,level:1,attribute:'ice',role:'tank',skillName:'永久凍土',skillDesc:'被ダメージ-20%、凍結付与率+20%'},
+  {id:63, name:'深淵竜王ヴォルガII',   emoji:'🐉',rarity:'UR',bg:'rgba(20,0,0,.7)',     border:'rgba(200,50,50,.9)',  hp:1650,atk:310,level:1,attribute:'fire',role:'tank',skillName:'竜王の鱗',skillDesc:'被ダメージ-15%、ヘイト最大'},
+  {id:64, name:'星滅の魔神アステリア', emoji:'💫',rarity:'UR',bg:'rgba(20,10,40,.7)',   border:'rgba(200,150,255,.9)',hp:1500,atk:330,level:1,attribute:'light',role:'debuffer',skillName:'星滅の閃光',skillDesc:'攻撃時25%で麻痺を付与'},
+  {id:65, name:'海神の申し子トリトス', emoji:'🔱',rarity:'UR',bg:'rgba(0,30,60,.7)',    border:'rgba(30,180,255,.9)', hp:1600,atk:300,level:1,attribute:'water',role:'support',skillName:'海神の加護',skillDesc:'毎ターン味方最大HP2%回復'},
+  {id:66, name:'崩壊の終焉神エンドロス',emoji:'💀',rarity:'UR',bg:'rgba(20,0,20,.7)',   border:'rgba(180,0,180,.9)', hp:1750,atk:290,level:1,attribute:'dark',role:'debuffer',skillName:'終焉の毒霧',skillDesc:'攻撃時35%で毒スタック付与'},
+  {id:67, name:'旧破の真神ゼロス',     emoji:'⭕',rarity:'UR',bg:'rgba(0,0,0,.8)',      border:'rgba(255,255,255,.9)',hp:2000,atk:350,level:1,attribute:'none',role:'attacker',skillName:'真神の一撃',skillDesc:'ノーマルコンボのボーナス+25%'},
   // ===== 追加SSR (id:68〜79) =====
-  {id:68, name:'紫炎の術師',           emoji:'🔮',rarity:'SSR',bg:'rgba(80,0,80,.25)',  border:'rgba(200,50,200,.6)', hp:870,atk:148,level:1},
-  {id:69, name:'鋼鉄の要塞',           emoji:'🤖',rarity:'SSR',bg:'rgba(60,60,60,.25)', border:'rgba(180,180,180,.6)',hp:1100,atk:110,level:1},
-  {id:70, name:'嵐の女帝',             emoji:'🌪️',rarity:'SSR',bg:'rgba(40,60,100,.25)',border:'rgba(100,150,255,.6)',hp:820,atk:152,level:1},
-  {id:71, name:'骸骨の覇王',           emoji:'💀',rarity:'SSR',bg:'rgba(30,30,30,.25)', border:'rgba(150,255,150,.6)',hp:780,atk:158,level:1},
-  {id:72, name:'翠玉の守護竜',         emoji:'🐲',rarity:'SSR',bg:'rgba(0,60,20,.25)',  border:'rgba(50,220,100,.6)', hp:950,atk:125,level:1},
-  {id:73, name:'砂漠の王者',           emoji:'🦂',rarity:'SSR',bg:'rgba(100,60,0,.25)', border:'rgba(255,180,50,.6)', hp:840,atk:142,level:1},
-  {id:74, name:'月影の暗殺者',         emoji:'🌙',rarity:'SSR',bg:'rgba(20,20,50,.25)', border:'rgba(150,150,255,.6)',hp:760,atk:162,level:1},
-  {id:75, name:'聖炎の騎士団長',       emoji:'🛡️',rarity:'SSR',bg:'rgba(100,60,0,.25)', border:'rgba(255,220,100,.6)',hp:1000,atk:118,level:1},
-  {id:76, name:'深海の歌姫',           emoji:'🧜',rarity:'SSR',bg:'rgba(0,50,80,.25)',  border:'rgba(100,200,255,.6)',hp:800,atk:145,level:1},
-  {id:77, name:'爆炎の将軍',           emoji:'💣',rarity:'SSR',bg:'rgba(80,30,0,.25)',  border:'rgba(255,120,50,.6)', hp:860,atk:140,level:1},
-  {id:78, name:'霜刃の剣聖',           emoji:'🗡️',rarity:'SSR',bg:'rgba(0,50,70,.25)',  border:'rgba(150,230,255,.6)',hp:790,atk:155,level:1},
-  {id:79, name:'大地の巨人',           emoji:'🗿',rarity:'SSR',bg:'rgba(60,40,20,.25)', border:'rgba(180,140,80,.6)', hp:1050,atk:115,level:1},
+  {id:68, name:'紫炎の術師',           emoji:'🔮',rarity:'SSR',bg:'rgba(80,0,80,.25)',  border:'rgba(200,50,200,.6)', hp:870,atk:148,level:1,attribute:'dark',role:'debuffer',skillName:'紫炎の呪縛',skillDesc:'攻撃時25%で炎症付与'},
+  {id:69, name:'鋼鉄の要塞',           emoji:'🤖',rarity:'SSR',bg:'rgba(60,60,60,.25)', border:'rgba(180,180,180,.6)',hp:1100,atk:110,level:1,attribute:'none',role:'tank',skillName:'鋼鉄の要塞',skillDesc:'被ダメージ-25%、ヘイト最大'},
+  {id:70, name:'嵐の女帝',             emoji:'🌪️',rarity:'SSR',bg:'rgba(40,60,100,.25)',border:'rgba(100,150,255,.6)',hp:820,atk:152,level:1,attribute:'thunder',role:'attacker',skillName:'嵐の怒号',skillDesc:'雷コンボボーナス+12%'},
+  {id:71, name:'骸骨の覇王',           emoji:'💀',rarity:'SSR',bg:'rgba(30,30,30,.25)', border:'rgba(150,255,150,.6)',hp:780,atk:158,level:1,attribute:'dark',role:'attacker',skillName:'骸骨の覇道',skillDesc:'ノーマルコンボボーナス+15%'},
+  {id:72, name:'翠玉の守護竜',         emoji:'🐲',rarity:'SSR',bg:'rgba(0,60,20,.25)',  border:'rgba(50,220,100,.6)', hp:950,atk:125,level:1,attribute:'water',role:'support',skillName:'翠玉の守護',skillDesc:'毎ターン味方HP1.5%回復'},
+  {id:73, name:'砂漠の王者',           emoji:'🦂',rarity:'SSR',bg:'rgba(100,60,0,.25)', border:'rgba(255,180,50,.6)', hp:840,atk:142,level:1,attribute:'fire',role:'attacker',skillName:'砂漠の炎牙',skillDesc:'炎属性ダメージ+12%'},
+  {id:74, name:'月影の暗殺者',         emoji:'🌙',rarity:'SSR',bg:'rgba(20,20,50,.25)', border:'rgba(150,150,255,.6)',hp:760,atk:162,level:1,attribute:'dark',role:'debuffer',skillName:'月影の毒針',skillDesc:'攻撃時30%で毒スタック付与'},
+  {id:75, name:'聖炎の騎士団長',       emoji:'🛡️',rarity:'SSR',bg:'rgba(100,60,0,.25)', border:'rgba(255,220,100,.6)',hp:1000,atk:118,level:1,attribute:'fire',role:'tank',skillName:'聖炎の守護',skillDesc:'被ダメージ-12%、ヘイト高'},
+  {id:76, name:'深海の歌姫',           emoji:'🧜',rarity:'SSR',bg:'rgba(0,50,80,.25)',  border:'rgba(100,200,255,.6)',hp:800,atk:145,level:1,attribute:'water',role:'support',skillName:'深海の歌声',skillDesc:'毎ターンHP2%回復'},
+  {id:77, name:'爆炎の将軍',           emoji:'💣',rarity:'SSR',bg:'rgba(80,30,0,.25)',  border:'rgba(255,120,50,.6)', hp:860,atk:140,level:1,attribute:'fire',role:'attacker',skillName:'爆炎の砲撃',skillDesc:'炎コンボ時追加爆発ダメージ'},
+  {id:78, name:'霜刃の剣聖',           emoji:'🗡️',rarity:'SSR',bg:'rgba(0,50,70,.25)',  border:'rgba(150,230,255,.6)',hp:790,atk:155,level:1,attribute:'ice',role:'attacker',skillName:'霜刃の連斬',skillDesc:'氷コンボボーナス+12%'},
+  {id:79, name:'大地の巨人',           emoji:'🗿',rarity:'SSR',bg:'rgba(60,40,20,.25)', border:'rgba(180,140,80,.6)', hp:1050,atk:115,level:1,attribute:'none',role:'tank',skillName:'大地の守護',skillDesc:'被ダメージ-20%、ヘイト高'},
   // ===== 追加SR (id:80〜91) =====
-  {id:80, name:'水晶の術士',   emoji:'💎',rarity:'SR',bg:'rgba(0,80,100,.2)',  border:'rgba(100,220,240,.5)',hp:780,atk:96, level:1},
-  {id:81, name:'炎の見習い騎士',emoji:'🔥',rarity:'SR',bg:'rgba(140,40,0,.2)', border:'rgba(220,90,30,.5)',  hp:720,atk:104,level:1},
-  {id:82, name:'嵐の弓使い',   emoji:'🏹',rarity:'SR',bg:'rgba(40,70,90,.2)',  border:'rgba(80,140,180,.5)', hp:700,atk:108,level:1},
-  {id:83, name:'影の忍び',     emoji:'🥷',rarity:'SR',bg:'rgba(10,10,30,.2)',  border:'rgba(100,100,200,.5)',hp:690,atk:110,level:1},
-  {id:84, name:'聖水の修道士', emoji:'⛪',rarity:'SR',bg:'rgba(60,80,120,.2)', border:'rgba(120,160,220,.5)',hp:860,atk:82, level:1},
-  {id:85, name:'砂塵の刀客',   emoji:'⚔️',rarity:'SR',bg:'rgba(100,80,20,.2)', border:'rgba(200,160,60,.5)', hp:730,atk:102,level:1},
-  {id:86, name:'毒沼の魔女',   emoji:'🧪',rarity:'SR',bg:'rgba(30,60,10,.2)',  border:'rgba(80,180,50,.5)',  hp:710,atk:105,level:1},
-  {id:87, name:'鉄鎧の衛士',   emoji:'⚙️',rarity:'SR',bg:'rgba(50,50,50,.2)',  border:'rgba(140,140,140,.5)',hp:1000,atk:65,level:1},
-  {id:88, name:'雷光の走者',   emoji:'⚡',rarity:'SR',bg:'rgba(80,80,0,.2)',   border:'rgba(200,200,50,.5)', hp:680,atk:112,level:1},
-  {id:89, name:'深海の医師',   emoji:'🩺',rarity:'SR',bg:'rgba(0,60,60,.2)',   border:'rgba(50,180,180,.5)', hp:800,atk:88, level:1},
-  {id:90, name:'星詠みの巫女', emoji:'🌟',rarity:'SR',bg:'rgba(40,30,80,.2)',  border:'rgba(160,140,255,.5)',hp:740,atk:98, level:1},
-  {id:91, name:'崩壊の先触れ', emoji:'🌑',rarity:'SR',bg:'rgba(20,0,40,.2)',   border:'rgba(120,60,180,.5)', hp:760,atk:100,level:1},
+  {id:80, name:'水晶の術士',   emoji:'💎',rarity:'SR',bg:'rgba(0,80,100,.2)',  border:'rgba(100,220,240,.5)',hp:780,atk:96, level:1,attribute:'water',role:'debuffer',skillName:'水晶の封印',skillDesc:'攻撃時15%で凍結付与'},
+  {id:81, name:'炎の見習い騎士',emoji:'🔥',rarity:'SR',bg:'rgba(140,40,0,.2)', border:'rgba(220,90,30,.5)',  hp:720,atk:104,level:1,attribute:'fire',role:'attacker',skillName:'炎の突撃',skillDesc:'炎属性ダメージ+6%'},
+  {id:82, name:'嵐の弓使い',   emoji:'🏹',rarity:'SR',bg:'rgba(40,70,90,.2)',  border:'rgba(80,140,180,.5)', hp:700,atk:108,level:1,attribute:'thunder',role:'attacker',skillName:'嵐の矢',skillDesc:'雷属性ダメージ+6%'},
+  {id:83, name:'影の忍び',     emoji:'🥷',rarity:'SR',bg:'rgba(10,10,30,.2)',  border:'rgba(100,100,200,.5)',hp:690,atk:110,level:1,attribute:'dark',role:'attacker',skillName:'影の突刺',skillDesc:'暗闇属性ダメージ+8%'},
+  {id:84, name:'聖水の修道士', emoji:'⛪',rarity:'SR',bg:'rgba(60,80,120,.2)', border:'rgba(120,160,220,.5)',hp:860,atk:82, level:1,attribute:'water',role:'support',skillName:'聖水の癒し',skillDesc:'毎ターンHP0.5%回復'},
+  {id:85, name:'砂塵の刀客',   emoji:'⚔️',rarity:'SR',bg:'rgba(100,80,20,.2)', border:'rgba(200,160,60,.5)', hp:730,atk:102,level:1,attribute:'none',role:'attacker',skillName:'砂塵の斬撃',skillDesc:'ノーマルコンボ+8%'},
+  {id:86, name:'毒沼の魔女',   emoji:'🧪',rarity:'SR',bg:'rgba(30,60,10,.2)',  border:'rgba(80,180,50,.5)',  hp:710,atk:105,level:1,attribute:'dark',role:'debuffer',skillName:'毒沼の呪い',skillDesc:'攻撃時20%で毒付与'},
+  {id:87, name:'鉄鎧の衛士',   emoji:'⚙️',rarity:'SR',bg:'rgba(50,50,50,.2)',  border:'rgba(140,140,140,.5)',hp:1000,atk:65,level:1,attribute:'none',role:'tank',skillName:'鉄鎧の守護',skillDesc:'被ダメージ-18%、ヘイト高'},
+  {id:88, name:'雷光の走者',   emoji:'⚡',rarity:'SR',bg:'rgba(80,80,0,.2)',   border:'rgba(200,200,50,.5)', hp:680,atk:112,level:1,attribute:'thunder',role:'attacker',skillName:'雷光の疾走',skillDesc:'雷コンボ+8%'},
+  {id:89, name:'深海の医師',   emoji:'🩺',rarity:'SR',bg:'rgba(0,60,60,.2)',   border:'rgba(50,180,180,.5)', hp:800,atk:88, level:1,attribute:'water',role:'support',skillName:'深海の治療',skillDesc:'毎ターンHP1%回復'},
+  {id:90, name:'星詠みの巫女', emoji:'🌟',rarity:'SR',bg:'rgba(40,30,80,.2)',  border:'rgba(160,140,255,.5)',hp:740,atk:98, level:1,attribute:'light',role:'support',skillName:'星詠みの祝福',skillDesc:'味方全体ATK+3%'},
+  {id:91, name:'崩壊の先触れ', emoji:'🌑',rarity:'SR',bg:'rgba(20,0,40,.2)',   border:'rgba(120,60,180,.5)', hp:760,atk:100,level:1,attribute:'dark',role:'debuffer',skillName:'崩壊の毒霧',skillDesc:'攻撃時15%で毒付与'},
   // ===== 追加R (id:92〜100) =====
-  {id:92, name:'港の荷役夫',   emoji:'⚓',rarity:'R', bg:'rgba(40,50,60,.2)',  border:'rgba(70,90,110,.4)', hp:620,atk:86, level:1},
-  {id:93, name:'迷宮の探索者', emoji:'🗺️',rarity:'R', bg:'rgba(60,50,20,.2)',  border:'rgba(110,90,50,.4)', hp:635,atk:90, level:1},
-  {id:94, name:'錆刀の兵士',   emoji:'🗡️',rarity:'R', bg:'rgba(50,40,40,.2)',  border:'rgba(100,80,80,.4)', hp:650,atk:85, level:1},
-  {id:95, name:'波乗りの漁師', emoji:'🐟',rarity:'R', bg:'rgba(20,60,70,.2)',  border:'rgba(40,110,130,.4)',hp:610,atk:89, level:1},
-  {id:96, name:'深海の幼竜',   emoji:'🐉',rarity:'R', bg:'rgba(30,10,10,.2)',  border:'rgba(80,40,40,.4)',  hp:660,atk:88, level:1},
-  {id:97, name:'岩窟の守衛',   emoji:'🪨',rarity:'R', bg:'rgba(60,55,40,.2)',  border:'rgba(110,100,70,.4)',hp:700,atk:80, level:1},
-  {id:98, name:'霧雨の少女',   emoji:'🌧️',rarity:'R', bg:'rgba(70,80,100,.2)', border:'rgba(120,140,170,.4)',hp:590,atk:93, level:1},
-  {id:99, name:'古代の守護石', emoji:'🗿',rarity:'R', bg:'rgba(70,60,40,.2)',  border:'rgba(120,100,70,.4)',hp:680,atk:82, level:1},
-  {id:100,name:'深淵の見習い', emoji:'🌑',rarity:'R', bg:'rgba(20,15,30,.2)',  border:'rgba(60,50,80,.4)',  hp:595,atk:94, level:1},
+  {id:92, name:'港の荷役夫',   emoji:'⚓',rarity:'R', bg:'rgba(40,50,60,.2)',  border:'rgba(70,90,110,.4)', hp:620,atk:86, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:93, name:'迷宮の探索者', emoji:'🗺️',rarity:'R', bg:'rgba(60,50,20,.2)',  border:'rgba(110,90,50,.4)', hp:635,atk:90, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:94, name:'錆刀の兵士',   emoji:'🗡️',rarity:'R', bg:'rgba(50,40,40,.2)',  border:'rgba(100,80,80,.4)', hp:650,atk:85, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:95, name:'波乗りの漁師', emoji:'🐟',rarity:'R', bg:'rgba(20,60,70,.2)',  border:'rgba(40,110,130,.4)',hp:610,atk:89, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:96, name:'深海の幼竜',   emoji:'🐉',rarity:'R', bg:'rgba(30,10,10,.2)',  border:'rgba(80,40,40,.4)',  hp:660,atk:88, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:97, name:'岩窟の守衛',   emoji:'🪨',rarity:'R', bg:'rgba(60,55,40,.2)',  border:'rgba(110,100,70,.4)',hp:700,atk:80, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:98, name:'霧雨の少女',   emoji:'🌧️',rarity:'R', bg:'rgba(70,80,100,.2)', border:'rgba(120,140,170,.4)',hp:590,atk:93, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:99, name:'古代の守護石', emoji:'🗿',rarity:'R', bg:'rgba(70,60,40,.2)',  border:'rgba(120,100,70,.4)',hp:680,atk:82, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  {id:100,name:'深淵の見習い', emoji:'🌑',rarity:'R', bg:'rgba(20,15,30,.2)',  border:'rgba(60,50,80,.4)',  hp:595,atk:94, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
 ];
 // comboType: 同じタイプを連続すると追加ボーナス
-// fire=炎コンボ ice=氷コンボ thunder=雷コンボ none=単発
+// fire=炎 ice=氷 thunder=雷 water=水 dark=闇 light=光 none=無
 const CARDS=[
-  {name:'深海斬', emoji:'⚔️',dmg:1.0,comboType:'none'},
-  {name:'連波刃', emoji:'🌊',dmg:1.2,comboType:'ice'},
-  {name:'大深撃', emoji:'🔱',dmg:1.9,comboType:'none'},
-  {name:'崩壊炎', emoji:'🔥',dmg:1.5,comboType:'fire'},
-  {name:'雷穿孔', emoji:'⚡',dmg:1.3,comboType:'thunder'},
-  {name:'氷柱牙', emoji:'❄️',dmg:1.1,comboType:'ice'},
-  {name:'暗礁射', emoji:'🎯',dmg:1.2,comboType:'none'},
-  {name:'渦流陣', emoji:'💫',dmg:1.4,comboType:'thunder'},
-  {name:'炎爆発', emoji:'💥',dmg:1.6,comboType:'fire'},
-  {name:'氷槍',   emoji:'🧊',dmg:1.3,comboType:'ice'},
-  {name:'雷撃波', emoji:'⚡',dmg:1.5,comboType:'thunder'},
-  {name:'深淵撃', emoji:'🌑',dmg:2.0,comboType:'none'},
+  // ===== 無属性（none）=====
+  {name:'深海斬',  emoji:'⚔️', dmg:1.0, comboType:'none', attribute:'none'},
+  {name:'大深撃',  emoji:'🔱', dmg:1.9, comboType:'none', attribute:'none'},
+  {name:'暗礁射',  emoji:'🎯', dmg:1.2, comboType:'none', attribute:'none'},
+  {name:'深淵撃',  emoji:'🌑', dmg:2.0, comboType:'none', attribute:'none'},
+  {name:'連撃',    emoji:'✊', dmg:1.1, comboType:'none', attribute:'none'},
+  {name:'剛撃',    emoji:'💪', dmg:1.5, comboType:'none', attribute:'none'},
+  {name:'必殺',    emoji:'💢', dmg:2.2, comboType:'none', attribute:'none'},
+  // ===== 炎（fire）=====
+  {name:'崩壊炎',  emoji:'🔥', dmg:1.5, comboType:'fire', attribute:'fire'},
+  {name:'炎爆発',  emoji:'💥', dmg:1.6, comboType:'fire', attribute:'fire'},
+  {name:'炎旋風',  emoji:'🌪️', dmg:1.3, comboType:'fire', attribute:'fire'},
+  {name:'獄炎撃',  emoji:'🌋', dmg:1.8, comboType:'fire', attribute:'fire'},
+  {name:'灼熱波',  emoji:'♨️', dmg:1.4, comboType:'fire', attribute:'fire'},
+  {name:'炎帝拳',  emoji:'👊', dmg:2.0, comboType:'fire', attribute:'fire'},
+  // ===== 氷（ice）=====
+  {name:'連波刃',  emoji:'🌊', dmg:1.2, comboType:'ice',  attribute:'ice'},
+  {name:'氷柱牙',  emoji:'❄️', dmg:1.1, comboType:'ice',  attribute:'ice'},
+  {name:'氷槍',    emoji:'🧊', dmg:1.3, comboType:'ice',  attribute:'ice'},
+  {name:'吹雪刃',  emoji:'🌨️', dmg:1.5, comboType:'ice',  attribute:'ice'},
+  {name:'凍結掌',  emoji:'🫧', dmg:1.7, comboType:'ice',  attribute:'ice'},
+  {name:'氷獄撃',  emoji:'💠', dmg:1.9, comboType:'ice',  attribute:'ice'},
+  // ===== 雷（thunder）=====
+  {name:'雷穿孔',  emoji:'⚡', dmg:1.3, comboType:'thunder', attribute:'thunder'},
+  {name:'渦流陣',  emoji:'💫', dmg:1.4, comboType:'thunder', attribute:'thunder'},
+  {name:'雷撃波',  emoji:'⚡', dmg:1.5, comboType:'thunder', attribute:'thunder'},
+  {name:'迅雷斬',  emoji:'🌩️', dmg:1.6, comboType:'thunder', attribute:'thunder'},
+  {name:'雷帝轟',  emoji:'☁️', dmg:1.8, comboType:'thunder', attribute:'thunder'},
+  {name:'天雷撃',  emoji:'🔆', dmg:2.1, comboType:'thunder', attribute:'thunder'},
+  // ===== 水（water）=====
+  {name:'水流斬',  emoji:'🌊', dmg:1.2, comboType:'water', attribute:'water'},
+  {name:'深海波',  emoji:'🐋', dmg:1.4, comboType:'water', attribute:'water'},
+  {name:'海神拳',  emoji:'🔱', dmg:1.6, comboType:'water', attribute:'water'},
+  {name:'津波撃',  emoji:'🌀', dmg:1.8, comboType:'water', attribute:'water'},
+  {name:'水獄陣',  emoji:'💧', dmg:1.5, comboType:'water', attribute:'water'},
+  {name:'深淵潮',  emoji:'🫧', dmg:2.0, comboType:'water', attribute:'water'},
+  // ===== 闇（dark）=====
+  {name:'暗黒撃',  emoji:'🌑', dmg:1.3, comboType:'dark', attribute:'dark'},
+  {name:'闇刃',    emoji:'🖤', dmg:1.5, comboType:'dark', attribute:'dark'},
+  {name:'虚無掌',  emoji:'🕳️', dmg:1.7, comboType:'dark', attribute:'dark'},
+  {name:'崩壊刃',  emoji:'💀', dmg:1.9, comboType:'dark', attribute:'dark'},
+  {name:'冥府撃',  emoji:'⚰️', dmg:2.0, comboType:'dark', attribute:'dark'},
+  {name:'旧破覇',  emoji:'⭕', dmg:2.3, comboType:'dark', attribute:'dark'},
+  // ===== 光（light）=====
+  {name:'光閃斬',  emoji:'✨', dmg:1.3, comboType:'light', attribute:'light'},
+  {name:'聖光撃',  emoji:'🌟', dmg:1.5, comboType:'light', attribute:'light'},
+  {name:'星砕拳',  emoji:'💫', dmg:1.7, comboType:'light', attribute:'light'},
+  {name:'神光波',  emoji:'☀️', dmg:1.9, comboType:'light', attribute:'light'},
+  {name:'星滅撃',  emoji:'🌠', dmg:2.1, comboType:'light', attribute:'light'},
+  {name:'天照撃',  emoji:'🌈', dmg:2.3, comboType:'light', attribute:'light'},
 ];
+
+// 属性→comboTypeのマッピング
+const ATTR_TO_COMBO = {
+  fire:'fire', ice:'ice', thunder:'thunder',
+  water:'water', dark:'dark', light:'light', none:'none',
+};
+// CARDSを属性別にインデックス化
+const CARDS_BY_ATTR = {};
+CARDS.forEach(c=>{
+  const a=c.attribute||'none';
+  if(!CARDS_BY_ATTR[a]) CARDS_BY_ATTR[a]=[];
+  CARDS_BY_ATTR[a].push(c);
+});
+
+// キャラの属性に合ったカードを取得（属性70%・無属性30%）
+function getCardForChar(charAttr){
+  const attr = charAttr || 'none';
+  const roll = Math.random();
+  if(roll < 0.70){
+    // 70%: キャラ属性のカード
+    const pool = CARDS_BY_ATTR[attr] || CARDS_BY_ATTR['none'];
+    return pool[Math.floor(Math.random()*pool.length)];
+  } else if(roll < 0.85){
+    // 15%: 無属性カード
+    const pool = CARDS_BY_ATTR['none'];
+    return pool[Math.floor(Math.random()*pool.length)];
+  } else {
+    // 15%: 完全ランダム（他属性）
+    return CARDS[Math.floor(Math.random()*CARDS.length)];
+  }
+}
+
 // ================================================================
 //  CHAPTERS & QUESTS (章→層構造)
 // ================================================================
@@ -1717,7 +1941,7 @@ const CHAPTERS=[
         {char:'司令官',  icon:'🌊',text:'…足元が消えていく。意識を繋ぎ止めろ！仲間の声だけを頼りに戦え！'},
        ]},
       {id:303, name:'3-3 旧破の残滓',  emoji:'👾',boss:false,
-       enemy:{name:'旧破の使徒',   emoji:'👾',hp:5500,atk:390,spd:3},
+       enemy:{name:'旧破の使徒',   emoji:'👾',hp:5500,atk:390,spd:3,statusPatterns:[{"type": "burn", "prob": 0.3, "stacks": 1}]},
        gold:800,gem:80,
        story:[
         {char:'旧破の使徒',icon:'👾',text:'……お前たち、ここまで来たのか。旧破神は今、深い眠りの中にいる。邪魔はさせない。'},
@@ -1779,10 +2003,10 @@ const CHAPTERS=[
        enemy:{name:'炎海の蛇竜',   emoji:'🐍',hp:18000,atk:950,spd:2},
        gold:1800,gem:70,story:[{char:'司令官',icon:'🌊',text:'炎が海のように揺れている。まともに触れれば即死だ。'}]},
       {id:403,name:'4-3 灼熱の番所',    emoji:'💥',boss:false,
-       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:25000,atk:1100,spd:2},
+       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:25000,atk:1100,spd:2,statusPatterns:[{"type": "burn", "prob": 0.35, "stacks": 1}]},
        gold:2200,gem:80,story:[{char:'ナレーター',icon:'📖',text:'炎の番兵が道を塞いでいた。通り抜けるには全力の戦闘が必要だ。'}]},
       {id:404,name:'4-4 溶岩竜の巣',    emoji:'🐉',boss:false,
-       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:35000,atk:1300,spd:3},
+       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:35000,atk:1300,spd:3,statusPatterns:[{"type": "burn", "prob": 0.25, "stacks": 1}]},
        gold:2800,gem:95,story:[{char:'司令官',icon:'🌊',text:'巨大な溶岩竜の幼体が群れをなしている。親はどこだ…？'}]},
       {id:405,name:'4-5 炎獄の試練',    emoji:'🔱',boss:false,
        enemy:{name:'炎獄の試練者', emoji:'⚔️',hp:48000,atk:1500,spd:3},
@@ -1791,7 +2015,7 @@ const CHAPTERS=[
        enemy:{name:'炎帝の眷属',   emoji:'🔥',hp:65000,atk:1800,spd:3},
        gold:4500,gem:130,story:[{char:'ナレーター',icon:'📖',text:'炎帝の玉座に近づくほど熱気が増す。キャラの強化なしでは突破不可能だ。'}]},
       {id:407,name:'4-7 BOSS 炎帝フレアノス',emoji:'🌋',boss:true,
-       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:180000,atk:2500,spd:3},
+       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:180000,atk:2500,spd:3,statusPatterns:[{"type": "burn", "prob": 0.5, "stacks": 2}, {"type": "para", "prob": 0.2, "stacks": 1}]},
        gold:8000,gem:200,
        story:[
         {char:'ナレーター',icon:'📖',text:'灼熱の深溝の支配者。その炎は深海をも蒸発させると言われる。'},
@@ -1816,16 +2040,16 @@ const CHAPTERS=[
        enemy:{name:'凍海の巨鯨',   emoji:'🐋',hp:120000,atk:2600,spd:2},
        gold:6000,gem:170,story:[{char:'謎の声',icon:'👁️',text:'あの鯨は永劫の眠りについていたはずだ。旧破の影響で目覚めてしまったのか…'}]},
       {id:503,name:'5-3 氷の迷宮',     emoji:'🔮',boss:false,
-       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:160000,atk:3000,spd:3},
+       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:160000,atk:3000,spd:3,statusPatterns:[{"type": "freeze", "prob": 0.3, "stacks": 1}]},
        gold:7500,gem:190,story:[{char:'ナレーター',icon:'📖',text:'氷の迷宮は敵の幻影で溢れていた。どれが本物か見抜く眼が必要だ。'}]},
       {id:504,name:'5-4 永劫の試練',   emoji:'⚔️',boss:false,
-       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:220000,atk:3500,spd:3},
+       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:220000,atk:3500,spd:3,statusPatterns:[{"type": "para", "prob": 0.3, "stacks": 1}]},
        gold:9000,gem:220,story:[{char:'司令官',icon:'🌊',text:'この騎士は永劫に渡って氷獄を守り続けてきた番人だ。全力で挑め！'}]},
       {id:505,name:'5-5 氷獄の核',     emoji:'❄️',boss:false,
        enemy:{name:'氷獄の核結晶', emoji:'💎',hp:300000,atk:4000,spd:3},
        gold:12000,gem:260,story:[{char:'謎の声',icon:'👁️',text:'この結晶が氷獄全体のエネルギー源だ。破壊すれば氷獄の神も目覚める。'}]},
       {id:506,name:'5-6 BOSS 氷獄神アイギス',emoji:'❄️',boss:true,
-       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:600000,atk:5500,spd:4},
+       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:600000,atk:5500,spd:4,statusPatterns:[{"type": "freeze", "prob": 0.4, "stacks": 1}, {"type": "poison", "prob": 0.3, "stacks": 2}]},
        gold:20000,gem:400,
        story:[
         {char:'ナレーター',icon:'📖',text:'氷獄の支配者が目覚めた。その冷気は空間ごと凍らせる。'},
@@ -1856,7 +2080,7 @@ const CHAPTERS=[
        enemy:{name:'星滅の結晶体', emoji:'💥',hp:1200000,atk:9000,spd:4},
        gold:30000,gem:450,story:[{char:'ナレーター',icon:'📖',text:'この結晶体は星のエネルギーを吸収し続けている。止めなければ無限に強くなる。'}]},
       {id:605,name:'6-5 BOSS 星滅神アステリア',emoji:'💫',boss:true,
-       enemy:{name:'星滅神アステリア',emoji:'💫',hp:3000000,atk:12000,spd:4},
+       enemy:{name:'星滅神アステリア',emoji:'💫',hp:3000000,atk:12000,spd:4,statusPatterns:[{"type": "para", "prob": 0.4, "stacks": 1}, {"type": "burn", "prob": 0.3, "stacks": 2}]},
        gold:60000,gem:800,
        story:[
         {char:'星滅神アステリア',icon:'💫',text:'……お前たちは面白い存在だ。深海から宇宙まで辿り着くとは。だが——この星ごと消えてもらおう。'},
@@ -1880,13 +2104,13 @@ const CHAPTERS=[
        enemy:{name:'虚無の使者',   emoji:'⚫',hp:3500000,atk:18000,spd:4},
        gold:70000,gem:700,story:[{char:'司令官',icon:'🌊',text:'何もない廊下に、圧倒的な存在感。ここが旧破の中心か…。'}]},
       {id:703,name:'7-3 崩壊の胎動',   emoji:'💀',boss:false,
-       enemy:{name:'崩壊の原初体', emoji:'💀',hp:5000000,atk:22000,spd:5},
+       enemy:{name:'崩壊の原初体', emoji:'💀',hp:5000000,atk:22000,spd:5,statusPatterns:[{"type": "poison", "prob": 0.5, "stacks": 2}]},
        gold:90000,gem:800,story:[{char:'ナレーター',icon:'📖',text:'全ての崩壊の源。これを倒せば旧破は終わる——そう信じて進め。'}]},
       {id:704,name:'7-4 根源の核',     emoji:'🌑',boss:false,
        enemy:{name:'旧破の核',     emoji:'🌑',hp:8000000,atk:28000,spd:5},
        gold:120000,gem:1000,story:[{char:'旧破の核',icon:'🌑',text:'……お前が来ることは分かっていた。だが——お前も私も、同じ「虚無」に向かっている。'}]},
       {id:705,name:'7-5 BOSS 旧破真神ゼロス',emoji:'⭕',boss:true,
-       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:20000000,atk:40000,spd:5},
+       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:20000000,atk:40000,spd:5,statusPatterns:[{"type": "burn", "prob": 0.4, "stacks": 2}, {"type": "poison", "prob": 0.4, "stacks": 2}, {"type": "freeze", "prob": 0.3, "stacks": 1}]},
        gold:300000,gem:3000,
        story:[
         {char:'ナレーター',icon:'📖',text:'全ての始まりにして全ての終わり。旧破の真の神が姿を現した。'},
@@ -2468,6 +2692,8 @@ function showResult(res){
   const totalDupeGold = res.reduce((s,c)=>s+(c.dupeGold||0),0);
   document.getElementById('result-cards').innerHTML=res.map((c,i)=>{
     const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
+    const rAttr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    const rRole=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
     const dupeTag = c.isDupe
       ? `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#e0a040;padding:1px 0;">💰+${c.dupeGold?.toLocaleString()}</div>`
       : '';
@@ -2480,6 +2706,10 @@ function showResult(res){
         ${newTag}${dupeTag}
       </div>
       <div class="result-card-name">${c.name}</div>
+      <div style="display:flex;gap:2px;justify-content:center;margin-top:2px;flex-wrap:wrap;">
+        <span class="attr-badge attr-${c.attribute||'none'}" style="font-size:7px;">${rAttr.emoji}${rAttr.label}</span>
+        <span class="role-badge role-${c.role||'attacker'}" style="font-size:7px;">${rRole.emoji}</span>
+      </div>
     </div>`;
   }).join('');
   // 重複ゴールド合計表示
@@ -2609,9 +2839,15 @@ function refreshGrow(){
     const maxLv=20+(cd.breakthrough||0)*20;
     const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
     const lvPct=(cd.level/maxLv*100).toFixed(0);
-    return`<div class="char-card" onclick="openCharDetail(${id})" style="padding:10px 6px;">
+    const growAttr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    const growRole = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+    return`<div class="char-card" onclick="openCharDetail(${id})" style="padding:10px 6px;position:relative;">
       <div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
       <div class="char-nm">${c.name}</div>
+      <div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:1px;">
+        <span class="attr-badge attr-${c.attribute||'none'}">${growAttr.emoji}${growAttr.label}</span>
+        <span class="role-badge role-${c.role||'attacker'}">${growRole.emoji}</span>
+      </div>
       <div class="char-lv">Lv.${cd.level}/${maxLv}</div>
       <div class="char-rar" style="color:${rarColor}">${c.rarity}</div>
       <div style="width:100%;height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;margin-top:3px;">
@@ -2628,7 +2864,19 @@ function renderSlots(){
     if(ch){
       // ★バグ修正: ownedDataから実際のレベルを取得
       const cd=(S.ownedData&&S.ownedData[id])||{level:1};
-      return`<div class="party-slot ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">✕</div><div class="slot-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div><div class="slot-char-nm">${ch.name}</div><div class="slot-char-lv">Lv.${cd.level} ${ch.rarity}</div></div>`;
+      const slAttr=ATTR_INFO[ch.attribute||'none']||ATTR_INFO.none;
+      const slRole=ROLE_INFO[ch.role||'attacker']||ROLE_INFO.attacker;
+      return`<div class="party-slot ${sel?'selected':''}" onclick="selectSlot(${i})" oncontextmenu="event.preventDefault();openPartyCharDetail(${id})">
+        <div class="slot-num">${i+1}</div>
+        <div class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">✕</div>
+        <div class="slot-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div>
+        <div class="slot-char-nm">${ch.name}</div>
+        <div style="display:flex;gap:2px;justify-content:center;margin-top:1px;">
+          <span class="attr-badge attr-${ch.attribute||'none'}" style="font-size:7px;">${slAttr.emoji}${slAttr.label}</span>
+          <span class="role-badge role-${ch.role||'attacker'}" style="font-size:7px;">${slRole.emoji}</span>
+        </div>
+        <div class="slot-char-lv">Lv.${cd.level} ${ch.rarity}</div>
+      </div>`;
     }
     return`<div class="party-slot empty ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div style="font-size:22px;color:var(--text3)">＋</div><div style="font-size:9px;color:var(--text3)">空きスロット</div></div>`;
   }).join('');
@@ -2657,9 +2905,15 @@ function renderCharList(){
     const inp=S.party.includes(id);
     const cd=(S.ownedData&&S.ownedData[id])||{level:1};
     const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
-    return`<div class="char-card ${inp?'in-party':''}" onclick="${inp?`openCharDetail(${id})`:`addToParty(${id})`}" oncontextmenu="event.preventDefault();openCharDetail(${id})">
+    const pAttr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    const pRole = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+    return`<div class="char-card ${inp?'in-party':''}" onclick="${inp?`openCharDetail(${id})`:`addToParty(${id})`}" oncontextmenu="event.preventDefault();openPartyCharDetail(${id})">
       <div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
       <div class="char-nm">${c.name}</div>
+      <div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:1px;">
+        <span class="attr-badge attr-${c.attribute||'none'}">${pAttr.emoji}${pAttr.label}</span>
+        <span class="role-badge role-${c.role||'attacker'}">${pRole.emoji}</span>
+      </div>
       <div class="char-lv">Lv.${cd.level}</div>
       <div class="char-rar" style="color:${rarColor}">${c.rarity}</div>
     </div>`;
@@ -2688,6 +2942,8 @@ function initBattle(quest,pids){
     return{id,hp,maxHp:hp,atk};
   });
   BT.turn=1;BT.combo=0;BT.active=true;
+  initStatuses();
+  setTimeout(()=>updateBattleStatusPanel(),200);
   // autoタイマーをリセット（前の戦闘の残りを消す）
   if(BT.autoTimer){clearTimeout(BT.autoTimer);BT.autoTimer=null;}
   BT_PHASE='player';
@@ -2737,22 +2993,287 @@ function initBattleBg(){
 // ================================================================
 //  BATTLE CARD SYSTEM (改良版)
 // ================================================================
-const MAX_SELECT = 4; // 最大選択枚数
+let MAX_SELECT = 4; // 最大選択枚数（ロールで変化）
 const CARDS_PER_MEMBER = 3; // キャラ1体あたりのカード枚数
 
 // コンボタイプボーナス倍率
-const COMBO_TYPE_BONUS = {fire:0.25, ice:0.2, thunder:0.3};
+const COMBO_TYPE_BONUS = {fire:0.25, ice:0.2, thunder:0.3, water:0.22, dark:0.28, light:0.25, none:0.15};
+// ================================================================
+//  属性・ロール定数
+// ================================================================
+const ATTR_INFO = {
+  fire:    {label:'炎',    color:'#ff8040', emoji:'🔥'},
+  ice:     {label:'氷',    color:'#60c0ff', emoji:'❄️'},
+  thunder: {label:'雷',    color:'#ffe040', emoji:'⚡'},
+  water:   {label:'水',    color:'#40d0ff', emoji:'🌊'},
+  dark:    {label:'闇',    color:'#c080ff', emoji:'🌑'},
+  light:   {label:'光',    color:'#fff080', emoji:'✨'},
+  none:    {label:'無',    color:'#c0c0c0', emoji:'⚪'},
+};
+const ROLE_INFO = {
+  tank:     {label:'タンク',    color:'#60a0ff', emoji:'🛡️', desc:'ヘイトが最も高く攻撃を引き付ける。被ダメ軽減あり。'},
+  attacker: {label:'アタッカー',color:'#ff6060', emoji:'⚔️', desc:'高い攻撃力でダメージを叩き出す。属性コンボが得意。'},
+  support:  {label:'サポート',  color:'#40e080', emoji:'💚', desc:'毎ターン味方HPを回復する。長期戦に強い。'},
+  debuffer: {label:'デバッファー',color:'#e060e0',emoji:'☠️', desc:'状態異常を付与して敵を弱体化させる。'},
+};
+
+// ================================================================
+//  状態異常システム
+// ================================================================
+// BT.partyHpの各メンバーにstatuses配列を追加
+// BT.enemyStatusesで敵の状態異常を管理
+let enemyStatuses = []; // {type:'burn'|'poison'|'freeze'|'para', stacks:1, turns:3}
+
+function initStatuses(){
+  BT.partyHp.forEach(m=>{ if(!m.statuses) m.statuses=[]; });
+  enemyStatuses = [];
+}
+
+// 状態異常付与（味方に）
+function applyStatus(memberId, type, stacks=1){
+  const m = BT.partyHp.find(x=>x.id===memberId);
+  if(!m) return;
+  if(!m.statuses) m.statuses=[];
+  const existing = m.statuses.find(s=>s.type===type);
+  if(existing){
+    if(type==='poison') existing.stacks=Math.min(existing.stacks+stacks, 5);
+    existing.turns=Math.max(existing.turns, 3);
+  } else {
+    m.statuses.push({type,stacks,turns:3});
+  }
+  updatePartyHP();
+  // ★演出
+  showStatusFlash(type, m.name);
+  updateBattleStatusPanel();
+  updatePartyStatusClasses();
+}
+
+// 敵に状態異常付与
+function applyEnemyStatus(type, stacks=1){
+  const existing = enemyStatuses.find(s=>s.type===type);
+  if(existing){
+    if(type==='poison') existing.stacks=Math.min(existing.stacks+stacks,5);
+    existing.turns=Math.max(existing.turns,3);
+  } else {
+    enemyStatuses.push({type,stacks,turns:3});
+  }
+  renderEnemyStatuses();
+}
+
+function showStatusToast(msg){
+  const el=document.getElementById('enemy-action-txt');
+  if(el){ el.textContent=msg; el.style.color='#e080e0'; setTimeout(()=>{ if(el) el.style.color=''; },1200); }
+}
+
+// ターン開始時に状態異常を処理（味方→ダメージ）
+function processPartyStatuses(){
+  let totalDmg=0;
+  BT.partyHp.forEach(m=>{
+    if(!m.statuses||!m.statuses.length) return;
+    m.statuses = m.statuses.filter(s=>{
+      if(s.type==='burn'){
+        const dmg=Math.round(BT.quest.enemy.atk*0.08*s.stacks);
+        m.hp=Math.max(0,m.hp-dmg); totalDmg+=dmg;
+        showEnemyActionDebuff('burn');
+        showStatusFlash('burn', m.name);
+      }
+      if(s.type==='poison'){
+        const dmg=Math.round(BT.quest.enemy.atk*0.05*s.stacks);
+        m.hp=Math.max(0,m.hp-dmg); totalDmg+=dmg;
+        showEnemyActionDebuff('poison');
+        if(s.stacks>=2) showStatusFlash('poison', m.name);
+      }
+      s.turns--;
+      return s.turns>0;
+    });
+  });
+  if(totalDmg>0){ updatePartyHP(); updateBattleStatusPanel(); updatePartyStatusClasses(); }
+  if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,400); return false; }
+  return true;
+}
+
+// ターン開始時に敵状態異常を処理
+function processEnemyStatuses(){
+  let totalDmg=0;
+  enemyStatuses=enemyStatuses.filter(s=>{
+    if(s.type==='burn'){
+      const dmg=Math.round(BT.quest.enemy.hp*0.03*s.stacks);
+      BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+    }
+    if(s.type==='poison'){
+      const dmg=Math.round(BT.quest.enemy.hp*0.02*s.stacks);
+      BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+    }
+    s.turns--;
+    return s.turns>0;
+  });
+  if(totalDmg>0){ updateEnemyHP(); showDmg(totalDmg); }
+  if(BT.enemyHp<=0){ setTimeout(winBattle,400); return false; }
+  renderEnemyStatuses();
+  return true;
+}
+
+function renderEnemyStatuses(){
+  let area=document.getElementById('enemy-status-area');
+  if(!area){
+    area=document.createElement('div');
+    area.id='enemy-status-area';
+    area.className='enemy-status-area';
+    const eNm=document.getElementById('enemy-nm');
+    if(eNm) eNm.parentNode.insertBefore(area,eNm.nextSibling);
+  }
+  const labels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺'};
+  const cls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'};
+  area.innerHTML=enemyStatuses.map(s=>`
+    <div class="status-badge ${cls[s.type]||''}">
+      ${labels[s.type]||s.type}${s.stacks>1?'×'+s.stacks:''}(${s.turns}T)
+    </div>`).join('');
+}
+
+function renderPartyStatuses(){
+  BT.partyHp.forEach((m,i)=>{
+    const el=document.getElementById(`member-status-${i}`);
+    if(!el) return;
+    const labels={burn:'🔥',poison:'☠️',freeze:'❄️',para:'⚡'};
+    el.innerHTML=(m.statuses||[]).map(s=>`<span class="status-badge ${
+      {burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'}[s.type]||''}">${
+      labels[s.type]||''}${s.stacks>1?s.stacks:''}</span>`).join('');
+  });
+}
+
+// ================================================================
+//  キャラクター特殊性能（ロール効果）
+// ================================================================
+
+function getAttrBadgeHtml(c){
+  if(!c||!c.attribute) return '';
+  const a=ATTR_INFO[c.attribute]||ATTR_INFO.none;
+  return `<span class="attr-badge attr-${c.attribute}" style="font-size:7px;">${a.emoji}</span>`;
+}
+function getPartyMaxSelect(){
+  // アタッカーで特殊スキルのキャラがいれば+1
+  const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
+  let bonus = 0;
+  ap.forEach(c=>{
+    if(c.role==='attacker' && (c.id===1||c.id===59)) bonus=Math.max(bonus,1); // フルドライブ系
+  });
+  return 4+bonus;
+}
+
+function getPartyHealRate(){
+  const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
+  let rate=0;
+  ap.forEach(c=>{
+    if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01}[c.id]||0.005);
+  });
+  return rate;
+}
+
+function getPartyDamageReduction(){
+  const ap = BT.partyHp.filter(m=>m.hp>0).map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
+  let reduce=0;
+  ap.forEach(c=>{
+    if(c.role==='tank') reduce+=({4:0.15,6:0.10,14:0.08,20:0.15,23:0.10,62:0.20,63:0.15,69:0.25,75:0.12,79:0.20,87:0.18}[c.id]||0.05);
+  });
+  return Math.min(reduce,0.5);
+}
+
+function applyTankHate(){
+  // タンクがいれば攻撃対象にヘイト補正
+  const tanks = BT.partyHp.filter(m=>{
+    const c=CHARS.find(ch=>ch.id===m.id);
+    return c&&c.role==='tank'&&m.hp>0;
+  });
+  if(!tanks.length) return null;
+  // 70%確率でタンクが攻撃を引き受ける
+  if(Math.random()<0.7) return tanks[Math.floor(Math.random()*tanks.length)];
+  return null;
+}
+
+function applyDebufferSkill(charId, targetType){
+  const c=CHARS.find(ch=>ch.id===charId); if(!c||c.role!=='debuffer') return;
+  const probs={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
+  const prob=probs[charId]||0.15;
+  if(Math.random()>prob) return;
+  // 付与する状態異常
+  const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison'};
+  const statusType=debuffMap[charId]||'poison';
+  applyEnemyStatus(statusType);
+  const cfg=STATUS_CONFIG[statusType];
+  showSpecialAtkBanner(`${c.name}  ${cfg?cfg.emoji:''}スキル発動！敵に${cfg?cfg.label:'状態異常'}付与！`, cfg?cfg.color:'#c080ff');
+}
+
+// ================================================================
+//  ノーマルコンボ（none属性）
+// ================================================================
+// COMBO_TYPE_BONUSにnoneを追加
+COMBO_TYPE_BONUS['none'] = 0.15; // ノーマルコンボ+15%
+
+// ================================================================
+//  編成画面キャラ詳細表示
+// ================================================================
+function openPartyCharDetail(charId){
+  const c=CHARS.find(ch=>ch.id===charId); if(!c) return;
+  const cd=(S.ownedData&&S.ownedData[charId])||{level:1,breakthrough:0};
+  const lv=cd.level||1, bt=cd.breakthrough||0;
+  const lvMul=1+(lv-1)*0.08+bt*0.15;
+  const hp=Math.round(c.hp*lvMul), atk=Math.round(c.atk*lvMul);
+  const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
+  const attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+  const role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+  const owned=S.owned.includes(charId);
+
+  let ov=document.getElementById('party-char-detail-ov');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='party-char-detail-ov';
+    ov.className='party-char-detail';
+    ov.onclick=e=>{ if(e.target===ov) closePartyCharDetail(); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML=`<div class="pcd-box">
+    <div class="pcd-header">
+      <div class="pcd-ico" style="background:${c.bg};border:1.5px solid ${c.border};">${c.emoji}</div>
+      <div class="pcd-info">
+        <div class="pcd-name">${c.name}</div>
+        <div class="pcd-badges" style="margin-top:4px;">
+          <span style="font-size:9px;color:${rarColor};font-weight:700;">${c.rarity}</span>
+          <span class="attr-badge attr-${c.attribute||'none'}">${attr.emoji}${attr.label}</span>
+          <span class="role-badge role-${c.role||'attacker'}">${role.emoji}${role.label}</span>
+        </div>
+      </div>
+    </div>
+    ${owned?`<div class="pcd-stat-row">
+      <div class="pcd-stat"><div class="pcd-stat-lbl">レベル</div><div class="pcd-stat-val">Lv.${lv}</div></div>
+      <div class="pcd-stat"><div class="pcd-stat-lbl">限界突破</div><div class="pcd-stat-val">${bt}/5段</div></div>
+      <div class="pcd-stat"><div class="pcd-stat-lbl">HP</div><div class="pcd-stat-val">${hp.toLocaleString()}</div></div>
+      <div class="pcd-stat"><div class="pcd-stat-lbl">ATK</div><div class="pcd-stat-val">${atk.toLocaleString()}</div></div>
+    </div>`:'<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">未所持</div>'}
+    <div class="pcd-skill-box">
+      <div class="pcd-skill-name">⚡ スキル：${c.skillName||'基本攻撃'}</div>
+      <div class="pcd-skill-desc">${c.skillDesc||'基本的な攻撃を行う。'}</div>
+    </div>
+    <div class="pcd-skill-box" style="margin-bottom:0;">
+      <div class="pcd-skill-name">${role.emoji} ロール効果</div>
+      <div class="pcd-skill-desc">${role.desc}</div>
+    </div>
+    <button onclick="closePartyCharDetail()" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;border:.5px solid var(--border3);background:rgba(0,20,40,.5);color:var(--text);cursor:pointer;font-family:inherit;">閉じる</button>
+  </div>`;
+  ov.classList.add('show');
+}
+function closePartyCharDetail(){ const ov=document.getElementById('party-char-detail-ov'); if(ov) ov.classList.remove('show'); }
+
 
 function drawHand(ids){
   BT.hand=[];
   BT.selectedOrder=[];
+  MAX_SELECT=getPartyMaxSelect();
   ids.forEach(id=>{
     const ch=CHARS.find(c=>c.id===id);if(!ch)return;
+    const memberData = BT.partyHp.find(m=>m.id===id);
+    const actualAtk = memberData ? memberData.atk : ch.atk;
     for(let i=0;i<CARDS_PER_MEMBER;i++){
-      const c=CARDS[Math.floor(Math.random()*CARDS.length)];
-      // ★レベル反映: partyHpから実際のatkを取得
-      const memberData = BT.partyHp.find(m=>m.id===id);
-      const actualAtk = memberData ? memberData.atk : ch.atk;
+      // ★キャラの属性に合ったカードを生成
+      const c=getCardForChar(ch.attribute);
       BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,used:false,selected:false});
     }
   });
@@ -2768,8 +3289,9 @@ function renderHand(){
     const orderIdx = BT.selectedOrder.indexOf(i);
     const orderBadge = c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
     const comboCls = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
+    const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:''};
     const comboLabel = c.comboType !== 'none' ?
-      `<div class="card-combo-badge ${comboCls}">${c.comboType==='fire'?'🔥炎':c.comboType==='ice'?'❄️氷':'⚡雷'}</div>` : '';
+      `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>` : '';
     return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
       style="position:relative;"
       onclick="toggleCard(${i})"
@@ -2935,6 +3457,9 @@ function executeAttack(){
   renderHand();
 
   if(BT.enemyHp<=0){ setTimeout(winBattle,700); return; }
+  // デバッファースキル発動チェック
+  BT.partyHp.filter(m=>m.hp>0).forEach(m=>applyDebufferSkill(m.id,'enemy'));
+  renderEnemyStatuses();
 
   // ★ターン制: カードを使い切っても使い切らなくても、攻撃したら即敵ターン
   setTimeout(()=>enemyTurn(), 600);
@@ -3017,12 +3542,27 @@ function enemyTurn(){
       if(!BT.active || attackCount >= attacks){ afterEnemyAttacks(); return; }
       const aliveNow = BT.partyHp.filter(m=>m.hp>0);
       if(!aliveNow.length){ loseBattle(); return; }
-      const tgt = aliveNow[Math.floor(Math.random()*aliveNow.length)];
-      const dmg = Math.round(BT.quest.enemy.atk*(.8+Math.random()*.4));
+      // タンクヘイト補正
+      const hateTgt = applyTankHate();
+      const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
+      // ダメージ軽減（タンク・スキル）
+      const reduction = getPartyDamageReduction();
+      let rawDmg = Math.round(BT.quest.enemy.atk*(.8+Math.random()*.4));
+      const dmg = Math.round(rawDmg*(1-reduction));
       tgt.hp = Math.max(0, tgt.hp-dmg);
       sfx('hit');
       updatePartyHP();
-      if(actionEl) actionEl.textContent=`${BT.quest.enemy.name}の攻撃！ -${dmg}`;
+      renderPartyStatuses();
+      const reductionTxt = reduction>0?` (軽減${Math.round(reduction*100)}%)`:'';
+      if(actionEl) actionEl.textContent=`${BT.quest.enemy.name}の攻撃！ ${tgt.name||'味方'} -${dmg}${reductionTxt}`;
+
+      // 敵の状態異常付与（敵のhpに応じて確率変化）
+      const enemy = BT.quest.enemy;
+      if(enemy.statusPatterns){
+        enemy.statusPatterns.forEach(p=>{
+          if(Math.random()<(p.prob||0.2)) applyStatus(tgt.id||tgt, p.type, p.stacks||1);
+        });
+      }
       attackCount++;
       if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,600); return; }
       setTimeout(doNextAttack, 500);
@@ -3034,6 +3574,32 @@ function enemyTurn(){
 function afterEnemyAttacks(){
   if(!BT.active) return;
   const actionEl = document.getElementById('enemy-action-txt');
+
+  // 状態異常ダメージ処理（毒・炎症）
+  if(!processPartyStatuses()) return;
+  processEnemyStatuses();
+
+  // サポートキャラによる毎ターン回復
+  const healRate=getPartyHealRate();
+  if(healRate>0){
+    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
+      const heal=Math.round(m.maxHp*healRate);
+      m.hp=Math.min(m.maxHp,m.hp+heal);
+    });
+    updatePartyHP();
+  }
+
+  // 凍結チェック：凍結中なら味方のターンをスキップ
+  const frozenMembers=BT.partyHp.filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
+  if(frozenMembers.length===BT.partyHp.filter(m=>m.hp>0).length){
+    if(actionEl) actionEl.textContent='❄️ 全員凍結！ターンスキップ！';
+    BT.partyHp.forEach(m=>{ m.statuses=(m.statuses||[]).map(s=>s.type==='freeze'?{...s,turns:s.turns-1}:s).filter(s=>s.turns>0); });
+    setTimeout(()=>enemyTurn(),1200);
+    return;
+  }
+  renderPartyStatuses();
+  updateBattleStatusPanel();
+  updatePartyStatusClasses();
 
   BT.turn++;
   BT.combo=0;
@@ -3233,7 +3799,7 @@ function getTowerEnemy(floor){
     {name:'深海竜',      emoji:'🐉',hp:3000,atk:280},
     {name:'崩壊体',      emoji:'👾',hp:5000,atk:380},
     {name:'旧破の使徒',  emoji:'💀',hp:8000,atk:500},
-    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700},
+    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700,statusPatterns:[{"type": "poison", "prob": 0.25, "stacks": 1}]},
     {name:'永遠の番人',  emoji:'⚫',hp:30000,atk:1000},
   ];
   const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
@@ -4872,8 +5438,11 @@ function pvpDrawHand(){
   const st=pvpBattleState; if(!st) return;
   st.hand=[]; st.selectedOrder=[];
   st.myParty.filter(m=>m.hp>0).forEach(member=>{
+    const ch=CHARS.find(c=>c.id===member.id);
+    const charAttr = ch ? ch.attribute : 'none';
     for(let i=0;i<3;i++){
-      const c=CARDS[Math.floor(Math.random()*CARDS.length)];
+      // ★キャラの属性に合ったカードを生成
+      const c=getCardForChar(charAttr);
       st.hand.push({...c,charId:member.id,charName:member.name,charAtk:member.atk,used:false,selected:false});
     }
   });
@@ -4889,7 +5458,8 @@ function renderPvpHand(){
     const oi=st.selectedOrder.indexOf(i);
     const badge=c.selected?`<div class="selected-order">${oi+1}</div>`:'';
     const comboCls=c.comboType!=='none'?`combo-${c.comboType}`:'combo-none';
-    const comboLbl=c.comboType!=='none'?`<div class="card-combo-badge ${comboCls}">${c.comboType==='fire'?'🔥炎':c.comboType==='ice'?'❄️氷':'⚡雷'}</div>`:'';
+    const PVPC_LABELS={fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:''};
+    const comboLbl=c.comboType!=='none'?`<div class="card-combo-badge ${comboCls}">${PVPC_LABELS[c.comboType]||c.comboType}</div>`:'';
     return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
       style="position:relative;" 
       onclick="pvpToggleCard(${i})"
@@ -5175,6 +5745,128 @@ function onPvpEnd(won, quest){
   if(won){ S.pvpWin=(S.pvpWin||0)+1; }
   else   { S.pvpLose=(S.pvpLose||0)+1; }
   saveGame();
+}
+
+// キャラカードに属性・ロール表示を追加
+function getCharCardBadges(ch){
+  if(!ch) return '';
+  const attr=ATTR_INFO[ch.attribute||'none']||ATTR_INFO.none;
+  const role=ROLE_INFO[ch.role||'attacker']||ROLE_INFO.attacker;
+  return `<div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;">
+    <span class="attr-badge attr-${ch.attribute||'none'}">${attr.emoji}${attr.label}</span>
+    <span class="role-badge role-${ch.role||'attacker'}">${role.emoji}</span>
+  </div>`;
+}
+
+// ================================================================
+//  状態異常UX強化
+// ================================================================
+const STATUS_CONFIG = {
+  burn:   {emoji:'🔥', label:'炎症',   color:'#ff9060', bg:'rgba(180,60,0,.85)',  overlayColor:'rgba(255,80,0,.25)'},
+  poison: {emoji:'☠️', label:'毒',     color:'#80ff40', bg:'rgba(30,100,0,.85)',  overlayColor:'rgba(60,200,0,.2)'},
+  freeze: {emoji:'❄️', label:'凍結',   color:'#80d8ff', bg:'rgba(0,60,180,.85)', overlayColor:'rgba(0,120,255,.3)'},
+  para:   {emoji:'⚡', label:'麻痺',   color:'#ffe860', bg:'rgba(140,120,0,.85)',overlayColor:'rgba(200,180,0,.2)'},
+};
+
+// 状態異常付与時のフルスクリーン演出
+function showStatusFlash(type, target){
+  const cfg = STATUS_CONFIG[type]; if(!cfg) return;
+  const flash = document.getElementById('status-flash');
+  const inner = document.getElementById('status-flash-inner');
+  if(!flash||!inner) return;
+
+  inner.textContent = `${cfg.emoji} ${cfg.label}！`;
+  inner.style.color = cfg.color;
+  inner.style.background = cfg.bg;
+  inner.style.borderColor = cfg.color;
+
+  // デバフヒットオーバーレイ
+  const overlay = document.getElementById('debuff-hit-overlay');
+  if(overlay){
+    overlay.style.background = cfg.overlayColor;
+    overlay.classList.remove('show');
+    void overlay.offsetWidth;
+    overlay.classList.add('show');
+    setTimeout(()=>overlay.classList.remove('show'), 600);
+  }
+
+  flash.classList.remove('show');
+  void flash.offsetWidth;
+  flash.classList.add('show');
+  setTimeout(()=>flash.classList.remove('show'), 1200);
+
+  // HPバーに状態クラスを追加
+  updatePartyStatusClasses();
+}
+
+// 特殊攻撃（デバッファースキル）発動時のバナー
+function showSpecialAtkBanner(msg, color='#c080ff'){
+  const el = document.getElementById('special-atk-banner');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.background = `rgba(20,0,40,.85)`;
+  el.style.color = color;
+  el.style.border = `.5px solid ${color}`;
+  el.style.boxShadow = `0 0 20px ${color}`;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 900);
+}
+
+// メンバーHPバーに状態クラスを反映
+function updatePartyStatusClasses(){
+  BT.partyHp.forEach((m,i)=>{
+    const el = document.querySelector(`.party-hp-row .member-hp:nth-child(${i+1})`);
+    if(!el) return;
+    el.classList.toggle('frozen',  (m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
+    el.classList.toggle('burned',  (m.statuses||[]).some(s=>s.type==='burn'&&s.turns>0));
+    el.classList.toggle('poisoned',(m.statuses||[]).some(s=>s.type==='poison'&&s.turns>0));
+  });
+}
+
+// 戦闘ステータスパネル更新（常時表示）
+function updateBattleStatusPanel(){
+  const panel = document.getElementById('battle-status-panel');
+  if(!panel) return;
+
+  const chips = [];
+  BT.partyHp.forEach(m=>{
+    (m.statuses||[]).filter(s=>s.turns>0).forEach(s=>{
+      const cfg=STATUS_CONFIG[s.type]; if(!cfg) return;
+      chips.push(`<div class="status-chip chip-${s.type}" title="${m.name||'味方'}に${cfg.label}">
+        ${cfg.emoji} ${cfg.label}
+        ${s.stacks>1?`<div class="chip-stack">${s.stacks}</div>`:''}
+        <span class="chip-turns">${s.turns}T</span>
+      </div>`);
+    });
+  });
+
+  // 敵の状態異常もパネルに（右寄せ）
+  const enemyChips = enemyStatuses.filter(s=>s.turns>0).map(s=>{
+    const cfg=STATUS_CONFIG[s.type]; if(!cfg) return '';
+    return `<div class="status-chip chip-${s.type}" title="敵に${cfg.label}">
+      敵 ${cfg.emoji}
+      ${s.stacks>1?`<div class="chip-stack">${s.stacks}</div>`:''}
+      <span class="chip-turns">${s.turns}T</span>
+    </div>`;
+  });
+
+  if(chips.length===0&&enemyChips.length===0){
+    panel.innerHTML='<div style="font-size:9px;color:var(--text3);padding:2px 0;">状態異常なし</div>';
+  } else {
+    panel.innerHTML = chips.join('') +
+      (enemyChips.length?`<div style="flex:1;"></div>${enemyChips.join('')}`:'');
+  }
+}
+
+// ターンごとの状態異常テキスト演出（敵のaction-txt）
+function showEnemyActionDebuff(type){
+  const cfg=STATUS_CONFIG[type]; if(!cfg) return;
+  const el=document.getElementById('enemy-action-txt');
+  if(!el) return;
+  el.innerHTML=`<span style="color:${cfg.color};font-weight:700;font-size:13px;">${cfg.emoji} ${cfg.label}ダメージ！</span>`;
+  setTimeout(()=>{if(el)el.innerHTML='';},1500);
 }
 </script>
 </body>
