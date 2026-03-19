@@ -3067,6 +3067,12 @@ function renderCharList(){
 function selectSlot(i){sfx('select');S.selectedSlot=S.selectedSlot===i?-1:i;renderSlots();}
 function addToParty(id){
   sfx('click');
+  // 助っ人と同じキャラはパーティに入れない
+  if(S.supportChar&&S.supportChar.id===id){
+    const c=CHARS.find(ch=>ch.id===id);
+    showToast('⚠️ '+(c?c.name:'このキャラ')+' は助っ人に設定中です！同じキャラは編成できません');
+    return;
+  }
   let slot=S.selectedSlot!==-1?S.selectedSlot:S.party.indexOf(-1);
   if(slot===-1){showToast('パーティが満員です！スロットを選択してください');return;}
   S.party[slot]=id;S.selectedSlot=-1;saveGame();renderSlots();renderCharList();showToast('編成しました！');
@@ -6697,8 +6703,13 @@ async function openSupportSelect(){
 }
 
 function selectSupportChar(friendId, friendName, helperChar){
+  // パーティに同じキャラがいないかチェック
+  var partyIds=S.party.filter(function(id){return id!==-1;});
+  if(partyIds.indexOf(helperChar.id)!==-1){
+    showToast('⚠️ '+helperChar.name+' は既にパーティにいます！同じキャラは編成できません');
+    return;
+  }
   S.supportChar={...helperChar, fromFriendId:friendId, fromFriendName:friendName};
-  // 報酬付与
   saveGame();
   showToast('✅ '+helperChar.name+'を借りました！');
   document.getElementById('support-select-modal').classList.remove('show');
