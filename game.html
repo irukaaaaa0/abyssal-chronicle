@@ -6207,6 +6207,25 @@ function renderFriend(){
   const pending = S.pendingRequests||[];
   const myId = S.playerId||'----';
 
+  // イベントデリゲーション（承諾・拒否・削除ボタン）
+  setTimeout(function(){
+    var fc=document.getElementById('friend-content');
+    if(!fc) return;
+    fc.onclick=function(e){
+      var btn=e.target.closest('button');
+      if(!btn) return;
+      if(btn.classList.contains('freq-accept-btn')){
+        var id=decodeURIComponent(btn.dataset.rid||btn.dataset.id||'');
+        var name=decodeURIComponent(btn.dataset.rname||btn.dataset.name||'司令官');
+        console.log('[FRIEND] 承諾ボタンclicked id=',id,'name=',name);
+        acceptFriendRequest(id,name);
+      } else if(btn.classList.contains('freq-reject-btn')){
+        var id2=decodeURIComponent(btn.dataset.rid||btn.dataset.id||'');
+        rejectFriendRequest(id2);
+      }
+    };
+  },100);
+
   document.getElementById('friend-content').innerHTML =
     // 自分のID
     '<div class="friend-id-box">'
@@ -6246,6 +6265,8 @@ function renderFriend(){
     +(pending.length===0
       ?'<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンド申請はありません</div>'
       :pending.map(function(r){
+        var eid=encodeURIComponent(r.fromId||'');
+        var ename=encodeURIComponent(r.fromName||'司令官');
         return '<div class="req-card">'
           +'<div class="friend-card-ico">🌊</div>'
           +'<div style="flex:1;">'
@@ -6253,8 +6274,8 @@ function renderFriend(){
           +'<div style="font-size:9px;color:var(--text2);">ID: '+r.fromId+'</div>'
           +'</div>'
           +'<div style="display:flex;gap:6px;">'
-          +'<button onclick="acceptFriendRequest(\''+r.fromId+'\',\''+r.fromName+'\')" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-size:10px;">承諾</button>'
-          +'<button onclick="rejectFriendRequest(\''+r.fromId+'\')" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(160,30,30,.4);background:rgba(80,10,10,.3);color:#e06060;cursor:pointer;font-size:10px;">拒否</button>'
+          +'<button class="freq-accept-btn" data-rid="'+eid+'" data-rname="'+ename+'" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-size:10px;">承諾</button>'
+          +'<button class="freq-reject-btn" data-rid="'+eid+'" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(160,30,30,.4);background:rgba(80,10,10,.3);color:#e06060;cursor:pointer;font-size:10px;">拒否</button>'
           +'</div>'
           +'</div>';
       }).join(''))
@@ -6332,6 +6353,8 @@ async function sendFriendRequest(){
 // 申請を承諾
 // ----------------------------------------------------------------
 async function acceptFriendRequest(fromId, fromName){
+  console.log('[FRIEND] acceptFriendRequest called, fromId:', fromId, 'fromName:', fromName);
+  if(!fromId){ showToast('エラー: IDが空です'); return; }
   try{
     // 申請者のFirestoreデータを取得
     var snap=await db.collection('players').where('playerId','==',fromId).limit(1).get();
