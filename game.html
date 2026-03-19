@@ -1538,29 +1538,33 @@ function startFriendListener(){
     });
 
     if(added.length>0){
-      // S.friendsを更新
       S.friends = newFriends;
-      saveGame();
+      // ローカルに即保存
+      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
       added.forEach(function(f){
         showToast('🎉 '+f.name+' とフレンドになりました！');
+        console.log('[FRIEND listener] New friend added:', f.id, f.name);
       });
-      // フレンド画面が開いていれば更新
-      var friendScreen = document.getElementById('screen-friend');
-      if(friendScreen && friendScreen.style.display!=='none' && friendScreen.classList.contains('active')){
-        renderFriend();
-      }
-      // ホームのバッジも更新
+      renderFriend();
       checkPendingRequests();
+    } else if(newFriends.length !== oldFriends.length){
+      // 削除された場合も反映
+      S.friends = newFriends;
+      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
+      renderFriend();
     }
 
     // pendingRequestsの変化を検知（新しい申請が来たら通知）
     var newPending = data.pendingRequests||[];
     var oldPending = S.pendingRequests||[];
-    if(newPending.length > oldPending.length){
+    if(newPending.length !== oldPending.length){
       S.pendingRequests = newPending;
-      saveGame();
+      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
       checkPendingRequests();
-      showToast('🔔 フレンド申請が届きました！');
+      if(newPending.length > oldPending.length){
+        showToast('🔔 フレンド申請が届きました！');
+      }
+      renderFriend();
     }
   }, function(err){
     console.log('[FRIEND listener]', err);
@@ -4704,98 +4708,11 @@ function updatePlayerNameDisplay(){
 // ================================================================
 //  👥 FRIEND（フレンド・助っ人）
 // ================================================================
-function renderFriend(){
-  const friends = S.friends||[];
-  let html=`
-    <div class="friend-id-box">
-      <div class="friend-id-label">あなたのプレイヤーID（フレンド追加に使用）</div>
-      <div class="friend-id-val">${S.playerId||'----'}</div>
-      <div onclick="copyPlayerId()" style="font-size:9px;color:var(--teal);margin-top:6px;cursor:pointer;">📋 IDをコピー</div>
-    </div>
-    <div class="friend-search-row">
-      <input class="search-input" id="friend-search-input" placeholder="フレンドのIDを入力..." style="flex:1;">
-      <button onclick="addFriendById()" style="padding:8px 14px;border-radius:8px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-family:inherit;font-size:12px;">追加</button>
-    </div>`;
 
-  if(friends.length===0){
-    html+=`<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンドがいません<br>IDを交換して追加しましょう！</div>`;
-  } else {
-    html+=`<div style="font-size:10px;color:var(--text2);margin-bottom:8px;">フレンド（${friends.length}人）</div>`;
-    html+=friends.map(f=>`
-      <div class="friend-card">
-        <div class="friend-card-ico">🌊</div>
-        <div>
-          <div class="friend-card-name">${f.name||'司令官'}</div>
-          <div class="friend-card-rank">ID: ${f.id} | Rank ${f.rank||1}</div>
-        </div>
-        <div onclick="removeFriend('${f.id}')" class="friend-action-btn friend-remove-btn">削除</div>
-      </div>`).join('');
-  }
 
-  // 助っ人セクション（所持キャラの最強を表示）
-  html+=`<div style="font-size:10px;color:var(--text2);margin:14px 0 8px;">助っ人（フレンドの最強キャラを借りられます）</div>`;
-  if(friends.length===0){
-    html+=`<div style="font-size:10px;color:var(--text3);">フレンドを追加すると助っ人を借りられます</div>`;
-  } else {
-    html+=friends.map(f=>{
-      const ch = f.topChar ? CHARS.find(c=>c.id===f.topChar) : null;
-      if(!ch) return '';
-      return `<div class="helper-card" onclick="showToast('助っ人機能は近日実装予定！')">
-        <div class="helper-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div>
-        <div>
-          <div style="font-size:11px;font-weight:500;">${ch.name}</div>
-          <div style="font-size:9px;color:var(--text2);">${f.name||'司令官'}の助っ人 | Lv.${f.topLv||1} ${ch.rarity}</div>
-        </div>
-      </div>`;
-    }).filter(Boolean).join('') || `<div style="font-size:10px;color:var(--text3);">フレンドのキャラ情報を取得できません</div>`;
-  }
 
-  document.getElementById('friend-content').innerHTML=html;
-}
 
-async function addFriendById(){
-  const input = document.getElementById('friend-search-input');
-  const id = (input?.value||'').trim().toUpperCase();
-  if(!id){ showToast('IDを入力してください'); return; }
-  if(id===S.playerId){ showToast('自分自身は追加できません'); return; }
-  if((S.friends||[]).some(f=>f.id===id)){ showToast('既にフレンドです'); return; }
 
-  try{
-    const snap = await db.collection('players').where('playerId','==',id).limit(1).get();
-    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
-    const data = snap.docs[0].data();
-    // 最強キャラを取得
-    const topCharId = data.owned && data.owned.length > 0 ?
-      data.owned.sort((a,b)=>{
-        const ca=CHARS.find(c=>c.id===a),cb=CHARS.find(c=>c.id===b);
-        const order={UR:4,SSR:3,SR:2,R:1};
-        return (order[cb?.rarity]||0)-(order[ca?.rarity]||0);
-      })[0] : null;
-    const topData = data.ownedData && topCharId ? data.ownedData[topCharId] : null;
-
-    if(!S.friends) S.friends=[];
-    S.friends.push({
-      id: data.playerId,
-      name: '深海司令官',
-      rank: data.rank||1,
-      topChar: topCharId,
-      topLv: topData?.level||1,
-    });
-    saveGame();
-    showToast(`✅ ${data.playerId} をフレンド追加しました！`);
-    renderFriend();
-  }catch(e){
-    showToast('❌ フレンド追加に失敗しました');
-    console.log(e);
-  }
-}
-
-function removeFriend(id){
-  S.friends = (S.friends||[]).filter(f=>f.id!==id);
-  saveGame();
-  renderFriend();
-  showToast('フレンドを削除しました');
-}
 
 // ================================================================
 //  ⚔️ PVP（闘技場）
@@ -6416,13 +6333,15 @@ async function sendFriendRequest(){
 // ----------------------------------------------------------------
 async function acceptFriendRequest(fromId, fromName){
   try{
+    // 申請者のFirestoreデータを取得
     var snap=await db.collection('players').where('playerId','==',fromId).limit(1).get();
-    if(snap.empty){showToast('相手のデータが見つかりません');return;}
+    if(snap.empty){ showToast('相手のデータが見つかりません'); return; }
     var fromDoc=snap.docs[0];
     var fromData=fromDoc.data();
     var myUid=auth.currentUser?auth.currentUser.uid:'';
+    var myId=S.playerId;
 
-    // 自分のfriendsに追加・pendingから削除
+    // ①自分のfriends更新
     if(!S.friends) S.friends=[];
     if(!S.friends.some(function(f){return f.id===fromId;})){
       S.friends.push({
@@ -6434,32 +6353,35 @@ async function acceptFriendRequest(fromId, fromName){
     }
     S.pendingRequests=(S.pendingRequests||[]).filter(function(r){return r.fromId!==fromId;});
 
-    // Firestoreに自分のデータを先に保存
+    // ②自分のFirestoreを確実に更新（awaitで完了を待つ）
     if(playerDocRef){
       await playerDocRef.update({
         friends: S.friends,
         pendingRequests: S.pendingRequests,
       });
+      console.log('[FRIEND] My Firestore updated, friends count:', S.friends.length);
     }
-    saveGame();
+    // ローカルにも保存
+    localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
 
-    // 相手のfriendsにも自分を追加（Firestore直接更新）
+    // ③相手のFirestoreにも自分を追加
     var theirFriends=fromData.friends||[];
-    if(!theirFriends.some(function(f){return f.id===S.playerId;})){
+    if(!theirFriends.some(function(f){return f.id===myId;})){
       theirFriends.push({
-        id:S.playerId, uid:myUid,
+        id:myId, uid:myUid,
         name:S.playerName||'深海司令官',
         rank:S.rank||1,
         helperChar:S.helperChar||null,
       });
       await db.collection('players').doc(fromDoc.id).update({friends:theirFriends});
+      console.log('[FRIEND] Their Firestore updated, friends count:', theirFriends.length);
     }
 
     showToast('✅ '+fromName+'とフレンドになりました！');
     renderFriend();
   }catch(e){
-    showToast('❌ エラー: '+e.message);
-    console.log(e);
+    showToast('❌ 承諾エラー: '+e.message);
+    console.error('[FRIEND accept error]', e);
   }
 }
 
