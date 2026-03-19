@@ -4210,6 +4210,368 @@ window.addEventListener('load', async ()=>{
 });
 
 document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();},{once:true});
+
+// ================================================================
+//  TOAST / MODAL
+// ================================================================
+function showToast(msg, dur=2200){
+  let el=document.getElementById('toast-el');
+  if(!el){el=document.createElement('div');el.id='toast-el';el.className='toast';document.body.appendChild(el);}
+  el.textContent=msg;el.style.opacity='1';el.style.display='block';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>{el.style.opacity='0';setTimeout(()=>{el.style.display='none';},300);},dur);
+}
+
+function showModal(title,body,btns=[]){
+  let ov=document.getElementById('modal-overlay-dyn');
+  if(!ov){ov=document.createElement('div');ov.id='modal-overlay-dyn';ov.className='modal-overlay';document.body.appendChild(ov);}
+  ov.innerHTML=`<div class="modal">
+    <div class="modal-ttl">${title}</div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-btns">${btns.map((b,i)=>`<button class="modal-btn${b.primary?' primary':''}" id="mdyn-${i}">${b.label}</button>`).join('')}</div>
+  </div>`;
+  ov.classList.add('show');
+  btns.forEach((b,i)=>{document.getElementById('mdyn-'+i).onclick=()=>{ov.classList.remove('show');b.action&&b.action();};});
+}
+
+// ================================================================
+//  NOTICE DROPDOWN
+// ================================================================
+let readNoticeIds = JSON.parse(localStorage.getItem('read_notices')||'[]');
+
+function showOnlineNotices(){
+  if(!ONLINE_NOTICES.length) return;
+  const bar = document.getElementById('notice-text-bar');
+  if(bar){
+    const imp = ONLINE_NOTICES.filter(n=>n.important===true||n.important==='true');
+    const target = imp.length ? imp[0] : ONLINE_NOTICES[0];
+    if(target){ bar.textContent = target.title+' — '+(target.body||'').split('\n')[0]; }
+  }
+  renderNotifDropdown();
+  renderNotices();
+}
+
+function renderNotifDropdown(){
+  const list=document.getElementById('notif-list-dropdown');
+  if(!list) return;
+  if(!ONLINE_NOTICES.length){ list.innerHTML='<div class="notif-empty">お知らせはありません</div>'; return; }
+  const unread=ONLINE_NOTICES.filter(n=>!readNoticeIds.includes(n.id||n.title)).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){ badge.textContent=unread>9?'9+':unread; badge.classList.toggle('show',unread>0); }
+  list.innerHTML=ONLINE_NOTICES.slice(0,10).map(n=>{
+    const isUnread=!readNoticeIds.includes(n.id||n.title);
+    const typeMap={event:'ntb-event',gift:'ntb-gift',info:'ntb-info',update:'ntb-update'};
+    const typeCls=typeMap[n.type]||'ntb-info';
+    const typeLbl=n.type==='event'?'イベント':n.type==='gift'?'配布':n.type==='update'?'更新':'お知らせ';
+    return`<div class="notif-item ${isUnread?'unread':''}" onclick="readNotice('${n.id||n.title}')">
+      <div class="notif-item-top">${isUnread?'<div class="notif-unread-dot"></div>':''}
+        <div class="notif-type-badge ${typeCls}">${typeLbl}</div>
+        <div class="notif-item-title">${n.title||''}</div></div>
+      <div class="notif-item-body">${(n.body||'').split('\n')[0]}</div>
+      <div class="notif-item-date">${n.date||''}</div>
+    </div>`;
+  }).join('');
+}
+
+function readNotice(id){
+  if(!readNoticeIds.includes(id)){ readNoticeIds.push(id); localStorage.setItem('read_notices',JSON.stringify(readNoticeIds)); renderNotifDropdown(); }
+}
+
+function toggleNotifDropdown(){
+  sfx('click');
+  const dd=document.getElementById('notif-dropdown');
+  if(!dd) return;
+  if(dd.classList.contains('show')){
+    dd.classList.remove('show');
+  } else {
+    dd.classList.add('show');
+    renderNotifDropdown();
+    ONLINE_NOTICES.forEach(n=>{ const id=n.id||n.title; if(!readNoticeIds.includes(id)) readNoticeIds.push(id); });
+    localStorage.setItem('read_notices',JSON.stringify(readNoticeIds));
+    setTimeout(()=>renderNotifDropdown(),300);
+  }
+}
+
+function closeNotifDropdown(){
+  const dd=document.getElementById('notif-dropdown');
+  if(dd) dd.classList.remove('show');
+}
+
+document.addEventListener('click',(e)=>{
+  const bell=document.getElementById('notif-bell');
+  const dd=document.getElementById('notif-dropdown');
+  if(dd&&!dd.contains(e.target)&&bell&&!bell.contains(e.target)) dd.classList.remove('show');
+});
+
+// ================================================================
+//  RANK SYSTEM
+// ================================================================
+function rankExpNeeded(rank){ return rank*80+rank*rank*20; }
+
+function getRankupRewards(newRank){
+  const rewards=[];
+  const gems=Math.floor(newRank*1.5)+10;
+  rewards.push({type:'gem',amount:gems,label:`💎 深海結晶 ×${gems}`});
+  if(newRank%5===0){ const gold=newRank*500; rewards.push({type:'gold',amount:gold,label:`💰 ゴールド ×${gold.toLocaleString()}`}); }
+  if(newRank%10===0) rewards.push({type:'gem',amount:300,label:`🎲 召喚チケット ×1 (💎300)`});
+  return rewards;
+}
+
+function updateRankBar(){
+  const rank=S.rank||1, exp=S.rankExp||0, need=rankExpNeeded(rank);
+  const pct=Math.min(exp/need*100,100).toFixed(1);
+  const label=document.getElementById('rank-bar-label');
+  const fill=document.getElementById('rank-exp-fill');
+  const txt=document.getElementById('rank-exp-txt');
+  const prank=document.getElementById('home-prank');
+  if(label) label.textContent=`Rank ${rank}`;
+  if(fill)  fill.style.width=pct+'%';
+  if(txt)   txt.textContent=`${exp}/${need}`;
+  if(prank) prank.textContent=`Rank ${rank}`;
+}
+
+function addRankExp(exp){
+  if(!S.rank) S.rank=1;
+  if(!S.rankExp) S.rankExp=0;
+  S.rankExp+=exp;
+  const queue=[];
+  while(S.rankExp>=rankExpNeeded(S.rank)){
+    S.rankExp-=rankExpNeeded(S.rank);
+    S.rank++;
+    const rewards=getRankupRewards(S.rank);
+    rewards.forEach(r=>{ if(r.type==='gem') S.gem+=r.amount; if(r.type==='gold') S.gold+=r.amount; });
+    queue.push({rank:S.rank,rewards});
+  }
+  saveGame(); updateRankBar();
+  return queue;
+}
+
+function showRankupSequence(queue){
+  if(!queue.length) return;
+  const ru=queue[0];
+  document.getElementById('rankup-rank-num').textContent=ru.rank;
+  document.getElementById('rankup-rw-list').innerHTML=ru.rewards.map(r=>`<div class="rankup-rw-item">${r.label}</div>`).join('');
+  document.getElementById('rankup-overlay').classList.add('show');
+  sfx('win');
+  document.getElementById('rankup-overlay').dataset.queue=JSON.stringify(queue.slice(1));
+}
+
+function closeRankup(){
+  const overlay=document.getElementById('rankup-overlay');
+  const rest=JSON.parse(overlay.dataset.queue||'[]');
+  overlay.classList.remove('show');
+  if(rest.length) setTimeout(()=>showRankupSequence(rest),400);
+  else refreshHome();
+}
+
+function calcQuestExp(quest){
+  const base=Math.floor(quest.enemy.hp/100+quest.enemy.atk/5);
+  return quest.boss?base*3:base;
+}
+
+// ================================================================
+//  SETTINGS
+// ================================================================
+function onSeVol(v){ S.seVol=v/100; document.getElementById('se-vol-val').textContent=v; if(AC&&seGain) seGain.gain.value=S.seOn?S.seVol:0; saveGame(); }
+function toggleSe(){ S.seOn=!S.seOn; document.getElementById('se-toggle').classList.toggle('on',S.seOn); if(AC&&seGain) seGain.gain.value=S.seOn?S.seVol:0; saveGame(); }
+function toggleBubble(){ S.bubbleOn=!S.bubbleOn; document.getElementById('bubble-toggle').classList.toggle('on',S.bubbleOn); saveGame(); }
+function confirmReset(){
+  showModal('データリセット','全てのデータを削除します。この操作は取り消せません。',[
+    {label:'リセットする',action:()=>{ S={...DEFAULT_S,playerId:S.playerId}; localStorage.removeItem(SAVE_KEY); showToast('リセットしました'); goTo('home'); }},
+    {label:'キャンセル',action:()=>{},primary:true},
+  ]);
+}
+
+// ================================================================
+//  TRANSFER
+// ================================================================
+function showTransferModal(){ sfx('click'); document.getElementById('transfer-modal').classList.add('show'); document.getElementById('transfer-id-input').value=''; }
+function closeTransferModal(){ document.getElementById('transfer-modal').classList.remove('show'); }
+function doTransfer(){
+  const id=document.getElementById('transfer-id-input').value.trim();
+  if(!id||id.length<8){ showToast('正しいIDを入力してください'); return; }
+  sfx('click'); transferAccount(id);
+}
+
+// ================================================================
+//  CHAR DETAIL / GROW
+// ================================================================
+let detailCharId=-1;
+const RARITY_COST={R:1,SR:2.5,SSR:6,UR:15};
+
+function calcLvCost(rarity,lv){ return Math.round(500*(RARITY_COST[rarity]||1)*Math.ceil(lv/10)); }
+function calcBreakCost(rarity,stage){ return Math.round(200*(RARITY_COST[rarity]||1)*Math.pow(stage+1,1.5)); }
+
+function openCharDetail(charId){
+  sfx('click'); detailCharId=charId;
+  refreshCharDetail();
+  document.getElementById('char-detail-overlay').classList.add('show');
+}
+
+function refreshCharDetail(){
+  const id=detailCharId;
+  const owned=S.ownedData||{};
+  const charData=owned[id]||{level:1,exp:0,breakthrough:0};
+  const base=CHARS.find(c=>c.id===id); if(!base) return;
+  const lv=charData.level;
+  const lvMul=1+(lv-1)*0.08+(charData.breakthrough||0)*0.15;
+  const hp=Math.round(base.hp*lvMul), atk=Math.round(base.atk*lvMul);
+  const expNeeded=lv*100, expPct=Math.min((charData.exp||0)/expNeeded*100,100);
+  const rarColor=base.rarity==='UR'?'#ffe040':base.rarity==='SSR'?'#d4a020':base.rarity==='SR'?'#a060e0':'#4080c0';
+  document.getElementById('cdp-icon').textContent=base.emoji;
+  document.getElementById('cdp-icon').style.background=base.bg;
+  document.getElementById('cdp-icon').style.border=`1.5px solid ${base.border}`;
+  document.getElementById('cdp-name').textContent=base.name;
+  document.getElementById('cdp-rar').textContent=base.rarity;
+  document.getElementById('cdp-rar').style.color=rarColor;
+  document.getElementById('cdp-lv-txt').textContent=`Lv.${lv} / 100`;
+  document.getElementById('cdp-exp-txt').textContent=`EXP: ${charData.exp||0} / ${expNeeded}`;
+  document.getElementById('cdp-exp-fill').style.width=expPct+'%';
+  document.getElementById('cdp-hp').textContent=hp;
+  document.getElementById('cdp-atk').textContent=atk;
+  document.getElementById('cdp-rar2').textContent=base.rarity;
+  document.getElementById('cdp-rar2').style.color=rarColor;
+  document.getElementById('cdp-break').textContent=`${charData.breakthrough||0} / 5`;
+  const lvCost=calcLvCost(base.rarity,lv);
+  const brStage=charData.breakthrough||0;
+  const brCost=calcBreakCost(base.rarity,brStage);
+  document.getElementById('lvup-cost').textContent=`💰 ${lvCost.toLocaleString()}`;
+  document.getElementById('break-cost').textContent=lv<(brStage+1)*20?`Lv.${(brStage+1)*20}必要`:`💎 ${brCost.toLocaleString()}`;
+}
+
+function levelUpChar(){
+  if(detailCharId===-1) return;
+  if(!S.ownedData) S.ownedData={};
+  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
+  const cd=S.ownedData[detailCharId];
+  const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
+  const maxLv=20+(cd.breakthrough||0)*20;
+  if(cd.level>=maxLv){ showToast((cd.breakthrough||0)>=5?'最大レベルです！':`限界突破が必要です（上限Lv.${maxLv}）`); return; }
+  const cost=calcLvCost(base.rarity,cd.level);
+  if(S.gold<cost){ showToast(`💰 ゴールドが足りません（必要: ${cost.toLocaleString()}）`); return; }
+  S.gold-=cost; cd.level++;
+  saveGame(); sfx('select');
+  showToast(`✨ ${base.name} → Lv.${cd.level}！`);
+  refreshCharDetail(); refreshHome();
+}
+
+function breakthroughChar(){
+  if(detailCharId===-1) return;
+  if(!S.ownedData) S.ownedData={};
+  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
+  const cd=S.ownedData[detailCharId];
+  const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
+  const stage=cd.breakthrough||0;
+  if(stage>=5){ showToast('最大限界突破済みです！'); return; }
+  const reqLv=(stage+1)*20;
+  if(cd.level<reqLv){ showToast(`Lv.${reqLv}に達してから限界突破できます`); return; }
+  const cost=calcBreakCost(base.rarity,stage);
+  if(S.gem<cost){ showToast(`💎 深海結晶が足りません（必要: ${cost.toLocaleString()}）`); return; }
+  S.gem-=cost; cd.breakthrough=stage+1;
+  saveGame(); sfx('win');
+  showToast(`💥 ${base.name} 限界突破${cd.breakthrough}段階！上限Lv.${20+cd.breakthrough*20}に解放！`);
+  refreshCharDetail(); refreshHome();
+}
+
+function closeCharDetail(e){
+  if(e&&e.target!==document.getElementById('char-detail-overlay')) return;
+  document.getElementById('char-detail-overlay').classList.remove('show');
+  detailCharId=-1;
+}
+
+function equipTitle(title){
+  S.equippedTitle=title; saveGame(); renderAchieve(); updatePlayerNameDisplay();
+}
+
+// ================================================================
+//  BATTLE END / FLEE
+// ================================================================
+function winBattle(){
+  BT.active=false; sfx('win');
+  S.gold+=BT.quest.gold; S.gem+=BT.quest.gem;
+  S.dailyDone=Math.min(5,S.dailyDone+1);
+  if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
+  if(BT.quest.isTower) onTowerClear(BT.quest);
+  if(BT.quest.isGrind){
+    const gv=document.getElementById('grind-gold-val');
+    if(gv) gv.textContent=S.gold.toLocaleString();
+    if(BT.grindRemain>0){
+      BT.grindRemain--;
+      const qid=BT.grindQid, ap=BT.grindParty;
+      const q=GRIND_QUESTS.find(g=>g.id===qid);
+      if(q&&ap&&ap.length){
+        document.getElementById('end-ttl').textContent='VICTORY';
+        document.getElementById('end-ttl').className='end-ttl end-win';
+        document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold.toLocaleString()}  残り${BT.grindRemain}回`;
+        document.getElementById('battle-end').classList.add('show');
+        setTimeout(()=>{
+          document.getElementById('battle-end').classList.remove('show');
+          const nq={id:`grind_${qid}`,name:`${q.name} (残${BT.grindRemain}回)`,enemy:q.enemy,gold:q.gold,gem:0,boss:false,bgColor:['#050a00','#0a1400'],story:[],isGrind:true,grindQid:qid};
+          BT.fromScreen='grind'; initBattle(nq,ap);
+        },1200);
+        return;
+      }
+    }
+  }
+  if(BT.quest.isPvp) onPvpEnd(true,BT.quest);
+  checkAllAchievements();
+  const gainExp=calcQuestExp(BT.quest);
+  const rankups=addRankExp(gainExp);
+  document.getElementById('end-ttl').textContent='VICTORY';
+  document.getElementById('end-ttl').className='end-ttl end-win';
+  document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold.toLocaleString()}  💎 +${BT.quest.gem}`;
+  const expRow=document.getElementById('end-exp-row');
+  const expBar=document.getElementById('end-exp-bar');
+  const expLbl=document.getElementById('end-exp-label');
+  const expTxt=document.getElementById('end-exp-txt');
+  if(expRow){ expRow.style.display='flex'; if(expLbl) expLbl.textContent=`EXP +${gainExp}`; if(expTxt) expTxt.textContent=`Rank ${S.rank}`; if(expBar){ expBar.style.width='0%'; const need=rankExpNeeded(S.rank); const pct=Math.min(S.rankExp/need*100,100).toFixed(1); setTimeout(()=>{expBar.style.width=pct+'%';},400); }}
+  saveGame();
+  document.getElementById('battle-end').classList.add('show');
+  if(rankups.length) setTimeout(()=>{ document.getElementById('battle-end').classList.remove('show'); showRankupSequence(rankups); },1800);
+}
+
+function loseBattle(){
+  BT.active=false; sfx('lose');
+  if(BT.quest&&BT.quest.isPvp) onPvpEnd(false,BT.quest);
+  document.getElementById('end-ttl').textContent='DEFEAT';
+  document.getElementById('end-ttl').className='end-ttl end-lose';
+  document.getElementById('end-rw-val').textContent='報酬なし';
+  document.getElementById('battle-end').classList.add('show');
+}
+
+function endBattle(){
+  document.getElementById('battle-end').classList.remove('show');
+  goTo(BT.fromScreen||'home');
+  refreshAfterBattle();
+}
+
+function refreshAfterBattle(){
+  if(BT.fromScreen==='quest') renderMap();
+  else if(BT.fromScreen==='tower') renderTower();
+  else if(BT.fromScreen==='pvp') renderPvp();
+  else if(BT.fromScreen==='grind') renderGrind();
+}
+
+function fleeConfirm(){
+  sfx('click');
+  showModal('撤退確認','クエストを中断しますか？',[
+    {label:'撤退する',action:()=>{ BT.active=false; document.getElementById('battle-end').classList.remove('show'); goTo(BT.fromScreen||'home'); refreshAfterBattle(); }},
+    {label:'続ける',action:()=>{},primary:true},
+  ]);
+}
+
+// ================================================================
+//  PVP NPC BATTLE
+// ================================================================
+function startPvpBattle(){
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){ showModal('パーティ未編成','パーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]); return; }
+  const rank=S.pvpRank||1200;
+  const opponent=PVP_DUMMY_OPPONENTS[Math.floor(Math.random()*PVP_DUMMY_OPPONENTS.length)];
+  const enemy={name:opponent.name,emoji:'⚔️',hp:opponent.party.reduce((s,id)=>{const c=CHARS.find(ch=>ch.id===id);return s+(c?c.hp:500);},0),atk:Math.round(Math.max(...opponent.party.map(id=>{const c=CHARS.find(ch=>ch.id===id);return c?c.atk:80;}))*1.2),spd:rank>=1400?2:1,boss:false};
+  const pvpQuest={id:`pvp_${Date.now()}`,name:`⚔️ vs ${opponent.name}`,enemy,gold:100+Math.round((rank-1000)/10),gem:5+Math.round((rank-1000)/100),boss:false,bgColor:['#050010','#100020'],story:[],isPvp:true,opponent};
+  sfx('click'); BT.fromScreen='pvp'; initBattle(pvpQuest,ap);
+}
 </script>
 </body>
 </html>
