@@ -577,6 +577,77 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .grind-count-btn:hover{background:rgba(60,40,0,.4);border-color:rgba(220,160,0,.5);}
 .grind-count-btn.selected{background:rgba(120,80,0,.5);border-color:rgba(255,200,0,.6);color:#ffe080;}
 
+
+/* ===== REALTIME PVP BATTLE ===== */
+.pvp-battle-screen{position:fixed;inset:0;z-index:180;display:none;flex-direction:column;background:#020810;}
+.pvp-battle-screen.show{display:flex;}
+
+/* コイントス */
+.cointoss-overlay{position:fixed;inset:0;z-index:190;background:rgba(0,0,0,.95);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.cointoss-overlay.show{display:flex;}
+.cointoss-coin{font-size:72px;animation:coinSpin 0.6s linear infinite;}
+@keyframes coinSpin{0%{transform:rotateY(0deg);}50%{transform:rotateY(90deg);opacity:.3;}100%{transform:rotateY(180deg);}}
+.cointoss-result{font-size:28px;font-weight:700;letter-spacing:.1em;opacity:0;transition:opacity .5s;}
+.cointoss-result.show{opacity:1;}
+
+/* PvP戦闘ヘッダー */
+.pvp-btl-header{background:rgba(2,6,14,.95);border-bottom:.5px solid var(--border2);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;}
+.pvp-btl-turn{font-size:11px;font-weight:500;}
+.pvp-btl-timer{font-size:14px;font-weight:700;color:var(--teal);min-width:32px;text-align:center;}
+.pvp-btl-timer.warn{color:#ff6060;animation:timerBlink .5s infinite;}
+@keyframes timerBlink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.pvp-btl-phase{font-size:10px;color:var(--text2);}
+
+/* 相手エリア */
+.pvp-opp-area{background:rgba(60,10,120,.1);border-bottom:.5px solid rgba(120,60,220,.2);padding:10px 12px;flex-shrink:0;}
+.pvp-opp-name{font-size:11px;color:#c080ff;margin-bottom:6px;font-weight:500;}
+.pvp-opp-hp-row{display:flex;gap:5px;}
+.pvp-opp-card-hp{flex:1;background:rgba(60,10,120,.3);border:.5px solid rgba(120,60,220,.3);border-radius:6px;padding:5px 6px;}
+.pvp-opp-card-name{font-size:8px;color:rgba(180,120,255,.7);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pvp-opp-card-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.pvp-opp-card-fill{height:100%;background:linear-gradient(90deg,#c080ff,#8040ff);border-radius:2px;transition:width .4s;}
+.pvp-opp-card-val{font-size:8px;color:rgba(180,120,255,.6);margin-top:2px;}
+.pvp-opp-card-hp.targeted{border-color:rgba(255,100,100,.6);background:rgba(80,10,10,.4);animation:targetPulse .3s 3;}
+@keyframes targetPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+
+/* ダメージ表示 */
+.pvp-dmg-popup{position:absolute;font-size:22px;font-weight:700;pointer-events:none;animation:dmgAnim .9s forwards;z-index:20;}
+
+/* 自分エリア */
+.pvp-my-area{flex:1;display:flex;flex-direction:column;padding:10px 12px 0;overflow:hidden;}
+.pvp-my-name{font-size:11px;color:var(--teal);margin-bottom:6px;font-weight:500;}
+.pvp-my-card-row{display:flex;gap:5px;margin-bottom:8px;}
+.pvp-my-card{flex:1;background:rgba(0,20,40,.6);border:.5px solid var(--border2);border-radius:8px;padding:6px 4px;text-align:center;cursor:pointer;transition:border-color .15s,transform .1s;position:relative;}
+.pvp-my-card:hover{border-color:rgba(20,120,200,.5);transform:translateY(-3px);}
+.pvp-my-card.selected{border-color:var(--teal);background:rgba(10,80,70,.3);transform:translateY(-5px);box-shadow:0 0 10px rgba(16,192,160,.3);}
+.pvp-my-card.dead{opacity:.25;pointer-events:none;}
+.pvp-my-card.hit{border-color:rgba(255,80,80,.6);background:rgba(80,10,10,.4);animation:cardHit .4s;}
+@keyframes cardHit{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.pvp-card-emoji{font-size:22px;margin-bottom:2px;}
+.pvp-card-name{font-size:8px;color:var(--text2);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pvp-card-hp-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.pvp-card-hp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#20d0a0);border-radius:2px;transition:width .4s;}
+.pvp-card-hp-val{font-size:8px;color:var(--text3);margin-top:2px;}
+.pvp-card-atk{font-size:9px;color:var(--gold);margin-top:1px;}
+.pvp-card-dead-mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(0,0,0,.5);border-radius:8px;}
+
+/* アクションエリア */
+.pvp-action-area{padding:8px 12px 12px;background:rgba(2,6,14,.9);flex-shrink:0;}
+.pvp-action-info{font-size:10px;color:var(--text3);text-align:center;margin-bottom:6px;min-height:16px;}
+.pvp-atk-btn{width:100%;padding:11px;border-radius:10px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.4);font-size:13px;font-weight:500;color:var(--teal);cursor:pointer;font-family:inherit;transition:background .2s;}
+.pvp-atk-btn:hover{background:rgba(20,120,80,.5);}
+.pvp-atk-btn:disabled{opacity:.35;cursor:default;}
+.pvp-wait-txt{text-align:center;font-size:12px;color:rgba(180,120,255,.7);padding:10px 0;animation:waitPulse 1.5s infinite;}
+@keyframes waitPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ログ */
+.pvp-log{max-height:60px;overflow-y:auto;padding:4px 12px;background:rgba(0,0,0,.3);flex-shrink:0;}
+.pvp-log::-webkit-scrollbar{width:2px;}
+.pvp-log-line{font-size:9px;color:var(--text3);padding:1px 0;}
+.pvp-log-line.atk{color:var(--teal);}
+.pvp-log-line.recv{color:#ff8080;}
+.pvp-log-line.sys{color:var(--text2);}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -812,6 +883,48 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   </div>
 </div>
 
+
+<!-- REALTIME PVP BATTLE SCREEN -->
+<div class="pvp-battle-screen" id="pvp-battle-screen">
+  <!-- コイントス -->
+  <div class="cointoss-overlay" id="cointoss-overlay">
+    <div style="font-size:12px;color:var(--text2);letter-spacing:.15em;">COIN TOSS</div>
+    <div class="cointoss-coin" id="cointoss-coin">🪙</div>
+    <div class="cointoss-result" id="cointoss-result"></div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px;" id="cointoss-sub"></div>
+  </div>
+
+  <!-- ヘッダー -->
+  <div class="pvp-btl-header">
+    <div>
+      <div class="pvp-btl-turn" id="pvp-btl-turn">ターン 1</div>
+      <div class="pvp-btl-phase" id="pvp-btl-phase">準備中...</div>
+    </div>
+    <div class="pvp-btl-timer" id="pvp-btl-timer">60</div>
+    <div onclick="confirmPvpForfeit()" style="font-size:10px;color:var(--text3);cursor:pointer;padding:4px 8px;">降参</div>
+  </div>
+
+  <!-- 相手HP -->
+  <div class="pvp-opp-area" style="position:relative;">
+    <div class="pvp-opp-name" id="pvp-opp-name">相手: ???</div>
+    <div class="pvp-opp-hp-row" id="pvp-opp-hp-row"></div>
+  </div>
+
+  <!-- 自分カード -->
+  <div class="pvp-my-area">
+    <div class="pvp-my-name" id="pvp-my-name">自分</div>
+    <div class="pvp-my-card-row" id="pvp-my-card-row"></div>
+    <div class="pvp-log" id="pvp-log"></div>
+  </div>
+
+  <!-- アクション -->
+  <div class="pvp-action-area">
+    <div class="pvp-action-info" id="pvp-action-info">カードを選択して攻撃</div>
+    <div id="pvp-action-btn-wrap">
+      <button class="pvp-atk-btn" id="pvp-atk-btn" onclick="pvpAttack()">⚔️ 攻撃する</button>
+    </div>
+  </div>
+</div>
 <!-- GRIND SCREEN -->
 <div class="screen" id="screen-grind">
   <div class="header">
@@ -2897,6 +3010,833 @@ function onTowerClear(quest){
   saveGame();
 }
 
+
+function checkAchievement(id, condition){
+  if(!condition) return false;
+  if(S.achievements&&S.achievements[id]) return false; // 既に解除済み
+  const def = ACHIEVEMENT_LIST.find(a=>a.id===id);
+  if(!def) return false;
+  if(!S.achievements) S.achievements={};
+  S.achievements[id] = Date.now();
+  // 報酬付与
+  if(def.reward.gem)  S.gem  += def.reward.gem;
+  if(def.reward.gold) S.gold += def.reward.gold;
+  saveGame();
+  showToast(`🎖️ 実績解除「${def.name}」！ 💎+${def.reward.gem||0}`);
+  sfx('win');
+  return true;
+}
+
+function checkAllAchievements(){
+  ACHIEVEMENT_LIST.forEach(a=>{
+    if(!(S.achievements&&S.achievements[a.id])){
+      checkAchievement(a.id, a.cond(S));
+    }
+  });
+}
+
+function renderAchieve(){
+  const unlocked = ACHIEVEMENT_LIST.filter(a=>S.achievements&&S.achievements[a.id]);
+  const locked   = ACHIEVEMENT_LIST.filter(a=>!(S.achievements&&S.achievements[a.id]));
+  const countEl  = document.getElementById('achieve-count');
+  if(countEl) countEl.textContent=`${unlocked.length}/${ACHIEVEMENT_LIST.length}`;
+
+  // 称号一覧（解除済みで称号があるもの）
+  const titles = unlocked.filter(a=>a.title);
+  let html=`<div class="achieve-section-title">装備中の称号</div>
+    <div style="margin-bottom:12px;">
+      ${S.equippedTitle
+        ?`<span style="font-size:13px;font-weight:500;">「${S.equippedTitle}」</span>
+           <span onclick="equipTitle('')" style="font-size:9px;color:var(--text3);cursor:pointer;margin-left:8px;">はずす</span>`
+        :`<span style="font-size:11px;color:var(--text3);">称号未装備</span>`}
+    </div>`;
+
+  if(titles.length){
+    html+=`<div class="achieve-section-title">取得済み称号</div>`;
+    html+=titles.map(a=>`
+      <div class="achieve-card unlocked">
+        <div class="achieve-ico">${a.emoji}</div>
+        <div class="achieve-info">
+          <div class="achieve-name">「${a.title}」</div>
+          <div class="achieve-desc">${a.desc}で獲得</div>
+        </div>
+        <div onclick="equipTitle('${a.title}')" class="title-equip-btn">装備</div>
+      </div>`).join('');
+  }
+
+  html+=`<div class="achieve-section-title">実績一覧（${unlocked.length}/${ACHIEVEMENT_LIST.length}）</div>`;
+  html+=unlocked.map(a=>`
+    <div class="achieve-card unlocked">
+      <div class="achieve-ico">${a.emoji}</div>
+      <div class="achieve-info">
+        <div class="achieve-name">${a.name}</div>
+        <div class="achieve-desc">${a.desc}</div>
+      </div>
+      <div class="achieve-rw">💎${a.reward.gem||0}</div>
+    </div>`).join('');
+
+  html+=locked.map(a=>`
+    <div class="achieve-card">
+      <div class="achieve-ico locked">${a.emoji}</div>
+      <div class="achieve-info">
+        <div class="achieve-name" style="color:var(--text3);">${a.name}</div>
+        <div class="achieve-desc">${a.desc}</div>
+      </div>
+      <div class="achieve-rw" style="color:var(--text3);">💎${a.reward.gem||0}</div>
+    </div>`).join('');
+
+  document.getElementById('achieve-content').innerHTML=html;
+}
+
+function equipTitle(title){
+  S.equippedTitle = title;
+  saveGame();
+  renderAchieve();
+  updatePlayerNameDisplay();
+}
+
+function updatePlayerNameDisplay(){
+  const el = document.querySelector('.pname');
+  if(el) el.textContent = '深海司令官' + (S.equippedTitle?` 「${S.equippedTitle}」`:'');
+}
+
+// ================================================================
+//  👥 FRIEND（フレンド・助っ人）
+// ================================================================
+function renderFriend(){
+  const friends = S.friends||[];
+  let html=`
+    <div class="friend-id-box">
+      <div class="friend-id-label">あなたのプレイヤーID（フレンド追加に使用）</div>
+      <div class="friend-id-val">${S.playerId||'----'}</div>
+      <div onclick="copyPlayerId()" style="font-size:9px;color:var(--teal);margin-top:6px;cursor:pointer;">📋 IDをコピー</div>
+    </div>
+    <div class="friend-search-row">
+      <input class="search-input" id="friend-search-input" placeholder="フレンドのIDを入力..." style="flex:1;">
+      <button onclick="addFriendById()" style="padding:8px 14px;border-radius:8px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-family:inherit;font-size:12px;">追加</button>
+    </div>`;
+
+  if(friends.length===0){
+    html+=`<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンドがいません<br>IDを交換して追加しましょう！</div>`;
+  } else {
+    html+=`<div style="font-size:10px;color:var(--text2);margin-bottom:8px;">フレンド（${friends.length}人）</div>`;
+    html+=friends.map(f=>`
+      <div class="friend-card">
+        <div class="friend-card-ico">🌊</div>
+        <div>
+          <div class="friend-card-name">${f.name||'司令官'}</div>
+          <div class="friend-card-rank">ID: ${f.id} | Rank ${f.rank||1}</div>
+        </div>
+        <div onclick="removeFriend('${f.id}')" class="friend-action-btn friend-remove-btn">削除</div>
+      </div>`).join('');
+  }
+
+  // 助っ人セクション（所持キャラの最強を表示）
+  html+=`<div style="font-size:10px;color:var(--text2);margin:14px 0 8px;">助っ人（フレンドの最強キャラを借りられます）</div>`;
+  if(friends.length===0){
+    html+=`<div style="font-size:10px;color:var(--text3);">フレンドを追加すると助っ人を借りられます</div>`;
+  } else {
+    html+=friends.map(f=>{
+      const ch = f.topChar ? CHARS.find(c=>c.id===f.topChar) : null;
+      if(!ch) return '';
+      return `<div class="helper-card" onclick="showToast('助っ人機能は近日実装予定！')">
+        <div class="helper-char-ico" style="background:${ch.bg};border:1px solid ${ch.border}">${ch.emoji}</div>
+        <div>
+          <div style="font-size:11px;font-weight:500;">${ch.name}</div>
+          <div style="font-size:9px;color:var(--text2);">${f.name||'司令官'}の助っ人 | Lv.${f.topLv||1} ${ch.rarity}</div>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('') || `<div style="font-size:10px;color:var(--text3);">フレンドのキャラ情報を取得できません</div>`;
+  }
+
+  document.getElementById('friend-content').innerHTML=html;
+}
+
+async function addFriendById(){
+  const input = document.getElementById('friend-search-input');
+  const id = (input?.value||'').trim().toUpperCase();
+  if(!id){ showToast('IDを入力してください'); return; }
+  if(id===S.playerId){ showToast('自分自身は追加できません'); return; }
+  if((S.friends||[]).some(f=>f.id===id)){ showToast('既にフレンドです'); return; }
+
+  try{
+    const snap = await db.collection('players').where('playerId','==',id).limit(1).get();
+    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
+    const data = snap.docs[0].data();
+    // 最強キャラを取得
+    const topCharId = data.owned && data.owned.length > 0 ?
+      data.owned.sort((a,b)=>{
+        const ca=CHARS.find(c=>c.id===a),cb=CHARS.find(c=>c.id===b);
+        const order={UR:4,SSR:3,SR:2,R:1};
+        return (order[cb?.rarity]||0)-(order[ca?.rarity]||0);
+      })[0] : null;
+    const topData = data.ownedData && topCharId ? data.ownedData[topCharId] : null;
+
+    if(!S.friends) S.friends=[];
+    S.friends.push({
+      id: data.playerId,
+      name: '深海司令官',
+      rank: data.rank||1,
+      topChar: topCharId,
+      topLv: topData?.level||1,
+    });
+    saveGame();
+    showToast(`✅ ${data.playerId} をフレンド追加しました！`);
+    renderFriend();
+  }catch(e){
+    showToast('❌ フレンド追加に失敗しました');
+    console.log(e);
+  }
+}
+
+function removeFriend(id){
+  S.friends = (S.friends||[]).filter(f=>f.id!==id);
+  saveGame();
+  renderFriend();
+  showToast('フレンドを削除しました');
+}
+
+// ================================================================
+//  ⚔️ PVP（闘技場）
+// ================================================================
+// 模擬対戦相手（Firebase未対応の場合はダミー）
+
+async function renderPvp(){
+  const rank     = S.pvpRank  || 1200;
+  const wins     = S.pvpWin   || 0;
+  const losses   = S.pvpLose  || 0;
+  const rankName = rank>=2000?'旧破神':rank>=1800?'深淵王':rank>=1600?'覇者':rank>=1400?'上級戦士':rank>=1200?'戦士':'見習い';
+  const opponents = [...PVP_DUMMY_OPPONENTS].sort((a,b)=>Math.abs(a.rank-rank)-Math.abs(b.rank-rank));
+
+  document.getElementById('pvp-content').innerHTML=`
+    <div class="pvp-rank-box">
+      <div class="pvp-rank-lbl">ARENA RANK</div>
+      <div class="pvp-rank-val">${rankName}</div>
+      <div class="pvp-rank-pts">${rank} pts</div>
+      <div class="pvp-record">
+        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--teal)">${wins}</div><div class="pvp-rec-lbl">勝利</div></div>
+        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--red)">${losses}</div><div class="pvp-rec-lbl">敗北</div></div>
+        <div class="pvp-rec-item"><div class="pvp-rec-val">${wins+losses>0?Math.round(wins/(wins+losses)*100):0}%</div><div class="pvp-rec-lbl">勝率</div></div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">⚔️ プレイヤー対戦</div>
+    <div style="background:rgba(60,10,120,.2);border:.5px solid rgba(120,60,220,.3);border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:10px;color:rgba(180,120,255,.8);margin-bottom:8px;">合言葉マッチング — 同じ合言葉のプレイヤーと対戦</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="pvp-code-input" class="search-input" placeholder="合言葉を入力（例: abyssal）" style="flex:1;">
+        <button onclick="joinPvpRoom()" style="padding:8px 12px;border-radius:8px;border:.5px solid rgba(120,60,220,.4);background:rgba(60,10,120,.3);color:#c080ff;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;">参加</button>
+      </div>
+      <div id="pvp-match-status" style="font-size:10px;color:var(--text3);text-align:center;"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">🤖 NPCと対戦</div>
+    <button class="pvp-battle-btn" onclick="startPvpBattle()" style="margin-bottom:14px;">⚔️ NPC対戦開始</button>
+
+    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">🏆 オンラインランキング</div>
+    <div id="pvp-ranking-list"><div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0;">読み込み中...</div></div>
+
+    <div style="font-size:10px;color:var(--text2);margin-top:10px;margin-bottom:6px;">NPC対戦相手候補</div>
+    ${opponents.slice(0,3).map(opp=>{
+      const diff=opp.rank-rank;
+      const diffCol=diff>0?'#e06060':diff<0?'#40c080':'var(--text2)';
+      return`<div class="pvp-opponent-card">
+        <div class="pvp-opp-ico">🤖</div>
+        <div style="flex:1;"><div style="font-size:12px;font-weight:500;">${opp.name}</div><div style="font-size:9px;color:var(--text2);">${opp.wins}勝 ${opp.losses}敗</div></div>
+        <div style="text-align:right;"><div style="font-size:11px;">${opp.rank}pts</div><div style="font-size:9px;color:${diffCol};">${diff>0?'+':''}${diff}</div></div>
+      </div>`;
+    }).join('')}
+  `;
+  // ランキング非同期取得
+  loadPvpRanking();
+}
+
+async function loadPvpRanking(){
+  try{
+    const snap = await db.collection('players')
+      .orderBy('pvpRank','desc').limit(20).get();
+    const el = document.getElementById('pvp-ranking-list');
+    if(!el) return;
+    if(snap.empty){ el.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:10px 0;">まだランキングデータがありません</div>'; return; }
+    const myId = S.playerId;
+    el.innerHTML = snap.docs.map((d,i)=>{
+      const u = d.data();
+      const isMe = u.playerId===myId;
+      const rankName2 = (u.pvpRank||1200)>=2000?'旧破神':(u.pvpRank||1200)>=1800?'深淵王':(u.pvpRank||1200)>=1600?'覇者':(u.pvpRank||1200)>=1400?'上級戦士':(u.pvpRank||1200)>=1200?'戦士':'見習い';
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;margin-bottom:5px;background:${isMe?'rgba(120,60,220,.15)':'rgba(0,20,40,.4)'};border:.5px solid ${isMe?'rgba(120,60,220,.4)':'var(--border2)'};">
+        <div style="font-size:12px;width:20px;text-align:center;flex-shrink:0;">${medal||'#'+(i+1)}</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:${isMe?700:400};color:${isMe?'#c080ff':'var(--text)'};">${u.playerId||'???'}${isMe?' (自分)':''}</div>
+          <div style="font-size:9px;color:var(--text2);">${rankName2} | ${u.pvpWin||0}勝 ${u.pvpLose||0}敗</div>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:#c080ff;">${u.pvpRank||1200}pts</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    const el=document.getElementById('pvp-ranking-list');
+    if(el) el.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:10px 0;">ランキング取得失敗（Firestoreインデックスが必要な場合があります）</div>';
+    console.log('[PVP] ranking error:', e);
+  }
+}
+
+// ================================================================
+//  合言葉マッチング（リアルタイムPvP）
+// ================================================================
+let pvpBattleState = null; // リアルタイム戦闘状態
+
+async function joinPvpRoom(){
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){ showToast('パーティを編成してください'); return; }
+  const code = (document.getElementById('pvp-code-input')?.value||'').trim().toLowerCase();
+  if(!code){ showToast('合言葉を入力してください'); return; }
+
+  const statusEl = document.getElementById('pvp-match-status');
+  if(statusEl) statusEl.textContent='🔍 マッチング中...';
+
+  try{
+    const roomRef = db.collection('pvp_rooms').doc(code);
+    const room = await roomRef.get();
+
+    // 自分のカードデータ（パーティHP合計）
+    const myCards = ap.map(id=>{
+      const c = CHARS.find(ch=>ch.id===id);
+      const cd = (S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
+      const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+      return {
+        id, name:c.name, emoji:c.emoji,
+        hp: Math.round(c.hp*lvMul),
+        maxHp: Math.round(c.hp*lvMul),
+        atk: Math.round(c.atk*lvMul),
+      };
+    });
+
+    if(!room.exists){
+      // 部屋作成（待機）
+      await roomRef.set({
+        hostId: S.playerId,
+        hostCards: myCards,
+        hostRank: S.pvpRank||1200,
+        createdAt: Date.now(),
+        status:'waiting',
+        turn:1, phase:'cointoss',
+        hostReady:false, guestReady:false,
+        hostSelectedCard:-1, guestSelectedCard:-1,
+        lastAction: Date.now(),
+      });
+      if(statusEl) statusEl.textContent='⏳ 相手を待っています... (合言葉: '+code+')';
+
+      // タイムアウト30秒
+      const timer = setTimeout(async()=>{
+        try{ await roomRef.delete(); }catch(e){}
+        if(pvpMatchState) pvpMatchState=null;
+        const s=document.getElementById('pvp-match-status');
+        if(s) s.textContent='⌛ タイムアウト — 相手が見つかりませんでした';
+      }, 30000);
+
+      // リアルタイム監視
+      const unsub = roomRef.onSnapshot(snap=>{
+        if(!snap.exists) return;
+        const data=snap.data();
+        if(data.status==='matched'){
+          clearTimeout(timer); unsub();
+          pvpMatchState=null;
+          if(statusEl) statusEl.textContent='✅ マッチング成立！';
+          startRtPvpBattle(roomRef, code, 'host', myCards, data);
+        }
+      });
+      pvpMatchState={code,role:'host',timer,unsub};
+
+    } else {
+      const data = room.data();
+      if(data.status!=='waiting'){ showToast('この合言葉は使用中です'); if(statusEl)statusEl.textContent=''; return; }
+      if(data.hostId===S.playerId){ showToast('自分自身とは対戦できません'); if(statusEl)statusEl.textContent=''; return; }
+
+      await roomRef.update({
+        guestId: S.playerId,
+        guestCards: myCards,
+        guestRank: S.pvpRank||1200,
+        status:'matched',
+        lastAction: Date.now(),
+      });
+      if(statusEl) statusEl.textContent='✅ マッチング成立！';
+      startRtPvpBattle(roomRef, code, 'guest', myCards, {...data, guestCards:myCards});
+    }
+  }catch(e){
+    const s=document.getElementById('pvp-match-status');
+    if(s) s.textContent='❌ エラー: '+e.message;
+    console.log('[PVP]',e);
+  }
+}
+
+// ================================================================
+//  リアルタイムPvP戦闘
+// ================================================================
+async function startRtPvpBattle(roomRef, code, role, myCards, initData){
+  // コイントス演出
+  const amHost = role==='host';
+  const oppName = amHost ? (initData.guestId||'相手') : (initData.hostId||'相手');
+  const oppCards = amHost ? initData.guestCards : initData.hostCards;
+
+  // コイントス: hostが先攻かguestが先攻かをランダム決定（hostが決定権を持つ）
+  let firstTurn;
+  if(amHost){
+    firstTurn = Math.random()<0.5 ? 'host' : 'guest';
+    await roomRef.update({firstTurn, phase:'cointoss_done'});
+  } else {
+    // guestはfirstTurnが決まるまで待つ
+    firstTurn = await new Promise(resolve=>{
+      const u = roomRef.onSnapshot(s=>{
+        const d=s.data();
+        if(d&&d.firstTurn){ u(); resolve(d.firstTurn); }
+      });
+    });
+  }
+
+  const iFirstTurn = firstTurn===role; // 自分が先攻か
+
+  // コイントス演出
+  await showCointoss(iFirstTurn, oppName);
+
+  // 戦闘状態初期化
+  pvpBattleState = {
+    roomRef, code, role, amHost,
+    myCards: myCards.map(c=>({...c})),
+    oppCards: oppCards.map(c=>({...c})),
+    oppName,
+    turn: 1,
+    myTurn: iFirstTurn,
+    selectedCard: -1,
+    turnTimer: null,
+    roomUnsub: null,
+    log: [],
+    done: false,
+  };
+
+  // 画面表示
+  openPvpBattleScreen();
+
+  // Firestoreをリアルタイム監視
+  const unsub = roomRef.onSnapshot(snap=>{
+    if(!snap.exists||pvpBattleState?.done) return;
+    const data = snap.data();
+    onPvpRoomUpdate(data);
+  });
+  pvpBattleState.roomUnsub = unsub;
+
+  // 自分のターンならタイマー開始
+  if(iFirstTurn) startPvpTurnTimer();
+}
+
+function showCointoss(isFirst, oppName){
+  return new Promise(resolve=>{
+    const overlay = document.getElementById('cointoss-overlay');
+    const coin    = document.getElementById('cointoss-coin');
+    const result  = document.getElementById('cointoss-result');
+    const sub     = document.getElementById('cointoss-sub');
+    overlay.classList.add('show');
+    coin.style.animation='coinSpin 0.4s linear infinite';
+    result.classList.remove('show');
+    result.textContent='';
+
+    setTimeout(()=>{
+      coin.style.animation='none';
+      coin.textContent = isFirst ? '⚡' : '🛡️';
+      result.textContent = isFirst ? '先攻！' : '後攻...';
+      result.style.color = isFirst ? '#60d0ff' : '#c080ff';
+      result.classList.add('show');
+      sub.textContent = `vs ${oppName}`;
+    }, 1800);
+
+    setTimeout(()=>{
+      overlay.classList.remove('show');
+      resolve();
+    }, 3500);
+  });
+}
+
+function openPvpBattleScreen(){
+  const st = pvpBattleState;
+  document.getElementById('pvp-battle-screen').classList.add('show');
+  document.getElementById('pvp-opp-name').textContent = `相手: ${st.oppName}`;
+  document.getElementById('pvp-my-name').textContent  = `自分 (${S.playerId})`;
+  renderPvpCards();
+  updatePvpPhaseUI();
+  addPvpLog(`⚔️ 対戦開始！ vs ${st.oppName}`, 'sys');
+  addPvpLog(st.myTurn ? '🟢 あなたの先攻です' : '🔴 相手の先攻です', 'sys');
+}
+
+function renderPvpCards(){
+  const st = pvpBattleState;
+  if(!st) return;
+
+  // 相手カード
+  document.getElementById('pvp-opp-hp-row').innerHTML = st.oppCards.map((c,i)=>{
+    const pct = Math.max(0, c.hp/c.maxHp*100);
+    return`<div class="pvp-opp-card-hp" id="pvp-opp-card-${i}">
+      <div class="pvp-opp-card-name">${c.emoji} ${c.name}</div>
+      <div class="pvp-opp-card-bar"><div class="pvp-opp-card-fill" style="width:${pct}%"></div></div>
+      <div class="pvp-opp-card-val">${c.hp}/${c.maxHp}</div>
+    </div>`;
+  }).join('');
+
+  // 自分カード
+  document.getElementById('pvp-my-card-row').innerHTML = st.myCards.map((c,i)=>{
+    const pct = Math.max(0, c.hp/c.maxHp*100);
+    const dead = c.hp<=0;
+    const sel  = st.selectedCard===i;
+    const col  = pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
+    return`<div class="pvp-my-card ${dead?'dead':''} ${sel&&!dead?'selected':''}" id="pvp-my-card-${i}"
+      onclick="${dead||!st.myTurn?'':'selectPvpCard('+i+')'}" >
+      <div class="pvp-card-emoji">${c.emoji}</div>
+      <div class="pvp-card-name">${c.name}</div>
+      <div class="pvp-card-hp-bar"><div class="pvp-card-hp-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="pvp-card-hp-val">${Math.max(0,c.hp)}/${c.maxHp}</div>
+      <div class="pvp-card-atk">ATK ${c.atk}</div>
+      ${dead?'<div class="pvp-card-dead-mark">💀</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function selectPvpCard(i){
+  if(!pvpBattleState?.myTurn) return;
+  pvpBattleState.selectedCard = pvpBattleState.selectedCard===i ? -1 : i;
+  sfx('select');
+  renderPvpCards();
+  const btn = document.getElementById('pvp-atk-btn');
+  if(btn) btn.textContent = pvpBattleState.selectedCard>=0
+    ? `⚔️ ${pvpBattleState.myCards[pvpBattleState.selectedCard]?.name}で攻撃`
+    : '⚔️ 攻撃する';
+}
+
+function updatePvpPhaseUI(){
+  const st = pvpBattleState;
+  if(!st) return;
+  const turnEl  = document.getElementById('pvp-btl-turn');
+  const phaseEl = document.getElementById('pvp-btl-phase');
+  const wrap    = document.getElementById('pvp-action-btn-wrap');
+  const info    = document.getElementById('pvp-action-info');
+  if(turnEl)  turnEl.textContent  = `ターン ${st.turn}`;
+  if(phaseEl) phaseEl.textContent = st.myTurn ? '🟢 あなたのターン' : '🔴 相手のターン';
+  if(wrap){
+    if(st.myTurn){
+      wrap.innerHTML=`<button class="pvp-atk-btn" id="pvp-atk-btn" onclick="pvpAttack()">⚔️ 攻撃する</button>`;
+      if(info) info.textContent='カードを選択して攻撃してください（60秒以内）';
+    } else {
+      wrap.innerHTML=`<div class="pvp-wait-txt">⏳ 相手のターンです...</div>`;
+      if(info) info.textContent='';
+    }
+  }
+}
+
+// 60秒タイマー
+function startPvpTurnTimer(){
+  const st = pvpBattleState;
+  if(!st) return;
+  let sec = 60;
+  const timerEl = document.getElementById('pvp-btl-timer');
+  if(st.turnTimer) clearInterval(st.turnTimer);
+  if(timerEl){ timerEl.textContent=sec; timerEl.classList.remove('warn'); }
+  st.turnTimer = setInterval(async()=>{
+    sec--;
+    if(timerEl){
+      timerEl.textContent=sec;
+      if(sec<=10) timerEl.classList.add('warn');
+    }
+    if(sec<=0){
+      clearInterval(st.turnTimer);
+      // タイムアウト→負け
+      addPvpLog('⌛ 時間切れ！あなたの負けです', 'sys');
+      await endRtPvpBattle(false, 'timeout');
+    }
+  }, 1000);
+}
+
+function stopPvpTurnTimer(){
+  const st = pvpBattleState;
+  if(!st) return;
+  if(st.turnTimer){ clearInterval(st.turnTimer); st.turnTimer=null; }
+  const timerEl = document.getElementById('pvp-btl-timer');
+  if(timerEl){ timerEl.textContent='--'; timerEl.classList.remove('warn'); }
+}
+
+// 攻撃実行
+async function pvpAttack(){
+  const st = pvpBattleState;
+  if(!st||!st.myTurn) return;
+  const selIdx = st.selectedCard;
+  if(selIdx<0||selIdx>=st.myCards.length){ showToast('カードを選択してください'); return; }
+  const card = st.myCards[selIdx];
+  if(card.hp<=0){ showToast('このカードはすでに倒れています'); return; }
+
+  stopPvpTurnTimer();
+  st.myTurn = false;
+  updatePvpPhaseUI();
+
+  // 攻撃対象: 相手の生きているカードからランダム
+  const aliveOpp = st.oppCards.map((c,i)=>({c,i})).filter(x=>x.c.hp>0);
+  if(!aliveOpp.length){ await endRtPvpBattle(true, 'all_dead'); return; }
+  const tgt = aliveOpp[Math.floor(Math.random()*aliveOpp.length)];
+
+  const dmg = Math.round(card.atk * (0.85+Math.random()*0.3));
+  const roleKey = st.amHost ? 'hostAction' : 'guestAction';
+
+  // Firestoreに行動を書き込み
+  await st.roomRef.update({
+    [roleKey]: {
+      attacker: selIdx,
+      target: tgt.i,
+      dmg,
+      ts: Date.now(),
+    },
+    lastAction: Date.now(),
+    turn: st.turn,
+  });
+}
+
+// Firestoreの更新を受け取って処理
+function onPvpRoomUpdate(data){
+  const st = pvpBattleState;
+  if(!st||st.done) return;
+
+  const myActionKey  = st.amHost ? 'hostAction'  : 'guestAction';
+  const oppActionKey = st.amHost ? 'guestAction' : 'hostAction';
+  const action = data[oppActionKey];
+
+  // 相手の行動が来たら処理
+  if(action && action.ts && (!st.lastOppActionTs || action.ts > st.lastOppActionTs)){
+    st.lastOppActionTs = action.ts;
+    processOppAction(action);
+  }
+}
+
+async function processOppAction(action){
+  const st = pvpBattleState;
+  if(!st||st.done) return;
+
+  const {attacker, target, dmg} = action;
+  const oppCard = st.oppCards[attacker];
+  const myCard  = st.myCards[target];
+
+  // 相手の攻撃エフェクト
+  const cardEl = document.getElementById(`pvp-my-card-${target}`);
+  if(cardEl) cardEl.classList.add('hit');
+  setTimeout(()=>{ if(cardEl) cardEl.classList.remove('hit'); }, 500);
+  sfx('hit');
+
+  // ダメージ適用
+  myCard.hp = Math.max(0, myCard.hp - dmg);
+  addPvpLog(`🔴 ${oppCard?.name||'相手'} → ${myCard.name} に ${dmg} ダメージ！`, 'recv');
+  renderPvpCards();
+
+  // 自分全滅チェック
+  if(st.myCards.every(c=>c.hp<=0)){
+    await endRtPvpBattle(false, 'all_dead');
+    return;
+  }
+
+  // ターン交代 → 自分のターン
+  st.turn++;
+  st.myTurn = true;
+  st.selectedCard = -1;
+  renderPvpCards();
+  updatePvpPhaseUI();
+  addPvpLog(`🟢 あなたのターン (ターン${st.turn})`, 'sys');
+  startPvpTurnTimer();
+}
+
+// ダメージポップアップ
+function showPvpDmg(dmg, el){
+  if(!el) return;
+  const rect = el.getBoundingClientRect();
+  const popup = document.createElement('div');
+  popup.className='pvp-dmg-popup';
+  popup.textContent=`-${dmg}`;
+  popup.style.cssText=`top:${rect.top-20}px;left:${rect.left+rect.width/2-20}px;color:#ff8080;text-shadow:0 0 8px #ff4040;`;
+  document.body.appendChild(popup);
+  setTimeout(()=>popup.remove(),900);
+}
+
+// ログ追加
+function addPvpLog(txt, type='sys'){
+  const el = document.getElementById('pvp-log');
+  if(!el) return;
+  const line = document.createElement('div');
+  line.className=`pvp-log-line ${type}`;
+  line.textContent=txt;
+  el.appendChild(line);
+  el.scrollTop=el.scrollHeight;
+}
+
+// 戦闘終了
+async function endRtPvpBattle(won, reason){
+  const st = pvpBattleState;
+  if(!st||st.done) return;
+  st.done=true;
+  stopPvpTurnTimer();
+  if(st.roomUnsub) st.roomUnsub();
+
+  // Firestore部屋削除
+  try{ await st.roomRef.delete(); }catch(e){}
+
+  // ランク更新
+  onPvpEnd(won, {opponent:{rank: st.oppCards?1400:1200}});
+  refreshHome();
+
+  // 結果表示
+  const screen = document.getElementById('pvp-battle-screen');
+  if(screen){
+    const overlay = document.createElement('div');
+    overlay.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;';
+    overlay.innerHTML=`
+      <div style="font-size:36px;font-weight:700;letter-spacing:.15em;color:${won?'#c8a020':'#cc3030'};text-shadow:0 0 20px currentColor;">${won?'VICTORY':'DEFEAT'}</div>
+      <div style="font-size:12px;color:var(--text2);">${reason==='timeout'?'時間切れ':won?'相手のパーティを全滅させた！':'自分のパーティが全滅...'}</div>
+      <div style="font-size:13px;color:${won?'var(--teal)':'#ff6060'};">ランク ${won?'+':''}${won?Math.round(20+(1400-1200)/100):-15} pts</div>
+      <button onclick="closePvpBattleScreen()" style="padding:10px 28px;border-radius:18px;border:.5px solid rgba(20,100,200,.4);background:rgba(10,40,100,.4);font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;margin-top:6px;">← 闘技場に戻る</button>
+    `;
+    screen.style.position='relative';
+    screen.appendChild(overlay);
+    sfx(won?'win':'lose');
+  }
+
+  pvpBattleState=null;
+}
+
+function closePvpBattleScreen(){
+  const screen = document.getElementById('pvp-battle-screen');
+  if(screen){
+    screen.classList.remove('show');
+    // 追加したオーバーレイを削除
+    const overlay = screen.querySelector('div[style*="rgba(0,0,0,.88)"]');
+    if(overlay) overlay.remove();
+    screen.style.position='';
+  }
+  renderPvp();
+}
+
+function confirmPvpForfeit(){
+  showModal('降参','本当に降参しますか？ランクが下がります。',[
+    {label:'降参する', action:()=>endRtPvpBattle(false,'forfeit'), primary:false},
+    {label:'続ける', action:()=>{}, primary:true},
+  ]);
+}
+
+
+// ================================================================
+//  🏆 ABYSS TOWER（無限塔）
+// ================================================================
+// 階層ごとの敵データ生成（階層が上がるほど強くなる）
+function getTowerEnemy(floor){
+  const bases=[
+    {name:'深海スライム',emoji:'🟢',hp:300,atk:40},
+    {name:'霧クラゲ',    emoji:'🪼',hp:500,atk:60},
+    {name:'岩石ガニ',    emoji:'🦀',hp:800,atk:90},
+    {name:'深海鰻',      emoji:'🐍',hp:1200,atk:130},
+    {name:'古代魚',      emoji:'🐡',hp:1800,atk:180},
+    {name:'深海竜',      emoji:'🐉',hp:3000,atk:280},
+    {name:'崩壊体',      emoji:'👾',hp:5000,atk:380},
+    {name:'旧破の使徒',  emoji:'💀',hp:8000,atk:500},
+    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700},
+    {name:'永遠の番人',  emoji:'⚫',hp:30000,atk:1000},
+  ];
+  const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
+  const base = bases[tier];
+  const mul  = 1 + (floor-1)*0.15 + Math.floor((floor-1)/10)*0.5;
+  const isBoss = floor%10===0;
+  return {
+    name: isBoss ? `【BOSS】${base.name}` : base.name,
+    emoji: isBoss ? '👑' : base.emoji,
+    hp:  Math.round(base.hp  * mul * (isBoss?3:1)),
+    atk: Math.round(base.atk * mul * (isBoss?2:1)),
+    spd: floor>=30?3:floor>=15?2:1,
+    boss: isBoss,
+  };
+}
+
+function getTowerRewards(floor){
+  const gem  = 5 + Math.floor(floor/5)*3;
+  const gold = 200 + floor*50;
+  return {gem, gold};
+}
+
+function renderTower(){
+  const floor = S.towerFloor || 1;
+  const best  = S.towerBest  || 0;
+  const enemy = getTowerEnemy(floor);
+  const rw    = getTowerRewards(floor);
+  const isBoss= floor%10===0;
+
+  document.getElementById('tower-content').innerHTML=`
+    <div class="tower-floor-header">
+      <div class="tower-floor-num">${floor}F</div>
+      <div class="tower-floor-lbl">${isBoss?'⚠️ BOSS FLOOR':'ABYSS TOWER'}</div>
+      <div class="tower-best">最高到達: ${best}F</div>
+    </div>
+    <div class="tower-enemy-card">
+      <div class="tower-enemy-ico">${enemy.emoji}</div>
+      <div class="tower-enemy-nm" style="color:${isBoss?'#cc4040':'var(--text)'}">${enemy.name}</div>
+      <div class="tower-enemy-stats">
+        <span>HP: ${enemy.hp.toLocaleString()}</span>
+        <span>ATK: ${enemy.atk}</span>
+        <span>SPD: ${enemy.spd}</span>
+      </div>
+    </div>
+    <div class="tower-rewards">
+      <div class="tower-rw-title">クリア報酬</div>
+      <div class="tower-rw-row">
+        <span>💰 ${rw.gold.toLocaleString()}</span>
+        <span>💎 ${rw.gem}</span>
+        ${isBoss?'<span style="color:var(--teal)">+ 実績解除</span>':''}
+      </div>
+    </div>
+    <button class="tower-btn" onclick="startTowerBattle()">⚔️ ${floor}Fに挑む</button>
+    <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--text3);">
+      パーティを編成してから挑戦しましょう
+    </div>
+  `;
+}
+
+function startTowerBattle(){
+  const ap = S.party.filter(id=>id!==-1);
+  if(!ap.length){
+    showModal('パーティ未編成','パーティを編成してください。',[
+      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
+    ]);
+    return;
+  }
+  const floor = S.towerFloor||1;
+  const enemy = getTowerEnemy(floor);
+  const rw    = getTowerRewards(floor);
+  // 塔専用クエストオブジェクトを生成
+  const towerQuest = {
+    id: `tower_${floor}`,
+    name: `無限塔 ${floor}F`,
+    enemy,
+    gold: rw.gold,
+    gem:  rw.gem,
+    boss: enemy.boss,
+    bgColor:['#020010','#080020'],
+    story: [],
+    isTower: true,
+  };
+  sfx('click');
+  BT.fromScreen='tower';
+  initBattle(towerQuest, ap);
+}
+
+// 塔クリア処理（winBattleから呼ばれる）
+function onTowerClear(quest){
+  const floor = S.towerFloor||1;
+  S.towerFloor = floor+1;
+  S.towerBest  = Math.max(S.towerBest||0, floor);
+  // 実績チェック
+  checkAchievement('tower10',  S.towerBest>=10);
+  checkAchievement('tower30',  S.towerBest>=30);
+  checkAchievement('tower50',  S.towerBest>=50);
+  checkAchievement('tower100', S.towerBest>=100);
+  saveGame();
+}
+
 // ================================================================
 //  🎖️ ACHIEVEMENT（実績・称号）
 // ================================================================
@@ -3123,9 +4063,6 @@ const PVP_DUMMY_OPPONENTS=[
   {name:'霧の狩人',     rank:1180, party:[4,13,17],wins:60,  losses:18},
 ];
 
-// PvP合言葉マッチング状態
-let pvpMatchState = null;
-
 async function renderPvp(){
   const rank     = S.pvpRank  || 1200;
   const wins     = S.pvpWin   || 0;
@@ -3282,39 +4219,7 @@ async function joinPvpRoom(){
   }
 }
 
-async function cancelPvpRoom(code){
-  try{ await db.collection('pvp_rooms').doc(code).delete(); }catch(e){}
-  pvpMatchState=null;
-  const statusEl=document.getElementById('pvp-match-status');
-  if(statusEl) statusEl.textContent='⌛ タイムアウト — 相手が見つかりませんでした';
-}
 
-function executePvpMatch(roomData, role, myParty){
-  // ホストがゲストの強さを計算して仮想敵として戦闘
-  const isHost = role==='host';
-  const oppAtk = isHost ? (roomData.guestAtk||500) : (roomData.hostAtk||500);
-  const oppHp  = isHost ? (roomData.guestHp||3000) : (roomData.hostHp||3000);
-  const oppId  = isHost ? (roomData.guestId||'???') : (roomData.hostId||'???');
-  const oppRank= isHost ? (roomData.guestRank||1200): (roomData.hostRank||1200);
-
-  const pvpQuest={
-    id:`pvp_room_${roomData.hostId}`,
-    name:`⚔️ vs ${oppId}`,
-    enemy:{name:oppId, emoji:'⚔️', hp:oppHp, atk:Math.round(oppAtk/myParty.length), spd:oppRank>=1600?2:1, boss:false},
-    gold:200+Math.round((oppRank-1000)/10),
-    gem:8,
-    boss:false,
-    bgColor:['#050010','#100020'],
-    story:[],
-    isPvp:true,
-    isPvpRoom:true,
-    opponent:{name:oppId, rank:oppRank},
-  };
-  BT.fromScreen='pvp';
-  initBattle(pvpQuest, myParty);
-  // 部屋を削除（試合開始後は不要）
-  setTimeout(()=>db.collection('pvp_rooms').doc(roomData.code||'').delete().catch(()=>{}), 2000);
-}
 
 function startPvpBattle(){
   const ap = S.party.filter(id=>id!==-1);
