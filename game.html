@@ -3093,7 +3093,9 @@ function initStatuses(){
 
 // 状態異常付与（味方に）
 function applyStatus(memberId, type, stacks=1){
-  const m = BT.partyHp.find(x=>x.id===memberId);
+  // memberIdがオブジェクトなら.idを取り出す
+  const id = (memberId && typeof memberId === 'object') ? memberId.id : memberId;
+  const m = BT.partyHp.find(x=>x.id===id);
   if(!m) return;
   if(!m.statuses) m.statuses=[];
   const existing = m.statuses.find(s=>s.type===type);
@@ -3103,11 +3105,14 @@ function applyStatus(memberId, type, stacks=1){
   } else {
     m.statuses.push({type,stacks,turns:3});
   }
+  // キャラ名を取得
+  const ch = CHARS.find(c=>c.id===id);
+  const memberName = ch ? ch.name : '味方';
   updatePartyHP();
-  // ★演出
-  showStatusFlash(type, m.name);
+  showStatusFlash(type, memberName);
   updateBattleStatusPanel();
   updatePartyStatusClasses();
+  renderPartyStatuses();
 }
 
 // 敵に状態異常付与
@@ -3297,6 +3302,7 @@ function drawHand(ids){
 
 function renderHand(){
   const row = document.getElementById('cards-row');
+  const paraIds = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'&&s.turns>0)).map(m=>m.id));
   row.innerHTML = BT.hand.map((c,i)=>{
     const d = Math.round(c.charAtk * c.dmg);
     const col = c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)';
@@ -3363,9 +3369,21 @@ function endLongPress(){
 function toggleCard(i){
   if(BT.hand[i].used) return;
   if(!BT.hand[i].selected){
-    // 選択: 最大4枚まで
+    // 麻痺チェック
+    const card = BT.hand[i];
+    const owner = BT.partyHp.find(m=>m.id===card.charId);
+    const isPara = owner && (owner.statuses||[]).some(s=>s.type==='para'&&s.turns>0);
+    if(isPara){
+      const maxForPara = Math.max(1, MAX_SELECT-2);
+      const alreadySel = BT.hand.filter(c=>c.selected&&c.charId===card.charId).length;
+      if(alreadySel >= maxForPara){
+        showToast('⚡ '+card.charName+' は麻痺中！最大'+maxForPara+'枚まで');
+        return;
+      }
+    }
+    // 選択: 最大枚数まで
     const n = BT.hand.filter(c=>c.selected).length;
-    if(n >= MAX_SELECT){ showToast(`最大${MAX_SELECT}枚まで選択できます`); return; }
+    if(n >= MAX_SELECT){ showToast('最大'+MAX_SELECT+'枚まで選択できます'); return; }
     BT.hand[i].selected = true;
     BT.selectedOrder.push(i);
   } else {
@@ -3570,11 +3588,13 @@ function enemyTurn(){
       const reductionTxt = reduction>0?` (軽減${Math.round(reduction*100)}%)`:'';
       if(actionEl) actionEl.textContent=`${BT.quest.enemy.name}の攻撃！ ${tgt.name||'味方'} -${dmg}${reductionTxt}`;
 
-      // 敵の状態異常付与（敵のhpに応じて確率変化）
+      // 敵の状態異常付与
       const enemy = BT.quest.enemy;
       if(enemy.statusPatterns){
         enemy.statusPatterns.forEach(p=>{
-          if(Math.random()<(p.prob||0.2)) applyStatus(tgt.id||tgt, p.type, p.stacks||1);
+          if(Math.random()<(p.prob||0.2)){
+            applyStatus(tgt.id, p.type, p.stacks||1);
+          }
         });
       }
       attackCount++;
