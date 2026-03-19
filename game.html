@@ -841,6 +841,35 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .support-slot:hover{border-color:rgba(160,80,255,.6);}
 .support-slot.filled{border-style:solid;border-color:rgba(120,60,220,.6);background:rgba(40,10,80,.3);}
 
+
+/* ===== 拡張フィルター ===== */
+.filter-section{margin-bottom:8px;}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:5px;}
+.filter-lbl{font-size:8px;color:var(--text3);letter-spacing:.1em;min-width:28px;flex-shrink:0;}
+.sort-toggle-btn{width:100%;padding:6px 10px;border-radius:8px;border:.5px solid var(--border2);
+  background:rgba(0,20,40,.4);color:var(--text2);cursor:pointer;font-family:inherit;font-size:10px;
+  display:flex;align-items:center;justify-content:between;gap:6px;margin-bottom:6px;}
+.sort-toggle-btn:hover{background:rgba(0,30,60,.5);}
+.sort-panel{display:none;background:rgba(0,10,25,.5);border:.5px solid var(--border2);border-radius:10px;padding:10px;margin-bottom:8px;}
+.sort-panel.open{display:block;}
+/* 属性ボタン */
+.rfb-attr{padding:4px 8px;border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;border:.5px solid;transition:opacity .15s;flex-shrink:0;}
+.rfb-attr.on{opacity:1;} .rfb-attr.off{opacity:.3;}
+.rfb-attr-fire   {background:rgba(160,40,0,.3);border-color:rgba(220,80,0,.5);color:#ff9060;}
+.rfb-attr-ice    {background:rgba(0,60,140,.3);border-color:rgba(60,160,240,.5);color:#80d0ff;}
+.rfb-attr-thunder{background:rgba(120,100,0,.3);border-color:rgba(220,200,0,.5);color:#ffe040;}
+.rfb-attr-water  {background:rgba(0,80,120,.3);border-color:rgba(0,160,220,.5);color:#40d0ff;}
+.rfb-attr-dark   {background:rgba(60,0,100,.3);border-color:rgba(140,40,220,.5);color:#c080ff;}
+.rfb-attr-light  {background:rgba(120,100,0,.3);border-color:rgba(220,200,80,.5);color:#ffe880;}
+.rfb-attr-none   {background:rgba(60,60,60,.3);border-color:rgba(140,140,140,.4);color:#c0c0c0;}
+/* 役割ボタン */
+.rfb-role{padding:4px 8px;border-radius:5px;font-size:8px;font-weight:700;cursor:pointer;border:.5px solid;transition:opacity .15s;flex-shrink:0;}
+.rfb-role.on{opacity:1;} .rfb-role.off{opacity:.3;}
+.rfb-role-attacker{background:rgba(120,0,0,.3);border-color:rgba(200,50,50,.5);color:#ff6060;}
+.rfb-role-tank    {background:rgba(0,50,140,.3);border-color:rgba(40,100,220,.5);color:#60a0ff;}
+.rfb-role-support {background:rgba(0,100,50,.3);border-color:rgba(20,180,80,.5);color:#40e080;}
+.rfb-role-debuffer{background:rgba(80,0,80,.3);border-color:rgba(160,40,160,.5);color:#e060e0;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1025,13 +1054,41 @@ function onPvpEnd(won, quest){
       <div style="font-size:10px;color:var(--text2);margin-bottom:10px;">スロットを選んでキャラを編成（最大3体）</div>
       <div class="party-slots" id="party-slots"></div>
       <div id="support-slot-container" style="margin-top:8px;"></div>
-      <div class="filter-bar">
-        <input class="search-input" id="party-search" placeholder="🔍 キャラ名検索..." oninput="renderCharList()">
-        <div class="rfb rfb-all on"  id="pf-all"  onclick="setPartyFilter('all')">全て</div>
-        <div class="rfb rfb-ur off"  id="pf-ur"   onclick="setPartyFilter('UR')">UR</div>
-        <div class="rfb rfb-ssr off" id="pf-ssr"  onclick="setPartyFilter('SSR')">SSR</div>
-        <div class="rfb rfb-sr off"  id="pf-sr"   onclick="setPartyFilter('SR')">SR</div>
-        <div class="rfb rfb-r off"   id="pf-r"    onclick="setPartyFilter('R')">R</div>
+      <div class="filter-section">
+        <input class="search-input" id="party-search" placeholder="🔍 キャラ名検索..." oninput="renderCharList()" style="margin-bottom:6px;">
+        <button class="sort-toggle-btn" onclick="toggleSortPanel('party')">
+          🔽 絞り込み・ソート <span id="party-filter-summary" style="margin-left:auto;color:var(--teal);font-size:9px;"></span>
+        </button>
+        <div class="sort-panel" id="party-sort-panel">
+          <div class="filter-row">
+            <div class="filter-lbl">レア</div>
+            <div class="rfb rfb-all on"  id="pf-all"  onclick="setPartyFilter('rar','all')">全て</div>
+            <div class="rfb rfb-ur off"  id="pf-ur"   onclick="setPartyFilter('rar','UR')">UR</div>
+            <div class="rfb rfb-ssr off" id="pf-ssr"  onclick="setPartyFilter('rar','SSR')">SSR</div>
+            <div class="rfb rfb-sr off"  id="pf-sr"   onclick="setPartyFilter('rar','SR')">SR</div>
+            <div class="rfb rfb-r off"   id="pf-r"    onclick="setPartyFilter('rar','R')">R</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-lbl">属性</div>
+            <div class="rfb-attr rfb-attr-fire    on" id="pf-attr-fire"    onclick="setPartyFilter('attr','fire')">🔥炎</div>
+            <div class="rfb-attr rfb-attr-ice     on" id="pf-attr-ice"     onclick="setPartyFilter('attr','ice')">❄️氷</div>
+            <div class="rfb-attr rfb-attr-thunder on" id="pf-attr-thunder" onclick="setPartyFilter('attr','thunder')">⚡雷</div>
+            <div class="rfb-attr rfb-attr-water   on" id="pf-attr-water"   onclick="setPartyFilter('attr','water')">🌊水</div>
+            <div class="rfb-attr rfb-attr-dark    on" id="pf-attr-dark"    onclick="setPartyFilter('attr','dark')">🌑闇</div>
+            <div class="rfb-attr rfb-attr-light   on" id="pf-attr-light"   onclick="setPartyFilter('attr','light')">✨光</div>
+            <div class="rfb-attr rfb-attr-none    on" id="pf-attr-none"    onclick="setPartyFilter('attr','none')">⚪無</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-lbl">役割</div>
+            <div class="rfb-role rfb-role-attacker on" id="pf-role-attacker" onclick="setPartyFilter('role','attacker')">⚔️</div>
+            <div class="rfb-role rfb-role-tank     on" id="pf-role-tank"     onclick="setPartyFilter('role','tank')">🛡️</div>
+            <div class="rfb-role rfb-role-support  on" id="pf-role-support"  onclick="setPartyFilter('role','support')">💚</div>
+            <div class="rfb-role rfb-role-debuffer on" id="pf-role-debuffer" onclick="setPartyFilter('role','debuffer')">☠️</div>
+          </div>
+          <div style="margin-top:6px;">
+            <span onclick="resetPartyFilter()" style="font-size:9px;color:var(--teal);cursor:pointer;">🔄 リセット</span>
+          </div>
+        </div>
       </div>
       <div class="char-count" id="party-char-count"></div>
       <div class="char-list" id="char-list"></div>
@@ -1165,13 +1222,41 @@ function onPvpEnd(won, quest){
   <div class="content">
     <div class="party-content">
       <div style="font-size:10px;color:var(--text2);margin-bottom:6px;">タップして育成 | R:💰500〜 SR:💰1,250〜 SSR:💰3,000〜 UR:💰7,500〜</div>
-      <div class="filter-bar">
-        <input class="search-input" id="grow-search" placeholder="🔍 キャラ名検索..." oninput="refreshGrow()">
-        <div class="rfb rfb-all on"  id="gf-all"  onclick="setGrowFilter('all')">全て</div>
-        <div class="rfb rfb-ur off"  id="gf-ur"   onclick="setGrowFilter('UR')">UR</div>
-        <div class="rfb rfb-ssr off" id="gf-ssr"  onclick="setGrowFilter('SSR')">SSR</div>
-        <div class="rfb rfb-sr off"  id="gf-sr"   onclick="setGrowFilter('SR')">SR</div>
-        <div class="rfb rfb-r off"   id="gf-r"    onclick="setGrowFilter('R')">R</div>
+      <div class="filter-section">
+        <input class="search-input" id="grow-search" placeholder="🔍 キャラ名検索..." oninput="refreshGrow()" style="margin-bottom:6px;">
+        <button class="sort-toggle-btn" onclick="toggleSortPanel('grow')">
+          🔽 絞り込み・ソート <span id="grow-filter-summary" style="margin-left:auto;color:var(--teal);font-size:9px;"></span>
+        </button>
+        <div class="sort-panel" id="grow-sort-panel">
+          <div class="filter-row">
+            <div class="filter-lbl">レア</div>
+            <div class="rfb rfb-all on"  id="gf-all"  onclick="setGrowFilter('rar','all')">全て</div>
+            <div class="rfb rfb-ur off"  id="gf-ur"   onclick="setGrowFilter('rar','UR')">UR</div>
+            <div class="rfb rfb-ssr off" id="gf-ssr"  onclick="setGrowFilter('rar','SSR')">SSR</div>
+            <div class="rfb rfb-sr off"  id="gf-sr"   onclick="setGrowFilter('rar','SR')">SR</div>
+            <div class="rfb rfb-r off"   id="gf-r"    onclick="setGrowFilter('rar','R')">R</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-lbl">属性</div>
+            <div class="rfb-attr rfb-attr-fire    on" id="gf-attr-fire"    onclick="setGrowFilter('attr','fire')">🔥炎</div>
+            <div class="rfb-attr rfb-attr-ice     on" id="gf-attr-ice"     onclick="setGrowFilter('attr','ice')">❄️氷</div>
+            <div class="rfb-attr rfb-attr-thunder on" id="gf-attr-thunder" onclick="setGrowFilter('attr','thunder')">⚡雷</div>
+            <div class="rfb-attr rfb-attr-water   on" id="gf-attr-water"   onclick="setGrowFilter('attr','water')">🌊水</div>
+            <div class="rfb-attr rfb-attr-dark    on" id="gf-attr-dark"    onclick="setGrowFilter('attr','dark')">🌑闇</div>
+            <div class="rfb-attr rfb-attr-light   on" id="gf-attr-light"   onclick="setGrowFilter('attr','light')">✨光</div>
+            <div class="rfb-attr rfb-attr-none    on" id="gf-attr-none"    onclick="setGrowFilter('attr','none')">⚪無</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-lbl">役割</div>
+            <div class="rfb-role rfb-role-attacker on" id="gf-role-attacker" onclick="setGrowFilter('role','attacker')">⚔️</div>
+            <div class="rfb-role rfb-role-tank     on" id="gf-role-tank"     onclick="setGrowFilter('role','tank')">🛡️</div>
+            <div class="rfb-role rfb-role-support  on" id="gf-role-support"  onclick="setGrowFilter('role','support')">💚</div>
+            <div class="rfb-role rfb-role-debuffer on" id="gf-role-debuffer" onclick="setGrowFilter('role','debuffer')">☠️</div>
+          </div>
+          <div style="margin-top:6px;">
+            <span onclick="resetGrowFilter()" style="font-size:9px;color:var(--teal);cursor:pointer;">🔄 リセット</span>
+          </div>
+        </div>
       </div>
       <div class="char-count" id="grow-char-count"></div>
       <div class="char-list" id="grow-char-list"></div>
@@ -2399,7 +2484,7 @@ function goTo(sc){
   if(sc==='home') setTimeout(checkPendingRequests,300);
   if(sc==='grind')renderGrind();
   if(sc==='achieve')renderAchieve();
-  if(sc==='friend'){renderFriend();}
+  if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
   if(sc==='pvp')renderPvp();
   const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
@@ -2957,13 +3042,46 @@ function renderNotices(){
 // ================================================================
 //  PARTY
 // ================================================================
-let growFilter='all';
-function setGrowFilter(rar){
-  growFilter=rar;
+// 育成フィルター状態
+const growFilters={rar:'all', attrs:new Set(['fire','ice','thunder','water','dark','light','none']), roles:new Set(['attacker','tank','support','debuffer'])};
+function setGrowFilter(type, val){
+  if(type==='rar'){
+    growFilters.rar=val;
+    ['all','UR','SSR','SR','R'].forEach(r=>{
+      const el=document.getElementById('gf-'+r.toLowerCase());
+      if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(growFilters.rar===r?'on':'off');
+    });
+  } else if(type==='attr'){
+    if(growFilters.attrs.has(val)) growFilters.attrs.delete(val);
+    else growFilters.attrs.add(val);
+    const el=document.getElementById('gf-attr-'+val);
+    if(el) el.classList.toggle('on', growFilters.attrs.has(val));
+    if(el) el.classList.toggle('off', !growFilters.attrs.has(val));
+  } else if(type==='role'){
+    if(growFilters.roles.has(val)) growFilters.roles.delete(val);
+    else growFilters.roles.add(val);
+    const el=document.getElementById('gf-role-'+val);
+    if(el) el.classList.toggle('on', growFilters.roles.has(val));
+    if(el) el.classList.toggle('off', !growFilters.roles.has(val));
+  }
+  updateFilterSummary('grow');
+  refreshGrow();
+}
+function resetGrowFilter(){
+  growFilters.rar='all';
+  growFilters.attrs=new Set(['fire','ice','thunder','water','dark','light','none']);
+  growFilters.roles=new Set(['attacker','tank','support','debuffer']);
   ['all','UR','SSR','SR','R'].forEach(r=>{
     const el=document.getElementById('gf-'+r.toLowerCase());
-    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(growFilter===r?'on':'off');
+    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(r==='all'?'on':'off');
   });
+  ['fire','ice','thunder','water','dark','light','none'].forEach(a=>{
+    const el=document.getElementById('gf-attr-'+a); if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  ['attacker','tank','support','debuffer'].forEach(r=>{
+    const el=document.getElementById('gf-role-'+r); if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  updateFilterSummary('grow');
   refreshGrow();
 }
 function refreshGrow(){
@@ -2971,7 +3089,9 @@ function refreshGrow(){
   const search=(document.getElementById('grow-search')||{value:''}).value.toLowerCase();
   const filtered=S.owned.filter(id=>{
     const c=CHARS.find(ch=>ch.id===id);if(!c)return false;
-    if(growFilter!=='all'&&c.rarity!==growFilter)return false;
+    if(growFilters.rar!=='all'&&c.rarity!==growFilters.rar)return false;
+    if(!growFilters.attrs.has(c.attribute||'none'))return false;
+    if(!growFilters.roles.has(c.role||'attacker'))return false;
     if(search&&!c.name.includes(search))return false;
     return true;
   });
@@ -3025,20 +3145,55 @@ function renderSlots(){
     return`<div class="party-slot empty ${sel?'selected':''}" onclick="selectSlot(${i})"><div class="slot-num">${i+1}</div><div style="font-size:22px;color:var(--text3)">＋</div><div style="font-size:9px;color:var(--text3)">空きスロット</div></div>`;
   }).join('');
 }
-let partyFilter='all';
-function setPartyFilter(rar){
-  partyFilter=rar;
+// 編成フィルター状態
+const partyFilters={rar:'all', attrs:new Set(['fire','ice','thunder','water','dark','light','none']), roles:new Set(['attacker','tank','support','debuffer'])};
+function setPartyFilter(type, val){
+  if(type==='rar'){
+    partyFilters.rar=val;
+    ['all','UR','SSR','SR','R'].forEach(r=>{
+      const el=document.getElementById('pf-'+r.toLowerCase());
+      if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(partyFilters.rar===r?'on':'off');
+    });
+  } else if(type==='attr'){
+    if(partyFilters.attrs.has(val)) partyFilters.attrs.delete(val);
+    else partyFilters.attrs.add(val);
+    const el=document.getElementById('pf-attr-'+val);
+    if(el) el.classList.toggle('on', partyFilters.attrs.has(val));
+    if(el) el.classList.toggle('off', !partyFilters.attrs.has(val));
+  } else if(type==='role'){
+    if(partyFilters.roles.has(val)) partyFilters.roles.delete(val);
+    else partyFilters.roles.add(val);
+    const el=document.getElementById('pf-role-'+val);
+    if(el) el.classList.toggle('on', partyFilters.roles.has(val));
+    if(el) el.classList.toggle('off', !partyFilters.roles.has(val));
+  }
+  updateFilterSummary('party');
+  renderCharList();
+}
+function resetPartyFilter(){
+  partyFilters.rar='all';
+  partyFilters.attrs=new Set(['fire','ice','thunder','water','dark','light','none']);
+  partyFilters.roles=new Set(['attacker','tank','support','debuffer']);
   ['all','UR','SSR','SR','R'].forEach(r=>{
     const el=document.getElementById('pf-'+r.toLowerCase());
-    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(partyFilter===r?'on':'off');
+    if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(r==='all'?'on':'off');
   });
+  ['fire','ice','thunder','water','dark','light','none'].forEach(a=>{
+    const el=document.getElementById('pf-attr-'+a); if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  ['attacker','tank','support','debuffer'].forEach(r=>{
+    const el=document.getElementById('pf-role-'+r); if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  updateFilterSummary('party');
   renderCharList();
 }
 function renderCharList(){
   const search=(document.getElementById('party-search')||{value:''}).value.toLowerCase();
   const filtered=S.owned.filter(id=>{
     const c=CHARS.find(ch=>ch.id===id);if(!c)return false;
-    if(partyFilter!=='all'&&c.rarity!==partyFilter)return false;
+    if(partyFilters.rar!=='all'&&c.rarity!==partyFilters.rar)return false;
+    if(!partyFilters.attrs.has(c.attribute||'none'))return false;
+    if(!partyFilters.roles.has(c.role||'attacker'))return false;
     if(search&&!c.name.includes(search))return false;
     return true;
   });
@@ -6208,10 +6363,48 @@ const HELPER_REWARD = 100; // 助っ人報酬（貸した側のみ）
 // ----------------------------------------------------------------
 // フレンド画面レンダリング
 // ----------------------------------------------------------------
-function renderFriend(){
+async function renderFriend(){
   const friends = S.friends||[];
   const pending = S.pendingRequests||[];
   const myId = S.playerId||'----';
+
+  // Firestoreからフレンドの最新データを取得してRank等を更新
+  if(friends.length>0 && db){
+    try{
+      // 並列でフレンドのデータを取得
+      const updates = await Promise.all(friends.map(async function(f){
+        try{
+          const snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
+          if(!snap.empty){
+            const d=snap.docs[0].data();
+            return {
+              id: f.id,
+              uid: snap.docs[0].id,
+              name: d.playerName||f.name||'司令官',
+              rank: d.rank||1,
+              rankExp: d.rankExp||0,
+              pvpRank: d.pvpRank||1200,
+              pvpWin: d.pvpWin||0,
+              pvpLose: d.pvpLose||0,
+              helperChar: d.helperChar||null,
+              cleared: (d.cleared||[]).length,
+              towerBest: d.towerBest||0,
+            };
+          }
+        }catch(e){}
+        return null;
+      }));
+      // 更新成功したフレンドのデータを反映
+      updates.forEach(function(u){
+        if(!u) return;
+        var idx=S.friends.findIndex(function(f){return f.id===u.id;});
+        if(idx!==-1) S.friends[idx]={...S.friends[idx],...u};
+      });
+      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
+      // 助っ人スロットも最新データで更新
+      renderSupportSlot();
+    }catch(e){ console.log('[FRIEND render]', e); }
+  }
 
   // イベントデリゲーション（承諾・拒否・削除ボタン）
   setTimeout(function(){
@@ -6459,7 +6652,7 @@ async function removeFriend(id){
 // 助っ人設定セクション
 // ----------------------------------------------------------------
 // 助っ人設定フィルター状態
-var helperFilter = {rar:'all', name:''};
+var helperFilter = {rar:'all', name:'', attr:'all', role:'all'};
 
 function setHelperFilter(rar){
   helperFilter.rar = rar;
@@ -6475,6 +6668,8 @@ function refreshHelperList(){
   var filtered = ownedChars.filter(function(c){
     if(helperFilter.rar!=='all' && c.rarity!==helperFilter.rar) return false;
     if(helperFilter.name && !c.name.toLowerCase().includes(helperFilter.name)) return false;
+    if(helperFilter.attr!=='all' && (c.attribute||'none')!==helperFilter.attr) return false;
+    if(helperFilter.role!=='all' && (c.role||'attacker')!==helperFilter.role) return false;
     return true;
   });
 
@@ -6506,6 +6701,16 @@ function refreshHelperList(){
   ['all','UR','SSR','SR','R'].forEach(function(r){
     var el=document.getElementById('hf-'+r.toLowerCase());
     if(el) el.className='rfb rfb-'+r.toLowerCase()+' '+(helperFilter.rar===r?'on':'off');
+  });
+  ['fire','ice','thunder','water','dark','light','none'].forEach(function(a){
+    var el=document.getElementById('hf-attr-'+a); if(!el) return;
+    var on=helperFilter.attr==='all'||helperFilter.attr===a;
+    el.classList.toggle('on',on); el.classList.toggle('off',!on);
+  });
+  ['attacker','tank','support','debuffer'].forEach(function(r){
+    var el=document.getElementById('hf-role-'+r); if(!el) return;
+    var on=helperFilter.role==='all'||helperFilter.role===r;
+    el.classList.toggle('on',on); el.classList.toggle('off',!on);
   });
 }
 
@@ -6556,12 +6761,33 @@ function renderHelperSetSection(){
     +(currentHelperHtml||'<div style="font-size:11px;color:var(--text3);margin-bottom:10px;">未設定</div>')
     // 検索・フィルター
     +'<input id="helper-name-search" class="search-input" placeholder="🔍 キャラ名検索..." oninput="refreshHelperList()" style="margin-bottom:8px;">'
-    +'<div class="filter-bar" style="margin-bottom:10px;">'
+    +'<div style="background:rgba(0,10,25,.5);border:.5px solid var(--border2);border-radius:10px;padding:8px;margin-bottom:10px;">'
+    +'<div class="filter-row" style="margin-bottom:5px;">'
+    +'<div class="filter-lbl">レア</div>'
     +'<div class="rfb rfb-all on"  id="hf-all"  onclick="helperFilter.rar=\'all\';refreshHelperList()">全て</div>'
     +'<div class="rfb rfb-ur off"  id="hf-ur"   onclick="helperFilter.rar=\'UR\';refreshHelperList()">UR</div>'
     +'<div class="rfb rfb-ssr off" id="hf-ssr"  onclick="helperFilter.rar=\'SSR\';refreshHelperList()">SSR</div>'
     +'<div class="rfb rfb-sr off"  id="hf-sr"   onclick="helperFilter.rar=\'SR\';refreshHelperList()">SR</div>'
     +'<div class="rfb rfb-r off"   id="hf-r"    onclick="helperFilter.rar=\'R\';refreshHelperList()">R</div>'
+    +'</div>'
+    +'<div class="filter-row" style="margin-bottom:5px;">'
+    +'<div class="filter-lbl">属性</div>'
+    +'<div class="rfb-attr rfb-attr-fire    on" id="hf-attr-fire"    onclick="hfAttr(\'fire\')">🔥炎</div>'
+    +'<div class="rfb-attr rfb-attr-ice     on" id="hf-attr-ice"     onclick="hfAttr(\'ice\')">❄️氷</div>'
+    +'<div class="rfb-attr rfb-attr-thunder on" id="hf-attr-thunder" onclick="hfAttr(\'thunder\')">⚡雷</div>'
+    +'<div class="rfb-attr rfb-attr-water   on" id="hf-attr-water"   onclick="hfAttr(\'water\')">🌊水</div>'
+    +'<div class="rfb-attr rfb-attr-dark    on" id="hf-attr-dark"    onclick="hfAttr(\'dark\')">🌑闇</div>'
+    +'<div class="rfb-attr rfb-attr-light   on" id="hf-attr-light"   onclick="hfAttr(\'light\')">✨光</div>'
+    +'<div class="rfb-attr rfb-attr-none    on" id="hf-attr-none"    onclick="hfAttr(\'none\')">⚪無</div>'
+    +'</div>'
+    +'<div class="filter-row">'
+    +'<div class="filter-lbl">役割</div>'
+    +'<div class="rfb-role rfb-role-attacker on" id="hf-role-attacker" onclick="hfRole(\'attacker\')">⚔️</div>'
+    +'<div class="rfb-role rfb-role-tank     on" id="hf-role-tank"     onclick="hfRole(\'tank\')">🛡️</div>'
+    +'<div class="rfb-role rfb-role-support  on" id="hf-role-support"  onclick="hfRole(\'support\')">💚</div>'
+    +'<div class="rfb-role rfb-role-debuffer on" id="hf-role-debuffer" onclick="hfRole(\'debuffer\')">☠️</div>'
+    +'<span onclick="hfReset()" style="font-size:9px;color:var(--teal);cursor:pointer;margin-left:8px;">🔄 リセット</span>'
+    +'</div>'
     +'</div>'
     +'<div id="helper-char-list">'+initListHtml+'</div>';
 }
@@ -6613,6 +6839,24 @@ function refreshParty(){
 function renderSupportSlot(){
   var container=document.getElementById('support-slot-container');
   if(!container) return;
+
+  // 借りている助っ人のフレンドが設定変更していたら最新に更新
+  if(S.supportChar){
+    var f=( S.friends||[]).find(function(f){return f.id===S.supportChar.fromFriendId;});
+    if(f && f.helperChar && f.helperChar.id!==S.supportChar.id){
+      // フレンドが別のキャラに変更した場合はスロットをクリア
+      S.supportChar=null;
+      localStorage.setItem('abyssal_save_v1',JSON.stringify(S));
+      showToast('フレンドが助っ人を変更したためスロットをクリアしました');
+    } else if(f && f.helperChar){
+      // 同じキャラでもレベルなどが上がっていれば更新
+      S.supportChar={...S.supportChar, ...f.helperChar,
+        fromFriendId:S.supportChar.fromFriendId,
+        fromFriendName:S.supportChar.fromFriendName};
+      localStorage.setItem('abyssal_save_v1',JSON.stringify(S));
+    }
+  }
+
   var sc=S.supportChar; // 借りている助っ人
   if(sc){
     var c=CHARS.find(function(ch){return ch.id===sc.id;})||{emoji:sc.emoji||'?',name:sc.name||'?',bg:'rgba(0,20,40,.6)',border:'rgba(120,60,220,.4)'};
@@ -6634,6 +6878,9 @@ function renderSupportSlot(){
 }
 
 // 助っ人選択モーダル
+// 助っ人フィルター状態
+var supportFilter={rar:'all',attr:'all',role:'all'};
+
 async function openSupportSelect(){
   var friends=S.friends||[];
   if(!friends.length){showToast('フレンドを追加してください');return;}
@@ -6647,60 +6894,145 @@ async function openSupportSelect(){
     document.body.appendChild(modal);
   }
 
-  modal.innerHTML='<div class="modal" style="width:min(360px,92vw);max-height:70vh;overflow-y:auto;">'
+  modal.innerHTML='<div class="modal" style="width:min(380px,94vw);max-height:80vh;overflow-y:auto;">'
     +'<div class="modal-ttl">⚔️ 助っ人を選ぶ</div>'
-    +'<div style="font-size:10px;color:var(--text2);margin-bottom:10px;">フレンドの助っ人キャラを1体借りられます。借りると貸した側に💰'+HELPER_REWARD+'ゴールドが入ります。</div>'
-    +'<div id="support-friend-list"><div style="font-size:11px;color:var(--text3);">読み込み中...</div></div>'
-    +'<button onclick="document.getElementById(\'support-select-modal\').classList.remove(\'show\')" style="width:100%;margin-top:12px;padding:9px;border-radius:8px;border:.5px solid var(--border3);background:rgba(0,20,40,.5);color:var(--text);cursor:pointer;font-family:inherit;">閉じる</button>'
+    +'<div style="font-size:10px;color:var(--text2);margin-bottom:8px;">貸した側に💰'+HELPER_REWARD+'ゴールドが入ります。</div>'
+    +'<div style="background:rgba(0,10,25,.5);border:.5px solid var(--border2);border-radius:10px;padding:8px;margin-bottom:10px;">'
+    +'<div class="filter-row" style="margin-bottom:5px;">'
+    +'<div class="filter-lbl">レア</div>'
+    +'<div class="rfb rfb-all on" id="sf-all" onclick="spf(&quot;rar&quot;,&quot;all&quot;)">全て</div>'
+    +'<div class="rfb rfb-ur off" id="sf-ur" onclick="spf(&quot;rar&quot;,&quot;UR&quot;)">UR</div>'
+    +'<div class="rfb rfb-ssr off" id="sf-ssr" onclick="spf(&quot;rar&quot;,&quot;SSR&quot;)">SSR</div>'
+    +'<div class="rfb rfb-sr off" id="sf-sr" onclick="spf(&quot;rar&quot;,&quot;SR&quot;)">SR</div>'
+    +'<div class="rfb rfb-r off" id="sf-r" onclick="spf(&quot;rar&quot;,&quot;R&quot;)">R</div>'
+    +'</div>'
+    +'<div class="filter-row" style="margin-bottom:5px;">'
+    +'<div class="filter-lbl">属性</div>'
+    +'<div class="rfb-attr rfb-attr-fire on" id="sf-attr-fire" onclick="spf(&quot;attr&quot;,&quot;fire&quot;)">🔥</div>'
+    +'<div class="rfb-attr rfb-attr-ice on" id="sf-attr-ice" onclick="spf(&quot;attr&quot;,&quot;ice&quot;)">❄️</div>'
+    +'<div class="rfb-attr rfb-attr-thunder on" id="sf-attr-thunder" onclick="spf(&quot;attr&quot;,&quot;thunder&quot;)">⚡</div>'
+    +'<div class="rfb-attr rfb-attr-water on" id="sf-attr-water" onclick="spf(&quot;attr&quot;,&quot;water&quot;)">🌊</div>'
+    +'<div class="rfb-attr rfb-attr-dark on" id="sf-attr-dark" onclick="spf(&quot;attr&quot;,&quot;dark&quot;)">🌑</div>'
+    +'<div class="rfb-attr rfb-attr-light on" id="sf-attr-light" onclick="spf(&quot;attr&quot;,&quot;light&quot;)">✨</div>'
+    +'<div class="rfb-attr rfb-attr-none on" id="sf-attr-none" onclick="spf(&quot;attr&quot;,&quot;none&quot;)">⚪</div>'
+    +'</div>'
+    +'<div class="filter-row">'
+    +'<div class="filter-lbl">役割</div>'
+    +'<div class="rfb-role rfb-role-attacker on" id="sf-role-attacker" onclick="spf(&quot;role&quot;,&quot;attacker&quot;)">⚔️</div>'
+    +'<div class="rfb-role rfb-role-tank on" id="sf-role-tank" onclick="spf(&quot;role&quot;,&quot;tank&quot;)">🛡️</div>'
+    +'<div class="rfb-role rfb-role-support on" id="sf-role-support" onclick="spf(&quot;role&quot;,&quot;support&quot;)">💚</div>'
+    +'<div class="rfb-role rfb-role-debuffer on" id="sf-role-debuffer" onclick="spf(&quot;role&quot;,&quot;debuffer&quot;)">☠️</div>'
+    +'</div>'
+    +'</div>'
+    +'<div id="support-friend-list"><div style="font-size:11px;color:var(--text3);padding:10px 0;">読み込み中...</div></div>'
+    +'<button onclick="closeSupportModal()" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:.5px solid var(--border3);background:rgba(0,20,40,.5);color:var(--text);cursor:pointer;font-family:inherit;">閉じる</button>'
     +'</div>';
   modal.classList.add('show');
+  supportFilter={rar:'all',attr:'all',role:'all'};
 
-  // フレンドの最新helperCharを取得
-  var listEl=document.getElementById('support-friend-list');
-  var rows='';
+  var helperItems=[];
   for(var i=0;i<friends.length;i++){
     var f=friends[i];
-    // Firestoreから最新データ取得
     try{
       var snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
       if(!snap.empty){
         var fd=snap.docs[0].data();
         f.helperChar=fd.helperChar||null;
-        // ローカルのfriends配列も更新
         S.friends[i].helperChar=f.helperChar;
+        S.friends[i].rank=fd.rank||1;
+        S.friends[i].pvpRank=fd.pvpRank||1200;
+        S.friends[i].name=fd.playerName||f.name||'司令官';
       }
     }catch(e){}
+    if(f.helperChar) helperItems.push({f:f,hc:f.helperChar,idx:i});
+  }
+  window._supportItems=helperItems;
+  localStorage.setItem('abyssal_save_v1',JSON.stringify(S));
+  renderSupportList();
+}
 
-    if(!f.helperChar){
-      rows+='<div style="padding:8px;background:rgba(0,20,40,.4);border-radius:8px;margin-bottom:6px;font-size:10px;color:var(--text3);">'
-        +f.name+' — 助っ人未設定</div>';
-      continue;
+function setSupportFilter(type,val){
+  if(type==='rar'){
+    supportFilter.rar=val;
+    ['all','ur','ssr','sr','r'].forEach(function(r){
+      var el=document.getElementById('sf-'+r);
+      if(el) el.className='rfb rfb-'+r+' '+(val===(r==='all'?'all':r.toUpperCase())?'on':'off');
+    });
+  } else if(type==='attr'){
+    supportFilter.attr=supportFilter.attr===val?'all':val;
+    ['fire','ice','thunder','water','dark','light','none'].forEach(function(a){
+      var el=document.getElementById('sf-attr-'+a);
+      if(!el) return;
+      var on=supportFilter.attr==='all'||supportFilter.attr===a;
+      el.classList.toggle('on',on); el.classList.toggle('off',!on);
+    });
+  } else if(type==='role'){
+    supportFilter.role=supportFilter.role===val?'all':val;
+    ['attacker','tank','support','debuffer'].forEach(function(r){
+      var el=document.getElementById('sf-role-'+r);
+      if(!el) return;
+      var on=supportFilter.role==='all'||supportFilter.role===r;
+      el.classList.toggle('on',on); el.classList.toggle('off',!on);
+    });
+  }
+  renderSupportList();
+}
+
+function renderSupportList(){
+  var listEl=document.getElementById('support-friend-list');
+  if(!listEl) return;
+  var items=window._supportItems||[];
+
+  var filtered=items.filter(function(item){
+    var hc=item.hc;
+    var c=CHARS.find(function(ch){return ch.id===hc.id;});
+    if(supportFilter.rar!=='all'&&hc.rarity!==supportFilter.rar) return false;
+    if(supportFilter.attr!=='all'){
+      if(!c||(c.attribute||'none')!==supportFilter.attr) return false;
     }
-    var hc=f.helperChar;
+    if(supportFilter.role!=='all'){
+      if(!c||(c.role||'attacker')!==supportFilter.role) return false;
+    }
+    return true;
+  });
+
+  var rows='';
+  filtered.forEach(function(item){
+    var f=item.f,hc=item.hc,i=item.idx;
+    var c=CHARS.find(function(ch){return ch.id===hc.id;});
+    var attr=ATTR_INFO[c?c.attribute||'none':'none']||ATTR_INFO.none;
+    var role=ROLE_INFO[c?c.role||'attacker':'attacker']||ROLE_INFO.attacker;
+    var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'}[hc.rarity]||'#fff';
     var isUsed=S.supportChar&&S.supportChar.id===hc.id&&S.supportChar.fromFriendId===f.id;
     window['_hcCache_'+i]=hc;
     window['_fCache_'+i]=f;
     rows+='<div class="support-pick-row" data-idx="'+i+'" style="background:rgba(0,20,40,.4);border:.5px solid '+(isUsed?'var(--teal)':'var(--border2)')+';border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;">'
-      +'<div style="width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;background:'+(hc.bg||'rgba(0,20,40,.6)')+';border:.5px solid '+(hc.border||'rgba(120,60,220,.4)')+'">'+hc.emoji+'</div>'
+      +'<div style="width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;background:'+(hc.bg||'rgba(0,20,40,.6)')+';border:.5px solid '+(hc.border||'rgba(120,60,220,.4)')+'">'+hc.emoji+'</div>'
       +'<div style="flex:1;">'
-      +'<div style="font-size:11px;font-weight:500;">'+hc.name+' <span style="font-size:8px;color:var(--text3);">from '+f.name+'</span></div>'
-      +'<div style="font-size:9px;color:var(--text2);">Lv.'+hc.level+' '+hc.rarity+'</div>'
+      +'<div style="font-size:11px;font-weight:500;">'+hc.name
+        +' <span style="font-size:9px;color:'+rarColor+';">'+hc.rarity+'</span>'
+        +' <span class="attr-badge attr-'+(c?c.attribute||'none':'none')+'" style="font-size:7px;">'+attr.emoji+attr.label+'</span>'
+        +' <span class="role-badge role-'+(c?c.role||'attacker':'attacker')+'" style="font-size:7px;">'+role.emoji+'</span>'
       +'</div>'
-      +(isUsed?'<div style="color:var(--teal);font-size:11px;">✓借用中</div>':'')
+      +'<div style="font-size:9px;color:var(--text2);">Lv.'+hc.level+' | from '+f.name+' (Rank '+(f.rank||1)+')</div>'
+      +'</div>'
+      +(isUsed?'<div style="color:var(--teal);font-size:11px;flex-shrink:0;">✓借用中</div>':'')
       +'</div>';
-  }
-  listEl.innerHTML=rows||'<div style="font-size:11px;color:var(--text3);">助っ人を設定しているフレンドがいません</div>';
-
-  // イベントデリゲーション（JSON.stringifyをonclickに使わない）
+  });
+  (S.friends||[]).filter(function(f){return !f.helperChar;}).forEach(function(f){
+    rows+='<div style="padding:7px;background:rgba(0,20,40,.3);border-radius:8px;margin-bottom:5px;font-size:10px;color:var(--text3);">'+f.name+' — 助っ人未設定</div>';
+  });
+  listEl.innerHTML=rows||'<div style="font-size:11px;color:var(--text3);padding:6px 0;">条件に合う助っ人がいません</div>';
   listEl.onclick=function(e){
     var row=e.target.closest('.support-pick-row');
     if(!row) return;
     var idx=parseInt(row.dataset.idx);
     var hcObj=window['_hcCache_'+idx];
     var fObj=window['_fCache_'+idx];
-    if(hcObj&&fObj) selectSupportChar(fObj.id, fObj.name, hcObj);
+    if(hcObj&&fObj) selectSupportChar(fObj.id,fObj.name,hcObj);
   };
 }
+
 
 function selectSupportChar(friendId, friendName, helperChar){
   // パーティに同じキャラがいないかチェック
@@ -6735,6 +7067,33 @@ function clearSupportChar(){
   showToast('助っ人を解除しました');
 }
 
+
+// ソートパネルの開閉
+function toggleSortPanel(screen){
+  var panel=document.getElementById(screen+'-sort-panel');
+  if(panel) panel.classList.toggle('open');
+}
+
+// フィルターの状態サマリー表示
+function updateFilterSummary(screen){
+  var f = screen==='grow' ? growFilters : partyFilters;
+  var parts=[];
+  if(f.rar!=='all') parts.push(f.rar);
+  var allAttrs=['fire','ice','thunder','water','dark','light','none'];
+  var allRoles=['attacker','tank','support','debuffer'];
+  if(f.attrs.size < allAttrs.length) parts.push('属性絞込');
+  if(f.roles.size < allRoles.length) parts.push('役割絞込');
+  var el=document.getElementById(screen+'-filter-summary');
+  if(el) el.textContent = parts.length ? parts.join(' | ') : '';
+}
+
+function spf(t,v){setSupportFilter(t,v);}
+
+function closeSupportModal(){var m=document.getElementById('support-select-modal');if(m)m.classList.remove('show');}
+
+function hfAttr(v){helperFilter.attr=helperFilter.attr===v?'all':v;refreshHelperList();}
+function hfRole(v){helperFilter.role=helperFilter.role===v?'all':v;refreshHelperList();}
+function hfReset(){helperFilter={rar:'all',name:'',attr:'all',role:'all'};var inp=document.getElementById('helper-name-search');if(inp)inp.value='';refreshHelperList();}
 </script>
 
 <!-- 戦闘詳細パネル -->
