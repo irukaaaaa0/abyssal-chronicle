@@ -861,7 +861,7 @@ function onPvpEnd(won, quest){
     <div class="player-info">
       <div class="avatar">🌊</div>
       <div>
-          <div class="pname">深海司令官</div>
+          <div class="pname" id="pname-el" onclick="openNameChangeModal()" style="cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.3);" title="タップで名前変更">深海司令官</div>
           <div class="prank" id="home-prank">Rank 1</div>
         </div>
     </div>
@@ -1516,6 +1516,7 @@ async function loadCloudSave(){
         cleared: S.cleared, dailyDone: S.dailyDone,
         pityPerBanner: S.pityPerBanner,
         playerId: S.playerId,
+      playerName: S.playerName||'深海司令官',
         receivedGifts: [],
         createdAt: new Date().toISOString(),
         lastSaved: new Date().toISOString()
@@ -1540,6 +1541,7 @@ async function saveToCloud(){
       cleared: S.cleared, dailyDone: S.dailyDone,
       pityPerBanner: S.pityPerBanner,
       playerId: S.playerId,
+      playerName: S.playerName||'深海司令官',
       receivedGifts: S.receivedGifts || [],
       rank: S.rank || 1,
       rankExp: S.rankExp || 0,
@@ -2216,7 +2218,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pvpRank:1200,pvpWin:0,pvpLose:0};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pvpRank:1200,pvpWin:0,pvpLose:0};
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
@@ -2360,8 +2362,11 @@ function copyPlayerId(){
 }
 
 function updatePlayerNameDisplay(){
-  const el = document.querySelector('.pname');
-  if(el) el.textContent = '深海司令官' + (S.equippedTitle?` 「${S.equippedTitle}」`:'');
+  const el = document.getElementById('pname-el') || document.querySelector('.pname');
+  if(el){
+    const base = S.playerName||'深海司令官';
+    el.textContent = base + (S.equippedTitle?' 「'+S.equippedTitle+'」':'');
+  }
 }
 
 // ================================================================
@@ -4069,8 +4074,11 @@ function equipTitle(title){
 }
 
 function updatePlayerNameDisplay(){
-  const el = document.querySelector('.pname');
-  if(el) el.textContent = '深海司令官' + (S.equippedTitle?` 「${S.equippedTitle}」`:'');
+  const el = document.getElementById('pname-el') || document.querySelector('.pname');
+  if(el){
+    const base = S.playerName||'深海司令官';
+    el.textContent = base + (S.equippedTitle?' 「'+S.equippedTitle+'」':'');
+  }
 }
 
 // ================================================================
@@ -4682,8 +4690,11 @@ function equipTitle(title){
 }
 
 function updatePlayerNameDisplay(){
-  const el = document.querySelector('.pname');
-  if(el) el.textContent = '深海司令官' + (S.equippedTitle?` 「${S.equippedTitle}」`:'');
+  const el = document.getElementById('pname-el') || document.querySelector('.pname');
+  if(el){
+    const base = S.playerName||'深海司令官';
+    el.textContent = base + (S.equippedTitle?' 「'+S.equippedTitle+'」':'');
+  }
 }
 
 // ================================================================
@@ -6202,11 +6213,97 @@ function openBattleInfoPanel(){
   document.getElementById('battle-info-panel').classList.add('show');
 }
 
+
+// ================================================================
+//  名前変更システム
+// ================================================================
+const NAME_CHANGE_COST = 100; // ジェム消費量
+
+function openNameChangeModal(){
+  sfx('click');
+  const input = document.getElementById('name-input');
+  if(input) input.value = S.playerName||'深海司令官';
+  updateNamePreview();
+  document.getElementById('name-change-modal').classList.add('show');
+  setTimeout(()=>input&&input.focus(), 100);
+}
+
+function closeNameChangeModal(){
+  document.getElementById('name-change-modal').classList.remove('show');
+}
+
+function updateNamePreview(){
+  const input = document.getElementById('name-input');
+  const preview = document.getElementById('name-preview');
+  const counter = document.getElementById('name-char-count');
+  if(!input) return;
+  const val = input.value;
+  const len = [...val].length; // Unicode対応
+  if(counter) counter.textContent = len + ' / 10文字';
+  if(counter) counter.style.color = len>10?'var(--red)':'var(--text3)';
+  if(preview){
+    const title = S.equippedTitle ? ' 「'+S.equippedTitle+'」' : '';
+    preview.textContent = (val||'—') + title;
+  }
+}
+
+function submitNameChange(){
+  const input = document.getElementById('name-input');
+  if(!input) return;
+  const newName = input.value.trim();
+
+  // バリデーション
+  if(!newName){ showToast('名前を入力してください'); return; }
+  if([...newName].length > 10){ showToast('名前は10文字以内にしてください'); return; }
+  if(newName === (S.playerName||'深海司令官')){ showToast('現在と同じ名前です'); return; }
+
+  // ジェム確認
+  if(S.gem < NAME_CHANGE_COST){
+    showToast('💎 ジェムが足りません（必要: '+NAME_CHANGE_COST+'）');
+    return;
+  }
+
+  // 変更実行
+  S.gem -= NAME_CHANGE_COST;
+  S.playerName = newName;
+  saveGame();
+  closeNameChangeModal();
+  updatePlayerNameDisplay();
+  refreshHome();
+  sfx('win');
+  showToast('✅ 司令官名を「'+newName+'」に変更しました！');
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
 <div class="battle-info-panel" id="battle-info-panel" onclick="if(event.target===this)closeBattleInfoPanel()">
   <div class="bip-box" id="bip-box"></div>
+</div>
+
+<!-- 名前変更モーダル -->
+<div class="modal-overlay" id="name-change-modal" onclick="if(event.target===this)closeNameChangeModal()">
+  <div class="modal" style="width:min(340px,90vw);">
+    <div class="modal-ttl" style="display:flex;align-items:center;gap:8px;">
+      ✏️ 司令官名変更
+      <span style="font-size:9px;color:var(--text3);font-weight:400;margin-left:auto;">💎 100消費</span>
+    </div>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:10px;">
+      最大10文字。変更には💎100ジェムが必要です。
+    </div>
+    <input id="name-input"
+      style="width:100%;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:8px;padding:10px 12px;font-size:15px;color:var(--text);font-family:inherit;margin-bottom:6px;"
+      placeholder="新しい名前を入力..."
+      maxlength="10"
+      oninput="updateNamePreview()">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--text3);" id="name-char-count">0 / 10文字</div>
+      <div style="font-size:10px;color:var(--text2);">プレビュー: <span id="name-preview" style="color:var(--teal);">—</span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn primary" onclick="submitNameChange()">✏️ 変更する（💎100）</button>
+      <button class="modal-btn" onclick="closeNameChangeModal()">キャンセル</button>
+    </div>
+  </div>
 </div>
 </body>
 </html>
