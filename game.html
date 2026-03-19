@@ -3723,35 +3723,72 @@ function confirmPvpForfeit(){
 
 
 // ================================================================
+//  合言葉マッチング（リアルタイムPvP）
+// ================================================================
+ // リアルタイム戦闘状態
+
+
+
+// ================================================================
+//  リアルタイムPvP戦闘
+// ================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+// 60秒タイマー
+
+
+
+
+// 攻撃実行
+
+
+// Firestoreの更新を受け取って処理
+function onPvpRoomUpdate(data){
+  const st = pvpBattleState;
+  if(!st||st.done) return;
+
+  const myActionKey  = st.amHost ? 'hostAction'  : 'guestAction';
+  const oppActionKey = st.amHost ? 'guestAction' : 'hostAction';
+  const action = data[oppActionKey];
+
+  // 相手の行動が来たら処理
+  if(action && action.ts && (!st.lastOppActionTs || action.ts > st.lastOppActionTs)){
+    st.lastOppActionTs = action.ts;
+    processOppAction(action);
+  }
+}
+
+
+
+// ダメージポップアップ
+
+
+// ログ追加
+
+
+// 戦闘終了
+
+
+
+
+
+
+
+// ================================================================
 //  🏆 ABYSS TOWER（無限塔）
 // ================================================================
 // 階層ごとの敵データ生成（階層が上がるほど強くなる）
-function getTowerEnemy(floor){
-  const bases=[
-    {name:'深海スライム',emoji:'🟢',hp:300,atk:40},
-    {name:'霧クラゲ',    emoji:'🪼',hp:500,atk:60},
-    {name:'岩石ガニ',    emoji:'🦀',hp:800,atk:90},
-    {name:'深海鰻',      emoji:'🐍',hp:1200,atk:130},
-    {name:'古代魚',      emoji:'🐡',hp:1800,atk:180},
-    {name:'深海竜',      emoji:'🐉',hp:3000,atk:280},
-    {name:'崩壊体',      emoji:'👾',hp:5000,atk:380},
-    {name:'旧破の使徒',  emoji:'💀',hp:8000,atk:500},
-    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700},
-    {name:'永遠の番人',  emoji:'⚫',hp:30000,atk:1000},
-  ];
-  const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
-  const base = bases[tier];
-  const mul  = 1 + (floor-1)*0.15 + Math.floor((floor-1)/10)*0.5;
-  const isBoss = floor%10===0;
-  return {
-    name: isBoss ? `【BOSS】${base.name}` : base.name,
-    emoji: isBoss ? '👑' : base.emoji,
-    hp:  Math.round(base.hp  * mul * (isBoss?3:1)),
-    atk: Math.round(base.atk * mul * (isBoss?2:1)),
-    spd: floor>=30?3:floor>=15?2:1,
-    boss: isBoss,
-  };
-}
+
 
 function getTowerRewards(floor){
   const gem  = 5 + Math.floor(floor/5)*3;
@@ -3759,42 +3796,7 @@ function getTowerRewards(floor){
   return {gem, gold};
 }
 
-function renderTower(){
-  const floor = S.towerFloor || 1;
-  const best  = S.towerBest  || 0;
-  const enemy = getTowerEnemy(floor);
-  const rw    = getTowerRewards(floor);
-  const isBoss= floor%10===0;
 
-  document.getElementById('tower-content').innerHTML=`
-    <div class="tower-floor-header">
-      <div class="tower-floor-num">${floor}F</div>
-      <div class="tower-floor-lbl">${isBoss?'⚠️ BOSS FLOOR':'ABYSS TOWER'}</div>
-      <div class="tower-best">最高到達: ${best}F</div>
-    </div>
-    <div class="tower-enemy-card">
-      <div class="tower-enemy-ico">${enemy.emoji}</div>
-      <div class="tower-enemy-nm" style="color:${isBoss?'#cc4040':'var(--text)'}">${enemy.name}</div>
-      <div class="tower-enemy-stats">
-        <span>HP: ${enemy.hp.toLocaleString()}</span>
-        <span>ATK: ${enemy.atk}</span>
-        <span>SPD: ${enemy.spd}</span>
-      </div>
-    </div>
-    <div class="tower-rewards">
-      <div class="tower-rw-title">クリア報酬</div>
-      <div class="tower-rw-row">
-        <span>💰 ${rw.gold.toLocaleString()}</span>
-        <span>💎 ${rw.gem}</span>
-        ${isBoss?'<span style="color:var(--teal)">+ 実績解除</span>':''}
-      </div>
-    </div>
-    <button class="tower-btn" onclick="startTowerBattle()">⚔️ ${floor}Fに挑む</button>
-    <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--text3);">
-      パーティを編成してから挑戦しましょう
-    </div>
-  `;
-}
 
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
@@ -3882,13 +3884,7 @@ function checkAchievement(id, condition){
   return true;
 }
 
-function checkAllAchievements(){
-  ACHIEVEMENT_LIST.forEach(a=>{
-    if(!(S.achievements&&S.achievements[a.id])){
-      checkAchievement(a.id, a.cond(S));
-    }
-  });
-}
+
 
 function renderAchieve(){
   const unlocked = ACHIEVEMENT_LIST.filter(a=>S.achievements&&S.achievements[a.id]);
@@ -4113,709 +4109,14 @@ async function renderPvp(){
   loadPvpRanking();
 }
 
-async function loadPvpRanking(){
-  try{
-    const snap = await db.collection('players')
-      .orderBy('pvpRank','desc').limit(20).get();
-    const el = document.getElementById('pvp-ranking-list');
-    if(!el) return;
-    if(snap.empty){ el.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:10px 0;">まだランキングデータがありません</div>'; return; }
-    const myId = S.playerId;
-    el.innerHTML = snap.docs.map((d,i)=>{
-      const u = d.data();
-      const isMe = u.playerId===myId;
-      const rankName2 = (u.pvpRank||1200)>=2000?'旧破神':(u.pvpRank||1200)>=1800?'深淵王':(u.pvpRank||1200)>=1600?'覇者':(u.pvpRank||1200)>=1400?'上級戦士':(u.pvpRank||1200)>=1200?'戦士':'見習い';
-      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;margin-bottom:5px;background:${isMe?'rgba(120,60,220,.15)':'rgba(0,20,40,.4)'};border:.5px solid ${isMe?'rgba(120,60,220,.4)':'var(--border2)'};">
-        <div style="font-size:12px;width:20px;text-align:center;flex-shrink:0;">${medal||'#'+(i+1)}</div>
-        <div style="flex:1;">
-          <div style="font-size:11px;font-weight:${isMe?700:400};color:${isMe?'#c080ff':'var(--text)'};">${u.playerId||'???'}${isMe?' (自分)':''}</div>
-          <div style="font-size:9px;color:var(--text2);">${rankName2} | ${u.pvpWin||0}勝 ${u.pvpLose||0}敗</div>
-        </div>
-        <div style="font-size:12px;font-weight:500;color:#c080ff;">${u.pvpRank||1200}pts</div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    const el=document.getElementById('pvp-ranking-list');
-    if(el) el.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:10px 0;">ランキング取得失敗（Firestoreインデックスが必要な場合があります）</div>';
-    console.log('[PVP] ranking error:', e);
-  }
-}
+
 
 // ================================================================
 //  合言葉マッチング
 // ================================================================
-async function joinPvpRoom(){
-  const ap = S.party.filter(id=>id!==-1);
-  if(!ap.length){ showToast('パーティを編成してください'); return; }
-  const code = (document.getElementById('pvp-code-input')?.value||'').trim().toLowerCase();
-  if(!code){ showToast('合言葉を入力してください'); return; }
 
-  const statusEl = document.getElementById('pvp-match-status');
-  if(statusEl) statusEl.textContent='🔍 マッチング中...';
 
-  try{
-    const roomRef = db.collection('pvp_rooms').doc(code);
-    const room = await roomRef.get();
 
-    // 自分のパーティデータ
-    const myPartyData = ap.map(id=>{
-      const c=CHARS.find(ch=>ch.id===id);
-      const cd=(S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-      const lvMul=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
-      return{id,atk:Math.round(c.atk*lvMul),hp:Math.round(c.hp*lvMul)};
-    });
-    const myTotalAtk = myPartyData.reduce((s,m)=>s+m.atk,0);
-    const myTotalHp  = myPartyData.reduce((s,m)=>s+m.hp,0);
-
-    if(!room.exists){
-      // 部屋作成（待機）
-      await roomRef.set({
-        hostId: S.playerId,
-        hostAtk: myTotalAtk,
-        hostHp:  myTotalHp,
-        hostParty: ap,
-        hostRank: S.pvpRank||1200,
-        createdAt: Date.now(),
-        status:'waiting',
-      });
-      if(statusEl) statusEl.textContent='⏳ 相手を待っています... (合言葉: '+code+')';
-
-      // 30秒待機してマッチング確認
-      pvpMatchState = {code, role:'host', timer: setTimeout(()=>cancelPvpRoom(code), 30000)};
-
-      // リアルタイム監視
-      const unsub = roomRef.onSnapshot(snap=>{
-        const data=snap.data();
-        if(data&&data.status==='matched'&&data.guestId){
-          clearTimeout(pvpMatchState?.timer);
-          unsub();
-          pvpMatchState=null;
-          if(statusEl) statusEl.textContent='✅ マッチング成立！';
-          executePvpMatch(data, 'host', ap);
-        }
-      });
-      pvpMatchState.unsub=unsub;
-
-    } else {
-      // 既存の部屋に参加
-      const data = room.data();
-      if(data.status!=='waiting'){ showToast('この合言葉の部屋は既に使用中です'); if(statusEl)statusEl.textContent=''; return; }
-      if(data.hostId===S.playerId){ showToast('自分自身とは対戦できません'); if(statusEl)statusEl.textContent=''; return; }
-      await roomRef.update({
-        guestId: S.playerId,
-        guestAtk: myTotalAtk,
-        guestHp:  myTotalHp,
-        guestParty: ap,
-        guestRank: S.pvpRank||1200,
-        status:'matched',
-      });
-      if(statusEl) statusEl.textContent='✅ マッチング成立！';
-      executePvpMatch({...data, guestId:S.playerId, guestAtk:myTotalAtk, guestHp:myTotalHp, guestParty:ap, status:'matched'}, 'guest', ap);
-    }
-  }catch(e){
-    if(statusEl) statusEl.textContent='❌ エラー: '+e.message;
-    console.log('[PVP] room error:', e);
-  }
-}
-
-
-
-function startPvpBattle(){
-  const ap = S.party.filter(id=>id!==-1);
-  if(!ap.length){
-    showModal('パーティ未編成','闘技場に出るにはパーティを編成してください。',[
-      {label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}
-    ]);
-    return;
-  }
-  const rank = S.pvpRank||1200;
-  // ランク近い相手をランダム選択
-  const opponent = PVP_DUMMY_OPPONENTS[Math.floor(Math.random()*PVP_DUMMY_OPPONENTS.length)];
-  const enemy = {
-    name: opponent.name,
-    emoji:'⚔️',
-    hp: opponent.party.reduce((sum,id)=>{ const c=CHARS.find(ch=>ch.id===id); return sum+(c?c.hp:500); },0),
-    atk: Math.round(Math.max(...opponent.party.map(id=>{ const c=CHARS.find(ch=>ch.id===id); return c?c.atk:80; }))*1.2),
-    spd: rank>=1400?2:1,
-    boss: false,
-  };
-  const pvpQuest={
-    id:`pvp_${Date.now()}`,
-    name:`⚔️ vs ${opponent.name}`,
-    enemy,
-    gold: 100+Math.round((rank-1000)/10),
-    gem: 5+Math.round((rank-1000)/100),
-    boss:false,
-    bgColor:['#050010','#100020'],
-    story:[],
-    isPvp:true,
-    opponent,
-  };
-  sfx('click');
-  BT.fromScreen='pvp';
-  initBattle(pvpQuest, ap);
-}
-
-function onPvpEnd(won, quest){
-  const pointChange = won ? Math.round(20+(quest.opponent?.rank||1200)/100) : -15;
-  S.pvpRank = Math.max(0, (S.pvpRank||1200)+pointChange);
-  if(won){ S.pvpWin=(S.pvpWin||0)+1; }
-  else   { S.pvpLose=(S.pvpLose||0)+1; }
-  checkAchievement('pvp_win10', (S.pvpWin||0)>=10);
-  checkAchievement('pvp_win50', (S.pvpWin||0)>=50);
-  saveGame();
-}
-
-// ================================================================
-//  RANK SYSTEM
-
-// ================================================================
-// Rankに必要なEXP: Rank * 80 + Rank^2 * 20
-function rankExpNeeded(rank){ return rank * 80 + rank * rank * 20; }
-
-// Rankアップ報酬テーブル
-function getRankupRewards(newRank){
-  const rewards = [];
-  // 全Rankで深海結晶配布
-  const gems = Math.floor(newRank * 1.5) + 10;
-  rewards.push({type:'gem', amount:gems, label:`💎 深海結晶 ×${gems}`});
-  // 5の倍数でゴールド大量
-  if(newRank % 5 === 0){
-    const gold = newRank * 500;
-    rewards.push({type:'gold', amount:gold, label:`💰 ゴールド ×${gold.toLocaleString()}`});
-  }
-  // 10の倍数でガチャチケット（ジェム300換算）
-  if(newRank % 10 === 0){
-    rewards.push({type:'gem', amount:300, label:`🎲 召喚チケット ×1 (💎300)`});
-  }
-  return rewards;
-}
-
-// Rankバー更新
-function updateRankBar(){
-  const rank = S.rank || 1;
-  const exp  = S.rankExp || 0;
-  const need = rankExpNeeded(rank);
-  const pct  = Math.min(exp / need * 100, 100).toFixed(1);
-
-  const label = document.getElementById('rank-bar-label');
-  const fill  = document.getElementById('rank-exp-fill');
-  const txt   = document.getElementById('rank-exp-txt');
-  const prank = document.getElementById('home-prank');
-
-  if(label) label.textContent = `Rank ${rank}`;
-  if(fill)  fill.style.width  = pct + '%';
-  if(txt)   txt.textContent   = `${exp}/${need}`;
-  if(prank) prank.textContent = `Rank ${rank}`;
-}
-
-// EXP付与＆Rankアップ処理
-function addRankExp(exp){
-  if(!S.rank) S.rank = 1;
-  if(!S.rankExp) S.rankExp = 0;
-  S.rankExp += exp;
-  const rankupsQueue = [];
-
-  // 複数段Rankアップ対応
-  while(S.rankExp >= rankExpNeeded(S.rank)){
-    S.rankExp -= rankExpNeeded(S.rank);
-    S.rank++;
-    const rewards = getRankupRewards(S.rank);
-    rewards.forEach(r=>{
-      if(r.type==='gem')  S.gem  += r.amount;
-      if(r.type==='gold') S.gold += r.amount;
-    });
-    rankupsQueue.push({rank: S.rank, rewards});
-  }
-  saveGame();
-  updateRankBar();
-  return rankupsQueue;
-}
-
-function showRankupSequence(queue){
-  if(!queue.length) return;
-  const ru = queue[0];
-  document.getElementById('rankup-rank-num').textContent = ru.rank;
-  document.getElementById('rankup-rw-list').innerHTML = ru.rewards.map(r=>
-    `<div class="rankup-rw-item">${r.label}</div>`
-  ).join('');
-  document.getElementById('rankup-overlay').classList.add('show');
-  sfx('win');
-  // 残りキューをデータ保持
-  document.getElementById('rankup-overlay').dataset.queue = JSON.stringify(queue.slice(1));
-}
-
-function closeRankup(){
-  const overlay = document.getElementById('rankup-overlay');
-  const rest = JSON.parse(overlay.dataset.queue||'[]');
-  overlay.classList.remove('show');
-  if(rest.length) setTimeout(()=>showRankupSequence(rest), 400);
-  else { refreshHome(); }
-}
-
-// ====== EXP量: クエストの強さ基準 ======
-function calcQuestExp(quest){
-  // 敵HPとATKから算出。ボスは3倍
-  const base = Math.floor(quest.enemy.hp / 100 + quest.enemy.atk / 5);
-  return quest.boss ? base * 3 : base;
-}
-
-function winBattle(){
-  BT.active=false; sfx('win');
-  S.gold += BT.quest.gold;
-  S.gem  += BT.quest.gem;
-  S.dailyDone = Math.min(5, S.dailyDone+1);
-  if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
-  // 塔・PvP・周回処理
-  if(BT.quest.isTower) onTowerClear(BT.quest);
-  if(BT.quest.isGrind){
-    const gv=document.getElementById('grind-gold-val');
-    if(gv) gv.textContent=S.gold.toLocaleString();
-    // 周回残数があれば自動継続
-    if(BT.grindRemain > 0){
-      BT.grindRemain--;
-      const qid = BT.grindQid;
-      const ap  = BT.grindParty;
-      const q   = GRIND_QUESTS.find(g=>g.id===qid);
-      if(q && ap && ap.length){
-        // 結果画面を短時間表示してから次の戦闘へ
-        document.getElementById('end-ttl').textContent='VICTORY';
-        document.getElementById('end-ttl').className='end-ttl end-win';
-        document.getElementById('end-rw-val').textContent=
-          `💰 +${BT.quest.gold.toLocaleString()}  残り${BT.grindRemain}回`;
-        document.getElementById('battle-end').classList.add('show');
-        setTimeout(()=>{
-          document.getElementById('battle-end').classList.remove('show');
-          const nextQuest={
-            id:`grind_${qid}`,
-            name:`${q.name} (残${BT.grindRemain}回)`,
-            enemy:q.enemy, gold:q.gold, gem:0, boss:false,
-            bgColor:['#050a00','#0a1400'], story:[], isGrind:true, grindQid:qid,
-          };
-          BT.fromScreen='grind';
-          initBattle(nextQuest, ap);
-        }, 1200);
-        return; // 通常の勝利処理をスキップして早期return
-      }
-    }
-  }
-  if(BT.quest.isPvp)   onPvpEnd(true, BT.quest);
-  // 実績チェック
-  checkAllAchievements();
-
-  // EXP付与
-  const gainExp = calcQuestExp(BT.quest);
-  const rankups = addRankExp(gainExp);
-
-  // 結果画面
-  document.getElementById('end-ttl').textContent='VICTORY';
-  document.getElementById('end-ttl').className='end-ttl end-win';
-  document.getElementById('end-rw-val').textContent=
-    `💰 +${BT.quest.gold.toLocaleString()}  💎 +${BT.quest.gem}`;
-
-  // EXPゲージ表示
-  const expRow = document.getElementById('end-exp-row');
-  const expBar = document.getElementById('end-exp-bar');
-  const expLbl = document.getElementById('end-exp-label');
-  const expTxt = document.getElementById('end-exp-txt');
-  if(expRow){
-    expRow.style.display='flex';
-    if(expLbl) expLbl.textContent = `EXP +${gainExp}`;
-    if(expTxt) expTxt.textContent = `Rank ${S.rank}`;
-    // ゲージをアニメーション
-    if(expBar){
-      expBar.style.width='0%';
-      const need = rankExpNeeded(S.rank);
-      const pct  = Math.min(S.rankExp/need*100,100).toFixed(1);
-      setTimeout(()=>{ expBar.style.width=pct+'%'; }, 400);
-    }
-  }
-
-  saveGame();
-  document.getElementById('battle-end').classList.add('show');
-
-  // Rankアップ演出（少し遅らせる）
-  if(rankups.length) setTimeout(()=>{ document.getElementById('battle-end').classList.remove('show'); showRankupSequence(rankups); }, 1800);
-}
-function loseBattle(){
-  BT.active=false;sfx('lose');
-  if(BT.quest&&BT.quest.isPvp) onPvpEnd(false, BT.quest);
-  document.getElementById('end-ttl').textContent='DEFEAT';document.getElementById('end-ttl').className='end-ttl end-lose';
-  document.getElementById('end-rw-val').textContent='報酬なし';
-  document.getElementById('battle-end').classList.add('show');
-}
-function endBattle(){document.getElementById('battle-end').classList.remove('show');goTo(BT.fromScreen||'home');refreshAfterBattle();}
-function refreshAfterBattle(){if(BT.fromScreen==='quest')renderMap();else if(BT.fromScreen==='tower')renderTower();else if(BT.fromScreen==='pvp')renderPvp();else if(BT.fromScreen==='grind')renderGrind();}
-// ================================================================
-//  CHAR DETAIL / GROW
-// ================================================================
-let detailCharId = -1;
-
-// レアリティ別強化コスト係数
-const RARITY_COST = {R:1, SR:2.5, SSR:6, UR:15};
-
-// レベルアップコスト: 基本500 × レアリティ係数 × ceil(lv/10)
-function calcLvCost(rarity, lv){
-  const base = 500;
-  const tier = Math.ceil(lv/10); // 1-10:1倍, 11-20:2倍...
-  return Math.round(base * (RARITY_COST[rarity]||1) * tier);
-}
-
-// 限界突破コスト: 基本200 × レアリティ係数 × (突破段階+1)^1.5
-function calcBreakCost(rarity, stage){
-  const base = 200;
-  return Math.round(base * (RARITY_COST[rarity]||1) * Math.pow(stage+1, 1.5));
-}
-
-function openCharDetail(charId){
-  sfx('click');
-  detailCharId = charId;
-  refreshCharDetail();
-  document.getElementById('char-detail-overlay').classList.add('show');
-}
-
-function refreshCharDetail(){
-  const id = detailCharId;
-  // owned配列からレベル情報を取得
-  const owned = S.ownedData || {};
-  const charData = owned[id] || {level:1, exp:0, breakthrough:0};
-  const base = CHARS.find(c=>c.id===id); if(!base) return;
-
-  const lv = charData.level;
-  const lvMul = 1 + (lv-1)*0.08 + (charData.breakthrough||0)*0.15;
-  const hp  = Math.round(base.hp  * lvMul);
-  const atk = Math.round(base.atk * lvMul);
-  const expNeeded = lv * 100;
-  const expPct = Math.min((charData.exp||0)/expNeeded*100, 100);
-
-  const rarColor = base.rarity==='UR'?'#ffe040':base.rarity==='SSR'?'#d4a020':base.rarity==='SR'?'#a060e0':'#4080c0';
-
-  document.getElementById('cdp-icon').textContent = base.emoji;
-  document.getElementById('cdp-icon').style.background = base.bg;
-  document.getElementById('cdp-icon').style.border = `1.5px solid ${base.border}`;
-  document.getElementById('cdp-name').textContent = base.name;
-  document.getElementById('cdp-rar').textContent  = base.rarity;
-  document.getElementById('cdp-rar').style.color  = rarColor;
-  document.getElementById('cdp-lv-txt').textContent = `Lv.${lv} / 100`;
-  document.getElementById('cdp-exp-txt').textContent = `EXP: ${charData.exp||0} / ${expNeeded}`;
-  document.getElementById('cdp-exp-fill').style.width = expPct+'%';
-  document.getElementById('cdp-hp').textContent  = hp;
-  document.getElementById('cdp-atk').textContent = atk;
-  document.getElementById('cdp-rar2').textContent = base.rarity;
-  document.getElementById('cdp-rar2').style.color  = rarColor;
-  document.getElementById('cdp-break').textContent = `${charData.breakthrough||0} / 5`;
-
-  const lvCost  = calcLvCost(base.rarity, lv);
-  const brStage = charData.breakthrough||0;
-  const brCost  = calcBreakCost(base.rarity, brStage);
-  document.getElementById('lvup-cost').textContent  = `💰 ${lvCost.toLocaleString()}`;
-  document.getElementById('break-cost').textContent = lv < (brStage+1)*20
-    ? `Lv.${(brStage+1)*20}必要`
-    : `💎 ${brCost.toLocaleString()}`;
-}
-
-function levelUpChar(){
-  if(detailCharId===-1) return;
-  if(!S.ownedData) S.ownedData={};
-  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
-  const cd   = S.ownedData[detailCharId];
-  const base = CHARS.find(c=>c.id===detailCharId);
-  if(!base) return;
-  const maxLv  = 20 + (cd.breakthrough||0)*20; // 突破ごとに+20
-  if(cd.level >= maxLv){
-    if((cd.breakthrough||0)>=5) showToast('最大レベルに達しています！');
-    else showToast(`限界突破が必要です（現在上限Lv.${maxLv}）`);
-    return;
-  }
-  const cost = calcLvCost(base.rarity, cd.level);
-  if(S.gold < cost){ showToast(`💰 ゴールドが足りません
-必要: ${cost.toLocaleString()}`); return; }
-  S.gold -= cost;
-  cd.level++;
-  saveGame();
-  sfx('select');
-  showToast(`✨ ${base.name} → Lv.${cd.level}！`);
-  refreshCharDetail();
-  refreshHome();
-}
-
-function breakthroughChar(){
-  if(detailCharId===-1) return;
-  if(!S.ownedData) S.ownedData={};
-  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
-  const cd   = S.ownedData[detailCharId];
-  const base = CHARS.find(c=>c.id===detailCharId);
-  if(!base) return;
-  const stage   = cd.breakthrough||0;
-  if(stage>=5){ showToast('最大限界突破済みです！'); return; }
-  // 限界突破にはLvが(stage+1)*20に達している必要がある
-  const reqLv = (stage+1)*20;
-  if(cd.level < reqLv){ showToast(`Lv.${reqLv}に達してから限界突破できます`); return; }
-  const cost = calcBreakCost(base.rarity, stage);
-  if(S.gem < cost){ showToast(`💎 深海結晶が足りません
-必要: ${cost.toLocaleString()}`); return; }
-  S.gem -= cost;
-  cd.breakthrough = stage+1;
-  saveGame();
-  sfx('win');
-  showToast(`💥 ${base.name} 限界突破${cd.breakthrough}段階！ 上限Lv.${20+cd.breakthrough*20}に解放！`);
-  refreshCharDetail();
-  refreshHome();
-}
-
-function closeCharDetail(e){
-  if(e && e.target!==document.getElementById('char-detail-overlay')) return;
-  document.getElementById('char-detail-overlay').classList.remove('show');
-  detailCharId = -1;
-}
-
-function fleeConfirm(){
-  sfx('click');
-  showModal('撤退確認','クエストを中断しますか？',[
-    {label:'撤退する',action:()=>{BT.active=false;document.getElementById('battle-end').classList.remove('show');goTo(BT.fromScreen||'home');refreshAfterBattle();}},
-    {label:'続ける',action:()=>{},primary:true}
-  ]);
-}
-
-// ================================================================
-//  SETTINGS
-// ================================================================
-function onSeVol(v){S.seVol=v/100;document.getElementById('se-vol-val').textContent=v;if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;saveGame();}
-function toggleSe(){S.seOn=!S.seOn;document.getElementById('se-toggle').classList.toggle('on',S.seOn);if(AC&&seGain)seGain.gain.value=S.seOn?S.seVol:0;saveGame();}
-function toggleBubble(){S.bubbleOn=!S.bubbleOn;document.getElementById('bubble-toggle').classList.toggle('on',S.bubbleOn);saveGame();}
-function confirmReset(){
-  sfx('click');
-  showModal('データリセット','全ての進行データを削除します。よろしいですか？',[
-    {label:'リセット',action:()=>{S={...DEFAULT_S,playerId:S.playerId};localStorage.removeItem(SAVE_KEY);showToast('リセットしました');goTo('home');}},
-    {label:'キャンセル',action:()=>{},primary:true}
-  ]);
-}
-
-// ================================================================
-//  MODAL & TOAST
-// ================================================================
-function showModal(title,body,btns){
-  const ov=document.createElement('div');ov.className='modal-overlay show';
-  ov.innerHTML=`<div class="modal"><div class="modal-ttl">${title}</div><div class="modal-body">${body}</div><div class="modal-btns">${btns.map((b,i)=>`<button class="modal-btn ${b.primary?'primary':''}" data-i="${i}">${b.label}</button>`).join('')}</div></div>`;
-  document.body.appendChild(ov);
-  ov.querySelectorAll('.modal-btn').forEach(btn=>btn.addEventListener('click',()=>{sfx('click');btns[+btn.dataset.i].action();ov.remove();}));
-}
-function showToast(msg){
-  const el=document.createElement('div');el.className='toast';el.textContent=msg;
-  document.body.appendChild(el);setTimeout(()=>el.remove(),2200);
-}
-
-// ================================================================
-//  BOOT
-// ================================================================
-// ================================================================
-//  ONLINE DATA LOADER
-// ================================================================
-const NOTICES_URL = 'notices.json';
-
-async function loadOnlineData(){
-  // notices.jsonだけ取得（お知らせ・更新ログ）
-  // キャラ・バナー・クエストはHTML内蔵データを使用
-  try {
-    const noticeRes = await fetch(NOTICES_URL + '?v=' + Date.now());
-    if(noticeRes.ok){
-      const nd = await noticeRes.json();
-      if(nd.notices)   ONLINE_NOTICES = nd.notices;
-      if(nd.updateLog) UPDATE_LOG     = nd.updateLog;
-      if(nd.version) GAME_VERSION = nd.version;
-      console.log('[ABYSSAL] Notices loaded. version:', GAME_VERSION);
-    }
-  } catch(e){
-    console.log('[ABYSSAL] Offline mode.');
-  }
-}
-
-let ONLINE_NOTICES = [];
-let UPDATE_LOG = [];
-let GAME_VERSION = '0.3.0';
-
-// ================================================================
-//  BOOT
-// ================================================================
-window.addEventListener('load', async ()=>{
-  initSeaBg();
-  // SE設定をロード済みSに合わせてUIを更新
-  const seSlider=document.getElementById('se-vol');
-  const seValEl=document.getElementById('se-vol-val');
-  const seToggle=document.getElementById('se-toggle');
-  const bubbleToggle=document.getElementById('bubble-toggle');
-  if(seSlider){ seSlider.value=Math.round(S.seVol*100); }
-  if(seValEl){ seValEl.textContent=Math.round(S.seVol*100); }
-  if(seToggle){ seToggle.classList.toggle('on',S.seOn); }
-  if(bubbleToggle){ bubbleToggle.classList.toggle('on',S.bubbleOn); }
-
-  const fill = document.getElementById('boot-fill');
-  let w = 0;
-  const iv = setInterval(()=>{ w+=2; fill.style.width=w+'%'; if(w>=40) clearInterval(iv); }, 30);
-
-  // Firebase初期化（ユーザーID発行・クラウドセーブ）
-  await initFirebaseUser().catch(e=>console.error('[ABYSSAL] Firebase init error:', e));
-
-  let w2 = 40;
-  const iv2 = setInterval(()=>{ w2+=2; fill.style.width=w2+'%'; if(w2>=70) clearInterval(iv2); }, 30);
-
-  // お知らせ・プレゼント取得
-  await loadServerNotices().catch(e=>console.log('[ABYSSAL] Server notices error:', e));
-
-  // ゲームデータ取得
-  await loadOnlineData().catch(()=>{});
-
-  // ロードバー完了
-  let w3 = 70;
-  const iv3 = setInterval(()=>{
-    w3+=3; fill.style.width=w3+'%';
-    if(w3>=100){
-      clearInterval(iv3);
-      setTimeout(()=>{ initAudio(); goTo('home'); updatePlayerIdDisplay(); }, 300);
-    }
-  }, 25);
-});
-
-document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();},{once:true});
-
-// ================================================================
-//  プレイヤーID表示・引継ぎUI
-// ================================================================
-function updatePlayerIdDisplay(){
-  const el = document.getElementById('player-id-display');
-  if(el){
-    if(S && S.playerId){
-      el.textContent = S.playerId;
-    } else {
-      // S.playerIdがなければここで生成
-      S.playerId = generatePlayerId();
-      saveGame();
-      el.textContent = S.playerId;
-    }
-  }
-}
-
-function copyPlayerId(){
-  if(!S.playerId){ showToast('IDがまだ発行されていません'); return; }
-  navigator.clipboard.writeText(S.playerId).then(()=>{
-    showToast('📋 IDをコピーしました: '+S.playerId);
-  }).catch(()=>{
-    showToast('ID: '+S.playerId);
-  });
-}
-
-function showTransferModal(){
-  sfx('click');
-  document.getElementById('transfer-modal').classList.add('show');
-  document.getElementById('transfer-id-input').value='';
-}
-function closeTransferModal(){
-  document.getElementById('transfer-modal').classList.remove('show');
-}
-function doTransfer(){
-  const id = document.getElementById('transfer-id-input').value.trim();
-  if(!id || id.length < 8){ showToast('正しいIDを入力してください'); return; }
-  sfx('click');
-  transferAccount(id);
-}
-
-// ================================================================
-//  お知らせ表示（オンラインから取得したもの）
-// ================================================================
-function showOnlineNotices(){
-  if(!ONLINE_NOTICES.length) return;
-  const bar = document.getElementById('notice-text-bar');
-  if(bar){
-    const important = ONLINE_NOTICES.filter(n => n.important===true || n.important==='true');
-    const target = important.length ? important[0] : ONLINE_NOTICES[0];
-    if(target){
-      bar.textContent = target.title + ' — ' + (target.body||'').split('\n')[0];
-      const badge = document.querySelector('.notice-new');
-      if(badge) badge.style.display='block';
-    }
-  }
-  // ドロップダウンを更新
-  renderNotifDropdown();
-  // お知らせ画面も更新
-  renderNotices();
-}
-
-// ================================================================
-//  NOTICE DROPDOWN
-// ================================================================
-let readNoticeIds = JSON.parse(localStorage.getItem('read_notices')||'[]');
-
-function renderNotifDropdown(){
-  const list = document.getElementById('notif-list-dropdown');
-  if(!list) return;
-  if(!ONLINE_NOTICES.length){
-    list.innerHTML='<div class="notif-empty">お知らせはありません</div>';
-    return;
-  }
-  const unreadCount = ONLINE_NOTICES.filter(n=>!readNoticeIds.includes(n.id||n.title)).length;
-  // バッジ更新
-  const badge = document.getElementById('notif-badge');
-  if(badge){
-    badge.textContent = unreadCount>9?'9+':unreadCount;
-    badge.classList.toggle('show', unreadCount>0);
-  }
-
-  list.innerHTML = ONLINE_NOTICES.slice(0,10).map(n=>{
-    const isUnread = !readNoticeIds.includes(n.id||n.title);
-    const typeMap = {event:'ntb-event',gift:'ntb-gift',info:'ntb-info',update:'ntb-update'};
-    const typeCls = typeMap[n.type]||'ntb-info';
-    const typeLabel = n.type==='event'?'イベント':n.type==='gift'?'配布':n.type==='update'?'更新':'お知らせ';
-    return`<div class="notif-item ${isUnread?'unread':''}" onclick="readNotice('${n.id||n.title}')">
-      <div class="notif-item-top">
-        ${isUnread?'<div class="notif-unread-dot"></div>':''}
-        <div class="notif-type-badge ${typeCls}">${typeLabel}</div>
-        <div class="notif-item-title">${n.title||''}</div>
-      </div>
-      <div class="notif-item-body">${(n.body||'').split('\n')[0]}</div>
-      <div class="notif-item-date">${n.date||''}</div>
-    </div>`;
-  }).join('');
-}
-
-function readNotice(id){
-  if(!readNoticeIds.includes(id)){
-    readNoticeIds.push(id);
-    localStorage.setItem('read_notices', JSON.stringify(readNoticeIds));
-    renderNotifDropdown();
-  }
-}
-
-function toggleNotifDropdown(){
-  sfx('click');
-  const dd = document.getElementById('notif-dropdown');
-  const isShow = dd.classList.contains('show');
-  if(isShow){ dd.classList.remove('show'); }
-  else{
-    dd.classList.add('show');
-    renderNotifDropdown();
-    // 全既読にする（開いたら読んだとみなす）
-    ONLINE_NOTICES.forEach(n=>{
-      const id = n.id||n.title;
-      if(!readNoticeIds.includes(id)) readNoticeIds.push(id);
-    });
-    localStorage.setItem('read_notices', JSON.stringify(readNoticeIds));
-    setTimeout(()=>renderNotifDropdown(), 300);
-  }
-}
-
-function closeNotifDropdown(){
-  document.getElementById('notif-dropdown').classList.remove('show');
-}
-
-// ドロップダウン外クリックで閉じる
-document.addEventListener('click',(e)=>{
-  const bell = document.getElementById('notif-bell');
-  const dd   = document.getElementById('notif-dropdown');
-  if(dd&&!dd.contains(e.target)&&bell&&!bell.contains(e.target)){
-    dd.classList.remove('show');
-  }
-});
 </script>
 </body>
 </html>
