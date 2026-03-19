@@ -945,10 +945,10 @@ function onPvpEnd(won, quest){
       <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 0;">
-      <div style="font-size:10px;color:var(--text2);">プレイヤーID: <span id="player-id-display" style="color:var(--teal);font-weight:500;letter-spacing:.05em;">----</span></div>
+      <div style="font-size:10px;color:var(--text2);">UID: <span id="player-id-display" style="color:var(--teal);font-weight:500;font-size:9px;word-break:break-all;">----</span></div>
       <div style="display:flex;gap:6px;">
         <div onclick="showTransferModal()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">🔄 引継ぎ</div>
-        <div onclick="copyPlayerId()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">📋 IDコピー</div>
+        <div onclick="copyMyUid()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">📋 UIDコピー</div>
       </div>
     </div>
     <div class="notice-bar">
@@ -1419,13 +1419,16 @@ function onPvpEnd(won, quest){
   <div class="modal">
     <div class="modal-ttl">🔄 データ引継ぎ</div>
     <div class="modal-body">
-      引継ぎIDを入力してください。<br>
-      現在のデータは上書きされます。
+      引継ぎするアカウントの<strong style="color:var(--teal);">UID</strong>を入力してください。<br>
+      UIDはホーム画面の「UIDコピー」ボタンで確認できます。<br>
+      <span style="color:var(--red);font-size:10px;">※ 現在のデータは上書きされます</span>
     </div>
-    <div style="margin-bottom:14px;">
-      <input id="transfer-id-input" type="text" placeholder="例: ABCD-1234"
-        style="width:100%;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;letter-spacing:.1em;text-transform:uppercase;"
-        oninput="this.value=this.value.toUpperCase()">
+    <div style="margin-bottom:6px;">
+      <input id="transfer-id-input" type="text" placeholder="UIDを貼り付け（例: aBcDeFgH...）"
+        style="width:100%;background:rgba(0,20,40,.6);border:.5px solid var(--border3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);font-family:inherit;">
+    </div>
+    <div style="font-size:9px;color:var(--text3);margin-bottom:14px;">
+      PlayerIDでの引継ぎも引き続き使用可能です。
     </div>
     <div class="modal-btns">
       <button class="modal-btn primary" onclick="doTransfer()">引継ぎ実行</button>
@@ -1723,14 +1726,31 @@ async function saveToCloud(){
   }
 }
 
-// データ引継ぎ（IDで検索して自分のアカウントに移行）
+// データ引継ぎ（UID or PlayerIDで検索して自分のアカウントに移行）
 async function transferAccount(inputId){
   try{
-    const snap = await db.collection('players').where('playerId','==',inputId.toUpperCase()).limit(1).get();
-    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
-    const targetDoc = snap.docs[0];
-    const targetData = targetDoc.data();
-    // 自分のFirestoreドキュメントに上書き
+    let targetData = null;
+
+    // UIDで直接取得（20文字以上はUID）
+    if(inputId.length >= 20){
+      const docSnap = await db.collection('players').doc(inputId).get();
+      if(!docSnap.exists){
+        showToast('❌ UIDが見つかりません');
+        return;
+      }
+      targetData = docSnap.data();
+    } else {
+      // PlayerIDで検索（後方互換）
+      const snap = await db.collection('players')
+        .where('playerId','==',inputId.toUpperCase()).limit(1).get();
+      if(snap.empty){
+        showToast('❌ IDが見つかりません');
+        return;
+      }
+      targetData = snap.docs[0].data();
+    }
+
+    // 現在のUIDで自分のドキュメントに上書き保存
     await playerDocRef.update({...targetData, uid: currentUser.uid});
     S = {...DEFAULT_S, ...targetData};
     saveGame();
@@ -1738,8 +1758,8 @@ async function transferAccount(inputId){
     refreshHome();
     closeTransferModal();
   }catch(e){
-    showToast('❌ 引継ぎに失敗しました');
-    console.log(e);
+    showToast('❌ 引継ぎに失敗しました: '+e.message);
+    console.error('[TRANSFER]',e);
   }
 }
 
@@ -2505,7 +2525,10 @@ function refreshHome(){
 function updatePlayerIdDisplay(){
   const el = document.getElementById('player-id-display');
   if(el){
-    if(S && S.playerId){
+    const uid = auth.currentUser ? auth.currentUser.uid : '';
+    if(uid){
+      el.textContent = uid;
+    } else if(S && S.playerId){
       el.textContent = S.playerId;
     } else {
       S.playerId = generatePlayerId();
@@ -2518,10 +2541,15 @@ function updatePlayerIdDisplay(){
 function copyPlayerId(){
   if(!S.playerId){ showToast('IDがまだ発行されていません'); return; }
   navigator.clipboard.writeText(S.playerId).then(()=>{
-    showToast('📋 IDをコピーしました: '+S.playerId);
-  }).catch(()=>{
-    showToast('ID: '+S.playerId);
-  });
+    showToast('📋 PlayerIDをコピーしました: '+S.playerId);
+  }).catch(()=>{ showToast('ID: '+S.playerId); });
+}
+function copyMyUid(){
+  var uid=auth.currentUser?auth.currentUser.uid:'';
+  if(!uid){ showToast('UIDがまだ取得できていません'); return; }
+  navigator.clipboard.writeText(uid).then(()=>{
+    showToast('📋 UIDをコピーしました！');
+  }).catch(()=>{ showToast('UID: '+uid.slice(0,12)+'...'); });
 }
 
 function updatePlayerNameDisplay(){
@@ -5189,9 +5217,9 @@ function confirmReset(){
 function showTransferModal(){ sfx('click'); document.getElementById('transfer-modal').classList.add('show'); document.getElementById('transfer-id-input').value=''; }
 function closeTransferModal(){ document.getElementById('transfer-modal').classList.remove('show'); }
 function doTransfer(){
-  const id=document.getElementById('transfer-id-input').value.trim();
-  if(!id||id.length<8){ showToast('正しいIDを入力してください'); return; }
-  sfx('click'); transferAccount(id);
+  const input=document.getElementById('transfer-id-input').value.trim();
+  if(!input||input.length<4){ showToast('UIDまたはPlayerIDを入力してください'); return; }
+  sfx('click'); transferAccount(input);
 }
 
 // ================================================================
@@ -6367,6 +6395,7 @@ async function renderFriend(){
   const friends = S.friends||[];
   const pending = S.pendingRequests||[];
   const myId = S.playerId||'----';
+  const myUid = auth.currentUser ? auth.currentUser.uid : '（ログイン中...）';
 
   // Firestoreからフレンドの最新データを取得してRank等を更新
   if(friends.length>0 && db){
@@ -6443,7 +6472,7 @@ async function renderFriend(){
     // フレンドタブ
     +'<div id="ftab-content-friends">'
     +'<div class="friend-search-row">'
-    +'<input class="search-input" id="friend-search-input" placeholder="フレンドのIDを入力..." style="flex:1;">'
+    +'<input class="search-input" id="friend-search-input" placeholder="フレンドのUID または PlayerIDを入力..." style="flex:1;">'
     +'<button onclick="sendFriendRequest()" style="padding:8px 14px;border-radius:8px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-family:inherit;font-size:12px;">申請</button>'
     +'</div>'
     +(friends.length===0
@@ -6499,17 +6528,29 @@ function showFriendTab(tab){
 // ----------------------------------------------------------------
 async function sendFriendRequest(){
   var input=document.getElementById('friend-search-input');
-  var id=(input?input.value:'').trim().toUpperCase();
-  if(!id){ showToast('IDを入力してください'); return; }
-  if(id===S.playerId){ showToast('自分自身には申請できません'); return; }
+  var rawInput=(input?input.value:'').trim();
+  if(!rawInput){ showToast('UIDまたはPlayerIDを入力してください'); return; }
+  var myUidCheck=auth.currentUser?auth.currentUser.uid:'';
+  if(rawInput===myUidCheck||rawInput.toUpperCase()===S.playerId){
+    showToast('自分自身には申請できません'); return;
+  }
 
   try{
-    // 相手のデータ取得
-    var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
-    if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
-    var targetDoc=snap.docs[0];
-    var targetData=targetDoc.data();
     var myUid=auth.currentUser?auth.currentUser.uid:'';
+    var targetDoc, targetData;
+    // UIDまたはPlayerIDで検索（28文字以上=UID）
+    if(rawInput.length>=20){
+      var docSnap=await db.collection('players').doc(rawInput).get();
+      if(!docSnap.exists){ showToast('❌ UIDが見つかりません'); return; }
+      targetDoc={id:docSnap.id, data:function(){return docSnap.data();}};
+      targetData=docSnap.data();
+    } else {
+      var id=rawInput.toUpperCase();
+      var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
+      if(snap.empty){ showToast('❌ PlayerIDが見つかりません'); return; }
+      targetDoc=snap.docs[0];
+      targetData=targetDoc.data();
+    }
 
     // 自分のfriendリストに追加
     if(!S.friends) S.friends=[];
