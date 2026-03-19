@@ -792,6 +792,40 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   100%{opacity:0;}
 }
 
+
+/* ===== キャラ詳細強化 ===== */
+.pcd-effect-box{background:rgba(10,30,60,.5);border:.5px solid rgba(30,100,180,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.pcd-effect-title{font-size:10px;color:var(--teal);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.pcd-effect-desc{font-size:10px;color:var(--text);line-height:1.6;}
+.pcd-effect-tag{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(20,100,80,.3);border:.5px solid rgba(20,160,120,.3);color:var(--teal);margin-right:3px;}
+
+/* ===== 戦闘デバフ詳細パネル ===== */
+.battle-info-btn{padding:8px 10px;border-radius:8px;border:.5px solid rgba(100,80,160,.4);background:rgba(40,20,80,.3);font-size:11px;color:#c0a0ff;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.battle-info-btn:hover{background:rgba(60,30,120,.4);}
+.battle-info-panel{
+  position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.88);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.battle-info-panel.show{display:flex;}
+.bip-box{
+  background:rgba(4,10,24,.98);border:.5px solid var(--border3);
+  border-radius:18px 18px 0 0;width:100%;max-width:480px;
+  max-height:80vh;overflow-y:auto;padding:16px 16px 32px;
+}
+.bip-title{font-size:13px;font-weight:600;letter-spacing:.1em;color:var(--text);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.bip-section{margin-bottom:16px;}
+.bip-section-title{font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:8px;border-bottom:.5px solid var(--border2);padding-bottom:4px;}
+.bip-status-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.bip-status-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.bip-status-info{flex:1;}
+.bip-status-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.bip-status-desc{font-size:10px;color:var(--text2);line-height:1.5;}
+.bip-party-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.bip-party-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.bip-party-info{flex:1;}
+.bip-party-nm{font-size:11px;font-weight:500;}
+.bip-party-effect{font-size:9px;color:var(--teal);margin-top:1px;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1165,6 +1199,7 @@ function onPvpEnd(won, quest){
   <div class="battle-actions">
     <button class="battle-btn btn-atk" id="atk-btn" onclick="executeAttack()">⚡ 選択して攻撃</button>
     <button class="auto-btn" id="auto-btn" onclick="toggleAuto()">🤖 オート</button>
+    <button class="battle-info-btn" onclick="openBattleInfoPanel()">📋 詳細</button>
     <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪 撤退</button>
   </div>
   <!-- 状態異常フルスクリーン演出 -->
@@ -2641,10 +2676,20 @@ function renderBannerDetail(){
 
   // ピックアップキャラ表示
   const pickupChars=b.pickupIds.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);
-  document.getElementById('gacha-pickup').innerHTML=pickupChars.map(c=>{
-    const rcls=c.rarity==='UR'?'r-ur':c.rarity==='SSR'?'r-ssr':c.rarity==='SR'?'r-sr':'r-r';
-    const rbcls=c.rarity==='UR'?'rb-ur':c.rarity==='SSR'?'rb-ssr':c.rarity==='SR'?'rb-sr':'rb-r';
-    return`<div class="pickup-card"><div class="pickup-img ${rcls}">${c.emoji}<div class="rarity-badge ${rbcls}">${c.rarity}</div></div><div class="pickup-name">${c.name}</div></div>`;
+  document.getElementById('gacha-pickup').innerHTML=pickupChars.map(function(c){
+    var rcls=c.rarity==='UR'?'r-ur':c.rarity==='SSR'?'r-ssr':c.rarity==='SR'?'r-sr':'r-r';
+    var rbcls=c.rarity==='UR'?'rb-ur':c.rarity==='SSR'?'rb-ssr':c.rarity==='SR'?'rb-sr':'rb-r';
+    var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+    return '<div class="pickup-card" oncontextmenu="event.preventDefault();openPartyCharDetail('+c.id+')" style="cursor:pointer;" title="右クリックで詳細">'
+      +'<div class="pickup-img '+rcls+'">'+c.emoji
+      +'<div class="rarity-badge '+rbcls+'">'+c.rarity+'</div></div>'
+      +'<div class="pickup-name">'+c.name+'</div>'
+      +'<div style="display:flex;gap:2px;justify-content:center;margin-top:3px;flex-wrap:wrap;">'
+      +'<span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr.emoji+attr.label+'</span>'
+      +'<span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role.emoji+'</span>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
@@ -2700,7 +2745,7 @@ function showResult(res){
     const newTag = !c.isDupe
       ? `<div style="position:absolute;top:4px;left:4px;font-size:8px;background:rgba(20,160,120,.8);color:#fff;border-radius:3px;padding:1px 4px;">NEW</div>`
       : '';
-    return`<div class="result-card" style="animation-delay:${i*.09}s;${c.isDupe?'opacity:.75':''}">
+    return`<div class="result-card" style="animation-delay:${i*.09}s;${c.isDupe?'opacity:.75':''}" oncontextmenu="event.preventDefault();openPartyCharDetail(${c.id})" title="右クリックで詳細">
       <div class="result-card-img" style="background:${c.bg};border-color:${c.border};position:relative;">${c.emoji}
         <div class="rarity-badge" style="color:${rarColor};z-index:1">${c.rarity}</div>
         ${newTag}${dupeTag}
@@ -2728,18 +2773,26 @@ function closeResult(){document.getElementById('result-overlay').classList.remov
 function openGachaDetail(){
   const b=BANNERS[currentBanner];
   document.getElementById('gdp-title').textContent=b.name+' — 排出率詳細';
+  document.getElementById('gdp-hint') && (document.getElementById('gdp-hint').style.display='block');
 
   // ピックアップキャラ
   const puChars=b.pickupIds.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);
-  document.getElementById('gdp-pickup-list').innerHTML=puChars.map(c=>{
-    const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':'#a060e0';
-    const indivRate=c.rarity==='UR'?'0.05%':c.rarity==='SSR'?'0.95%':'約4.3%';
-    return`<div class="gdp-char-row">
-      <div class="gdp-char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
-      <div class="gdp-char-nm">${c.name} <span class="gdp-pu-badge">PU</span></div>
-      <div style="color:${rarColor};font-size:10px;font-weight:700;">${c.rarity}</div>
-      <div class="gdp-rate-txt">${indivRate}</div>
-    </div>`;
+  document.getElementById('gdp-pickup-list').innerHTML=puChars.map(function(c){
+    var rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':'#a060e0';
+    var indivRate=c.rarity==='UR'?'0.05%':c.rarity==='SSR'?'0.95%':'約4.3%';
+    var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+    return '<div class="gdp-char-row" oncontextmenu="event.preventDefault();closeGachaDetail(null);openPartyCharDetail('+c.id+')" style="cursor:pointer;">'
+      +'<div class="gdp-char-ico" style="background:'+c.bg+';border:1px solid '+c.border+'">'+c.emoji+'</div>'
+      +'<div style="flex:1;">'
+      +'<div class="gdp-char-nm">'+c.name+' <span class="gdp-pu-badge">PU</span></div>'
+      +'<div style="display:flex;gap:3px;margin-top:2px;">'
+      +'<span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr.emoji+attr.label+'</span>'
+      +'<span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role.emoji+role.label+'</span>'
+      +'</div></div>'
+      +'<div style="color:'+rarColor+';font-size:10px;font-weight:700;">'+c.rarity+'</div>'
+      +'<div class="gdp-rate-txt">'+indivRate+'</div>'
+      +'</div>';
   }).join('');
 
   // 全排出キャラ（レアリティ順）
@@ -2752,14 +2805,22 @@ function openGachaDetail(){
     const totalRate=rar==='UR'?0.1:rar==='SSR'?1.9:rar==='SR'?13:85;
     const perChar=(totalRate/pool.length).toFixed(2);
     allHtml+=`<div style="font-size:9px;color:${rarColor};font-weight:700;letter-spacing:.08em;margin:10px 0 4px;">${rar} — 合計${totalRate}% (${pool.length}体)</div>`;
-    allHtml+=pool.map(c=>{
-      const isPu=b.pickupIds.includes(c.id);
-      const adjustedRate=isPu?(totalRate/pool.length*1.5).toFixed(2):perChar;
-      return`<div class="gdp-char-row">
-        <div class="gdp-char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
-        <div class="gdp-char-nm">${c.name}${isPu?'<span class="gdp-pu-badge" style="margin-left:4px;">PU</span>':''}</div>
-        <div class="gdp-rate-txt">${adjustedRate}%</div>
-      </div>`;
+    allHtml+=pool.map(function(c){
+      var isPu=b.pickupIds.includes(c.id);
+      var adjustedRate=isPu?(totalRate/pool.length*1.5).toFixed(2):perChar;
+      var attr2=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+      var role2=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+      var ownedMark=S.owned.includes(c.id)?'<span style="font-size:7px;color:var(--teal);margin-left:2px;">✓所持</span>':'';
+      return '<div class="gdp-char-row" oncontextmenu="event.preventDefault();closeGachaDetail(null);openPartyCharDetail('+c.id+')" style="cursor:pointer;">'
+        +'<div class="gdp-char-ico" style="background:'+c.bg+';border:1px solid '+c.border+'">'+c.emoji+'</div>'
+        +'<div style="flex:1;">'
+        +'<div class="gdp-char-nm">'+c.name+(isPu?'<span class="gdp-pu-badge" style="margin-left:4px;">PU</span>':'')+ownedMark+'</div>'
+        +'<div style="display:flex;gap:3px;margin-top:2px;">'
+        +'<span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr2.emoji+attr2.label+'</span>'
+        +'<span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role2.emoji+'</span>'
+        +'</div></div>'
+        +'<div class="gdp-rate-txt">'+adjustedRate+'%</div>'
+        +'</div>';
     }).join('');
   });
   document.getElementById('gdp-all-list').innerHTML=allHtml;
@@ -2907,7 +2968,8 @@ function renderCharList(){
     const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
     const pAttr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
     const pRole = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
-    return`<div class="char-card ${inp?'in-party':''}" onclick="${inp?`openCharDetail(${id})`:`addToParty(${id})`}" oncontextmenu="event.preventDefault();openPartyCharDetail(${id})">
+    const pOnclick = inp ? 'openCharDetail('+id+')' : 'addToParty('+id+')';
+    return`<div class="char-card ${inp?'in-party':''}" onclick="${pOnclick}" oncontextmenu="event.preventDefault();openPartyCharDetail(${id})">
       <div class="char-ico" style="background:${c.bg};border:1px solid ${c.border}">${c.emoji}</div>
       <div class="char-nm">${c.name}</div>
       <div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:1px;">
@@ -3212,54 +3274,6 @@ COMBO_TYPE_BONUS['none'] = 0.15; // ノーマルコンボ+15%
 // ================================================================
 //  編成画面キャラ詳細表示
 // ================================================================
-function openPartyCharDetail(charId){
-  const c=CHARS.find(ch=>ch.id===charId); if(!c) return;
-  const cd=(S.ownedData&&S.ownedData[charId])||{level:1,breakthrough:0};
-  const lv=cd.level||1, bt=cd.breakthrough||0;
-  const lvMul=1+(lv-1)*0.08+bt*0.15;
-  const hp=Math.round(c.hp*lvMul), atk=Math.round(c.atk*lvMul);
-  const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
-  const attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
-  const role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
-  const owned=S.owned.includes(charId);
-
-  let ov=document.getElementById('party-char-detail-ov');
-  if(!ov){
-    ov=document.createElement('div'); ov.id='party-char-detail-ov';
-    ov.className='party-char-detail';
-    ov.onclick=e=>{ if(e.target===ov) closePartyCharDetail(); };
-    document.body.appendChild(ov);
-  }
-  ov.innerHTML=`<div class="pcd-box">
-    <div class="pcd-header">
-      <div class="pcd-ico" style="background:${c.bg};border:1.5px solid ${c.border};">${c.emoji}</div>
-      <div class="pcd-info">
-        <div class="pcd-name">${c.name}</div>
-        <div class="pcd-badges" style="margin-top:4px;">
-          <span style="font-size:9px;color:${rarColor};font-weight:700;">${c.rarity}</span>
-          <span class="attr-badge attr-${c.attribute||'none'}">${attr.emoji}${attr.label}</span>
-          <span class="role-badge role-${c.role||'attacker'}">${role.emoji}${role.label}</span>
-        </div>
-      </div>
-    </div>
-    ${owned?`<div class="pcd-stat-row">
-      <div class="pcd-stat"><div class="pcd-stat-lbl">レベル</div><div class="pcd-stat-val">Lv.${lv}</div></div>
-      <div class="pcd-stat"><div class="pcd-stat-lbl">限界突破</div><div class="pcd-stat-val">${bt}/5段</div></div>
-      <div class="pcd-stat"><div class="pcd-stat-lbl">HP</div><div class="pcd-stat-val">${hp.toLocaleString()}</div></div>
-      <div class="pcd-stat"><div class="pcd-stat-lbl">ATK</div><div class="pcd-stat-val">${atk.toLocaleString()}</div></div>
-    </div>`:'<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">未所持</div>'}
-    <div class="pcd-skill-box">
-      <div class="pcd-skill-name">⚡ スキル：${c.skillName||'基本攻撃'}</div>
-      <div class="pcd-skill-desc">${c.skillDesc||'基本的な攻撃を行う。'}</div>
-    </div>
-    <div class="pcd-skill-box" style="margin-bottom:0;">
-      <div class="pcd-skill-name">${role.emoji} ロール効果</div>
-      <div class="pcd-skill-desc">${role.desc}</div>
-    </div>
-    <button onclick="closePartyCharDetail()" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;border:.5px solid var(--border3);background:rgba(0,20,40,.5);color:var(--text);cursor:pointer;font-family:inherit;">閉じる</button>
-  </div>`;
-  ov.classList.add('show');
-}
 function closePartyCharDetail(){ const ov=document.getElementById('party-char-detail-ov'); if(ov) ov.classList.remove('show'); }
 
 
@@ -5194,7 +5208,7 @@ function startPvpBattle(){
   const rank=S.pvpRank||1200;
   const opponent=PVP_DUMMY_OPPONENTS[Math.floor(Math.random()*PVP_DUMMY_OPPONENTS.length)];
   const enemy={name:opponent.name,emoji:'⚔️',hp:opponent.party.reduce((s,id)=>{const c=CHARS.find(ch=>ch.id===id);return s+(c?c.hp:500);},0),atk:Math.round(Math.max(...opponent.party.map(id=>{const c=CHARS.find(ch=>ch.id===id);return c?c.atk:80;}))*1.2),spd:rank>=1400?2:1,boss:false};
-  const pvpQuest={id:`pvp_${Date.now()}`,name:`⚔️ vs ${opponent.name}`,enemy,gold:100+Math.round((rank-1000)/10),gem:5+Math.round((rank-1000)/100),boss:false,bgColor:['#050010','#100020'],story:[],isPvp:true,opponent};
+  const pvpQuest={id:`pvp_${Date.now()}`,name:`⚔️ vs ${opponent.name}`,enemy,gold:100+Math.round((rank-1000)/10),gem:5+Math.round((rank-1000)/100),boss:false,bgColor:['#050010','#100020'],story:[],isPvp:true,isNpcPvp:true,opponent};
   sfx('click'); BT.fromScreen='pvp'; initBattle(pvpQuest,ap);
 }
 
@@ -5740,6 +5754,11 @@ function processOppAction(action){
 }
 
 function onPvpEnd(won, quest){
+  // NPCとの対戦はptsを変動させない
+  if(quest&&quest.isNpcPvp){
+    showToast(won?'⚔️ NPC戦勝利！（pts変動なし）':'⚔️ NPC戦敗北（pts変動なし）');
+    return;
+  }
   const ptChange = won ? Math.round(20+(((quest&&quest.opponent)||{rank:1200}).rank||1200)/100) : -15;
   S.pvpRank = Math.max(0, (S.pvpRank||1200)+ptChange);
   if(won){ S.pvpWin=(S.pvpWin||0)+1; }
@@ -5834,29 +5853,27 @@ function updateBattleStatusPanel(){
   BT.partyHp.forEach(m=>{
     (m.statuses||[]).filter(s=>s.turns>0).forEach(s=>{
       const cfg=STATUS_CONFIG[s.type]; if(!cfg) return;
-      chips.push(`<div class="status-chip chip-${s.type}" title="${m.name||'味方'}に${cfg.label}">
-        ${cfg.emoji} ${cfg.label}
-        ${s.stacks>1?`<div class="chip-stack">${s.stacks}</div>`:''}
-        <span class="chip-turns">${s.turns}T</span>
-      </div>`);
+      const stackHtml = s.stacks>1 ? '<div class="chip-stack">'+s.stacks+'</div>' : '';
+    chips.push('<div class="status-chip chip-'+s.type+'" title="'+(m.name||'味方')+'に'+cfg.label+'">'
+      +cfg.emoji+' '+cfg.label+stackHtml
+      +'<span class="chip-turns">'+s.turns+'T</span></div>');
     });
   });
 
   // 敵の状態異常もパネルに（右寄せ）
   const enemyChips = enemyStatuses.filter(s=>s.turns>0).map(s=>{
     const cfg=STATUS_CONFIG[s.type]; if(!cfg) return '';
-    return `<div class="status-chip chip-${s.type}" title="敵に${cfg.label}">
-      敵 ${cfg.emoji}
-      ${s.stacks>1?`<div class="chip-stack">${s.stacks}</div>`:''}
-      <span class="chip-turns">${s.turns}T</span>
-    </div>`;
+    const eStack = s.stacks>1 ? '<div class="chip-stack">'+s.stacks+'</div>' : '';
+    return '<div class="status-chip chip-'+s.type+'" title="敵に'+cfg.label+'">'
+      +'敵 '+cfg.emoji+eStack
+      +'<span class="chip-turns">'+s.turns+'T</span></div>';
   });
 
   if(chips.length===0&&enemyChips.length===0){
     panel.innerHTML='<div style="font-size:9px;color:var(--text3);padding:2px 0;">状態異常なし</div>';
   } else {
-    panel.innerHTML = chips.join('') +
-      (enemyChips.length?`<div style="flex:1;"></div>${enemyChips.join('')}`:'');
+    panel.innerHTML = chips.join('')
+      + (enemyChips.length ? '<div style="flex:1;"></div>'+enemyChips.join('') : '');
   }
 }
 
@@ -5868,6 +5885,247 @@ function showEnemyActionDebuff(type){
   el.innerHTML=`<span style="color:${cfg.color};font-weight:700;font-size:13px;">${cfg.emoji} ${cfg.label}ダメージ！</span>`;
   setTimeout(()=>{if(el)el.innerHTML='';},1500);
 }
+
+// ================================================================
+//  キャラ戦闘効果テキスト生成
+// ================================================================
+function getBattleEffectDesc(c){
+  const effects = [];
+  const role = c.role || 'attacker';
+  const attr = c.attribute || 'none';
+
+  // ロール別の戦闘効果
+  if(role==='tank'){
+    const reduceMap={4:15,6:10,14:8,20:15,23:10,62:20,63:15,69:25,75:12,79:20,87:18,15:5,17:0};
+    const pct=reduceMap[c.id]||5;
+    effects.push(`🛡️ <strong>ヘイト集中</strong>：敵の攻撃を70%の確率で引き受ける。他のメンバーへのダメージを軽減。`);
+    effects.push(`🛡️ <strong>被ダメージ軽減 -${pct}%</strong>：パーティ全体が受けるダメージを${pct}%減らす。`);
+    if(c.id===20||c.id===69||c.id===87) effects.push(`🛡️ <strong>鉄壁</strong>：軽減率が高く、最前線での防御に特化。`);
+  }
+  if(role==='attacker'){
+    const bonusMap={fire:25,ice:20,thunder:30,water:22,dark:28,light:25,none:15};
+    const pct=bonusMap[attr]||15;
+    effects.push(`⚔️ <strong>コンボ強化 +${pct}%</strong>：${(ATTR_INFO[attr]||ATTR_INFO.none).label}属性カードを同じターンに複数枚選ぶとダメージが${pct}%増加。`);
+    if(c.id===1||c.id===59) effects.push(`🃏 <strong>カード選択上限+1</strong>：このキャラが編成にいる間、1ターンに<strong style="color:#ffd060;">最大5枚</strong>のカードを選択できる。`);
+    if(c.id===10||c.id===74) effects.push(`⚔️ <strong>3枚コンボボーナス</strong>：同じターンに3枚以上選択するとATKが追加15%上昇。`);
+  }
+  if(role==='support'){
+    const healMap={9:1,12:0.5,21:0.8,65:2,72:1.5,76:2,84:0.5,89:1,25:0,90:0};
+    const pct=healMap[c.id]||0.5;
+    if(pct>0) effects.push(`💚 <strong>毎ターン回復 +${pct}%</strong>：敵のターン終了後、パーティ全員のHPが最大HPの${pct}%回復する。`);
+    if(c.id===12) effects.push(`💚 <strong>戦闘開始時回復</strong>：戦闘開始時に全員のHPが最大HPの5%回復する。`);
+    if(c.id===25||c.id===90) effects.push(`✨ <strong>ATK強化</strong>：パーティ全体の攻撃力が数%上昇する。`);
+  }
+  if(role==='debuffer'){
+    const probMap={2:30,8:20,16:15,27:20,64:25,66:35,68:25,74:30,80:15,86:20,91:15};
+    const typeMap={2:'⚡麻痺',8:'☠️毒',16:'⚡麻痺',27:'❄️凍結',64:'⚡麻痺',66:'☠️毒',68:'🔥炎症',74:'☠️毒',80:'❄️凍結',86:'☠️毒',91:'☠️毒'};
+    const prob=probMap[c.id]||15;
+    const stype=typeMap[c.id]||'☠️毒';
+    effects.push(`☠️ <strong>状態異常付与</strong>：攻撃時に${prob}%の確率で敵に<strong style="color:#e080e0;">${stype}</strong>を付与する。`);
+    if(c.id===66||c.id===74) effects.push(`☠️ <strong>毒スタック</strong>：毒は最大5スタックまで重複し、スタックが多いほどダメージが増加する。`);
+  }
+
+  if(effects.length===0) effects.push('基本的な攻撃を行う。コンボを積み上げてダメージを増やそう。');
+  return effects.join('<br><br>');
+}
+
+// ================================================================
+//  戦闘詳細パネル（状態異常・パーティ効果）
+// ================================================================
+function closeBattleInfoPanel(){
+  document.getElementById('battle-info-panel').classList.remove('show');
+}
+// ================================================================
+//  キャラ詳細オーバーレイ（編成・育成画面）
+// ================================================================
+function openPartyCharDetail(charId){
+  sfx('click');
+  var c=CHARS.find(function(ch){return ch.id===charId;});
+  if(!c) return;
+  var cd=(S.ownedData&&S.ownedData[charId])||{level:1,breakthrough:0};
+  var lv=cd.level||1, bt=cd.breakthrough||0;
+  var mul=1+(lv-1)*0.08+bt*0.15;
+  var hp=Math.round(c.hp*mul), atk=Math.round(c.atk*mul);
+  var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'}[c.rarity]||'#fff';
+  var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+  var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+  var owned=S.owned.includes(charId);
+  var comboBonus=Math.round((COMBO_TYPE_BONUS[c.attribute||'none']||0.15)*100);
+
+  // 戦闘効果リスト（純テキスト）
+  var efx=[];
+  if(c.role==='tank'){
+    var pctMap={4:15,6:10,14:8,20:15,23:10,62:20,63:15,69:25,75:12,79:20,87:18};
+    var pct=pctMap[c.id]||5;
+    efx.push('🛡️ ヘイト集中：敵の攻撃を70%の確率で引き受ける。');
+    efx.push('🛡️ 被ダメージ軽減 -'+pct+'%：パーティ全体のダメージを'+pct+'%軽減。');
+  }
+  if(c.role==='attacker'){
+    efx.push('⚔️ '+attr.label+'コンボ +'+comboBonus+'%：'+attr.label+'属性カードを複数選ぶとダメージ'+comboBonus+'%増加。');
+    if(c.id===1||c.id===59) efx.push('🃏 カード選択上限+1：編成中は1ターンに最大5枚選択できる（通常4枚）。');
+  }
+  if(c.role==='support'){
+    var rMap={9:1,12:0.5,21:0.8,65:2,72:1.5,76:2,84:0.5,89:1};
+    var rr=rMap[c.id]||0.5;
+    efx.push('💚 毎ターン回復 +'+rr+'%：敵ターン終了後、全員HPが最大HPの'+rr+'%回復。');
+    if(c.id===12) efx.push('💚 戦闘開始時回復：戦闘開始時に全員HPが最大HPの5%回復。');
+  }
+  if(c.role==='debuffer'){
+    var pMap={2:30,8:20,16:15,27:20,64:25,66:35,68:25,74:30,80:15,86:20,91:15};
+    var tMap={2:'⚡麻痺',8:'☠️毒',16:'⚡麻痺',27:'❄️凍結',64:'⚡麻痺',66:'☠️毒',68:'🔥炎症',74:'☠️毒',80:'❄️凍結',86:'☠️毒',91:'☠️毒'};
+    efx.push('☠️ 状態異常付与：攻撃時'+(pMap[c.id]||15)+'%で敵に'+(tMap[c.id]||'☠️毒')+'を付与。');
+    if(c.id===66||c.id===74) efx.push('☠️ 毒スタック：毒は最大5スタックまで重複し、威力増加。');
+  }
+  efx.push(attr.emoji+' '+attr.label+'カード70%出現：手札に'+attr.label+'属性カードが優先的に出現。同属性コンボボーナス+'+comboBonus+'%。');
+
+  // HTML構築（文字列連結のみ）
+  var statHtml=owned
+    ?('<div class="pcd-stat-row">'
+      +'<div class="pcd-stat"><div class="pcd-stat-lbl">Lv</div><div class="pcd-stat-val">'+lv+'</div></div>'
+      +'<div class="pcd-stat"><div class="pcd-stat-lbl">突破</div><div class="pcd-stat-val">'+bt+'/5</div></div>'
+      +'<div class="pcd-stat"><div class="pcd-stat-lbl">HP</div><div class="pcd-stat-val">'+hp.toLocaleString()+'</div></div>'
+      +'<div class="pcd-stat"><div class="pcd-stat-lbl">ATK</div><div class="pcd-stat-val">'+atk.toLocaleString()+'</div></div>'
+      +'</div>')
+    :'<div style="font-size:11px;color:var(--text3);margin-bottom:12px;">未所持</div>';
+
+  var efxHtml=efx.map(function(e){
+    return '<div style="font-size:10px;color:var(--text);line-height:1.6;padding:4px 0;border-bottom:.5px solid rgba(255,255,255,.05);">'+e+'</div>';
+  }).join('');
+
+  var ov=document.getElementById('party-char-detail-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='party-char-detail-ov';
+    ov.className='party-char-detail';
+    ov.onclick=function(e){if(e.target===ov)closePartyCharDetail();};
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML=
+    '<div class="pcd-box">'
+    +'<div class="pcd-header">'
+    +'<div class="pcd-ico" style="background:'+c.bg+';border:1.5px solid '+c.border+';">'+c.emoji+'</div>'
+    +'<div class="pcd-info">'
+    +'<div class="pcd-name">'+c.name+'</div>'
+    +'<div class="pcd-badges" style="margin-top:4px;">'
+    +'<span style="font-size:9px;color:'+rarColor+';font-weight:700;">'+c.rarity+'</span> '
+    +'<span class="attr-badge attr-'+(c.attribute||'none')+'">'+attr.emoji+attr.label+'</span> '
+    +'<span class="role-badge role-'+(c.role||'attacker')+'">'+role.emoji+role.label+'</span>'
+    +'</div></div></div>'
+    +statHtml
+    +'<div class="pcd-skill-box">'
+    +'<div class="pcd-skill-name">⚡ スキル：'+(c.skillName||'基本攻撃')+'</div>'
+    +'<div class="pcd-skill-desc">'+(c.skillDesc||'基本的な攻撃を行う。')+'</div>'
+    +'</div>'
+    +'<div class="pcd-skill-box" style="border-color:rgba(255,200,0,.35);background:rgba(30,20,0,.4);">'
+    +'<div class="pcd-skill-name" style="color:#ffd060;margin-bottom:6px;">🎮 編成時の戦闘効果</div>'
+    +efxHtml
+    +'</div>'
+    +'<button onclick="closePartyCharDetail()" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;border:.5px solid var(--border3);background:rgba(0,20,40,.5);color:var(--text);cursor:pointer;font-family:inherit;">閉じる</button>'
+    +'</div>';
+  ov.classList.add('show');
+}
+
+// ================================================================
+//  戦闘詳細パネル（📋ボタン）
+// ================================================================
+function openBattleInfoPanel(){
+  sfx('click');
+  var box=document.getElementById('bip-box');
+  if(!box) return;
+
+  // パーティ情報
+  var pIds=BT.partyHp?BT.partyHp.map(function(m){return m.id;}):S.party.filter(function(id){return id!==-1;});
+  var pChars=pIds.map(function(id){return CHARS.find(function(c){return c.id===id;});}).filter(Boolean);
+
+  // 状態異常HTML
+  function makeStatusRow(emoji,name,col,bg,bd,desc){
+    return '<div class="bip-status-row">'
+      +'<div class="bip-status-ico" style="background:'+bg+';border:.5px solid '+bd+';">'+emoji+'</div>'
+      +'<div class="bip-status-info">'
+      +'<div class="bip-status-name" style="color:'+col+';">'+name+'</div>'
+      +'<div class="bip-status-desc">'+desc+'</div>'
+      +'</div></div>';
+  }
+
+  var statusHtml=
+    makeStatusRow('🔥','炎症','#ff9060','rgba(180,60,0,.3)','rgba(220,80,0,.5)',
+      '毎ターン開始時に<strong>敵ATKの8%×スタック数</strong>のダメージを受ける。3ターン持続。')
+    +makeStatusRow('☠️','毒','#80ff40','rgba(40,100,0,.3)','rgba(60,140,0,.5)',
+      '毎ターン開始時に<strong>敵ATKの5%×スタック数</strong>のダメージを受ける。<strong>最大5スタック</strong>重複可能。3ターン持続。')
+    +makeStatusRow('❄️','凍結','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
+      '凍結中のキャラはカードを選択できない。全員凍結で<strong>ターン強制スキップ</strong>。3ターン持続。')
+    +makeStatusRow('⚡','麻痺','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
+      '麻痺中のキャラのカード選択上限が<strong>-2枚</strong>される（最低1枚）。3ターン持続。');
+
+  // コンボ説明
+  var comboHtml=
+    '<div style="font-size:10px;color:var(--text2);line-height:1.8;">'
+    +'同属性カードを複数枚選ぶとコンボボーナス発動。枚数が多いほど倍率UP！<br>'
+    +'<span style="color:#ff9060;">🔥炎 +25%</span>　'
+    +'<span style="color:#80d8ff;">❄️氷 +20%</span>　'
+    +'<span style="color:#ffe860;">⚡雷 +30%</span><br>'
+    +'<span style="color:#40d0ff;">🌊水 +22%</span>　'
+    +'<span style="color:#c080ff;">🌑闇 +28%</span>　'
+    +'<span style="color:#fff080;">✨光 +25%</span>　'
+    +'<span style="color:#c0c0c0;">⚪無 +15%</span>'
+    +'</div>';
+
+  // パーティ効果HTML
+  var partyRows=pChars.length===0
+    ?'<div style="font-size:10px;color:var(--text3);">パーティが編成されていません</div>'
+    :pChars.map(function(c){
+      var attr2=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+      var role2=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+      var brief='';
+      if(c.role==='tank') brief='🛡️ ヘイト+被ダメ軽減';
+      else if(c.role==='attacker') brief='⚔️ '+attr2.label+'コンボ強化'+(c.id===1||c.id===59?' / 🃏カード5枚選択':'');
+      else if(c.role==='support') brief='💚 毎ターンHP回復';
+      else if(c.role==='debuffer') brief='☠️ 敵に状態異常付与';
+      return '<div class="bip-party-row">'
+        +'<div class="bip-party-ico" style="background:'+c.bg+';border:.5px solid '+c.border+';">'+c.emoji+'</div>'
+        +'<div class="bip-party-info">'
+        +'<div class="bip-party-nm">'+c.name
+          +' <span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr2.emoji+attr2.label+'</span>'
+          +' <span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role2.emoji+'</span>'
+        +'</div>'
+        +'<div class="bip-party-effect">'+brief+'</div>'
+        +'</div></div>';
+    }).join('');
+
+  var sel=typeof MAX_SELECT!=='undefined'?MAX_SELECT:4;
+  var heal=typeof getPartyHealRate==='function'?Math.round(getPartyHealRate()*1000)/10:0;
+  var red=typeof getPartyDamageReduction==='function'?Math.round(getPartyDamageReduction()*100):0;
+  var statTxt='カード選択上限: <strong style="color:#ffd060;">'+sel+'枚</strong>';
+  if(heal>0) statTxt+='　回復: <strong style="color:#40e080;">+'+heal+'%/T</strong>';
+  if(red>0)  statTxt+='　被ダメ軽減: <strong style="color:#60a0ff;">-'+red+'%</strong>';
+
+  box.innerHTML=
+    '<div class="bip-title">'
+    +'<span>📋 戦闘詳細</span>'
+    +'<span onclick="closeBattleInfoPanel()" style="cursor:pointer;font-size:18px;color:var(--text3);">✕</span>'
+    +'</div>'
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">⚠️ 状態異常効果</div>'
+    +statusHtml
+    +'</div>'
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">🔥 コンボシステム</div>'
+    +comboHtml
+    +'</div>'
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">👥 パーティ効果</div>'
+    +partyRows
+    +'<div style="margin-top:8px;font-size:9px;color:var(--text3);">'+statTxt+'</div>'
+    +'</div>';
+
+  document.getElementById('battle-info-panel').classList.add('show');
+}
+
 </script>
+
+<!-- 戦闘詳細パネル -->
+<div class="battle-info-panel" id="battle-info-panel" onclick="if(event.target===this)closeBattleInfoPanel()">
+  <div class="bip-box" id="bip-box"></div>
+</div>
 </body>
 </html>
