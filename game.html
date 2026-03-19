@@ -4706,26 +4706,40 @@ async function pvpAttack(){
 
   showDmg(total,tb>0); updatePvpHP(); renderPvpHand(); pvpUpdateComboGauge();
 
-  // 相手全滅チェック
+  // Firestoreに攻撃データ書き込み（先に書いてから判定）
+  const rk=st.amHost?'hostAction':'guestAction';
+  try{
+    if(st.oppHp<=0){
+      // 勝利：winnerをFirestoreに書き込み
+      await st.roomRef.update({
+        [rk]:{dmg:total,ts:Date.now(),role:st.role},
+        winner:st.role,
+        lastAction:Date.now()
+      });
+    } else {
+      await st.roomRef.update({
+        [rk]:{dmg:total,ts:Date.now(),role:st.role},
+        lastAction:Date.now()
+      });
+    }
+  }catch(e){console.log('[PVP]write error',e);}
+
+  // 相手全滅チェック（Firestore書き込み後に判定）
   if(st.oppHp<=0){
-    // Firestoreにwinner書き込んで勝利
-    try{await st.roomRef.update({winner:st.role,lastAction:Date.now()});}catch(e){}
     await endRtPvpBattle(true,'all_dead');
     return;
   }
-
-  // Firestoreに攻撃データ書き込み
-  const rk=st.amHost?'hostAction':'guestAction';
-  try{
-    await st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},lastAction:Date.now()});
-  }catch(e){console.log('[PVP]write error',e);}
 }
 
 // ===== Firestore受信 =====
 function onPvpRoomUpdate(data){
   const st=pvpBattleState; if(!st||st.done) return;
-  // 勝者確定
-  if(data.winner){endRtPvpBattle(data.winner===st.role,'all_dead');return;}
+  // 勝者確定（攻撃側からFirestoreに書き込まれたwinner）
+  if(data.winner){
+    const iWon = data.winner===st.role;
+    endRtPvpBattle(iWon,'all_dead');
+    return;
+  }
   const ok=st.amHost?'guestAction':'hostAction';
   const action=data[ok];
   if(action&&action.ts&&action.role!==st.role&&action.ts>(st.lastOppActionTs||0)){
@@ -4756,8 +4770,10 @@ async function processOppAction(action){
   }
   updatePvpMyHP();
 
-  // 自分全滅
-  if(st.myParty.every(m=>m.hp<=0)||st.myHp<=0){
+  // 自分全滅チェック（HPが0以下）
+  const myAllDead = st.myParty.every(m=>m.hp<=0) || st.myHp<=0;
+  console.log('[PVP] myHp:', st.myHp, 'allDead:', myAllDead);
+  if(myAllDead){
     await endRtPvpBattle(false,'all_dead'); return;
   }
 
