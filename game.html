@@ -1481,6 +1481,8 @@ async function initFirebaseUser(){
           currentUser = user;
           playerDocRef = db.collection('players').doc(user.uid);
           await loadCloudSave();
+          // フレンド申請・フレンド追加をリアルタイム監視
+          startFriendListener();
         } else {
           // 新規匿名ログイン
           const cred = await auth.signInAnonymously();
@@ -1512,6 +1514,58 @@ async function initFirebaseUser(){
   return Promise.race([firebaseInit, timeout]);
 }
 
+
+// ================================================================
+//  フレンドリアルタイム監視（承諾されたら自動反映）
+// ================================================================
+var friendListenerUnsub = null;
+
+function startFriendListener(){
+  if(friendListenerUnsub) friendListenerUnsub(); // 既存を解除
+  if(!playerDocRef) return;
+
+  friendListenerUnsub = playerDocRef.onSnapshot(function(snap){
+    if(!snap.exists) return;
+    var data = snap.data();
+
+    // friendsの変化を検知（Firestoreが更新されたら即反映）
+    var newFriends = data.friends||[];
+    var oldFriends = S.friends||[];
+
+    // 新しく追加されたフレンドを検出
+    var added = newFriends.filter(function(nf){
+      return !oldFriends.some(function(of){return of.id===nf.id;});
+    });
+
+    if(added.length>0){
+      // S.friendsを更新
+      S.friends = newFriends;
+      saveGame();
+      added.forEach(function(f){
+        showToast('🎉 '+f.name+' とフレンドになりました！');
+      });
+      // フレンド画面が開いていれば更新
+      var friendScreen = document.getElementById('screen-friend');
+      if(friendScreen && friendScreen.style.display!=='none' && friendScreen.classList.contains('active')){
+        renderFriend();
+      }
+      // ホームのバッジも更新
+      checkPendingRequests();
+    }
+
+    // pendingRequestsの変化を検知（新しい申請が来たら通知）
+    var newPending = data.pendingRequests||[];
+    var oldPending = S.pendingRequests||[];
+    if(newPending.length > oldPending.length){
+      S.pendingRequests = newPending;
+      saveGame();
+      checkPendingRequests();
+      showToast('🔔 フレンド申請が届きました！');
+    }
+  }, function(err){
+    console.log('[FRIEND listener]', err);
+  });
+}
 // クラウドからセーブデータ読み込み
 async function loadCloudSave(){
   try{
