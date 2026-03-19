@@ -4672,9 +4672,9 @@ function pvpUpdateComboGauge(){
 }
 
 // ===== 攻撃 =====
-async function pvpAttack(){
+function pvpAttack(){
   const st=pvpBattleState;
-  if(!st||!st.myTurn) return;
+  if(!st||!st.myTurn||st.done) return;
   if(!st.selectedOrder||!st.selectedOrder.length){showToast('カードを選択してください！');return;}
   stopPvpTurnTimer();
   st.myTurn=false; updatePvpPhaseUI(); sfx('attack');
@@ -4682,6 +4682,7 @@ async function pvpAttack(){
   const selCards=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&c.selected&&!c.used);
   if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();startPvpTurnTimer();return;}
 
+  // コンボ計算
   const tc={};
   selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
   const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
@@ -4697,38 +4698,29 @@ async function pvpAttack(){
 
   // 相手HP更新
   st.oppHp=Math.max(0,st.oppHp-total);
-  let rem=total;
   const aOpp=st.oppParty.filter(m=>m.hp>0);
   if(aOpp.length){
     const t=aOpp[Math.floor(Math.random()*aOpp.length)];
-    t.hp=Math.max(0,t.hp-rem);
+    t.hp=Math.max(0,t.hp-total);
   }
 
   showDmg(total,tb>0); updatePvpHP(); renderPvpHand(); pvpUpdateComboGauge();
 
-  // Firestoreに攻撃データ書き込み（先に書いてから判定）
-  const rk=st.amHost?'hostAction':'guestAction';
-  try{
-    if(st.oppHp<=0){
-      // 勝利：winnerをFirestoreに書き込み
-      await st.roomRef.update({
-        [rk]:{dmg:total,ts:Date.now(),role:st.role},
-        winner:st.role,
-        lastAction:Date.now()
-      });
-    } else {
-      await st.roomRef.update({
-        [rk]:{dmg:total,ts:Date.now(),role:st.role},
-        lastAction:Date.now()
-      });
-    }
-  }catch(e){console.log('[PVP]write error',e);}
+  console.log('[PVP] 攻撃 total:', total, 'oppHp:', st.oppHp);
 
-  // 相手全滅チェック（Firestore書き込み後に判定）
+  // ★相手HP0で即勝利（Firestoreを待たない）
   if(st.oppHp<=0){
-    await endRtPvpBattle(true,'all_dead');
+    console.log('[PVP] 相手全滅→勝利');
+    // Firestoreに非同期で書き込み（結果を待たない）
+    const rk=st.amHost?'hostAction':'guestAction';
+    st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},winner:st.role,lastAction:Date.now()}).catch(()=>{});
+    endRtPvpBattle(true,'all_dead');
     return;
   }
+
+  // Firestoreに攻撃データを非同期書き込み（結果を待たない）
+  const rk=st.amHost?'hostAction':'guestAction';
+  st.roomRef.update({[rk]:{dmg:total,ts:Date.now(),role:st.role},lastAction:Date.now()}).catch(e=>console.log('[PVP]write err',e));
 }
 
 // ===== Firestore受信 =====
@@ -4748,13 +4740,14 @@ function onPvpRoomUpdate(data){
   }
 }
 
-async function processOppAction(action){
+function processOppAction(action){
   const st=pvpBattleState; if(!st||st.done) return;
   const {dmg}=action;
   sfx('hit');
 
+  // 自分のランダムメンバーにダメージ
   const alive=st.myParty.filter(m=>m.hp>0);
-  if(!alive.length){await endRtPvpBattle(false,'all_dead');return;}
+  if(!alive.length){endRtPvpBattle(false,'all_dead');return;}
   const tgt=alive[Math.floor(Math.random()*alive.length)];
   tgt.hp=Math.max(0,tgt.hp-dmg);
   st.myHp=Math.max(0,st.myHp-dmg);
@@ -4770,14 +4763,16 @@ async function processOppAction(action){
   }
   updatePvpMyHP();
 
-  // 自分全滅チェック（HPが0以下）
-  const myAllDead = st.myParty.every(m=>m.hp<=0) || st.myHp<=0;
-  console.log('[PVP] myHp:', st.myHp, 'allDead:', myAllDead);
-  if(myAllDead){
-    await endRtPvpBattle(false,'all_dead'); return;
+  console.log('[PVP] 被弾 dmg:', dmg, 'myHp:', st.myHp);
+
+  // ★自分HP0で即敗北（Firestoreを待たない）
+  if(st.myHp<=0 || st.myParty.every(m=>m.hp<=0)){
+    console.log('[PVP] 自分全滅→敗北');
+    endRtPvpBattle(false,'all_dead');
+    return;
   }
 
-  // 次のターン
+  // 次のターン（自分のターン）
   st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
   pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
   startPvpTurnTimer();
@@ -4806,13 +4801,14 @@ function stopPvpTurnTimer(){
 }
 
 // ===== 戦闘終了 =====
-async function endRtPvpBattle(won,reason){
+function endRtPvpBattle(won,reason){
   const st=pvpBattleState;
   if(!st||st.done) return;
   st.done=true;
+  console.log('[PVP] 戦闘終了 won:', won, 'reason:', reason);
   stopPvpTurnTimer();
   if(st.roomUnsub) st.roomUnsub();
-  try{await st.roomRef.delete();}catch(e){}
+  try{st.roomRef.delete();}catch(e){}
   onPvpEnd(won,{opponent:{rank:1400}});
   refreshHome(); sfx(won?'win':'lose');
   pvpBattleState=null;
