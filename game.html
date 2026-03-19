@@ -6305,23 +6305,49 @@ async function sendFriendRequest(){
   if(id===S.playerId){ showToast('自分自身には申請できません'); return; }
 
   try{
+    // 相手のデータ取得
     var snap=await db.collection('players').where('playerId','==',id).limit(1).get();
     if(snap.empty){ showToast('❌ IDが見つかりません'); return; }
     var targetDoc=snap.docs[0];
     var targetData=targetDoc.data();
+    var myUid=auth.currentUser?auth.currentUser.uid:'';
 
-    // 申請リストに追加（重複していても上書き）
-    var requests=(targetData.pendingRequests||[]).filter(function(r){
-      return r.fromId!==S.playerId; // 既存の自分の申請を一度削除してから再追加
-    });
-    requests.push({fromId:S.playerId, fromName:S.playerName||'深海司令官', ts:Date.now()});
-    await db.collection('players').doc(targetDoc.id).update({pendingRequests:requests});
-    console.log('[FRIEND] Request sent to', id);
-    showToast('✅ フレンド申請を送りました！');
+    // 自分のfriendリストに追加
+    if(!S.friends) S.friends=[];
+    if(!S.friends.some(function(f){return f.id===id;})){
+      S.friends.push({
+        id:id, uid:targetDoc.id,
+        name:targetData.playerName||'司令官',
+        rank:targetData.rank||1,
+        helperChar:targetData.helperChar||null,
+      });
+    }
+
+    // 自分のFirestoreを更新
+    if(playerDocRef){
+      await playerDocRef.update({friends:S.friends});
+    }
+    localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
+
+    // 相手のfriendsにも自分を追加
+    var theirFriends=targetData.friends||[];
+    if(!theirFriends.some(function(f){return f.id===S.playerId;})){
+      theirFriends.push({
+        id:S.playerId, uid:myUid,
+        name:S.playerName||'深海司令官',
+        rank:S.rank||1,
+        helperChar:S.helperChar||null,
+      });
+      await db.collection('players').doc(targetDoc.id).update({friends:theirFriends});
+    }
+
+    console.log('[FRIEND] Added friend:', id);
+    showToast('✅ '+id+' をフレンドに追加しました！');
     if(input) input.value='';
+    renderFriend();
   }catch(e){
     showToast('❌ エラー: '+e.message);
-    console.log(e);
+    console.error('[FRIEND error]', e);
   }
 }
 
