@@ -9,8 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Yu Gothic','Meiryo',sans-serif;background:#0a0c10;color:#c0c8d8;min-height:100vh;}
-.header{background:#050810;border-bottom:1px solid #1a2030;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+body{font-family:'Yu Gothic','Meiryo',sans-serif;background:#060a10;color:#c0c8d8;min-height:100vh;}
+.header{background:#050810;border-bottom:1px solid #1a2030;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .logo{font-size:16px;font-weight:700;color:#4a90d0;letter-spacing:.1em;}
 .admin-badge{font-size:10px;background:rgba(200,80,80,.2);border:1px solid rgba(200,80,80,.4);border-radius:4px;padding:3px 8px;color:#e06060;}
 .login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;}
@@ -25,198 +25,218 @@ button{width:100%;padding:11px;border-radius:8px;border:none;font-size:13px;curs
 .btn-danger:hover{background:#a02828;}
 .btn-green{background:#1a6040;color:#fff;}
 .btn-green:hover{background:#228050;}
-.main{display:none;padding:24px;max-width:900px;margin:0 auto;}
+.btn-sm{width:auto;padding:5px 12px;font-size:11px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;font-weight:500;}
+.btn-sm.danger{background:rgba(160,30,30,.4);color:#ff8080;border:1px solid rgba(160,30,30,.5);}
+.btn-sm.danger:hover{background:rgba(200,40,40,.5);}
+.btn-sm.primary{background:rgba(20,80,160,.4);color:#80c0ff;border:1px solid rgba(20,80,160,.5);}
+.btn-sm.primary:hover{background:rgba(30,100,200,.5);}
+.btn-sm.success{background:rgba(20,100,60,.4);color:#60e080;border:1px solid rgba(20,100,60,.5);}
+.main{display:none;padding:24px;max-width:1100px;margin:0 auto;}
 .main.show{display:block;}
-.tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #1a2838;padding-bottom:12px;}
+.tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid #1a2838;padding-bottom:12px;flex-wrap:wrap;}
 .tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;color:#5a7898;border:1px solid transparent;}
 .tab:hover{color:#a0c0d8;}
 .tab.active{background:#0e1a2a;border-color:#1a3050;color:#60a0d0;}
 .panel{display:none;}
 .panel.active{display:block;}
 .card{background:#0e1220;border:1px solid #1a2838;border-radius:12px;padding:18px;margin-bottom:14px;}
-.card-title{font-size:13px;font-weight:700;color:#80b0d0;margin-bottom:14px;}
+.card-title{font-size:13px;font-weight:700;color:#80b0d0;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
 label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .stat{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:12px;text-align:center;}
 .stat-val{font-size:24px;font-weight:700;color:#60a0d0;}
 .stat-lbl{font-size:10px;color:#5a7898;margin-top:4px;}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+/* ユーザーカード */
+.user-card{background:#060c18;border:1px solid #1a2838;border-radius:10px;padding:14px;margin-bottom:10px;transition:border-color .2s;}
+.user-card:hover{border-color:#1a3050;}
+.user-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.user-pid{font-size:14px;font-weight:700;color:#60a0d0;letter-spacing:.08em;}
+.user-rank{font-size:11px;color:#ffd060;font-weight:600;}
+.user-card-body{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.user-stat{background:#0a1020;border-radius:6px;padding:6px 8px;}
+.user-stat-lbl{font-size:8px;color:#3a5870;margin-bottom:2px;}
+.user-stat-val{font-size:12px;font-weight:500;}
+.user-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.user-uid{font-size:9px;color:#2a4060;}
+.rank-tier{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;}
+.rt-1{background:rgba(200,100,0,.2);color:#ffa040;border:1px solid rgba(200,100,0,.3);}
+.rt-2{background:rgba(160,160,0,.2);color:#e0d040;border:1px solid rgba(160,160,0,.3);}
+.rt-3{background:rgba(160,0,0,.2);color:#ff6060;border:1px solid rgba(160,0,0,.3);}
+.rt-4{background:rgba(100,0,160,.2);color:#c060ff;border:1px solid rgba(100,0,160,.3);}
+.rt-5{background:rgba(0,0,0,.4);color:#ffffff;border:1px solid rgba(255,255,255,.3);}
+/* 検索・フィルター */
+.search-bar{display:flex;gap:8px;margin-bottom:14px;}
+.search-bar input{margin-bottom:0;flex:1;}
+/* お知らせ */
 .notice-item{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.notice-item-title{font-size:12px;font-weight:500;}
-.notice-item-date{font-size:10px;color:#5a7898;margin-top:3px;}
-.del-btn{background:rgba(160,30,30,.3);border:1px solid rgba(160,30,30,.5);border-radius:6px;padding:4px 10px;font-size:10px;color:#e06060;cursor:pointer;white-space:nowrap;width:auto;}
-.user-item{background:#060c18;border:1px solid #1a2838;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.user-id{font-size:12px;font-weight:500;color:#60a0d0;letter-spacing:.05em;}
-.user-info{font-size:10px;color:#5a7898;margin-top:2px;}
-.gift-item{background:#060c18;border:1px solid #1a3828;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
-.gift-active{color:#40c080;font-size:10px;}
-.gift-inactive{color:#806060;font-size:10px;}
-.msg{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:10px;}
-.msg-ok{background:rgba(20,120,60,.2);border:1px solid rgba(20,120,60,.4);color:#40c080;}
-.msg-err{background:rgba(160,30,30,.2);border:1px solid rgba(160,30,30,.4);color:#e06060;}
+/* モーダル */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#0e1220;border:1px solid #1a3050;border-radius:14px;padding:24px;width:min(440px,90vw);}
+.modal-title{font-size:14px;font-weight:700;color:#e06060;margin-bottom:12px;}
+.modal-body{font-size:12px;color:#8aabb8;line-height:1.6;margin-bottom:16px;}
+.modal-btns{display:flex;gap:10px;}
+/* トースト */
+#admin-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a3050;border:1px solid #2a5080;border-radius:8px;padding:10px 20px;font-size:12px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">ABYSSAL CHRONICLE</div>
-  <div class="admin-badge">管理者ダッシュボード</div>
-</div>
-
-<!-- ログイン画面 -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-title">🔐 管理者ログイン</div>
-    <div id="login-msg"></div>
-    <label>メールアドレス</label>
-    <input type="email" id="admin-email" placeholder="admin@example.com">
-    <label>パスワード</label>
-    <input type="password" id="admin-pass" placeholder="パスワード">
+    <label>管理者パスワード</label>
+    <input type="password" id="admin-pw" placeholder="パスワードを入力">
     <button class="btn-primary" onclick="adminLogin()">ログイン</button>
-    <div style="margin-top:12px;font-size:10px;color:#3a5060;text-align:center;">
-      初回：Firebase AuthenticationでEmailユーザーを作成してください
-    </div>
+    <div id="login-err" style="font-size:11px;color:#e06060;margin-top:8px;"></div>
   </div>
 </div>
 
-<!-- メイン画面 -->
+<div class="header" style="display:none;" id="admin-header">
+  <div class="logo">⚓ ABYSSAL ADMIN</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div style="font-size:11px;color:#3a5878;" id="header-user-count"></div>
+    <div class="admin-badge">ADMIN</div>
+  </div>
+</div>
+
 <div class="main" id="main">
   <div class="tabs">
     <div class="tab active" onclick="switchTab('dashboard')">📊 ダッシュボード</div>
+    <div class="tab" onclick="switchTab('users')">👥 ユーザー管理</div>
     <div class="tab" onclick="switchTab('notices')">📢 お知らせ</div>
-    <div class="tab" onclick="switchTab('gifts')">🎁 プレゼント配布</div>
-    <div class="tab" onclick="switchTab('users')">👥 ユーザー</div>
+    <div class="tab" onclick="switchTab('gifts')">🎁 ギフト配布</div>
   </div>
 
   <!-- ダッシュボード -->
   <div class="panel active" id="panel-dashboard">
-    <div class="stats-grid">
-      <div class="stat"><div class="stat-val" id="stat-users">-</div><div class="stat-lbl">総ユーザー数</div></div>
-      <div class="stat"><div class="stat-val" id="stat-notices">-</div><div class="stat-lbl">お知らせ数</div></div>
-      <div class="stat"><div class="stat-val" id="stat-gifts">-</div><div class="stat-lbl">配布中ギフト</div></div>
+    <div class="stats-grid" id="dash-stats">
+      <div class="stat"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">総ユーザー数</div></div>
+      <div class="stat"><div class="stat-val" id="s-active">—</div><div class="stat-lbl">アクティブ（7日）</div></div>
+      <div class="stat"><div class="stat-val" id="s-maxrank">—</div><div class="stat-lbl">最高Rank</div></div>
+      <div class="stat"><div class="stat-val" id="s-avgrank">—</div><div class="stat-lbl">平均Rank</div></div>
     </div>
     <div class="card">
-      <div class="card-title">クイックアクション</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <button class="btn-green" onclick="switchTab('notices')">📢 お知らせを投稿</button>
-        <button class="btn-primary" onclick="switchTab('gifts')">🎁 全員に石を配布</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- お知らせ管理 -->
-  <div class="panel" id="panel-notices">
-    <div class="card">
-      <div class="card-title">📢 新しいお知らせを投稿</div>
-      <div id="notice-msg"></div>
-      <label>タイトル</label>
-      <input type="text" id="notice-title" placeholder="例: 🎉 新イベント開始！">
-      <label>内容</label>
-      <textarea id="notice-body" placeholder="お知らせの内容を入力..."></textarea>
-      <div class="form-row">
-        <div>
-          <label>種別</label>
-          <select id="notice-type">
-            <option value="info">お知らせ</option>
-            <option value="event">イベント</option>
-            <option value="maintenance">メンテナンス</option>
-            <option value="update">アップデート</option>
-          </select>
-        </div>
-        <div>
-          <label>重要フラグ（ホームに表示）</label>
-          <select id="notice-important">
-            <option value="true">重要（ホームに表示）</option>
-            <option value="false">通常</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="postNotice()">投稿する</button>
-    </div>
-    <div class="card">
-      <div class="card-title">既存のお知らせ</div>
-      <div id="notices-list-admin">読み込み中...</div>
-    </div>
-  </div>
-
-  <!-- プレゼント配布 -->
-  <div class="panel" id="panel-gifts">
-    <div class="card">
-      <div class="card-title">🎁 全ユーザーにプレゼントを配布</div>
-      <div id="gift-msg"></div>
-      <label>配布名（管理用）</label>
-      <input type="text" id="gift-name" placeholder="例: 3周年記念プレゼント">
-      <div class="form-row">
-        <div>
-          <label>💎 深海結晶（ジェム）</label>
-          <input type="number" id="gift-gem" placeholder="0" min="0">
-        </div>
-        <div>
-          <label>💰 ゴールド</label>
-          <input type="number" id="gift-gold" placeholder="0" min="0">
-        </div>
-      </div>
-      <button class="btn-green" onclick="createGift()">配布開始</button>
-    </div>
-    <div class="card">
-      <div class="card-title">配布中・配布済みギフト</div>
-      <div id="gifts-list-admin">読み込み中...</div>
+      <div class="card-title">🏆 ランキング Top10</div>
+      <div id="dash-ranking"></div>
     </div>
   </div>
 
   <!-- ユーザー管理 -->
   <div class="panel" id="panel-users">
     <div class="card">
-      <div class="card-title">👥 ユーザー一覧（最新20件）</div>
-      <div id="users-list-admin">読み込み中...</div>
+      <div class="card-title">
+        <span>👥 ユーザー一覧</span>
+        <button class="btn-sm primary" onclick="loadUsers()" style="width:auto">🔄 更新</button>
+      </div>
+      <div class="search-bar">
+        <input id="user-search" placeholder="🔍 プレイヤーIDで検索..." oninput="filterUsers()">
+        <select id="user-sort" onchange="filterUsers()" style="width:140px;margin-bottom:0;">
+          <option value="rank">Rank降順</option>
+          <option value="created">登録日順</option>
+          <option value="pvp">PvPランク順</option>
+        </select>
+      </div>
+      <div id="users-list-admin"></div>
+    </div>
+  </div>
+
+  <!-- お知らせ -->
+  <div class="panel" id="panel-notices">
+    <div class="card">
+      <div class="card-title">📝 お知らせ投稿</div>
+      <label>タイトル</label>
+      <input id="notice-title" placeholder="お知らせタイトル">
+      <label>種別</label>
+      <select id="notice-type">
+        <option value="info">お知らせ</option>
+        <option value="event">イベント</option>
+        <option value="gift">配布</option>
+        <option value="update">更新</option>
+      </select>
+      <label>内容</label>
+      <textarea id="notice-body" placeholder="お知らせ内容"></textarea>
+      <label><input type="checkbox" id="notice-important" style="width:auto;margin-bottom:0;"> 重要（バナーに表示）</label>
+      <button class="btn-primary" style="margin-top:10px;" onclick="postNotice()">投稿</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 投稿済みお知らせ</div>
+      <div id="notices-list-admin"></div>
+    </div>
+  </div>
+
+  <!-- ギフト -->
+  <div class="panel" id="panel-gifts">
+    <div class="card">
+      <div class="card-title">🎁 全ユーザーへギフト配布</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>💎 ジェム</label><input type="number" id="gift-gem" value="0" min="0"></div>
+        <div><label>💰 ゴールド</label><input type="number" id="gift-gold" value="0" min="0"></div>
+      </div>
+      <label>メッセージ</label>
+      <input id="gift-msg" placeholder="配布メッセージ（例: メンテナンス補償）">
+      <button class="btn-green" onclick="createGift()">配布実行</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 配布履歴</div>
+      <div id="gifts-list-admin"></div>
     </div>
   </div>
 </div>
 
+<!-- 削除確認モーダル -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ アカウント削除確認</div>
+    <div class="modal-body" id="delete-modal-body">このユーザーのデータを削除しますか？この操作は取り消せません。</div>
+    <div class="modal-btns">
+      <button class="btn-danger" onclick="confirmDeleteUser()">削除する</button>
+      <button class="btn-primary" onclick="closeDeleteModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div id="admin-toast"></div>
+
 <script>
-// Firebase初期化
+// Firebase設定
 const firebaseConfig = {
   apiKey: "AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
   authDomain: "abyssal-chronicle.firebaseapp.com",
   projectId: "abyssal-chronicle",
-  storageBucket: "abyssal-chronicle.firebasestorage.app",
+  storageBucket: "abyssal-chronicle.appspot.com",
   messagingSenderId: "601713323896",
   appId: "1:601713323896:web:92e756bfcae26a1745228d"
 };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const db   = firebase.firestore();
+const auth = firebase.auth();
+
+const ADMIN_PW = 'iruka0531';
+let allUsers = [];
+let deleteTargetUid = null;
 
 // ================================================================
-//  ログイン
+// ログイン
 // ================================================================
 async function adminLogin(){
-  const email = document.getElementById('admin-email').value;
-  const pass  = document.getElementById('admin-pass').value;
-  try{
-    await auth.signInWithEmailAndPassword(email, pass);
-  }catch(e){
-    document.getElementById('login-msg').innerHTML = '<div class="msg msg-err">❌ ログイン失敗: '+e.message+'</div>';
+  const pw = document.getElementById('admin-pw').value;
+  if(pw !== ADMIN_PW){
+    document.getElementById('login-err').textContent = 'パスワードが違います';
+    return;
   }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-header').style.display='flex';
+  document.getElementById('main').classList.add('show');
+  await loadDashboard();
+  await loadUsers();
+  await loadNotices();
+  await loadGifts();
 }
 
-auth.onAuthStateChanged(user=>{
-  if(user){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('main').classList.add('show');
-    loadDashboard();
-    loadNotices();
-    loadGifts();
-    loadUsers();
-  }
-});
-
-// ================================================================
-//  タブ切り替え
-// ================================================================
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const tabs=['dashboard','notices','gifts','users'];
+    const tabs=['dashboard','users','notices','gifts'];
     t.classList.toggle('active', tabs[i]===tab);
   });
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -224,151 +244,314 @@ function switchTab(tab){
 }
 
 // ================================================================
-//  ダッシュボード
+// ダッシュボード
 // ================================================================
 async function loadDashboard(){
   try{
-    const [users, notices, gifts] = await Promise.all([
-      db.collection('players').get().catch(()=>({size:0})),
-      db.collection('notices').get().catch(()=>({size:0})),
-      db.collection('gifts').where('active','==',true).get().catch(()=>({size:0}))
-    ]);
-    document.getElementById('stat-users').textContent   = users.size||0;
-    document.getElementById('stat-notices').textContent  = notices.size||0;
-    document.getElementById('stat-gifts').textContent    = gifts.size||0;
-  }catch(e){ console.error('loadDashboard error:', e); }
+    const snap = await db.collection('players').get();
+    const users = snap.docs.map(d=>({uid:d.id,...d.data()}));
+    const total = users.length;
+    const now = Date.now();
+    const active = users.filter(u=>{
+      const ls = u.lastSaved ? new Date(u.lastSaved).getTime() : 0;
+      return (now-ls) < 7*24*60*60*1000;
+    }).length;
+    const ranks = users.map(u=>u.rank||1);
+    const maxRank = Math.max(...ranks, 1);
+    const avgRank = Math.round(ranks.reduce((a,b)=>a+b,0)/Math.max(ranks.length,1));
+
+    document.getElementById('s-total').textContent = total;
+    document.getElementById('s-active').textContent = active;
+    document.getElementById('s-maxrank').textContent = 'Rank '+maxRank;
+    document.getElementById('s-avgrank').textContent = 'Rank '+avgRank;
+    document.getElementById('header-user-count').textContent = 'ユーザー数: '+total;
+
+    // ランキングTop10
+    const top10 = [...users].sort((a,b)=>(b.rank||1)-(a.rank||1)).slice(0,10);
+    document.getElementById('dash-ranking').innerHTML = top10.map((u,i)=>{
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+      const pvpTier = getPvpTierLabel(u.pvpRank||1200);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:#060c18;border-radius:8px;margin-bottom:6px;">'
+        +'<div style="font-size:14px;width:28px;text-align:center;">'+medal+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:600;color:#60a0d0;">'+(u.playerId||'???')+'</div>'
+        +'<div style="font-size:10px;color:#3a5878;">キャラ'+(u.owned||[]).length+'体 | クリア'+(u.cleared||[]).length+'層 | PvP '+(u.pvpRank||1200)+'pts</div>'
+        +'</div>'
+        +'<div>'
+        +'<div style="font-size:13px;font-weight:700;color:#ffd060;">Rank '+(u.rank||1)+'</div>'
+        +'<div class="rank-tier '+pvpTier.cls+'">'+pvpTier.label+'</div>'
+        +'</div></div>';
+    }).join('');
+  }catch(e){ console.error('dashboard error:',e); }
 }
 
 // ================================================================
-//  お知らせ
+// ユーザー管理
 // ================================================================
-async function postNotice(){
-  const title     = document.getElementById('notice-title').value.trim();
-  const body      = document.getElementById('notice-body').value.trim();
-  const type      = document.getElementById('notice-type').value;
-  const important = document.getElementById('notice-important').value === 'true';
-  const msgEl = document.getElementById('notice-msg');
-
-  if(!title||!body){ msgEl.innerHTML='<div class="msg msg-err">❌ タイトルと内容を入力してください</div>'; return; }
+async function loadUsers(){
+  const el = document.getElementById('users-list-admin');
+  el.innerHTML = '<div style="font-size:12px;color:#3a5878;padding:10px;">読み込み中...</div>';
   try{
-    await db.collection('notices').add({
-      title, body, type, important,
-      date: new Date().toISOString().slice(0,10),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    msgEl.innerHTML='<div class="msg msg-ok">✅ お知らせを投稿しました！</div>';
-    document.getElementById('notice-title').value='';
-    document.getElementById('notice-body').value='';
-    loadNotices();
-    loadDashboard();
+    const snap = await db.collection('players').get();
+    allUsers = snap.docs.map(d=>({uid:d.id,...d.data()}));
+    filterUsers();
   }catch(e){
-    msgEl.innerHTML='<div class="msg msg-err">❌ 投稿失敗: '+e.message+'</div>';
+    el.innerHTML = '<div style="color:#e06060;font-size:12px;">❌ エラー: '+e.message+'</div>';
   }
 }
 
-async function loadNotices(){
-  const snap = await db.collection('notices').limit(20).get();
-  const el = document.getElementById('notices-list-admin');
-  if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">お知らせはありません</div>'; return; }
-  const sortedNotices = snap.docs.map(d=>({id:d.id,...d.data()}))
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  el.innerHTML = sortedNotices.map(d=>{
-    return `<div class="notice-item">
-      <div>
-        <div class="notice-item-title">${d.important?'⚠️ ':''}${d.title}</div>
-        <div class="notice-item-date">${d.date||''} — ${d.type||''}</div>
-      </div>
-      <div class="del-btn" onclick="deleteNotice('${d.id}')">削除</div>
-    </div>`;
+function getRankTierLabel(rank){
+  if(rank>=50) return {label:'深海提督',cls:'rt-5'};
+  if(rank>=30) return {label:'旧破征服',cls:'rt-4'};
+  if(rank>=20) return {label:'深淵覇者',cls:'rt-3'};
+  if(rank>=10) return {label:'指揮官',cls:'rt-2'};
+  return {label:'新人',cls:'rt-1'};
+}
+function getPvpTierLabel(pvpRank){
+  if(pvpRank>=2000) return {label:'旧破神',cls:'rt-5'};
+  if(pvpRank>=1800) return {label:'深淵王',cls:'rt-4'};
+  if(pvpRank>=1600) return {label:'覇者',cls:'rt-3'};
+  if(pvpRank>=1400) return {label:'上級戦士',cls:'rt-2'};
+  if(pvpRank>=1200) return {label:'戦士',cls:'rt-1'};
+  return {label:'見習い',cls:'rt-1'};
+}
+
+function filterUsers(){
+  const search = (document.getElementById('user-search').value||'').toLowerCase();
+  const sort   = document.getElementById('user-sort').value;
+  let users = [...allUsers];
+  if(search) users = users.filter(u=>(u.playerId||'').toLowerCase().includes(search));
+  if(sort==='rank')    users.sort((a,b)=>(b.rank||1)-(a.rank||1));
+  if(sort==='created') users.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(sort==='pvp')     users.sort((a,b)=>(b.pvpRank||1200)-(a.pvpRank||1200));
+  renderUserList(users);
+}
+
+function renderUserList(users){
+  const el = document.getElementById('users-list-admin');
+  if(!users.length){ el.innerHTML='<div style="font-size:12px;color:#3a5878;padding:10px;">ユーザーが見つかりません</div>'; return; }
+
+  el.innerHTML = users.map(u=>{
+    const rankTier = getRankTierLabel(u.rank||1);
+    const pvpTier  = getPvpTierLabel(u.pvpRank||1200);
+    const lastSaved = u.lastSaved ? new Date(u.lastSaved).toLocaleString('ja-JP') : '不明';
+    const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ja-JP') : '不明';
+    const towerBest = u.towerBest||0;
+    const pvpW = u.pvpWin||0, pvpL = u.pvpLose||0;
+    const winRate = (pvpW+pvpL)>0 ? Math.round(pvpW/(pvpW+pvpL)*100)+'%' : '—';
+
+    return '<div class="user-card" id="uc-'+u.uid+'">'
+      // ヘッダー
+      +'<div class="user-card-header">'
+      +'<div>'
+      +'<div class="user-pid">'+(u.playerId||'（ID未設定）')
+        +' <span class="rank-tier '+rankTier.cls+'">'+rankTier.label+'</span>'
+        +' <span class="rank-tier '+pvpTier.cls+'">'+pvpTier.label+'</span>'
+      +'</div>'
+      +'<div class="user-uid">UID: '+u.uid+'</div>'
+      +'</div>'
+      +'<div class="user-rank">Rank '+( u.rank||1)+'</div>'
+      +'</div>'
+      // ステータスグリッド
+      +'<div class="user-card-body">'
+      +'<div class="user-stat"><div class="user-stat-lbl">💰 ゴールド</div><div class="user-stat-val">'+(u.gold||0).toLocaleString()+'</div></div>'
+      +'<div class="user-stat"><div class="user-stat-lbl">💎 ジェム</div><div class="user-stat-val">'+(u.gem||0).toLocaleString()+'</div></div>'
+      +'<div class="user-stat"><div class="user-stat-lbl">🎭 キャラ所持</div><div class="user-stat-val">'+(u.owned||[]).length+'体</div></div>'
+      +'<div class="user-stat"><div class="user-stat-lbl">⚓ クリア層数</div><div class="user-stat-val">'+(u.cleared||[]).length+'層</div></div>'
+      +'<div class="user-stat"><div class="user-stat-lbl">🏆 無限塔最高</div><div class="user-stat-val">'+(towerBest>0?towerBest+'F':'未挑戦')+'</div></div>'
+      +'<div class="user-stat"><div class="user-stat-lbl">⚔️ PvP戦績</div><div class="user-stat-val">'+pvpW+'勝'+pvpL+'敗 '+winRate+'</div></div>'
+      +'</div>'
+      // フッター
+      +'<div class="user-card-footer">'
+      +'<div style="font-size:9px;color:#2a4060;">登録: '+createdAt+' | 最終: '+lastSaved+'</div>'
+      +'<div style="display:flex;gap:6px;">'
+      +'<button class="btn-sm success" onclick="openGiftModal(\''+u.uid+'\',\''+( u.playerId||'')+'\')" >🎁 個別配布</button>'
+      +'<button class="btn-sm danger" onclick="openDeleteModal(\''+u.uid+'\',\''+( u.playerId||'?')+'\')">🗑️ 削除</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
   }).join('');
+}
+
+// ================================================================
+// アカウント削除
+// ================================================================
+function openDeleteModal(uid, playerId){
+  deleteTargetUid = uid;
+  document.getElementById('delete-modal-body').textContent =
+    'プレイヤー「'+playerId+'」(UID: '+uid+') のデータを削除します。\nこの操作は取り消せません。本当に削除しますか？';
+  document.getElementById('delete-modal').classList.add('show');
+}
+function closeDeleteModal(){
+  document.getElementById('delete-modal').classList.remove('show');
+  deleteTargetUid = null;
+}
+async function confirmDeleteUser(){
+  if(!deleteTargetUid){ closeDeleteModal(); return; }
+  const uid = deleteTargetUid;
+  closeDeleteModal();
+  try{
+    await db.collection('players').doc(uid).delete();
+    adminToast('✅ アカウントを削除しました（UID: '+uid.slice(0,8)+'...）');
+    // UI から即削除
+    const el = document.getElementById('uc-'+uid);
+    if(el) el.remove();
+    allUsers = allUsers.filter(u=>u.uid!==uid);
+    // ダッシュボードも更新
+    loadDashboard();
+  }catch(e){
+    adminToast('❌ 削除失敗: '+e.message);
+    console.error(e);
+  }
+}
+
+// ================================================================
+// 個別ギフト配布
+// ================================================================
+let giftTargetUid = null;
+function openGiftModal(uid, playerId){
+  giftTargetUid = uid;
+  const gem  = prompt('💎 ジェムを配布（'+playerId+'）\n数量を入力:','100');
+  if(gem===null) return;
+  const gold = prompt('💰 ゴールドを配布（'+playerId+'）\n数量を入力:','0');
+  if(gold===null) return;
+  const msg  = prompt('メッセージ:','管理者より') || '管理者より';
+  sendIndividualGift(uid, parseInt(gem)||0, parseInt(gold)||0, msg, playerId);
+}
+async function sendIndividualGift(uid, gem, gold, msg, playerId){
+  try{
+    const giftId = 'gift_individual_'+Date.now();
+    await db.collection('gifts').doc(giftId).set({
+      gem, gold, message:msg,
+      targetUid: uid,
+      targetPlayerId: playerId,
+      isIndividual: true,
+      createdAt: new Date().toISOString(),
+      active: true,
+    });
+    adminToast('✅ '+playerId+' に 💎'+gem+' 💰'+gold.toLocaleString()+' を配布しました');
+  }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
+}
+
+// ================================================================
+// お知らせ
+// ================================================================
+async function postNotice(){
+  const title = document.getElementById('notice-title').value.trim();
+  const type  = document.getElementById('notice-type').value;
+  const body  = document.getElementById('notice-body').value.trim();
+  const imp   = document.getElementById('notice-important').checked;
+  if(!title||!body){ adminToast('タイトルと内容を入力してください'); return; }
+  try{
+    await db.collection('notices').add({
+      title,type,body,important:imp,
+      date: new Date().toISOString().slice(0,10),
+      createdAt: new Date().toISOString(),
+    });
+    adminToast('✅ お知らせを投稿しました');
+    document.getElementById('notice-title').value='';
+    document.getElementById('notice-body').value='';
+    loadNotices();
+  }catch(e){ adminToast('❌ 投稿失敗: '+e.message); }
+}
+
+async function loadNotices(){
+  const el = document.getElementById('notices-list-admin');
+  try{
+    const snap = await db.collection('notices').orderBy('createdAt','desc').limit(20).get();
+    if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5878;">お知らせなし</div>'; return; }
+    el.innerHTML = snap.docs.map(d=>{
+      const n=d.data();
+      return '<div class="notice-item">'
+        +'<div><div style="font-size:12px;font-weight:500;">'+(n.important?'⭐ ':'')+n.title+'</div>'
+        +'<div style="font-size:10px;color:#3a5878;margin-top:3px;">['+n.type+'] '+(n.date||'')+'</div></div>'
+        +'<button class="btn-sm danger" onclick="deleteNotice(\''+d.id+'\')">削除</button>'
+        +'</div>';
+    }).join('');
+  }catch(e){
+    try{
+      const snap2 = await db.collection('notices').limit(20).get();
+      if(snap2.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5878;">お知らせなし</div>'; return; }
+      el.innerHTML = snap2.docs.map(d=>{
+        const n=d.data();
+        return '<div class="notice-item"><div><div style="font-size:12px;font-weight:500;">'+(n.important?'⭐ ':'')+n.title+'</div></div>'
+          +'<button class="btn-sm danger" onclick="deleteNotice(\''+d.id+'\')">削除</button></div>';
+      }).join('');
+    }catch(e2){ el.innerHTML='<div style="color:#e06060;font-size:12px;">❌ エラー</div>'; }
+  }
 }
 
 async function deleteNotice(id){
   if(!confirm('このお知らせを削除しますか？')) return;
   await db.collection('notices').doc(id).delete();
-  loadNotices(); loadDashboard();
+  adminToast('🗑️ 削除しました');
+  loadNotices();
 }
 
 // ================================================================
-//  プレゼント配布
+// ギフト配布
 // ================================================================
 async function createGift(){
-  const name = document.getElementById('gift-name').value.trim();
   const gem  = parseInt(document.getElementById('gift-gem').value)||0;
   const gold = parseInt(document.getElementById('gift-gold').value)||0;
-  const msgEl = document.getElementById('gift-msg');
-  if(!name){ msgEl.innerHTML='<div class="msg msg-err">❌ 配布名を入力してください</div>'; return; }
-  if(gem<=0&&gold<=0){ msgEl.innerHTML='<div class="msg msg-err">❌ ジェムかゴールドを1以上入力してください</div>'; return; }
+  const msg  = document.getElementById('gift-msg').value.trim()||'管理者よりギフト';
+  if(gem===0&&gold===0){ adminToast('ジェムまたはゴールドを入力してください'); return; }
+  if(!confirm('全ユーザーに 💎'+gem+' 💰'+gold+' を配布しますか？')){ return; }
   try{
     await db.collection('gifts').add({
-      name, gem, gold, type:'global', active:true,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      gem,gold,message:msg,
+      isIndividual:false,
+      createdAt:new Date().toISOString(),
+      active:true,
     });
-    msgEl.innerHTML=`<div class="msg msg-ok">✅ 配布開始！全ユーザーが次回ログイン時に受け取ります（💎${gem} 💰${gold}）</div>`;
-    document.getElementById('gift-name').value='';
-    document.getElementById('gift-gem').value='';
-    document.getElementById('gift-gold').value='';
-    loadGifts(); loadDashboard();
-  }catch(e){
-    msgEl.innerHTML='<div class="msg msg-err">❌ 失敗: '+e.message+'</div>';
-  }
+    adminToast('✅ ギフトを配布しました（💎'+gem+' 💰'+gold+'）');
+    document.getElementById('gift-gem').value='0';
+    document.getElementById('gift-gold').value='0';
+    document.getElementById('gift-msg').value='';
+    loadGifts();
+  }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
 }
 
 async function loadGifts(){
-  const snap = await db.collection('gifts').limit(20).get();
   const el = document.getElementById('gifts-list-admin');
-  if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5060;">配布履歴がありません</div>'; return; }
-  const sortedGifts = snap.docs.map(d=>({id:d.id,...d.data()}))
-    .sort((a,b)=>(b.createdAt||'').toString().localeCompare((a.createdAt||'').toString()));
-  el.innerHTML = sortedGifts.map(d=>{
-    const g=d;
-    return `<div class="gift-item">
-      <div>
-        <div style="font-size:12px;font-weight:500;">${g.name}</div>
-        <div style="font-size:10px;color:#5a7898;margin-top:2px;">💎${g.gem||0} 💰${g.gold||0}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="${g.active?'gift-active':'gift-inactive'}">${g.active?'配布中':'終了'}</div>
-        ${g.active?`<div class="del-btn" onclick="stopGift('${g.id}')">停止</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
+  try{
+    const snap = await db.collection('gifts').orderBy('createdAt','desc').limit(20).get();
+    if(snap.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5878;">配布履歴なし</div>'; return; }
+    el.innerHTML = snap.docs.map(d=>{
+      const g=d.data();
+      const target = g.isIndividual ? ('個別: '+g.targetPlayerId) : '全員';
+      return '<div class="notice-item">'
+        +'<div><div style="font-size:12px;font-weight:500;">'+g.message+'</div>'
+        +'<div style="font-size:10px;color:#3a5878;margin-top:3px;">'+target+' | 💎'+g.gem+' 💰'+(g.gold||0).toLocaleString()+' | '+(g.createdAt||'').slice(0,10)+'</div></div>'
+        +(g.active
+          ?'<button class="btn-sm danger" onclick="stopGift(\''+d.id+'\')">停止</button>'
+          :'<span style="font-size:10px;color:#3a5060;">停止済</span>')
+        +'</div>';
+    }).join('');
+  }catch(e){
+    const snap2 = await db.collection('gifts').limit(20).get().catch(()=>({empty:true,docs:[]}));
+    if(snap2.empty){ el.innerHTML='<div style="font-size:12px;color:#3a5878;">配布履歴なし</div>'; return; }
+    el.innerHTML = snap2.docs.map(d=>{const g=d.data();return '<div class="notice-item"><div>'+g.message+' (💎'+g.gem+')</div></div>';}).join('');
+  }
 }
 
 async function stopGift(id){
-  if(!confirm('このギフトの配布を停止しますか？')) return;
   await db.collection('gifts').doc(id).update({active:false});
-  loadGifts(); loadDashboard();
+  adminToast('⏹️ ギフトを停止しました');
+  loadGifts();
 }
 
 // ================================================================
-//  ユーザー管理
+// トースト
 // ================================================================
-async function loadUsers(){
-  const el = document.getElementById('users-list-admin');
-  try{
-    const snap = await db.collection('players').limit(50).get();
-    if(!snap.docs||snap.docs.length===0){
-      el.innerHTML='<div style="font-size:12px;color:#3a5060;">ユーザーがいません（Firestoreにplayersコレクションが未作成の可能性があります）</div>';
-      return;
-    }
-    // createdAtで降順ソート（クライアント側で）
-    const users = snap.docs.map(d=>({id:d.id,...d.data()}))
-      .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-    el.innerHTML = users.map(u=>`
-      <div class="user-item">
-        <div>
-          <div class="user-id">${u.playerId||'（ID未設定）'}</div>
-          <div class="user-info">💰${u.gold||0} 💎${u.gem||0} | キャラ${(u.owned||[]).length}体 | クリア${(u.cleared||[]).length}章</div>
-          <div class="user-info" style="margin-top:2px;font-size:9px;">UID: ${u.id.slice(0,12)}...</div>
-        </div>
-        <div style="font-size:10px;color:#3a5060;">${(u.createdAt||'').slice(0,10)}</div>
-      </div>`).join('');
-  }catch(e){
-    el.innerHTML=`<div style="font-size:12px;color:#e06060;">❌ 読み込みエラー: ${e.message}</div>`;
-    console.error('loadUsers error:', e);
-  }
+function adminToast(msg){
+  const el=document.getElementById('admin-toast');
+  el.textContent=msg; el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.style.opacity='0', 2500);
 }
+
+document.getElementById('admin-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') adminLogin(); });
 </script>
 </body>
 </html>
