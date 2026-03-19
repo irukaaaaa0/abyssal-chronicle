@@ -6672,7 +6672,9 @@ async function openSupportSelect(){
     }
     var hc=f.helperChar;
     var isUsed=S.supportChar&&S.supportChar.id===hc.id&&S.supportChar.fromFriendId===f.id;
-    rows+='<div style="background:rgba(0,20,40,.4);border:.5px solid '+(isUsed?'var(--teal)':'var(--border2)')+';border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="selectSupportChar(\''+f.id+'\',\''+f.name+'\','+JSON.stringify(hc)+')">'
+    window['_hcCache_'+i]=hc;
+    window['_fCache_'+i]=f;
+    rows+='<div class="support-pick-row" data-idx="'+i+'" style="background:rgba(0,20,40,.4);border:.5px solid '+(isUsed?'var(--teal)':'var(--border2)')+';border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;">'
       +'<div style="width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;background:'+(hc.bg||'rgba(0,20,40,.6)')+';border:.5px solid '+(hc.border||'rgba(120,60,220,.4)')+'">'+hc.emoji+'</div>'
       +'<div style="flex:1;">'
       +'<div style="font-size:11px;font-weight:500;">'+hc.name+' <span style="font-size:8px;color:var(--text3);">from '+f.name+'</span></div>'
@@ -6682,6 +6684,16 @@ async function openSupportSelect(){
       +'</div>';
   }
   listEl.innerHTML=rows||'<div style="font-size:11px;color:var(--text3);">助っ人を設定しているフレンドがいません</div>';
+
+  // イベントデリゲーション（JSON.stringifyをonclickに使わない）
+  listEl.onclick=function(e){
+    var row=e.target.closest('.support-pick-row');
+    if(!row) return;
+    var idx=parseInt(row.dataset.idx);
+    var hcObj=window['_hcCache_'+idx];
+    var fObj=window['_fCache_'+idx];
+    if(hcObj&&fObj) selectSupportChar(fObj.id, fObj.name, hcObj);
+  };
 }
 
 function selectSupportChar(friendId, friendName, helperChar){
