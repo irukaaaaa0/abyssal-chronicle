@@ -1622,59 +1622,14 @@ async function initFirebaseUser(){
 
 
 // ================================================================
-//  フレンドリアルタイム監視（承諾されたら自動反映）
+//  フレンド更新（onSnapshot廃止→手動取得のみ・クォータ節約）
 // ================================================================
 var friendListenerUnsub = null;
+var _lastFriendFetch = 0; // 最後にFirestoreからfriendを取得した時刻
 
 function startFriendListener(){
-  if(friendListenerUnsub) friendListenerUnsub(); // 既存を解除
-  if(!playerDocRef) return;
-
-  friendListenerUnsub = playerDocRef.onSnapshot(function(snap){
-    if(!snap.exists) return;
-    var data = snap.data();
-
-    // friendsの変化を検知（Firestoreが更新されたら即反映）
-    var newFriends = data.friends||[];
-    var oldFriends = S.friends||[];
-
-    // 新しく追加されたフレンドを検出
-    var added = newFriends.filter(function(nf){
-      return !oldFriends.some(function(of){return of.id===nf.id;});
-    });
-
-    if(added.length>0){
-      S.friends = newFriends;
-      // ローカルに即保存
-      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
-      added.forEach(function(f){
-        showToast('🎉 '+f.name+' とフレンドになりました！');
-        console.log('[FRIEND listener] New friend added:', f.id, f.name);
-      });
-      renderFriend();
-      checkPendingRequests();
-    } else if(newFriends.length !== oldFriends.length){
-      // 削除された場合も反映
-      S.friends = newFriends;
-      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
-      renderFriend();
-    }
-
-    // pendingRequestsの変化を検知（新しい申請が来たら通知）
-    var newPending = data.pendingRequests||[];
-    var oldPending = S.pendingRequests||[];
-    if(newPending.length !== oldPending.length){
-      S.pendingRequests = newPending;
-      localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
-      checkPendingRequests();
-      if(newPending.length > oldPending.length){
-        showToast('🔔 フレンド申請が届きました！');
-      }
-      renderFriend();
-    }
-  }, function(err){
-    console.log('[FRIEND listener]', err);
-  });
+  // onSnapshotは使わない（クォータ節約のため）
+  // 代わりにフレンド画面を開いた時のみ取得
 }
 // クラウドからセーブデータ読み込み
 async function loadCloudSave(){
@@ -1712,6 +1667,12 @@ async function loadCloudSave(){
 }
 
 // クラウドにセーブ（重要なデータのみ）
+var _saveCloudTimer = null;
+function saveToCloudDebounced(){
+  // 3秒後にまとめて保存（連続操作で複数回呼ばれても1回にまとめる）
+  if(_saveCloudTimer) clearTimeout(_saveCloudTimer);
+  _saveCloudTimer = setTimeout(function(){ saveToCloud(); }, 3000);
+}
 async function saveToCloud(){
   if(!playerDocRef) return;
   try{
@@ -1785,8 +1746,12 @@ async function transferAccount(inputId){
 // ================================================================
 //  お知らせ・配布をFirestoreから取得
 // ================================================================
+var _noticesFetched = false;
 async function loadServerNotices(){
+  // 既に取得済みならスキップ（セッション中は1回のみ）
+  if(_noticesFetched) return;
   try{
+    _noticesFetched = true;
     // お知らせ取得（orderByなしでシンプルに取得）
     const noticesSnap = await db.collection('notices').get();
     ONLINE_NOTICES = noticesSnap.docs.map(d=>({id:d.id,...d.data()}))
@@ -1818,6 +1783,8 @@ async function checkGifts(){
   if(!playerDocRef) return;
   try{
     // 全員向けギフト
+    if(window._giftsFetched) return;
+    window._giftsFetched = true;
     const globalGifts = await db.collection('gifts')
       .where('type','==','global')
       .where('active','==',true)
@@ -4456,6 +4423,10 @@ async function renderPvp(){
 
 async function loadPvpRanking(){
   try{
+    // ランキングは5分キャッシュ
+    if(window._rankingCache && (Date.now()-window._rankingCacheTime)<5*60*1000){
+      renderOnlineRanking(window._rankingCache); return;
+    }
     const snap = await db.collection('players')
       .orderBy('pvpRank','desc').limit(20).get();
     const el = document.getElementById('pvp-ranking-list');
@@ -6427,40 +6398,44 @@ async function renderFriend(){
   const myId = S.playerId||'----';
   const myUid = auth.currentUser ? auth.currentUser.uid : '（ログイン中...）';
 
-  // Firestoreからフレンドの最新データを取得してRank等を更新
-  if(friends.length>0 && db){
+  // Firestoreからフレンドの最新データを取得（5分キャッシュ）
+  const now = Date.now();
+  if(friends.length>0 && db && (now - _lastFriendFetch) > 5*60*1000){
     try{
-      // 並列でフレンドのデータを取得
+      _lastFriendFetch = now;
+      // フレンドのUIDが分かるものはUID直接取得、ない場合はplayerIdで検索
       const updates = await Promise.all(friends.map(async function(f){
         try{
-          const snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
-          if(!snap.empty){
-            const d=snap.docs[0].data();
-            return {
-              id: f.id,
-              uid: snap.docs[0].id,
-              name: d.playerName||f.name||'司令官',
-              rank: d.rank||1,
-              rankExp: d.rankExp||0,
-              pvpRank: d.pvpRank||1200,
-              pvpWin: d.pvpWin||0,
-              pvpLose: d.pvpLose||0,
-              helperChar: d.helperChar||null,
-              cleared: (d.cleared||[]).length,
-              towerBest: d.towerBest||0,
-            };
+          var d = null;
+          if(f.uid){
+            // UID直接取得（1回読み取り）
+            var docSnap = await db.collection('players').doc(f.uid).get();
+            if(docSnap.exists) d = docSnap.data();
           }
+          if(!d){
+            var snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
+            if(!snap.empty) d=snap.docs[0].data();
+          }
+          if(d) return {
+            id:f.id, uid:f.uid,
+            name:d.playerName||f.name||'司令官',
+            rank:d.rank||1,
+            pvpRank:d.pvpRank||1200,
+            pvpWin:d.pvpWin||0,
+            pvpLose:d.pvpLose||0,
+            helperChar:d.helperChar||null,
+            cleared:(d.cleared||[]).length,
+            towerBest:d.towerBest||0,
+          };
         }catch(e){}
         return null;
       }));
-      // 更新成功したフレンドのデータを反映
       updates.forEach(function(u){
         if(!u) return;
         var idx=S.friends.findIndex(function(f){return f.id===u.id;});
         if(idx!==-1) S.friends[idx]={...S.friends[idx],...u};
       });
       localStorage.setItem('abyssal_save_v1', JSON.stringify(S));
-      // 助っ人スロットも最新データで更新
       renderSupportSlot();
     }catch(e){ console.log('[FRIEND render]', e); }
   }
@@ -7020,9 +6995,17 @@ async function openSupportSelect(){
   for(var i=0;i<friends.length;i++){
     var f=friends[i];
     try{
-      var snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
-      if(!snap.empty){
-        var fd=snap.docs[0].data();
+      // UIDがあればUID直接取得（読み取り節約）
+      var fd = null;
+      if(f.uid){
+        var ds=await db.collection('players').doc(f.uid).get();
+        if(ds.exists) fd=ds.data();
+      }
+      if(!fd){
+        var snap=await db.collection('players').where('playerId','==',f.id).limit(1).get();
+        if(!snap.empty) fd=snap.docs[0].data();
+      }
+      if(fd){
         f.helperChar=fd.helperChar||null;
         S.friends[i].helperChar=f.helperChar;
         S.friends[i].rank=fd.rank||1;
@@ -7138,12 +7121,21 @@ function selectSupportChar(friendId, friendName, helperChar){
 }
 
 async function rewardHelperOwner(friendPlayerId, amount){
+  // フレンドのUIDが分かる場合はUID直接更新（読み取り節約）
   try{
+    var friend=(S.friends||[]).find(function(f){return f.id===friendPlayerId;});
+    if(friend&&friend.uid){
+      // UID直接更新（読み取り不要）
+      await db.collection('players').doc(friend.uid).update({
+        gold: firebase.firestore.FieldValue.increment(amount)
+      });
+      return;
+    }
     var snap=await db.collection('players').where('playerId','==',friendPlayerId).limit(1).get();
     if(snap.empty) return;
-    var doc=snap.docs[0];
-    var data=doc.data();
-    await db.collection('players').doc(doc.id).update({gold:(data.gold||0)+amount});
+    await db.collection('players').doc(snap.docs[0].id).update({
+      gold: firebase.firestore.FieldValue.increment(amount)
+    });
   }catch(e){ console.log('[HELPER]reward error',e); }
 }
 
@@ -7291,6 +7283,12 @@ function checkRankRewardBadge(){
       if(existing) existing.remove();
     }
   }
+}
+
+function refreshFriendData(){
+  _lastFriendFetch = 0; // キャッシュリセット
+  renderFriend();
+  showToast('🔄 フレンドデータを更新中...');
 }
 </script>
 
