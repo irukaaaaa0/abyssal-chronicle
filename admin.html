@@ -4,7 +4,85 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ABYSSAL CHRONICLE — 管理者ダッシュボード</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+// ================================================================
+// UID指定でドキュメント作成・復元
+// ================================================================
+async function createPlayerDoc(){
+  const uid      = document.getElementById('create-uid').value.trim();
+  const pid      = document.getElementById('create-playerid').value.trim().toUpperCase()
+                   || ('USER-' + Math.random().toString(36).slice(2,6).toUpperCase());
+  const gem      = parseInt(document.getElementById('create-gem').value)||600;
+  const gold     = parseInt(document.getElementById('create-gold').value)||0;
+  const rank     = parseInt(document.getElementById('create-rank').value)||1;
+  const name     = document.getElementById('create-name').value.trim()||'深海司令官';
+  const ownedRaw = document.getElementById('create-owned').value.trim();
+  const owned    = ownedRaw ? ownedRaw.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n)) : [29,30,31];
+  const resultEl = document.getElementById('create-result');
+
+  if(!uid){ adminToast('UIDを入力してください'); return; }
+  if(uid.length < 10){ adminToast('UIDが短すぎます（正しいUIDを入力してください）'); return; }
+
+  resultEl.textContent = '作成中...';
+  resultEl.style.color = '#8aabb8';
+
+  try{
+    const docRef = db.collection('players').doc(uid);
+
+    // 既存データを確認
+    const existing = await docRef.get();
+    const isExisting = existing.exists;
+
+    const docData = {
+      playerId:        pid,
+      playerName:      name,
+      gem:             gem,
+      gold:            gold,
+      rank:            rank,
+      rankExp:         0,
+      owned:           owned,
+      party:           [-1,-1,-1],
+      cleared:         [],
+      pityPerBanner:   [0,0,0,0,0,0,0,0,0],
+      ownedData:       {},
+      achievements:    {},
+      equippedTitle:   '',
+      friends:         [],
+      pendingRequests: [],
+      helperChar:      null,
+      supportChar:     null,
+      pvpRank:         1200,
+      pvpWin:          0,
+      pvpLose:         0,
+      receivedGifts:   [],
+      receivedRankRewards: [],
+      dailyDone:       0,
+      towerFloor:      1,
+      towerBest:       0,
+      lastSaved:       new Date().toISOString(),
+      createdAt:       new Date().toISOString(),
+    };
+
+    // setで上書き作成（ドキュメントがなくても作成される）
+    await docRef.set(docData);
+
+    const msg = isExisting
+      ? '✅ 既存ドキュメントを上書き復元しました！'
+      : '✅ 新規ドキュメントを作成しました！';
+    resultEl.textContent = msg + ' UID: ' + uid.slice(0,12) + '... | PlayerID: ' + pid;
+    resultEl.style.color = '#60e080';
+    adminToast(msg);
+
+    // ユーザー一覧を更新
+    loadUsers();
+  }catch(e){
+    resultEl.textContent = '❌ エラー: ' + e.message;
+    resultEl.style.color = '#e06060';
+    adminToast('❌ 作成失敗: ' + e.message);
+    console.error('[CREATE DOC]', e);
+  }
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
@@ -124,6 +202,32 @@ label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
 
   <!-- ユーザー管理 -->
   <div class="panel" id="panel-users">
+
+    <!-- UID指定でドキュメント作成 -->
+    <div class="card" style="border-color:rgba(200,160,0,.4);">
+      <div class="card-title" style="color:#ffd060;">🔧 UID指定でアカウント復元・作成</div>
+      <div style="font-size:11px;color:#8aabb8;margin-bottom:12px;">
+        削除されたアカウントを復元したり、特定UIDで新規作成できます。<br>
+        <span style="color:#e06060;">※ 既存のドキュメントは上書きされます</span>
+      </div>
+      <label>UID（必須）</label>
+      <input id="create-uid" placeholder="例: 1nQfRd0EGEhmXXqyLqquV3H3xyj2">
+      <label>PlayerID</label>
+      <input id="create-playerid" placeholder="例: ABCD-1234（空白で自動生成）">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>💎 ジェム</label><input type="number" id="create-gem" value="600" min="0"></div>
+        <div><label>💰 ゴールド</label><input type="number" id="create-gold" value="0" min="0"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>Rank</label><input type="number" id="create-rank" value="1" min="1"></div>
+        <div><label>プレイヤー名</label><input id="create-name" placeholder="深海司令官"></div>
+      </div>
+      <label>所持キャラID（カンマ区切り）</label>
+      <input id="create-owned" placeholder="例: 29,30,31" value="29,30,31">
+      <button class="btn-green" onclick="createPlayerDoc()" style="margin-top:4px;">✅ ドキュメント作成・復元</button>
+      <div id="create-result" style="margin-top:8px;font-size:11px;"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">
         <span>👥 ユーザー一覧</span>
