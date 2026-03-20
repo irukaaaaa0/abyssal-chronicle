@@ -4,85 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ABYSSAL CHRONICLE — 管理者ダッシュボード</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
-// ================================================================
-// UID指定でドキュメント作成・復元
-// ================================================================
-async function createPlayerDoc(){
-  const uid      = document.getElementById('create-uid').value.trim();
-  const pid      = document.getElementById('create-playerid').value.trim().toUpperCase()
-                   || ('USER-' + Math.random().toString(36).slice(2,6).toUpperCase());
-  const gem      = parseInt(document.getElementById('create-gem').value)||600;
-  const gold     = parseInt(document.getElementById('create-gold').value)||0;
-  const rank     = parseInt(document.getElementById('create-rank').value)||1;
-  const name     = document.getElementById('create-name').value.trim()||'深海司令官';
-  const ownedRaw = document.getElementById('create-owned').value.trim();
-  const owned    = ownedRaw ? ownedRaw.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n)) : [29,30,31];
-  const resultEl = document.getElementById('create-result');
-
-  if(!uid){ adminToast('UIDを入力してください'); return; }
-  if(uid.length < 10){ adminToast('UIDが短すぎます（正しいUIDを入力してください）'); return; }
-
-  resultEl.textContent = '作成中...';
-  resultEl.style.color = '#8aabb8';
-
-  try{
-    const docRef = db.collection('players').doc(uid);
-
-    // 既存データを確認
-    const existing = await docRef.get();
-    const isExisting = existing.exists;
-
-    const docData = {
-      playerId:        pid,
-      playerName:      name,
-      gem:             gem,
-      gold:            gold,
-      rank:            rank,
-      rankExp:         0,
-      owned:           owned,
-      party:           [-1,-1,-1],
-      cleared:         [],
-      pityPerBanner:   [0,0,0,0,0,0,0,0,0],
-      ownedData:       {},
-      achievements:    {},
-      equippedTitle:   '',
-      friends:         [],
-      pendingRequests: [],
-      helperChar:      null,
-      supportChar:     null,
-      pvpRank:         1200,
-      pvpWin:          0,
-      pvpLose:         0,
-      receivedGifts:   [],
-      receivedRankRewards: [],
-      dailyDone:       0,
-      towerFloor:      1,
-      towerBest:       0,
-      lastSaved:       new Date().toISOString(),
-      createdAt:       new Date().toISOString(),
-    };
-
-    // setで上書き作成（ドキュメントがなくても作成される）
-    await docRef.set(docData);
-
-    const msg = isExisting
-      ? '✅ 既存ドキュメントを上書き復元しました！'
-      : '✅ 新規ドキュメントを作成しました！';
-    resultEl.textContent = msg + ' UID: ' + uid.slice(0,12) + '... | PlayerID: ' + pid;
-    resultEl.style.color = '#60e080';
-    adminToast(msg);
-
-    // ユーザー一覧を更新
-    loadUsers();
-  }catch(e){
-    resultEl.textContent = '❌ エラー: ' + e.message;
-    resultEl.style.color = '#e06060';
-    adminToast('❌ 作成失敗: ' + e.message);
-    console.error('[CREATE DOC]', e);
-  }
-}
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
@@ -656,6 +578,60 @@ function adminToast(msg){
 }
 
 document.getElementById('admin-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') adminLogin(); });
+
+// ================================================================
+// UID指定でドキュメント作成・復元
+// ================================================================
+async function createPlayerDoc(){
+  const uid      = document.getElementById('create-uid').value.trim();
+  const pid      = document.getElementById('create-playerid').value.trim().toUpperCase()
+                   || ('USER-' + Math.random().toString(36).slice(2,6).toUpperCase());
+  const gem      = parseInt(document.getElementById('create-gem').value)||600;
+  const gold     = parseInt(document.getElementById('create-gold').value)||0;
+  const rank     = parseInt(document.getElementById('create-rank').value)||1;
+  const name     = document.getElementById('create-name').value.trim()||'深海司令官';
+  const ownedRaw = document.getElementById('create-owned').value.trim();
+  const owned    = ownedRaw ? ownedRaw.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n)) : [29,30,31];
+  const resultEl = document.getElementById('create-result');
+
+  if(!uid){ adminToast('UIDを入力してください'); return; }
+  if(uid.length < 10){ adminToast('UIDが短すぎます'); return; }
+
+  resultEl.textContent = '作成中...';
+  resultEl.style.color = '#8aabb8';
+
+  try{
+    const docRef = db.collection('players').doc(uid);
+    const existing = await docRef.get();
+    const isExisting = existing.exists;
+
+    const docData = {
+      playerId: pid, playerName: name,
+      gem, gold, rank, rankExp: 0,
+      owned, party: [-1,-1,-1], cleared: [],
+      pityPerBanner: [0,0,0,0,0,0,0,0,0],
+      ownedData: {}, achievements: {}, equippedTitle: '',
+      friends: [], pendingRequests: [], helperChar: null, supportChar: null,
+      pvpRank: 1200, pvpWin: 0, pvpLose: 0,
+      receivedGifts: [], receivedRankRewards: [],
+      dailyDone: 0, towerFloor: 1, towerBest: 0,
+      lastSaved: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    await docRef.set(docData);
+
+    const msg = isExisting ? '✅ 上書き復元完了！' : '✅ 新規作成完了！';
+    resultEl.innerHTML = msg + '<br>UID: ' + uid + '<br>PlayerID: ' + pid;
+    resultEl.style.color = '#60e080';
+    adminToast(msg + ' PlayerID: ' + pid);
+    loadUsers();
+  }catch(e){
+    resultEl.textContent = '❌ エラー: ' + e.message;
+    resultEl.style.color = '#e06060';
+    console.error('[CREATE DOC]', e);
+  }
+}
 </script>
 </body>
 </html>
