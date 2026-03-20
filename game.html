@@ -1698,6 +1698,12 @@ async function loadCloudSave(){
   }catch(e){
     console.error('[ABYSSAL] Cloud save error:', e.code, e.message);
     updatePlayerIdDisplay();
+    // 起動時にクォータ超過・オフラインを検知→即バナー表示
+    const isQuota  = e.code==='resource-exhausted' || (e.message&&e.message.includes('Quota'));
+    const isOffline= e.code==='unavailable' || e.code==='failed-precondition';
+    if(isQuota || isOffline){
+      setTimeout(function(){ showServerErrorBanner(isQuota); }, 500);
+    }
   }
 }
 
@@ -5096,6 +5102,8 @@ window.addEventListener('load', async ()=>{
 
   // Firebase初期化
   await initFirebaseUser().catch(e=>console.error('[ABYSSAL] Firebase init error:', e));
+  // 起動時接続チェック（playerDocRefがない場合もテスト）
+  checkFirestoreConnection();
 
   let w2 = 40;
   const iv2 = setInterval(()=>{ w2+=2; fill.style.width=w2+'%'; if(w2>=70) clearInterval(iv2); }, 30);
@@ -7405,6 +7413,27 @@ function showServerErrorBanner(isQuota, retryCount){
 function hideServerErrorBanner(){
   const banner = document.getElementById('server-error-banner');
   if(banner) banner.classList.remove('show');
+}
+
+// ================================================================
+//  起動時Firestore接続チェック
+// ================================================================
+async function checkFirestoreConnection(){
+  // playerDocRefがなければdocRefなしで接続テスト
+  try{
+    if(playerDocRef){
+      // 自分のドキュメントが読めるかテスト（既にloadCloudSaveで読んでいるのでキャッシュ）
+      await playerDocRef.get();
+      hideServerErrorBanner();
+    }
+  }catch(e){
+    console.warn('[ABYSSAL] Connection check failed:', e.code, e.message);
+    const isQuota   = e.code==='resource-exhausted'||(e.message&&e.message.includes('Quota'));
+    const isOffline = e.code==='unavailable'||e.code==='failed-precondition';
+    if(isQuota||isOffline){
+      showServerErrorBanner(isQuota);
+    }
+  }
 }
 </script>
 
