@@ -892,19 +892,29 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 /* ===== サーバー障害バナー ===== */
 .server-error-banner{
   position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  background:rgba(180,40,0,.96);
-  border-top:2px solid rgba(255,100,50,.8);
-  padding:10px 16px;
+  background:rgba(140,30,0,.97);
+  border-top:2px solid rgba(255,80,30,.7);
+  padding:10px 16px 12px;
   display:none;
   flex-direction:column;
-  gap:4px;
-  backdrop-filter:blur(6px);
+  gap:3px;
+  backdrop-filter:blur(8px);
+  cursor:pointer;
 }
 .server-error-banner.show{display:flex;}
+.server-error-banner::after{
+  content:'タップで最小化';
+  font-size:8px;color:rgba(255,255,255,.3);
+  text-align:right;margin-top:2px;
+}
 .seb-title{font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;}
 .seb-body{font-size:10px;color:rgba(255,255,255,.85);line-height:1.5;}
 .seb-local{font-size:10px;color:#ffe080;font-weight:500;}
 .seb-retry{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+/* 最小化状態 */
+.server-error-banner.minimized{padding:6px 16px;}
+.server-error-banner.minimized > *:not(.seb-title){display:none;}
+.server-error-banner.minimized::after{display:none;}
 
 </style>
 <!-- Firebase SDK -->
@@ -5101,8 +5111,29 @@ window.addEventListener('load', async ()=>{
   const iv = setInterval(()=>{ w+=2; fill.style.width=w+'%'; if(w>=40) clearInterval(iv); }, 30);
 
   // Firebase初期化
+  // console.errorをインターセプトしてFirestoreクォータエラーを検知
+  (function(){
+    const origError = console.error;
+    const origWarn  = window._origWarn || console.warn;
+    function checkFirebaseError(args){
+      const msg = Array.from(args).join(' ');
+      if(msg.includes('resource-exhausted')||msg.includes('Quota exceeded')){
+        setTimeout(function(){ showServerErrorBanner(true); }, 300);
+      }
+    }
+    console.error = function(){
+      checkFirebaseError(arguments);
+      origError.apply(console, arguments);
+    };
+    // logger.tsのIメソッドもインターセプト
+    const origLog = console.log;
+    console.log = function(){
+      origLog.apply(console, arguments);
+    };
+  })();
+
   await initFirebaseUser().catch(e=>console.error('[ABYSSAL] Firebase init error:', e));
-  // 起動時接続チェック（playerDocRefがない場合もテスト）
+  // 起動時接続チェック
   checkFirestoreConnection();
 
   let w2 = 40;
@@ -7397,17 +7428,23 @@ function showServerErrorBanner(isQuota, retryCount){
   const banner = document.getElementById('server-error-banner');
   if(!banner) return;
 
-  // バナーのメッセージを更新
-  const body = banner.querySelector('.seb-body');
-  const local = banner.querySelector('.seb-local');
+  const bodyEl = document.getElementById('seb-body-txt');
+  const retryEl = document.getElementById('seb-retry-txt');
+
   if(isQuota){
-    if(body) body.textContent = '現在Firestoreの1日の上限（50,000回）に達したため、プレイデータがオンラインに保存されません。毎日午後4時頃にリセットされます。';
-    if(local) local.textContent = '✅ ローカル（このブラウザ）には保存されています。ブラウザを閉じなければデータは消えません。';
+    if(bodyEl) bodyEl.textContent =
+      '現在サーバーの1日の通信上限（50,000回）に達しています。'+
+      'データはこのブラウザにのみ保存されます。毎日午後4時頃に自動回復します。';
+    if(retryEl) retryEl.textContent = '自動リトライ中... 回復次第オンライン保存が再開されます';
   } else {
-    if(body) body.textContent = 'サーバーへの接続に失敗しました。インターネット接続を確認してください。';
-    if(local) local.textContent = '✅ ローカルには保存されています。接続が回復したら自動的に同期されます。';
+    if(bodyEl) bodyEl.textContent =
+      'サーバーへの接続に失敗しました。インターネット接続を確認してください。';
+    if(retryEl) retryEl.textContent = '接続が回復次第、自動的に同期されます';
   }
   banner.classList.add('show');
+  // ホームの⚠️インジケーターも更新
+  const indicator = document.getElementById('cloud-save-indicator');
+  if(indicator){ indicator.textContent='⚠️'; indicator.style.color='#ff8040'; }
 }
 
 function hideServerErrorBanner(){
@@ -7434,6 +7471,19 @@ async function checkFirestoreConnection(){
       showServerErrorBanner(isQuota);
     }
   }
+}
+
+// Firebaseクォータエラーをwindowレベルで監視
+window.addEventListener('unhandledrejection', function(e){
+  var msg = e.reason ? (e.reason.message||e.reason.code||String(e.reason)) : '';
+  if(msg.includes('resource-exhausted')||msg.includes('Quota')){
+    showServerErrorBanner(true);
+  }
+});
+
+function toggleServerBanner(){
+  const b=document.getElementById('server-error-banner');
+  if(b) b.classList.toggle('minimized');
 }
 </script>
 
@@ -7469,11 +7519,17 @@ async function checkFirestoreConnection(){
 </div>
 
 <!-- サーバー障害バナー -->
-<div class="server-error-banner" id="server-error-banner">
-  <div class="seb-title">⚠️ サーバーに接続できません</div>
-  <div class="seb-body">現在Firestoreのデータ上限に達しているため、プレイデータがオンラインに保存されません。</div>
-  <div class="seb-local">✅ ローカル（このブラウザ）には保存されています。ブラウザを閉じなければデータは消えません。</div>
-  <div class="seb-retry" id="seb-retry-txt">次回リトライまでしばらくお待ちください...</div>
+<div class="server-error-banner" id="server-error-banner" onclick="toggleServerBanner()">
+  <div class="seb-title">⚠️ サーバー障害発生中</div>
+  <div class="seb-body" id="seb-body-txt"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;">
+    <div style="font-size:10px;color:#ffe080;">✅ ゲームは引き続き遊べます</div>
+    <div style="font-size:10px;color:#ff9090;">❌ データはオンラインに保存されません</div>
+  </div>
+  <div style="font-size:10px;color:rgba(255,200,150,.9);margin-top:2px;">
+    ⚠️ 一部オンライン機能停止中：フレンド機能 / PvPランキング / 引継ぎ / ギフト受取
+  </div>
+  <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px;" id="seb-retry-txt"></div>
 </div>
 </body>
 </html>
