@@ -1640,25 +1640,40 @@ async function loadCloudSave(){
     const doc = await playerDocRef.get();
     console.log('[ABYSSAL] doc.exists:', doc.exists);
     if(doc.exists){
-      const data = doc.data();
-      S = {...DEFAULT_S, ...data};
-      saveGame();
-      console.log('[ABYSSAL] Cloud save loaded. PlayerID:', S.playerId);
+      const cloudData = doc.data();
+      const cloudTime = cloudData.lastSaved ? new Date(cloudData.lastSaved).getTime() : 0;
+
+      // ローカルのlastSavedと比較
+      const localRaw = localStorage.getItem(SAVE_KEY);
+      const localData = localRaw ? JSON.parse(localRaw) : null;
+      const localTime = localData && localData.lastSaved
+        ? new Date(localData.lastSaved).getTime() : 0;
+
+      console.log('[ABYSSAL] cloud:', new Date(cloudTime).toISOString(),
+                  'local:', localTime ? new Date(localTime).toISOString() : 'none');
+
+      if(localTime > cloudTime){
+        // ローカルの方が新しい→ローカルを使ってFirestoreを更新
+        console.log('[ABYSSAL] Local is newer → uploading local data to Firestore');
+        S = {...DEFAULT_S, ...localData};
+        // ローカルデータをFirestoreに即アップロード
+        await playerDocRef.set({...S, lastSaved: new Date().toISOString()}, {merge:true});
+        console.log('[ABYSSAL] Local data uploaded. gem:', S.gem);
+      } else {
+        // Firestoreの方が新しい（または同じ）→Firestoreを使う
+        console.log('[ABYSSAL] Cloud is newer → using cloud data. gem:', cloudData.gem);
+        S = {...DEFAULT_S, ...cloudData};
+        try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+      }
+      console.log('[ABYSSAL] Final gem:', S.gem, 'PlayerID:', S.playerId);
     } else {
-      // 新規: Firestoreにデータがない → 書き込み
-      console.log('[ABYSSAL] No cloud data, saving new player:', S.playerId);
-      const newData = {
-        gold: S.gold, gem: S.gem,
-        owned: S.owned, party: S.party,
-        cleared: S.cleared, dailyDone: S.dailyDone,
-        pityPerBanner: S.pityPerBanner,
-        playerId: S.playerId,
-      playerName: S.playerName||'深海司令官',
-        receivedGifts: [],
+      // 新規: Firestoreにデータがない → ローカルデータをアップロード
+      console.log('[ABYSSAL] No cloud data, uploading local data:', S.playerId);
+      const uploadData = {...S,
         createdAt: new Date().toISOString(),
         lastSaved: new Date().toISOString()
       };
-      await playerDocRef.set(newData);
+      await playerDocRef.set(uploadData);
       console.log('[ABYSSAL] New player saved to Firestore:', S.playerId);
     }
     updatePlayerIdDisplay();
@@ -1706,6 +1721,8 @@ async function saveToCloud(){
     receivedRankRewards: S.receivedRankRewards||[],
     lastSaved: new Date().toISOString()
   };
+  S.lastSaved = saveData.lastSaved; // ローカルも同期
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
   try{
     await playerDocRef.set(saveData, {merge:true}); // updateよりsetの方が安全
     _pendingCloudSave = false;
@@ -2408,7 +2425,8 @@ const SAVE_KEY = 'abyssal_save_v1';
 const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[]};
 
 function saveGame(){
-  // ローカルには即座に保存（これが失敗することはほぼない）
+  // lastSavedを更新してからローカルに保存
+  S.lastSaved = new Date().toISOString();
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
   // クラウドはデバウンス保存（2秒後にまとめて保存）
   saveToCloudDebounced();
@@ -2416,6 +2434,8 @@ function saveGame(){
 
 // 重要な操作（ガチャ・購入等）は即座にクラウド保存
 function saveGameImmediate(){
+  // localStorageには lastSaved を付けて保存（比較に使う）
+  S.lastSaved = new Date().toISOString();
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
   _pendingCloudSave = true;
   saveToCloud();
