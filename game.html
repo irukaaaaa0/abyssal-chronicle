@@ -870,6 +870,24 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .rfb-role-support {background:rgba(0,100,50,.3);border-color:rgba(20,180,80,.5);color:#40e080;}
 .rfb-role-debuffer{background:rgba(80,0,80,.3);border-color:rgba(160,40,160,.5);color:#e060e0;}
 
+
+/* ===== ランクマイルストーン報酬 ===== */
+.rank-milestone-section{margin-bottom:16px;}
+.rank-milestone-title{font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:8px;border-bottom:.5px solid var(--border2);padding-bottom:4px;}
+.rank-reward-card{background:rgba(0,20,40,.4);border:.5px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:border-color .2s;}
+.rank-reward-card.available{border-color:rgba(255,200,0,.5);background:rgba(30,20,0,.3);}
+.rank-reward-card.claimed{opacity:.45;}
+.rank-reward-card-left{flex:1;}
+.rank-reward-rank{font-size:13px;font-weight:700;color:#ffd060;}
+.rank-reward-items{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.rank-reward-item{font-size:10px;background:rgba(0,20,40,.5);border:.5px solid var(--border2);border-radius:5px;padding:2px 7px;}
+.rank-reward-btn{padding:7px 14px;border-radius:8px;border:none;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;}
+.rank-reward-btn.can-claim{background:rgba(200,160,0,.3);color:#ffd060;border:.5px solid rgba(200,160,0,.5);}
+.rank-reward-btn.can-claim:hover{background:rgba(200,160,0,.5);}
+.rank-reward-btn.claimed-btn{background:rgba(40,40,40,.3);color:var(--text3);border:.5px solid var(--border2);cursor:default;}
+.rank-reward-btn.locked-btn{background:rgba(0,20,40,.3);color:var(--text3);border:.5px solid var(--border2);cursor:default;}
+.rank-notif-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;vertical-align:middle;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1718,6 +1736,7 @@ async function saveToCloud(){
       pvpRank: S.pvpRank||1200,
       pvpWin: S.pvpWin||0,
       pvpLose: S.pvpLose||0,
+      receivedRankRewards: S.receivedRankRewards||[],
       lastSaved: new Date().toISOString()
     };
     await playerDocRef.update(saveData);
@@ -2399,7 +2418,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[]};
 
 function saveGame(){
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
@@ -2503,7 +2522,8 @@ function goTo(sc){
   if(sc==='tower')renderTower();
   if(sc==='home') setTimeout(checkPendingRequests,300);
   if(sc==='grind')renderGrind();
-  if(sc==='achieve')renderAchieve();
+  if(sc==='achieve'){renderAchieve();}
+  if(sc==='home') setTimeout(checkRankRewardBadge,400);
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
   if(sc==='pvp')renderPvp();
@@ -4302,10 +4322,15 @@ function renderAchieve(){
   const locked   = ACHIEVEMENT_LIST.filter(a=>!(S.achievements&&S.achievements[a.id]));
   const countEl  = document.getElementById('achieve-count');
   if(countEl) countEl.textContent=`${unlocked.length}/${ACHIEVEMENT_LIST.length}`;
+  checkRankRewardBadge();
+
+  // ランクマイルストーン報酬
+  const claimable = getClaimableRankRewards();
+  let html = renderRankMilestoneRewards();
 
   // 称号一覧（解除済みで称号があるもの）
   const titles = unlocked.filter(a=>a.title);
-  let html=`<div class="achieve-section-title">装備中の称号</div>
+  html+=`<div class="achieve-section-title">装備中の称号</div>
     <div style="margin-bottom:12px;">
       ${S.equippedTitle
         ?`<span style="font-size:13px;font-weight:500;">「${S.equippedTitle}」</span>
@@ -4831,10 +4856,15 @@ function renderAchieve(){
   const locked   = ACHIEVEMENT_LIST.filter(a=>!(S.achievements&&S.achievements[a.id]));
   const countEl  = document.getElementById('achieve-count');
   if(countEl) countEl.textContent=`${unlocked.length}/${ACHIEVEMENT_LIST.length}`;
+  checkRankRewardBadge();
+
+  // ランクマイルストーン報酬
+  const claimable = getClaimableRankRewards();
+  let html = renderRankMilestoneRewards();
 
   // 称号一覧（解除済みで称号があるもの）
   const titles = unlocked.filter(a=>a.title);
-  let html=`<div class="achieve-section-title">装備中の称号</div>
+  html+=`<div class="achieve-section-title">装備中の称号</div>
     <div style="margin-bottom:12px;">
       ${S.equippedTitle
         ?`<span style="font-size:13px;font-weight:500;">「${S.equippedTitle}」</span>
@@ -7150,6 +7180,118 @@ function closeSupportModal(){var m=document.getElementById('support-select-modal
 function hfAttr(v){helperFilter.attr=helperFilter.attr===v?'all':v;refreshHelperList();}
 function hfRole(v){helperFilter.role=helperFilter.role===v?'all':v;refreshHelperList();}
 function hfReset(){helperFilter={rar:'all',name:'',attr:'all',role:'all'};var inp=document.getElementById('helper-name-search');if(inp)inp.value='';refreshHelperList();}
+
+// ================================================================
+//  ランクマイルストーン報酬
+// ================================================================
+const RANK_MILESTONE_REWARDS = [
+  {rank:25,  gem:300,   gold:50000,   title:'',          charId:null, label:'Rank25到達'},
+  {rank:50,  gem:600,   gold:100000,  title:'深淵の挑戦者', charId:null, label:'Rank50到達'},
+  {rank:75,  gem:1000,  gold:200000,  title:'',          charId:null, label:'Rank75到達'},
+  {rank:100, gem:2000,  gold:500000,  title:'深海の覇者',  charId:4,   label:'Rank100到達'},
+  {rank:125, gem:3000,  gold:800000,  title:'',          charId:null, label:'Rank125到達'},
+  {rank:150, gem:4500,  gold:1500000, title:'旧破の征服者', charId:null, label:'Rank150到達'},
+  {rank:175, gem:6000,  gold:2000000, title:'',          charId:null, label:'Rank175到達'},
+  {rank:200, gem:10000, gold:5000000, title:'深淵の支配者', charId:2,   label:'Rank200到達'},
+];
+
+function getClaimableRankRewards(){
+  return RANK_MILESTONE_REWARDS.filter(function(r){
+    return (S.rank||1) >= r.rank && !(S.receivedRankRewards||[]).includes(r.rank);
+  });
+}
+
+function claimRankReward(rank){
+  var reward = RANK_MILESTONE_REWARDS.find(function(r){return r.rank===rank;});
+  if(!reward) return;
+  if((S.receivedRankRewards||[]).includes(rank)){ showToast('既に受け取り済みです'); return; }
+  if((S.rank||1) < rank){ showToast('まだRank'+rank+'に到達していません'); return; }
+
+  // 報酬付与
+  S.gem  = (S.gem||0)  + reward.gem;
+  S.gold = (S.gold||0) + reward.gold;
+  if(!S.receivedRankRewards) S.receivedRankRewards=[];
+  S.receivedRankRewards.push(rank);
+
+  // キャラ解放
+  if(reward.charId && !S.owned.includes(reward.charId)){
+    S.owned.push(reward.charId);
+    var c=CHARS.find(function(ch){return ch.id===reward.charId;});
+    if(c) showToast('🎭 '+c.name+' が解放されました！');
+  }
+  // 称号付与
+  if(reward.title && reward.title!==''){
+    showToast('🏆 称号「'+reward.title+'」を獲得！');
+  }
+
+  saveGame();
+  refreshHome();
+  renderAchieve();
+  sfx('win');
+
+  var msg = '🎁 Rank'+rank+'報酬受取！ 💎+'+reward.gem+' 💰+'+reward.gold.toLocaleString();
+  if(reward.title) msg += ' 🏆「'+reward.title+'」';
+  showToast(msg);
+}
+
+function renderRankMilestoneRewards(){
+  var html = '<div class="rank-milestone-section">';
+  html += '<div class="rank-milestone-title">🏆 ランクマイルストーン報酬</div>';
+
+  RANK_MILESTONE_REWARDS.forEach(function(r){
+    var received = (S.receivedRankRewards||[]).includes(r.rank);
+    var reachable = (S.rank||1) >= r.rank;
+    var canClaim  = reachable && !received;
+
+    var statusCls = received ? 'claimed' : canClaim ? 'available' : '';
+    var items = [];
+    items.push('<span class="rank-reward-item">💎 '+r.gem+'</span>');
+    items.push('<span class="rank-reward-item">💰 '+r.gold.toLocaleString()+'</span>');
+    if(r.title)  items.push('<span class="rank-reward-item" style="color:#ffd060;">🏆「'+r.title+'」</span>');
+    if(r.charId){
+      var c=CHARS.find(function(ch){return ch.id===r.charId;});
+      if(c) items.push('<span class="rank-reward-item" style="color:#d4a020;">'+c.emoji+' '+c.name+'</span>');
+    }
+
+    var btn = '';
+    if(received){
+      btn = '<button class="rank-reward-btn claimed-btn">受取済</button>';
+    } else if(canClaim){
+      btn = '<button class="rank-reward-btn can-claim" onclick="claimRankReward('+r.rank+')">受け取る</button>';
+    } else {
+      btn = '<button class="rank-reward-btn locked-btn">🔒 Rank'+r.rank+'</button>';
+    }
+
+    html += '<div class="rank-reward-card '+statusCls+'">'
+      +'<div class="rank-reward-card-left">'
+      +'<div class="rank-reward-rank">Rank '+r.rank+'</div>'
+      +'<div class="rank-reward-items">'+items.join('')+'</div>'
+      +'</div>'
+      +btn
+      +'</div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+// 受け取り可能な報酬があればホームのメニューにバッジ表示
+function checkRankRewardBadge(){
+  var claimable = getClaimableRankRewards();
+  var achieveBtn = document.querySelector('[onclick*="goTo(\'achieve\')"]');
+  if(achieveBtn){
+    var existing = achieveBtn.querySelector('.rank-notif-dot');
+    if(claimable.length>0){
+      if(!existing){
+        var dot = document.createElement('span');
+        dot.className='rank-notif-dot';
+        achieveBtn.appendChild(dot);
+      }
+    } else {
+      if(existing) existing.remove();
+    }
+  }
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
