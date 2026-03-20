@@ -888,6 +888,24 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .rank-reward-btn.locked-btn{background:rgba(0,20,40,.3);color:var(--text3);border:.5px solid var(--border2);cursor:default;}
 .rank-notif-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;vertical-align:middle;}
 
+
+/* ===== サーバー障害バナー ===== */
+.server-error-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:rgba(180,40,0,.96);
+  border-top:2px solid rgba(255,100,50,.8);
+  padding:10px 16px;
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  backdrop-filter:blur(6px);
+}
+.server-error-banner.show{display:flex;}
+.seb-title{font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;}
+.seb-body{font-size:10px;color:rgba(255,255,255,.85);line-height:1.5;}
+.seb-local{font-size:10px;color:#ffe080;font-weight:500;}
+.seb-retry{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1727,18 +1745,28 @@ async function saveToCloud(){
     await playerDocRef.set(saveData, {merge:true}); // updateよりsetの方が安全
     _pendingCloudSave = false;
     _cloudSaveRetryCount = 0;
-    // 成功表示（初回のみ）
     const indicator = document.getElementById('cloud-save-indicator');
     if(indicator){ indicator.textContent='☁️'; indicator.style.color='var(--teal)'; }
+    // バナーを非表示（復旧した場合）
+    hideServerErrorBanner();
   }catch(e){
     _cloudSaveRetryCount++;
     console.warn('[ABYSSAL] Cloud save failed ('+_cloudSaveRetryCount+'):', e.code||e.message);
     const indicator = document.getElementById('cloud-save-indicator');
     if(indicator){ indicator.textContent='⚠️'; indicator.style.color='#ff8040'; }
-    // クォータ超過の場合は60秒後に再試行
-    if(e.code==='resource-exhausted' || (e.message&&e.message.includes('Quota'))){
-      const delay = Math.min(60000 * _cloudSaveRetryCount, 300000); // 最大5分
-      setTimeout(function(){ if(_pendingCloudSave) saveToCloud(); }, delay);
+
+    // クォータ超過・接続エラーの場合はバナーを表示
+    const isQuota = e.code==='resource-exhausted' || (e.message&&e.message.includes('Quota'));
+    const isOffline = e.code==='unavailable' || (e.message&&e.message.includes('offline'));
+    if(isQuota || isOffline){
+      showServerErrorBanner(isQuota, _cloudSaveRetryCount);
+      const delay = Math.min(60000 * _cloudSaveRetryCount, 300000);
+      const retryAt = new Date(Date.now()+delay);
+      const retryTxt = document.getElementById('seb-retry-txt');
+      if(retryTxt) retryTxt.textContent = '次回リトライ: '+retryAt.toLocaleTimeString('ja-JP')+'（自動）';
+      setTimeout(function(){
+        if(_pendingCloudSave) saveToCloud();
+      }, delay);
     }
   }
 }
@@ -7353,6 +7381,31 @@ document.addEventListener('visibilitychange', function(){
     saveToCloud();
   }
 });
+
+// ================================================================
+//  サーバー障害バナー制御
+// ================================================================
+function showServerErrorBanner(isQuota, retryCount){
+  const banner = document.getElementById('server-error-banner');
+  if(!banner) return;
+
+  // バナーのメッセージを更新
+  const body = banner.querySelector('.seb-body');
+  const local = banner.querySelector('.seb-local');
+  if(isQuota){
+    if(body) body.textContent = '現在Firestoreの1日の上限（50,000回）に達したため、プレイデータがオンラインに保存されません。毎日午後4時頃にリセットされます。';
+    if(local) local.textContent = '✅ ローカル（このブラウザ）には保存されています。ブラウザを閉じなければデータは消えません。';
+  } else {
+    if(body) body.textContent = 'サーバーへの接続に失敗しました。インターネット接続を確認してください。';
+    if(local) local.textContent = '✅ ローカルには保存されています。接続が回復したら自動的に同期されます。';
+  }
+  banner.classList.add('show');
+}
+
+function hideServerErrorBanner(){
+  const banner = document.getElementById('server-error-banner');
+  if(banner) banner.classList.remove('show');
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -7384,6 +7437,14 @@ document.addEventListener('visibilitychange', function(){
       <button class="modal-btn" onclick="closeNameChangeModal()">キャンセル</button>
     </div>
   </div>
+</div>
+
+<!-- サーバー障害バナー -->
+<div class="server-error-banner" id="server-error-banner">
+  <div class="seb-title">⚠️ サーバーに接続できません</div>
+  <div class="seb-body">現在Firestoreのデータ上限に達しているため、プレイデータがオンラインに保存されません。</div>
+  <div class="seb-local">✅ ローカル（このブラウザ）には保存されています。ブラウザを閉じなければデータは消えません。</div>
+  <div class="seb-retry" id="seb-retry-txt">次回リトライまでしばらくお待ちください...</div>
 </div>
 </body>
 </html>
