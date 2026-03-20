@@ -963,7 +963,9 @@ function onPvpEnd(won, quest){
       <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 0;">
-      <div style="font-size:10px;color:var(--text2);">UID: <span id="player-id-display" style="color:var(--teal);font-weight:500;font-size:9px;word-break:break-all;">----</span></div>
+      <div style="font-size:10px;color:var(--text2);display:flex;align-items:center;gap:6px;">
+      <span id="cloud-save-indicator" style="font-size:10px;" title="クラウド保存状態">☁️</span>
+      UID: <span id="player-id-display" style="color:var(--teal);font-weight:500;font-size:9px;word-break:break-all;">----</span></div>
       <div style="display:flex;gap:6px;">
         <div onclick="showTransferModal()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">🔄 引継ぎ</div>
         <div onclick="copyMyUid()" style="font-size:9px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--text2);">📋 UIDコピー</div>
@@ -1667,42 +1669,60 @@ async function loadCloudSave(){
 }
 
 // クラウドにセーブ（重要なデータのみ）
+var _pendingCloudSave = false; // 未保存データがあるか
 var _saveCloudTimer = null;
+var _cloudSaveRetryCount = 0;
+
 function saveToCloudDebounced(){
-  // 3秒後にまとめて保存（連続操作で複数回呼ばれても1回にまとめる）
+  _pendingCloudSave = true;
   if(_saveCloudTimer) clearTimeout(_saveCloudTimer);
-  _saveCloudTimer = setTimeout(function(){ saveToCloud(); }, 3000);
+  _saveCloudTimer = setTimeout(function(){ saveToCloud(); }, 2000);
 }
+
 async function saveToCloud(){
   if(!playerDocRef) return;
+  const saveData = {
+    gold: S.gold, gem: S.gem,
+    owned: S.owned, party: S.party,
+    cleared: S.cleared, dailyDone: S.dailyDone,
+    pityPerBanner: S.pityPerBanner,
+    playerId: S.playerId,
+    playerName: S.playerName||'深海司令官',
+    receivedGifts: S.receivedGifts || [],
+    rank: S.rank || 1,
+    rankExp: S.rankExp || 0,
+    ownedData: S.ownedData || {},
+    towerFloor: S.towerFloor||1,
+    towerBest: S.towerBest||0,
+    achievements: S.achievements||{},
+    equippedTitle: S.equippedTitle||'',
+    friends: S.friends||[],
+    pendingRequests: S.pendingRequests||[],
+    helperChar: S.helperChar||null,
+    supportChar: S.supportChar||null,
+    pvpRank: S.pvpRank||1200,
+    pvpWin: S.pvpWin||0,
+    pvpLose: S.pvpLose||0,
+    receivedRankRewards: S.receivedRankRewards||[],
+    lastSaved: new Date().toISOString()
+  };
   try{
-    const saveData = {
-      gold: S.gold, gem: S.gem,
-      owned: S.owned, party: S.party,
-      cleared: S.cleared, dailyDone: S.dailyDone,
-      pityPerBanner: S.pityPerBanner,
-      playerId: S.playerId,
-      playerName: S.playerName||'深海司令官',
-      receivedGifts: S.receivedGifts || [],
-      rank: S.rank || 1,
-      rankExp: S.rankExp || 0,
-      ownedData: S.ownedData || {},
-      towerFloor: S.towerFloor||1,
-      towerBest: S.towerBest||0,
-      achievements: S.achievements||{},
-      equippedTitle: S.equippedTitle||'',
-      friends: S.friends||[],
-      pendingRequests: S.pendingRequests||[],
-      helperChar: S.helperChar||null,
-      pvpRank: S.pvpRank||1200,
-      pvpWin: S.pvpWin||0,
-      pvpLose: S.pvpLose||0,
-      receivedRankRewards: S.receivedRankRewards||[],
-      lastSaved: new Date().toISOString()
-    };
-    await playerDocRef.update(saveData);
+    await playerDocRef.set(saveData, {merge:true}); // updateよりsetの方が安全
+    _pendingCloudSave = false;
+    _cloudSaveRetryCount = 0;
+    // 成功表示（初回のみ）
+    const indicator = document.getElementById('cloud-save-indicator');
+    if(indicator){ indicator.textContent='☁️'; indicator.style.color='var(--teal)'; }
   }catch(e){
-    console.log('[ABYSSAL] Cloud save failed:', e);
+    _cloudSaveRetryCount++;
+    console.warn('[ABYSSAL] Cloud save failed ('+_cloudSaveRetryCount+'):', e.code||e.message);
+    const indicator = document.getElementById('cloud-save-indicator');
+    if(indicator){ indicator.textContent='⚠️'; indicator.style.color='#ff8040'; }
+    // クォータ超過の場合は60秒後に再試行
+    if(e.code==='resource-exhausted' || (e.message&&e.message.includes('Quota'))){
+      const delay = Math.min(60000 * _cloudSaveRetryCount, 300000); // 最大5分
+      setTimeout(function(){ if(_pendingCloudSave) saveToCloud(); }, delay);
+    }
   }
 }
 
@@ -2388,9 +2408,17 @@ const SAVE_KEY = 'abyssal_save_v1';
 const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[]};
 
 function saveGame(){
+  // ローカルには即座に保存（これが失敗することはほぼない）
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
-  // クラウドにも非同期保存（エラーは無視）
-  saveToCloud().catch(()=>{});
+  // クラウドはデバウンス保存（2秒後にまとめて保存）
+  saveToCloudDebounced();
+}
+
+// 重要な操作（ガチャ・購入等）は即座にクラウド保存
+function saveGameImmediate(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+  _pendingCloudSave = true;
+  saveToCloud();
 }
 function loadGame(){
   try{
@@ -2910,7 +2938,7 @@ function doGacha(count){
     if(isDupe) S.gold += dupeGold;
     res.push({...ch, isDupe, dupeGold});
   }
-  saveGame(); showResult(res); refreshGacha();
+  saveGameImmediate(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
   document.getElementById('gold-val').textContent=S.gold.toLocaleString();
 }
@@ -7290,6 +7318,21 @@ function refreshFriendData(){
   renderFriend();
   showToast('🔄 フレンドデータを更新中...');
 }
+
+// ページを閉じる前に保存を試みる
+window.addEventListener('beforeunload', function(){
+  if(_pendingCloudSave && playerDocRef){
+    // sendBeaconでバックグラウンド送信（非同期なので確実ではないが最善の努力）
+    saveToCloud();
+  }
+});
+
+// アプリがバックグラウンドになった時も保存
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden && _pendingCloudSave){
+    saveToCloud();
+  }
+});
 </script>
 
 <!-- 戦闘詳細パネル -->
