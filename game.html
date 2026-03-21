@@ -2852,7 +2852,7 @@ function goTo(sc){
   document.querySelectorAll('#screen-home .nav-item').forEach((n,i)=>n.classList.toggle('active',i===navMap[sc]));
   if(sc==='home')refreshHome();
   if(sc==='quest')renderMap();
-  if(sc==='gacha')refreshGacha();
+  if(sc==='gacha'){ loadLimitedBannerStatus().then(function(){ refreshGacha(); }); }
   if(sc==='party')refreshParty();
   if(sc==='grow')refreshGrow();
   if(sc==='notices')renderNotices();
@@ -5719,6 +5719,8 @@ function showOnlineNotices(){
   }
   renderNotifDropdown();
   renderNotices();
+  // 限定バナー状態を起動時に取得
+  loadLimitedBannerStatus();
 }
 
 function renderNotifDropdown(){
@@ -9616,20 +9618,21 @@ async function loadLimitedBannerStatus(){
     var data = doc.data();
     LIMITED_BANNER_STATUS = data;
     // バナーのactiveフラグとendsAtを更新
+    // 全体スイッチを最優先でチェック
+    var globalOn = data.limited_tab_active !== false;
     BANNERS.forEach(function(b){
       if(!b.limited) return;
+      // 全体がOFFなら個別設定に関わらず非表示
+      if(!globalOn){ b.active = false; return; }
       var key = 'banner_'+b.id;
       var status = data[key];
       if(status){
-        // activeがfalseならバナーを非表示に
         b.active = status.active !== false;
-        // endsAtが過ぎていたら非表示
         if(status.endsAt){
           var endsAt = new Date(status.endsAt).getTime();
           if(Date.now() > endsAt) b.active = false;
         }
       } else {
-        // Firestoreに設定なし→デフォルトで非表示（安全のため）
         b.active = false;
       }
     });
@@ -9647,25 +9650,30 @@ function updateLimitedTabVisibility(){
   var hasActiveLimited = BANNERS.some(function(b){ return b.limited && b.active; });
   var limitedBtn = document.getElementById('cat-limited');
   var newBadge = document.getElementById('limited-new-badge');
-  if(limitedBtn){
-    if(hasActiveLimited){
-      limitedBtn.style.display = '';
-      limitedBtn.style.opacity = '1';
-      if(newBadge) newBadge.style.display = '';
-    } else {
-      // 限定バナーが全てOFF→タブを非表示
-      limitedBtn.style.display = 'none';
-      if(newBadge) newBadge.style.display = 'none';
-      // 現在限定タブ表示中なら恒常に切り替え
-      if(currentGachaCategory === 'limited'){
-        currentGachaCategory = 'permanent';
-        var permBtn = document.getElementById('cat-permanent');
-        if(permBtn) permBtn.className = 'gacha-cat-btn active';
-        var filtered = getFilteredBanners();
-        if(filtered.length>0) currentBanner = BANNERS.indexOf(filtered[0]);
-        renderBannerTabs();
-        refreshGachaDisplay();
-      }
+  if(!limitedBtn) return;
+
+  if(hasActiveLimited){
+    // 限定ONのとき
+    limitedBtn.style.display = '';
+    limitedBtn.style.opacity = '1';
+    if(newBadge) newBadge.style.display = '';
+    // 現在恒常表示中なら限定に切り替え
+    if(currentGachaCategory !== 'limited'){
+      selectGachaCategory('limited');
+    }
+  } else {
+    // 限定が全部OFF→タブを非表示・恒常に切り替え
+    limitedBtn.style.display = 'none';
+    if(newBadge) newBadge.style.display = 'none';
+    if(currentGachaCategory === 'limited'){
+      currentGachaCategory = 'permanent';
+      var permBtn = document.getElementById('cat-permanent');
+      if(permBtn) permBtn.className = 'gacha-cat-btn active';
+      limitedBtn.className = 'gacha-cat-btn';
+      var filtered = getFilteredBanners();
+      if(filtered.length>0) currentBanner = BANNERS.indexOf(filtered[0]);
+      renderBannerTabs();
+      refreshGachaDisplay();
     }
   }
 }

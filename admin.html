@@ -261,10 +261,28 @@ label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
 
   <!-- バナー管理 -->
   <div class="panel" id="panel-banners">
-    <div class="card" style="border-color:rgba(200,40,80,.4);">
-      <div class="card-title" style="color:#ff6090;">🩸 限定バナー管理</div>
+    <!-- 限定召喚タブ全体のON/OFF -->
+    <div class="card" style="border-color:rgba(200,40,80,.6);background:rgba(80,0,30,.15);">
+      <div class="card-title" style="color:#ff6090;">🩸 限定召喚タブ 全体管理</div>
+      <div style="font-size:11px;color:#8aabb8;margin-bottom:14px;">
+        ONにするとプレイヤーの召喚画面に「限定召喚」タブが表示されます。<br>
+        OFFにするとタブごと非表示になり、恒常召喚のみになります。
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px;background:rgba(0,10,25,.4);border-radius:10px;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;" id="limited-tab-status-label">読込中...</div>
+          <div style="font-size:10px;color:#6a8898;margin-top:3px;" id="limited-tab-status-sub"></div>
+        </div>
+        <button class="banner-toggle off" id="limited-tab-toggle" onclick="toggleLimitedTab()"></button>
+        <div style="font-size:10px;color:#6a8898;" id="limited-tab-toggle-label">OFF</div>
+      </div>
+    </div>
+
+    <!-- 個別バナー管理 -->
+    <div class="card" style="border-color:rgba(200,40,80,.3);">
+      <div class="card-title" style="color:#ff6090;">📋 個別バナー管理</div>
       <div style="font-size:11px;color:#8aabb8;margin-bottom:12px;">
-        限定バナーのON/OFF・残り時間を管理します。OFFにするとプレイヤーの限定タブに表示されなくなります。
+        各バナーのON/OFFとタイマーを設定します。
       </div>
       <div id="limited-banner-list"></div>
     </div>
@@ -771,6 +789,19 @@ async function loadBannerPanel(){
     if(doc.exists) bannerStatus=doc.data();
   }catch(e){}
 
+  // 全体スイッチの状態を反映
+  var globalOn = bannerStatus.limited_tab_active !== false;
+  var toggleBtn = document.getElementById('limited-tab-toggle');
+  var toggleLabel = document.getElementById('limited-tab-toggle-label');
+  var statusLabel = document.getElementById('limited-tab-status-label');
+  var statusSub = document.getElementById('limited-tab-status-sub');
+  if(toggleBtn){
+    toggleBtn.className = 'banner-toggle ' + (globalOn ? 'on' : 'off');
+    if(toggleLabel) toggleLabel.textContent = globalOn ? 'ON' : 'OFF';
+    if(statusLabel) statusLabel.textContent = globalOn ? '🩸 限定召喚タブ：表示中' : '⛔ 限定召喚タブ：非表示';
+    if(statusSub) statusSub.textContent = globalOn ? 'プレイヤーに限定召喚タブが表示されています' : 'プレイヤーには恒常召喚のみ表示されています';
+  }
+
   const limitedEl=document.getElementById('limited-banner-list');
   if(!limitedEl) return;
   limitedEl.innerHTML=LIMITED_BANNERS_DEF.map(function(b){
@@ -934,6 +965,24 @@ async function deleteUpdateLog(docId){
   }catch(e){
     adminToast('❌ '+e.message);
   }
+}
+
+async function toggleLimitedTab(){
+  try{
+    const ref=db.collection('notices').doc('banner_status');
+    const doc=await ref.get();
+    const data=doc.exists?doc.data():{};
+    const wasOn=data.limited_tab_active!==false;
+    data.limited_tab_active=!wasOn;
+    // 全バナーのactiveも連動して変更
+    ['banner_9','banner_10'].forEach(function(key){
+      if(data[key]) data[key].active=!wasOn;
+      else data[key]={active:!wasOn};
+    });
+    await ref.set(data);
+    adminToast(!wasOn?'✅ 限定召喚タブをONにしました（プレイヤーに表示されます）':'⛔ 限定召喚タブをOFFにしました（プレイヤーに非表示）');
+    setTimeout(loadBannerPanel,300);
+  }catch(e){ adminToast('❌ '+e.message); }
 }
 </script>
 </body>
