@@ -702,8 +702,8 @@ async function loadMacroLogs(){
         +'<div style="font-size:10px;color:#5a7898;margin-top:2px;">理由: '+( g.reason||'不明')+'</div>'
         +'<div style="font-size:10px;color:#3a5878;margin-top:2px;">警告回数: '+(g.warnCount||1)+' | 💎'+( g.gem||0)+' 💰'+(g.gold||0)+' Rank'+(g.rank||1)+'</div>'
         +'<div style="display:flex;gap:6px;margin-top:6px;">'
-        +'<button class="btn-sm danger" onclick="banUser(''+g.playerId+'',''+g.uid+'')">🚫 BAN</button>'
-        +'<button class="btn-sm primary" onclick="viewUser(''+g.uid+'')">👤 詳細</button>'
+        +'<button class="btn-sm danger" onclick="banUser(\''+g.playerId+'\',\''+g.uid+'\')">🚫 BAN</button>'
+        +'<button class="btn-sm primary" onclick="viewUser(\''+g.uid+'\')">👤 詳細</button>'
         +'</div>'
         +'</div>';
     }).join('');
