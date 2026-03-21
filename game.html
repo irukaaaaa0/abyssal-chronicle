@@ -2084,32 +2084,49 @@ async function loadServerNotices(){
 async function checkGifts(){
   if(!playerDocRef) return;
   try{
-    // 全員向けギフト
     if(window._giftsFetched) return;
     window._giftsFetched = true;
+
+    const received = S.receivedGifts || [];
+    let totalGem=0, totalGold=0;
+
+    // ① 全員向けギフト
     const globalGifts = await db.collection('gifts')
       .where('type','==','global')
       .where('active','==',true)
       .get();
-
-    let totalGem=0, totalGold=0;
-    const received = S.receivedGifts || [];
-
     for(const gift of globalGifts.docs){
       const gd = gift.data();
-      if(received.includes(gift.id)) continue; // 受取済みスキップ
+      if(received.includes(gift.id)) continue;
       totalGem  += gd.gem  || 0;
       totalGold += gd.gold || 0;
       received.push(gift.id);
+    }
+
+    // ② 個別ギフト（自分のUIDまたはPlayerID宛）
+    const myUid = auth.currentUser ? auth.currentUser.uid : '';
+    const myId  = S.playerId || '';
+    if(myUid){
+      const indGifts = await db.collection('gifts')
+        .where('targetUid','==',myUid)
+        .where('active','==',true)
+        .get();
+      for(const gift of indGifts.docs){
+        const gd = gift.data();
+        if(received.includes(gift.id)) continue;
+        totalGem  += gd.gem  || 0;
+        totalGold += gd.gold || 0;
+        received.push(gift.id);
+        // メッセージがあればトースト表示
+        if(gd.message) showToast('📩 '+gd.message);
+      }
     }
 
     if(totalGem>0 || totalGold>0){
       S.gem  += totalGem;
       S.gold += totalGold;
       S.receivedGifts = received;
-      // まずlocalStorageに保存
       try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
-      // Firestoreにreceivedも含めて保存
       try{
         await playerDocRef.update({
           gem: S.gem, gold: S.gold,
