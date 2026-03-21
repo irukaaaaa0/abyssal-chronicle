@@ -1387,8 +1387,16 @@ function onPvpEnd(won, quest){
     </div>
     <div class="combo-gauge-wrap">
       <div style="font-size:9px;color:var(--text3);flex-shrink:0;">コンボ</div>
-      <div class="combo-gauge"><div class="combo-gauge-fill" id="pvp-combo-gauge-fill" style="width:0%"></div></div>
-      <div class="combo-lv-txt" id="pvp-combo-lv-txt">Lv.0 (x1.0)</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="combo-gauge" style="flex:1;"><div class="combo-gauge-fill" id="pvp-combo-gauge-fill" style="width:0%"></div></div>
+          <div class="combo-lv-txt" id="pvp-combo-lv-txt" style="min-width:80px;">Lv.0 (x1.0)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;" id="pvp-combo-gauge-row2">
+          <div class="combo-gauge" style="flex:1;"><div class="combo-gauge-fill" id="pvp-combo-gauge-fill2" style="width:0%;background:linear-gradient(90deg,#e0a020,#ff6090,#c040c0);"></div></div>
+          <div class="combo-lv-txt" id="pvp-combo-lv-txt2" style="min-width:80px;"></div>
+        </div>
+      </div>
     </div>
     <div class="cards-row" id="pvp-cards-row"></div>
   </div>
@@ -1543,10 +1551,18 @@ function onPvpEnd(won, quest){
       <div class="hand-lbl" style="margin-bottom:0;">HAND — 最大4枚選択・長押しで連続選択</div>
       <div class="card-select-info" id="card-select-info">0 / 4 枚選択</div>
     </div>
-    <div class="combo-gauge-wrap">
+    <div class="combo-gauge-wrap" id="combo-gauge-wrap-main">
       <div style="font-size:9px;color:var(--text3);flex-shrink:0;">コンボ</div>
-      <div class="combo-gauge"><div class="combo-gauge-fill" id="combo-gauge-fill" style="width:0%"></div></div>
-      <div class="combo-lv-txt" id="combo-lv-txt">Lv.0 (x1.0)</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div class="combo-gauge" style="flex:1;"><div class="combo-gauge-fill" id="combo-gauge-fill" style="width:0%"></div></div>
+          <div class="combo-lv-txt" id="combo-lv-txt" style="min-width:80px;">Lv.0 (x1.0)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;" id="combo-gauge-row2" style="display:none;">
+          <div class="combo-gauge" style="flex:1;"><div class="combo-gauge-fill" id="combo-gauge-fill2" style="width:0%;background:linear-gradient(90deg,#e0a020,#ff6090,#c040c0);"></div></div>
+          <div class="combo-lv-txt" id="combo-lv-txt2" style="min-width:80px;"></div>
+        </div>
+      </div>
     </div>
     <div class="cards-row" id="cards-row"></div>
   </div>
@@ -3958,7 +3974,12 @@ function getPartyHealRate(){
   const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
   let rate=0;
   ap.forEach(c=>{
-    if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01}[c.id]||0.005);
+    if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01,201:0.05}[c.id]||0.005);
+    // アルテア：光コンボ時に追加回復ボーナス（スキル効果）
+    if(c.id===201){
+      const hasLightCombo = BT.hand && BT.hand.filter(card=>card.selected&&card.comboType==='light').length>=2;
+      if(hasLightCombo) rate+=0.03;
+    }
   });
   return rate;
 }
@@ -4124,19 +4145,55 @@ function toggleCard(i){
 }
 
 function updateComboGauge(){
-  // 選択中カードのコンボタイプを集計
-  const sel = BT.selectedOrder.map(i=>BT.hand[i]).filter(c=>c&&!c.used&&c.selected);
-  const typeCounts = {};
-  sel.forEach(c=>{ if(c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
-  const maxType = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
-  const comboLv = maxType ? maxType[1] : 0;
-  const bonusPct = maxType ? Math.round((COMBO_TYPE_BONUS[maxType[0]]||0) * comboLv * 100) : 0;
-  const gauge = document.getElementById('combo-gauge-fill');
-  const txt = document.getElementById('combo-lv-txt');
-  if(gauge) gauge.style.width = Math.min(comboLv/4*100, 100)+'%';
-  if(txt){
-    if(comboLv>=2) txt.textContent = `${maxType[0]}Lv.${comboLv} (+${bonusPct}%)`;
-    else txt.textContent = `Lv.0 (x1.0)`;
+  updateComboGaugeFor(
+    BT.selectedOrder.map(function(i){return BT.hand[i];}).filter(function(c){return c&&!c.used&&c.selected;}),
+    'combo-gauge-fill','combo-lv-txt','combo-gauge-fill2','combo-lv-txt2','combo-gauge-row2'
+  );
+}
+
+function updateComboGaugeFor(sel, fillId, txtId, fill2Id, txt2Id, row2Id){
+  var typeCounts = {};
+  sel.forEach(function(c){ if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+
+  // 上位2属性を取得
+  var sorted = Object.entries(typeCounts).sort(function(a,b){return b[1]-a[1];});
+  var top1 = sorted[0]||null;
+  var top2 = sorted[1]||null;
+
+  var ATTR_EMOJI = {fire:'🔥',ice:'❄️',thunder:'⚡',water:'🌊',dark:'🌑',light:'✨',none:'⚪'};
+
+  // 1本目
+  var gauge1 = document.getElementById(fillId);
+  var txt1El = document.getElementById(txtId);
+  if(top1){
+    var lv1=top1[1], bonus1=Math.round((COMBO_TYPE_BONUS[top1[0]]||0)*lv1*100);
+    var emoji1=ATTR_EMOJI[top1[0]]||'';
+    if(gauge1) gauge1.style.width=Math.min(lv1/4*100,100)+'%';
+    if(txt1El) txt1El.textContent=emoji1+top1[0]+' Lv.'+lv1+' (+'+bonus1+'%)';
+    // 属性カラー
+    var col1={fire:'#ff6040',ice:'#60c0ff',thunder:'#ffe040',water:'#40d0ff',dark:'#c060ff',light:'#fff060'}[top1[0]]||'#10c0a0';
+    if(gauge1) gauge1.style.background='linear-gradient(90deg,'+col1+',rgba(255,255,255,.3))';
+  } else {
+    if(gauge1) gauge1.style.width='0%';
+    if(txt1El) txt1El.textContent='Lv.0 (x1.0)';
+  }
+
+  // 2本目（2属性目がある時のみ表示）
+  var row2El = document.getElementById(row2Id);
+  var gauge2 = document.getElementById(fill2Id);
+  var txt2El = document.getElementById(txt2Id);
+  if(top2 && top2[1]>=2){
+    if(row2El) row2El.style.display='flex';
+    var lv2=top2[1], bonus2=Math.round((COMBO_TYPE_BONUS[top2[0]]||0)*lv2*100);
+    var emoji2=ATTR_EMOJI[top2[0]]||'';
+    if(gauge2) gauge2.style.width=Math.min(lv2/4*100,100)+'%';
+    if(txt2El) txt2El.textContent=emoji2+top2[0]+' Lv.'+lv2+' (+'+bonus2+'%)';
+    var col2={fire:'#ff6040',ice:'#60c0ff',thunder:'#ffe040',water:'#40d0ff',dark:'#c060ff',light:'#fff060'}[top2[0]]||'#e0a020';
+    if(gauge2) gauge2.style.background='linear-gradient(90deg,'+col2+',rgba(255,255,255,.2))';
+  } else {
+    if(row2El) row2El.style.display='none';
+    if(gauge2) gauge2.style.width='0%';
+    if(txt2El) txt2El.textContent='';
   }
 }
 
@@ -6196,27 +6253,14 @@ function pvpEndLongPress(){if(pvpLongPressTimer){clearTimeout(pvpLongPressTimer)
 
 function pvpUpdateComboGauge(){
   const st=pvpBattleState; if(!st) return;
-  const sel=(st.selectedOrder||[]).map(i=>st.hand[i]).filter(c=>c&&!c.used&&c.selected);
-  const tc={};
-  sel.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
-  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
-  const lv=me?me[1]:0;
-  const bp=me?Math.round((COMBO_TYPE_BONUS[me[0]]||0)*lv*100):0;
-  const g=document.getElementById('pvp-combo-gauge-fill');
-  const t=document.getElementById('pvp-combo-lv-txt');
-  if(g) g.style.width=Math.min(lv/4*100,100)+'%';
-  if(t) t.textContent=lv>=2?me[0]+'Lv.'+lv+'(+'+bp+'%)':'Lv.0 (x1.0)';
+  var selCards=st.hand.filter(function(c){return c&&c.selected&&!c.used;});
+  updateComboGaugeFor(
+    selCards,
+    'pvp-combo-gauge-fill','pvp-combo-lv-txt',
+    'pvp-combo-gauge-fill2','pvp-combo-lv-txt2','pvp-combo-gauge-row2'
+  );
 }
 
-// ===== 攻撃 =====
-
-
-// ===== Firestore受信 =====
-
-
-
-
-// ===== タイマー =====
 function startPvpTurnTimer(){
   const st=pvpBattleState; if(!st) return;
   let sec=60;
