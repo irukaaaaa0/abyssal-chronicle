@@ -3785,7 +3785,7 @@ function initBattle(quest,pids){
     const c=CHARS.find(ch=>ch.id===id);
     if(!c) return null;
     if(!S.ownedData) S.ownedData={};
-    if(!S.ownedData[id]) S.ownedData[id]={level:1,exp:0,breakthrough:0,copies:1,limitBreak:0};
+    if(!S.ownedData[id]) S.ownedData[id]={level:1,exp:0,breakthrough:0,copies:1,stockCopies:0,limitBreak:0};
     const cd=S.ownedData[id];
     // breakthrough: 凸数（0〜9）, 1凸=+8%
     const breakthrough=cd.breakthrough||0;
@@ -5917,7 +5917,8 @@ function refreshCharDetail(){
   if(copiesBar){
     copiesBar.style.display = 'block';
     const bonus=Math.round(breakNow*8);
-    if(copiesPct) copiesPct.textContent='HP・ATK +'+bonus+'%';
+    var stockDisp=charData.stockCopies||0;
+    if(copiesPct) copiesPct.textContent=(breakNow>0?'HP・ATK +'+bonus+'%　':'ボーナスなし　')+'素材'+stockDisp+'個';
     if(copiesDots){
       copiesDots.innerHTML='';
       for(var di=0;di<9;di++){
@@ -5928,7 +5929,10 @@ function refreshCharDetail(){
       }
     }
     if(copiesNext){
-      copiesNext.textContent = copiesNow>=10 ? '最大凸達成！' : 'あと'+(10-copiesNow)+'体で'+(breakNow+1)+'凸';
+      var stockForNext=charData.stockCopies||0;
+      if(breakNow>=9) copiesNext.textContent='最大9凸達成！';
+      else if(stockForNext>0) copiesNext.textContent='素材'+stockForNext+'個所持';
+      else copiesNext.textContent='素材なし（ガチャで獲得）';
     }
   }
   const lvCost=calcLvCost(base.rarity,lv);
