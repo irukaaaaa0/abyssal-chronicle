@@ -5792,6 +5792,8 @@ function showOnlineNotices(){
   renderNotices();
   // 限定バナー状態を起動時に取得
   loadLimitedBannerStatus();
+  // 達成済み実績のアイコン未付与を補填
+  setTimeout(fixMissingIconRewards, 1500);
 }
 
 function renderNotifDropdown(){
@@ -10148,6 +10150,28 @@ function selectIcon(icon){
   renderIconGrid();
   sfx('select');
   showToast('🎨 アイコンを「'+icon+'」に変更しました！');
+}
+
+// ================================================================
+//  起動時：達成済み実績のアイコン未付与を補填
+// ================================================================
+function fixMissingIconRewards(){
+  if(!S.achievements) return;
+  if(!S.ownedIcons) S.ownedIcons = ['🌊'];
+  var changed = false;
+  ACHIEVEMENT_LIST.forEach(function(a){
+    if(!a.reward || !a.reward.icon) return;
+    // 実績達成済み かつ アイコン未所持 → 付与
+    if(S.achievements[a.id] && !S.ownedIcons.includes(a.reward.icon)){
+      S.ownedIcons.push(a.reward.icon);
+      changed = true;
+      console.log('[FIX] アイコン補填:', a.reward.icon, '実績:', a.name);
+    }
+  });
+  if(changed){
+    saveGameImmediate();
+    showToast('🎨 未受取のアイコン報酬を受け取りました！');
+  }
 }
 </script>
 
