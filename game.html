@@ -4365,9 +4365,8 @@ function getPartyMaxSelect(){
   activeMembers.forEach(function(m){
     if(m.id===1||m.id===59||m.id===200) bonus+=1; // アルカナ/ヴォイド/イブリス
   });
-  // 麻痺で-2
-  var hasPara = statusArr.some(function(s){return s.type==='para'&&s.stacks>0;});
-  return Math.max(1, 4+bonus - (hasPara?2:0));
+  // 麻痺はキャラ個別管理（カード選択時に制限）
+  return Math.max(1, 4+bonus);
 }
 
 function getPartyHealRate(){
@@ -4519,15 +4518,14 @@ function endLongPress(){
 function toggleCard(i){
   if(BT.hand[i].used) return;
   if(!BT.hand[i].selected){
-    // 麻痺チェック
+    // 麻痺チェック：麻痺中のキャラはカード1枚のみ選択可能
     const card = BT.hand[i];
     const owner = BT.partyHp.find(m=>m.id===card.charId);
     const isPara = owner && (owner.statuses||[]).some(s=>s.type==='para'&&s.turns>0);
     if(isPara){
-      const maxForPara = Math.max(1, MAX_SELECT-2);
       const alreadySel = BT.hand.filter(c=>c.selected&&c.charId===card.charId).length;
-      if(alreadySel >= maxForPara){
-        showToast('⚡ '+card.charName+' は麻痺中！最大'+maxForPara+'枚まで');
+      if(alreadySel >= 1){
+        showToast('⚡ '+card.charName+' は麻痺中！カード1枚しか選択できません');
         return;
       }
     }
@@ -4824,7 +4822,16 @@ function enemyTurn(){
       if(enemy.statusPatterns){
         enemy.statusPatterns.forEach(p=>{
           if(Math.random()<(p.prob||0.2)){
-            applyStatus(tgt.id, p.type, p.stacks||1);
+            if(p.type==='para'){
+              // 麻痺：生存キャラからランダムに1体を対象
+              var aliveForPara = BT.partyHp.filter(function(m){return m.hp>0;});
+              if(aliveForPara.length>0){
+                var paraTgt = aliveForPara[Math.floor(Math.random()*aliveForPara.length)];
+                applyStatus(paraTgt.id, 'para', p.stacks||1);
+              }
+            } else {
+              applyStatus(tgt.id, p.type, p.stacks||1);
+            }
           }
         });
       }
@@ -7501,7 +7508,7 @@ function openBattleInfoPanel(){
     +makeStatusRow('❄️','凍結','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
       '凍結中のキャラはカードを選択できない。全員凍結で<strong>ターン強制スキップ</strong>。3ターン持続。')
     +makeStatusRow('⚡','麻痺','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
-      '麻痺中のキャラのカード選択上限が<strong>-2枚</strong>される（最低1枚）。3ターン持続。');
+      '麻痺中のキャラのカード選択上限が<strong>1枚</strong>になる（通常3枚）。3ターン持続。麻痺はランダムな1体に付与される。');
 
   // 敵に付与するデバフ説明
   statusHtml += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">⚔️ 敵に付与するデバフ効果</div>';
