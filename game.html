@@ -4092,13 +4092,11 @@ function applyDebufferSkill(charId, targetType){
   const c=CHARS.find(ch=>ch.id===charId); if(!c||c.role!=='debuffer') return;
   // 死亡・凍結中はスキル無効
   if(!canActivateSkill(charId, BT.partyHp, BT.statusEffects||[])) return;
-  const probs={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
-  const prob=probs[charId]||0.15;
+  const prob=DEBUFFER_PROB[charId]||0.15;
   if(Math.random()>prob) return;
-  // 付与する状態異常
-  const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison'};
-  const statusType=debuffMap[charId]||'poison';
-  applyEnemyStatus(statusType);
+  const statusType=DEBUFFER_MAP[charId]||'poison';
+  const stacks=DEBUFFER_STACKS[charId]||1;
+  applyEnemyStatus(statusType, stacks);
   const cfg=STATUS_CONFIG[statusType];
   showSpecialAtkBanner(`${c.name}  ${cfg?cfg.emoji:''}スキル発動！敵に${cfg?cfg.label:'状態異常'}付与！`, cfg?cfg.color:'#c080ff');
 }
@@ -8399,7 +8397,7 @@ function pvpApplyStatusToMe(type, stacks){
     if(type==='poison') ex.stacks=Math.min(ex.stacks+stacks,5);
     ex.turns=Math.max(ex.turns,3);
   } else {
-    st.myStatuses.push({type,stacks:stacks||1,turns:3});
+    st.myStatuses.push({type,stacks:stacks||1,turns:DEBUFF_TURNS||3});
   }
   renderPvpMyStatuses();
   showStatusFlash(type,'自分');
@@ -8407,24 +8405,36 @@ function pvpApplyStatusToMe(type, stacks){
 
 function pvpProcessMyStatuses(){
   const st=pvpBattleState; if(!st||!st.myStatuses) return;
+  // 相手のATKを基準にダメージ計算（クエストと同じ方式）
+  var oppAtk = st.oppParty && st.oppParty.length
+    ? st.oppParty.filter(function(m){return m.hp>0;}).reduce(function(max,m){
+        var c=CHARS.find(function(ch){return ch.id===(m.charId||m.id);});
+        return c?Math.max(max,c.atk):max;
+      },100)
+    : 200;
   let totalDmg=0;
   st.myStatuses=st.myStatuses.filter(function(s){
     if(s.type==='burn'){
-      const dmg=Math.round(st.myMaxHp*0.04*s.stacks);
+      // クエストと同じ：相手ATK×8%×スタック
+      const dmg=Math.round(oppAtk*0.08*s.stacks);
       st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
-      showEnemyActionDebuff && showEnemyActionDebuff('burn');
+      showEnemyActionDebuff&&showEnemyActionDebuff('burn');
+      showStatusFlash&&showStatusFlash('burn','自分');
     }
     if(s.type==='poison'){
-      const dmg=Math.round(st.myMaxHp*0.025*s.stacks);
+      // クエストと同じ：相手ATK×5%×スタック
+      const dmg=Math.round(oppAtk*0.05*s.stacks);
       st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
-      showEnemyActionDebuff && showEnemyActionDebuff('poison');
+      showEnemyActionDebuff&&showEnemyActionDebuff('poison');
+      if(s.stacks>=2) showStatusFlash&&showStatusFlash('poison','自分');
     }
+    // 凍結：次ターンスキップ（processOppActionで処理済み）
+    // 麻痺：カード選択-2（getPvpMaxSelectで処理済み）
     s.turns--;
     return s.turns>0;
   });
   if(totalDmg>0){
     updatePvpMyHP();
-    // 自分のHP更新をFirestoreに送信
     if(st.roomRef){
       const myKey=st.amHost?'hostHp':'guestHp';
       st.roomRef.update({[myKey]:st.myHp}).catch(()=>{});
@@ -8466,17 +8476,16 @@ function pvpCheckDebufferSkill(action){
     if(statusToApply) return; // 1体のみ発動
     const c=CHARS.find(function(ch){return ch.id===m.id;});
     if(!c||c.role!=='debuffer') return;
-    const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison',202:'burn'};
-    const probMap={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15,202:0.4};
-    const statusType=debuffMap[c.id];
-    const prob=probMap[c.id]||0.15;
+    const statusType=DEBUFFER_MAP[c.id];
+    const prob=DEBUFFER_PROB[c.id]||0.15;
+    const stacks=DEBUFFER_STACKS[c.id]||1;
     if(statusType&&Math.random()<prob){
       // 相手パーティのランダム1体を対象に
       const target=oppAlive[Math.floor(Math.random()*oppAlive.length)];
       const targetChar=CHARS.find(function(ch){return ch.id===target.charId||ch.id===target.id;});
       statusToApply={
         type:statusType,
-        stacks:1,
+        stacks:stacks,
         charName:c.name,           // 付与者名
         targetName:targetChar?targetChar.name:'相手', // 対象キャラ名
         targetId:target.charId||target.id,
@@ -9466,6 +9475,16 @@ function makeMissionCard(label,prog,target,gem,done,pct){
     +'</div>'
     +'</div>';
 }
+
+// ================================================================
+//  デバッファースキル定義（クエスト・PvP共通）
+// ================================================================
+const DEBUFFER_MAP = {2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison',202:'burn'};
+const DEBUFFER_PROB = {2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15,202:0.4};
+// デバフの持続ターン数（クエストと同じ3ターン）
+const DEBUFF_TURNS = 3;
+// デバフのスタック数（キャラごと）
+const DEBUFFER_STACKS = {68:2, 202:2}; // 炎症系は2スタック、それ以外は1
 </script>
 
 <!-- 戦闘詳細パネル -->
