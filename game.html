@@ -1971,6 +1971,8 @@ async function loadCloudSave(){
         try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
       }
       console.log('[ABYSSAL] Final gem:', S.gem, 'PlayerID:', S.playerId);
+      // 名前・アイコンを即時反映
+      updatePlayerNameDisplay();
     } else {
       // 新規: Firestoreにデータがない → ローカルデータをアップロード
       console.log('[ABYSSAL] No cloud data, uploading local data:', S.playerId);
@@ -2783,6 +2785,11 @@ function saveGame(){
 
 // 重要な操作（ガチャ・購入等）は即座にクラウド保存
 function saveGameImmediate(){
+  // 保存時に名前・アイコンも即時反映
+  var iconEl = document.getElementById('player-icon-display');
+  if(iconEl && S.playerIcon) iconEl.textContent = S.playerIcon;
+  var nameEl = document.getElementById('pname-el');
+  if(nameEl && S.playerName) nameEl.textContent = S.playerName+(S.equippedTitle?'「'+S.equippedTitle+'」':'');
   // localStorageには lastSaved を付けて保存（比較に使う）
   S.lastSaved = new Date().toISOString();
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
@@ -2910,6 +2917,7 @@ function refreshHome(){
   document.getElementById('daily-prog').style.width=(S.dailyDone/5*100)+'%';
   updatePlayerIdDisplay();
   updateRankBar();
+  updatePlayerNameDisplay(); // 名前・アイコンを毎回更新
 }
 
 function updatePlayerIdDisplay(){
