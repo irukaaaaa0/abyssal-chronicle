@@ -1120,7 +1120,7 @@ function onPvpEnd(won, quest){
     </div>
     <div class="notice-bar">
       <div class="notice-dot"></div>
-      <div class="notice-text" id="notice-text-bar">【深淵崩壊イベント】開催中 — 限定召喚「旧破の番人」登場！</div>
+      <div class="notice-text" id="notice-text-bar">🩸【限定召喚開催中】深淵神イブリス・星海の巫女アルテア・業炎の覇王カルドス 期間限定登場！</div>
       <div class="notice-new">NEW</div>
     </div>
     <div style="text-align:right;padding:0 14px 6px;font-size:9px;color:rgba(100,140,180,.5);letter-spacing:.05em;" id="home-version-display">v0.4.0</div>
@@ -5619,7 +5619,11 @@ function showOnlineNotices(){
   if(bar){
     const imp = ONLINE_NOTICES.filter(n=>n.important===true||n.important==='true');
     const target = imp.length ? imp[0] : ONLINE_NOTICES[0];
-    if(target){ bar.textContent = target.title+' — '+(target.body||'').split('\n')[0]; }
+    if(target){
+      var msg = target.body||target.content||target.message||target.text||'';
+      var ttl = target.title||target.name||'お知らせ';
+      bar.textContent = msg ? ttl+' — '+msg.split('\n')[0] : ttl;
+    }
   }
   renderNotifDropdown();
   renderNotices();

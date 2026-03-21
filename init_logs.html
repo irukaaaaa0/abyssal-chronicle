@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Update Log Init</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:monospace;background:#060a10;color:#c0d8c0;padding:20px;font-size:13px;}
+button{background:#10c0a0;color:#000;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;margin-bottom:16px;margin-right:8px;}
+.btn-del{background:#e03060;color:#fff;}
+#log{white-space:pre-wrap;background:#0a1a0a;padding:14px;border-radius:8px;font-size:11px;max-height:500px;overflow-y:auto;margin-top:12px;}
+</style>
+</head>
+<body>
+<h2 style="color:#10c0a0;margin-bottom:16px;">📋 アップデートログ + お知らせ 一括投稿</h2>
+<button onclick="deleteAndRepost()">🗑️ 全削除して再投稿</button>
+<button onclick="postNoticesOnly()">📢 お知らせのみ投稿</button>
+<button onclick="checkAll()">🔍 現在のデータ確認</button>
+<div id="log">待機中...</div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
+  authDomain:"abyssal-chronicle.firebaseapp.com",
+  projectId:"abyssal-chronicle",
+  storageBucket:"abyssal-chronicle.appspot.com",
+  messagingSenderId:"601713323896",
+  appId:"1:601713323896:web:92e756bfcae26a1745228d"
+});
+const db = firebase.firestore();
+const el = document.getElementById('log');
+function log(msg){ el.textContent += msg + '\n'; }
+
+// ================================================================
+// アップデートログ（ゲーム更新内容のみ）
+// ================================================================
+const LOGS = [
+  {version:"0.3.0",date:"2026-03-01",items:[
+    "クエスト1〜3章が遊べるようになりました",
+    "ガチャ（召喚）が遊べるようになりました",
+    "PvP闘技場が遊べるようになりました",
+    "無限塔が遊べるようになりました",
+    "フレンド・助っ人機能が使えるようになりました",
+    "実績・称号システムを追加しました",
+    "オンラインセーブに対応しました"
+  ]},
+  {version:"0.4.0",date:"2026-03-10",items:[
+    "キャラクターに属性が追加されました（🔥炎 ❄️氷 ⚡雷 🌊水 🌑闇 ✨光 ⚪無）",
+    "戦闘に状態異常が追加されました（炎症・毒・凍結・麻痺）",
+    "タンク・サポート・デバッファーの戦闘効果が強化されました",
+    "フレンド機能がUIDで検索できるようになりました",
+    "ランクマイルストーン報酬が追加されました",
+    "PvPに属性・状態異常システムが適用されました",
+    "クエスト4〜9章が追加されました"
+  ]},
+  {version:"0.4.1",date:"2026-03-15",items:[
+    "PvP戦闘に詳細パネルが追加されました（デバフ効果・コンボ説明）",
+    "助っ人スロットがリアルタイムで更新されるようになりました",
+    "フレンド削除時に双方のリストから削除されるよう修正しました"
+  ]},
+  {version:"0.5.0",date:"2026-03-18",items:[
+    "限定召喚が追加されました（専用天井100回・UR排出率1.5%）",
+    "限定URキャラ3体が追加されました（深淵神イブリス・星海の巫女アルテア・業炎の覇王カルドス）",
+    "召喚画面が「限定召喚」「恒常召喚」に分かれました",
+    "キャラクター図鑑が追加されました",
+    "育成・編成・助っ人画面に属性/役割フィルターが追加されました"
+  ]},
+  {version:"0.5.1",date:"2026-03-19",items:[
+    "限定召喚バナーに残り時間のカウントダウンが表示されるようになりました",
+    "ピックアップカードをスワイプで横スクロールできるようになりました",
+    "スマホでピックアップキャラの詳細が見られるようになりました",
+    "召喚バナー選択をスワイプで切り替えられるようになりました"
+  ]},
+  {version:"0.5.2",date:"2026-03-20",items:[
+    "ゲーム起動時に最新のアップデート情報が表示されるようになりました",
+    "お知らせ画面のアップデートログ表示デザインを改善しました",
+    "マクロ検出の誤検出を軽減しました"
+  ]},
+  {version:"0.5.3",date:"2026-03-21",items:[
+    "アップデート情報を確認済みにすると次回起動時に再表示されないよう修正しました",
+    "キャラクター図鑑のソート機能（属性・役割）のバグを修正しました",
+    "戦闘で2属性コンボゲージが同時表示されるようになりました",
+    "星海の巫女アルテアの回復量を強化しました",
+    "クエスト・無限塔の難易度をUR常設キャラで攻略しやすく調整しました"
+  ]}
+];
+
+// ================================================================
+// お知らせ（重要メッセージ・ホームバーに表示）
+// ================================================================
+const NOTICES = [
+  {
+    id: "limited_banner_0521",
+    title: "🩸【限定召喚】深淵神降臨 開催中！",
+    body: "深淵神イブリス・星海の巫女アルテアが期間限定登場！天井100回でUR確定！",
+    important: true,
+    date: "2026-03-21"
+  },
+  {
+    id: "limited_banner_blazing",
+    title: "🔱【限定召喚】業炎の覇王 開催中！",
+    body: "業炎の覇王カルドスが期間限定登場！炎属性コンボで強力なデバフを発動！",
+    important: true,
+    date: "2026-03-21"
+  },
+  {
+    id: "update_053",
+    title: "📋 v0.5.3 アップデート",
+    body: "難易度調整・2属性コンボ・図鑑バグ修正など多数の改善を実施しました。",
+    important: false,
+    date: "2026-03-21"
+  }
+];
+
+async function deleteAndRepost(){
+  el.textContent = '開始...\n';
+  // updateLog全削除
+  log('📋 updateLogを削除中...');
+  const logSnap = await db.collection('updateLog').get();
+  for(const doc of logSnap.docs){
+    await db.collection('updateLog').doc(doc.id).delete();
+    log('  🗑️ ' + doc.id);
+  }
+  // updateLog再投稿
+  log('\n📋 updateLogを投稿中...');
+  for(const l of LOGS){
+    const docId = 'v' + l.version.replace(/\./g,'_');
+    await db.collection('updateLog').doc(docId).set({...l, postedAt: new Date().toISOString()});
+    log('  ✅ v' + l.version);
+  }
+  // お知らせ投稿
+  await postNoticesOnly();
+}
+
+async function postNoticesOnly(){
+  log('\n📢 お知らせを投稿中...');
+  for(const n of NOTICES){
+    await db.collection('notices').doc(n.id).set({...n, createdAt: new Date().toISOString()});
+    log('  ✅ ' + n.title);
+  }
+  log('\n🎉 完了！');
+}
+
+async function checkAll(){
+  el.textContent = '確認中...\n';
+  const logSnap = await db.collection('updateLog').get();
+  log('📋 updateLog: ' + logSnap.docs.length + '件');
+  logSnap.docs.forEach(d=> log('  v'+(d.data().version||'?')+' ('+d.id+')'));
+  const notSnap = await db.collection('notices').get();
+  log('\n📢 notices: ' + notSnap.docs.length + '件');
+  notSnap.docs.forEach(d=> log('  '+(d.data().title||d.id)));
+}
+</script>
+</body>
+</html>
