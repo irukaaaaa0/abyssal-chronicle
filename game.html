@@ -916,6 +916,16 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .server-error-banner.minimized > *:not(.seb-title){display:none;}
 .server-error-banner.minimized::after{display:none;}
 
+
+/* ===== マクロ警告オーバーレイ ===== */
+.macro-overlay{position:fixed;inset:0;z-index:8000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);}
+.macro-overlay.show{display:flex;}
+.macro-warn-box{background:rgba(160,80,0,.95);border:2px solid rgba(255,150,50,.8);border-radius:16px;padding:20px 24px;width:min(320px,88vw);text-align:center;}
+.macro-lock-box{background:rgba(120,0,0,.97);border:2px solid rgba(255,50,50,.8);border-radius:16px;padding:24px;width:min(340px,88vw);text-align:center;}
+.macro-box-title{font-size:18px;font-weight:700;margin-bottom:10px;}
+.macro-box-body{font-size:11px;color:rgba(255,255,255,.85);line-height:1.6;margin-bottom:10px;}
+.macro-box-reason{font-size:9px;color:rgba(255,255,255,.5);margin-top:6px;}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1004,6 +1014,7 @@ function onPvpEnd(won, quest){
       <div class="notice-text" id="notice-text-bar">【深淵崩壊イベント】開催中 — 限定召喚「旧破の番人」登場！</div>
       <div class="notice-new">NEW</div>
     </div>
+    <div style="text-align:right;padding:0 14px 6px;font-size:9px;color:rgba(100,140,180,.5);letter-spacing:.05em;" id="home-version-display">v0.4.0</div>
     <div class="menu-grid">
       <div class="menu-btn" onclick="goTo('quest');sfx('click')"><div class="menu-icon-w mi-q">⚓</div><div class="menu-lbl">クエスト</div></div>
       <div class="menu-btn" onclick="goTo('gacha');sfx('click')"><div class="menu-new">NEW</div><div class="menu-icon-w mi-g">🔮</div><div class="menu-lbl">召喚</div></div>
@@ -1226,6 +1237,7 @@ function onPvpEnd(won, quest){
   </div>
 
   <!-- 自分HPバー（通常戦闘のparty-hp-rowと同一） -->
+  <div class="battle-status-panel" id="pvp-my-status-area" style="min-height:22px;padding:3px 12px;"></div>
   <div class="party-hp-row" id="pvp-my-hp-row"></div>
 
   <!-- 手札（通常戦闘と完全同一） -->
@@ -2587,6 +2599,7 @@ function goTo(sc){
   if(sc==='friend'||sc==='home') checkPendingRequests();
   if(sc==='pvp')renderPvp();
   const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
+  const hvd=document.getElementById('home-version-display');if(hvd)hvd.textContent='v'+GAME_VERSION;
 }
 
 // ================================================================
@@ -2969,6 +2982,14 @@ function renderBannerDetail(){
 }
 
 function doGacha(count){
+  // マクロ検出
+  if(MacroDetector.isLocked()){
+    showToast('🚫 操作がロックされています（マクロ検出）');
+    MacroDetector.showLock(MacroDetector.lockUntil - Date.now());
+    return;
+  }
+  MacroDetector.recordClick('gacha');
+  MacroDetector.checkGachaAbuse();
   const cost=count===1?300:3000;
   if(S.gem<cost){showToast('💎 深海結晶が足りません！');return;}
   sfx('gacha'); S.gem-=cost;
@@ -5072,7 +5093,7 @@ async function renderPvp(){
 // ================================================================
 let ONLINE_NOTICES = [];
 let UPDATE_LOG = [];
-let GAME_VERSION = '0.3.0';
+let GAME_VERSION = '0.4.0';
 
 // ================================================================
 //  オンラインデータ取得（notices.json）
@@ -5672,6 +5693,7 @@ async function startRtPvpBattle(roomRef, code, role, myCards, initData){
     turn:1, myTurn:iFirst,
     hand:[], selectedOrder:[], combo:0,
     turnTimer:null, roomUnsub:null, done:false, lastOppActionTs:0,
+    myStatuses:[], // 自分が受けている状態異常
   };
 
   document.getElementById('pvp-battle-screen').classList.add('show');
@@ -5757,16 +5779,17 @@ function updatePvpPhaseUI(){
 function pvpDrawHand(){
   const st=pvpBattleState; if(!st) return;
   st.hand=[]; st.selectedOrder=[];
+  const pvpMaxSel=getPartyMaxSelect?getPartyMaxSelect():4;
   st.myParty.filter(m=>m.hp>0).forEach(member=>{
     const ch=CHARS.find(c=>c.id===member.id);
     const charAttr = ch ? ch.attribute : 'none';
     for(let i=0;i<3;i++){
-      // ★キャラの属性に合ったカードを生成
       const c=getCardForChar(charAttr);
       st.hand.push({...c,charId:member.id,charName:member.name,charAtk:member.atk,used:false,selected:false});
     }
   });
   renderPvpHand(); pvpUpdateComboGauge();
+  renderPvpMyStatuses();
 }
 
 function renderPvpHand(){
@@ -5805,6 +5828,15 @@ function pvpToggleCard(i){
   const st=pvpBattleState; if(!st||!st.myTurn) return;
   if(st.hand[i].used) return;
   if(!st.hand[i].selected){
+    // 麻痺チェック
+    const card=st.hand[i];
+    const owner=st.myParty.find(function(m){return m.id===card.charId;});
+    const isPara=(st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0;});
+    if(isPara){
+      const maxPara=Math.max(1,4-2);
+      const alreadySel=st.hand.filter(function(c){return c.selected&&c.charId===card.charId;}).length;
+      if(alreadySel>=maxPara){showToast('⚡ 麻痺中！最大'+maxPara+'枚まで');return;}
+    }
     if((st.selectedOrder||[]).length>=4){showToast('最大4枚まで');return;}
     st.hand[i].selected=true;
     st.selectedOrder.push(i);
@@ -5982,6 +6014,17 @@ function pvpAttack(){
     return;
   }
 
+  // デバッファースキル判定（相手に状態異常付与）
+  const debuffResult=pvpCheckDebufferSkill();
+  if(debuffResult){
+    data.oppStatus={type:debuffResult.type,stacks:debuffResult.stacks,ts:Date.now(),charName:debuffResult.charName};
+    const cfg=STATUS_CONFIG[debuffResult.type];
+    showSpecialAtkBanner&&showSpecialAtkBanner(
+      debuffResult.charName+' スキル発動！相手に'+(cfg?cfg.label:debuffResult.type)+'付与！',
+      cfg?cfg.color:'#c080ff'
+    );
+  }
+
   st.roomRef.update(data).catch(e=>console.log('[PVP]write err',e));
 }
 
@@ -6003,6 +6046,21 @@ function onPvpRoomUpdate(data){
     processOppAction(action);
   }
 
+  // 相手からの状態異常付与を受信
+  const oppStatusKey=st.amHost?'guestStatus':'hostStatus';
+  // oppStatusはhostActionに含まれているのでactionから取得
+  if(action&&action.oppStatus&&action.oppStatus.ts&&action.oppStatus.ts>(st.lastOppActionTs||0)){
+    pvpApplyStatusToMe(action.oppStatus.type, action.oppStatus.stacks||1);
+    const cfg=STATUS_CONFIG[action.oppStatus.type];
+    addPvpLog&&addPvpLog('⚠️ '+action.oppStatus.charName+'のスキルで'+(cfg?cfg.label:action.oppStatus.type)+'を受けた！','sys');
+  }
+
+  // oppStatusフィールドも確認（別キーで送られる場合）
+  if(data[oppStatusKey]&&data[oppStatusKey].ts&&data[oppStatusKey].ts>(st.lastOppStatusTs||0)){
+    st.lastOppStatusTs=data[oppStatusKey].ts;
+    pvpApplyStatusToMe(data[oppStatusKey].type, data[oppStatusKey].stacks||1);
+  }
+
   // 相手残HPを直接反映（表示同期）
   const oppHpKey=st.amHost?'guestHp':'hostHp';
   if(data[oppHpKey]!==undefined){
@@ -6019,12 +6077,35 @@ function processOppAction(action){
   const {dmg}=action;
   sfx('hit');
 
+  // 自分の状態異常ターン処理（毎ターン）
+  pvpProcessMyStatuses();
+  if(st.done) return;
+
+  // 凍結中なら自分のターンをスキップ
+  if((st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;})){
+    const pvpActionEl=document.getElementById('pvp-action-txt');
+    if(pvpActionEl) pvpActionEl.textContent='❄️ 凍結中！次のターンはスキップされます';
+    st.myStatuses=st.myStatuses.map(function(s){
+      return s.type==='freeze'?{...s,turns:s.turns-1}:s;
+    }).filter(function(s){return s.turns>0;});
+    renderPvpMyStatuses();
+  }
+
   // 自分パーティにダメージ
+  // タンクのヘイト補正
   const alive=st.myParty.filter(m=>m.hp>0);
   if(!alive.length){endRtPvpBattle(false,'all_dead');return;}
-  const tgt=alive[Math.floor(Math.random()*alive.length)];
-  tgt.hp=Math.max(0,tgt.hp-dmg);
-  st.myHp=Math.max(0,st.myHp-dmg);
+  // タンクがいれば70%確率でタンクが受ける
+  const tanks=alive.filter(function(m){const c=CHARS.find(function(ch){return ch.id===m.id;});return c&&c.role==='tank';});
+  const tgt=(tanks.length&&Math.random()<0.7)?tanks[Math.floor(Math.random()*tanks.length)]:alive[Math.floor(Math.random()*alive.length)];
+  // ダメージ軽減
+  const myPartyChars=st.myParty.filter(function(m){return m.hp>0;}).map(function(m){return CHARS.find(function(c){return c.id===m.id;});}).filter(Boolean);
+  let reduction=0;
+  myPartyChars.forEach(function(c){if(c.role==='tank'){const rm={4:0.15,6:0.10,62:0.20,63:0.15,69:0.25,75:0.12,79:0.20};reduction+=rm[c.id]||0.05;}});
+  reduction=Math.min(reduction,0.4);
+  const actualDmg=Math.round(dmg*(1-reduction));
+  tgt.hp=Math.max(0,tgt.hp-actualDmg);
+  st.myHp=Math.max(0,st.myHp-actualDmg);
 
   // ダメージポップアップ
   const myRow=document.getElementById('pvp-my-hp-row');
@@ -7485,6 +7566,302 @@ function toggleServerBanner(){
   const b=document.getElementById('server-error-banner');
   if(b) b.classList.toggle('minimized');
 }
+// ================================================================
+//  マクロ検出システム
+// ================================================================
+var MacroDetector = {
+  // 操作ログ
+  clickTimes: [],         // クリック時刻ログ
+  gachaTimes: [],         // ガチャ実行時刻ログ
+  attackTimes: [],        // 攻撃操作時刻ログ
+
+  // スナップショット（データ急増検出用）
+  snapshots: [],          // {time, gem, gold, owned}
+
+  // ロック状態
+  locked: false,
+  lockUntil: 0,
+  lockReason: '',
+
+  // 警告カウント
+  warnCount: 0,
+
+  // 検出フラグ
+  detected: false,
+  detectedReason: '',
+
+  // ---------------------------------------------------
+  // 操作速度検出
+  // 直近N回の操作間隔が閾値以下なら検出
+  // ---------------------------------------------------
+  recordClick: function(type){
+    if(this.locked) return false; // ロック中は操作ブロック
+    var now = Date.now();
+    var log = type==='gacha' ? this.gachaTimes :
+              type==='attack' ? this.attackTimes : this.clickTimes;
+    log.push(now);
+    // 直近20件のみ保持
+    if(log.length > 20) log.shift();
+    return this.checkSpeed(log, type);
+  },
+
+  checkSpeed: function(log, type){
+    if(log.length < 5) return false;
+    var recent = log.slice(-5);
+    var intervals = [];
+    for(var i=1;i<recent.length;i++){
+      intervals.push(recent[i]-recent[i-1]);
+    }
+    var avgInterval = intervals.reduce(function(a,b){return a+b;},0)/intervals.length;
+
+    // 閾値（ミリ秒）
+    var threshold = type==='gacha'  ? 800  :  // ガチャ：0.8秒未満が5連続
+                    type==='attack' ? 400  :  // 攻撃：0.4秒未満が5連続
+                                      300;    // 一般：0.3秒未満が5連続
+
+    if(avgInterval < threshold){
+      this.trigger('速度異常: '+type+'操作が'+Math.round(avgInterval)+'ms間隔（閾値'+threshold+'ms）');
+      return true;
+    }
+    return false;
+  },
+
+  // ---------------------------------------------------
+  // 連続ガチャ検出（1分以内に30回以上）
+  // ---------------------------------------------------
+  checkGachaAbuse: function(){
+    var now = Date.now();
+    var oneMin = this.gachaTimes.filter(function(t){return now-t<60000;});
+    if(oneMin.length >= 30){
+      this.trigger('連続ガチャ: 1分以内に'+oneMin.length+'回のガチャ');
+      return true;
+    }
+    return false;
+  },
+
+  // ---------------------------------------------------
+  // データ急増検出（短時間でgem/goldが異常増加）
+  // ---------------------------------------------------
+  takeSnapshot: function(){
+    var now = Date.now();
+    this.snapshots.push({
+      time: now,
+      gem:  S.gem||0,
+      gold: S.gold||0,
+      owned: (S.owned||[]).length,
+    });
+    if(this.snapshots.length > 30) this.snapshots.shift();
+    this.checkDataAbuse();
+  },
+
+  checkDataAbuse: function(){
+    if(this.snapshots.length < 2) return;
+    var first = this.snapshots[0];
+    var last  = this.snapshots[this.snapshots.length-1];
+    var elapsed = (last.time - first.time) / 1000; // 秒
+    if(elapsed < 10) return; // 10秒以内はスキップ
+
+    var gemDiff   = last.gem   - first.gem;
+    var goldDiff  = last.gold  - first.gold;
+    var ownedDiff = last.owned - first.owned;
+
+    // 1分以内にgem10万以上増加
+    if(elapsed < 60 && gemDiff > 100000){
+      this.trigger('データ急増: '+elapsed+'秒でgem+'+gemDiff);
+      return;
+    }
+    // 1分以内にgold1000万以上増加
+    if(elapsed < 60 && goldDiff > 10000000){
+      this.trigger('データ急増: '+elapsed+'秒でgold+'+goldDiff);
+      return;
+    }
+    // 1分以内にキャラ20体以上増加（ガチャ連打）
+    if(elapsed < 60 && ownedDiff > 20){
+      this.trigger('キャラ急増: '+elapsed+'秒で+'+ownedDiff+'体');
+      return;
+    }
+  },
+
+  // ---------------------------------------------------
+  // 検出時の処理
+  // ---------------------------------------------------
+  trigger: function(reason){
+    if(this.detected) return; // 重複防止
+    this.detected = true;
+    this.detectedReason = reason;
+    this.warnCount++;
+    console.warn('[MACRO] Detected:', reason, 'count:', this.warnCount);
+
+    // Firestoreに記録（非同期・エラー無視）
+    this.reportToFirestore(reason);
+
+    if(this.warnCount >= 3){
+      // 3回目以降：一時ロック（10分）
+      this.applyLock(10 * 60 * 1000, reason);
+    } else {
+      // 1-2回目：ゲーム内警告
+      this.showWarning(reason);
+      // 3秒後にdetectedリセット（連続誤検知防止）
+      var self = this;
+      setTimeout(function(){ self.detected = false; }, 3000);
+    }
+  },
+
+  applyLock: function(duration, reason){
+    this.locked = true;
+    this.lockUntil = Date.now() + duration;
+    this.lockReason = reason;
+    this.showLock(duration);
+    // Firestoreにロック記録
+    this.reportToFirestore('LOCK: '+reason);
+  },
+
+  showWarning: function(reason){
+    var el = document.getElementById('macro-warning-overlay');
+    if(!el) return;
+    document.getElementById('macro-warn-reason').textContent = reason;
+    el.classList.add('show');
+    setTimeout(function(){
+      el.classList.remove('show');
+    }, 5000);
+  },
+
+  showLock: function(duration){
+    var el = document.getElementById('macro-lock-overlay');
+    if(!el) return;
+    var mins = Math.round(duration/60000);
+    document.getElementById('macro-lock-time').textContent = mins+'分間';
+    el.classList.add('show');
+    // カウントダウン
+    var self = this;
+    var timer = setInterval(function(){
+      var remaining = Math.max(0, self.lockUntil - Date.now());
+      var m = Math.floor(remaining/60000);
+      var s = Math.floor((remaining%60000)/1000);
+      var el2 = document.getElementById('macro-lock-countdown');
+      if(el2) el2.textContent = m+'分'+s+'秒後に解除';
+      if(remaining <= 0){
+        clearInterval(timer);
+        self.locked = false;
+        el.classList.remove('show');
+      }
+    }, 1000);
+  },
+
+  reportToFirestore: function(reason){
+    if(!db || !S.playerId) return;
+    try{
+      db.collection('macro_logs').add({
+        playerId: S.playerId,
+        uid: (typeof auth!=='undefined'&&auth.currentUser) ? auth.currentUser.uid : '',
+        reason: reason,
+        warnCount: this.warnCount,
+        gem: S.gem||0,
+        gold: S.gold||0,
+        rank: S.rank||1,
+        ts: new Date().toISOString(),
+      }).catch(function(){});
+    }catch(e){}
+  },
+
+  isLocked: function(){
+    if(!this.locked) return false;
+    if(Date.now() > this.lockUntil){
+      this.locked = false;
+      return false;
+    }
+    return true;
+  }
+};
+
+// スナップショットを30秒ごとに取得
+setInterval(function(){ if(typeof S!=='undefined') MacroDetector.takeSnapshot(); }, 30000);
+// ================================================================
+//  PvP 状態異常システム
+//  - 攻撃側：デバッファーキャラのスキルが相手に状態異常を付与
+//  - 防御側：状態異常ダメージを自分HPから受ける
+//  - Firestoreで状態異常を共有
+// ================================================================
+
+// PvP用状態異常（自分が受けているもの）
+// pvpBattleState.myStatuses = [{type, stacks, turns}]
+
+function pvpApplyStatusToMe(type, stacks){
+  const st=pvpBattleState; if(!st) return;
+  if(!st.myStatuses) st.myStatuses=[];
+  const ex=st.myStatuses.find(s=>s.type===type);
+  if(ex){
+    if(type==='poison') ex.stacks=Math.min(ex.stacks+stacks,5);
+    ex.turns=Math.max(ex.turns,3);
+  } else {
+    st.myStatuses.push({type,stacks:stacks||1,turns:3});
+  }
+  renderPvpMyStatuses();
+  showStatusFlash(type,'自分');
+}
+
+function pvpProcessMyStatuses(){
+  const st=pvpBattleState; if(!st||!st.myStatuses) return;
+  let totalDmg=0;
+  st.myStatuses=st.myStatuses.filter(function(s){
+    if(s.type==='burn'){
+      const dmg=Math.round(st.myMaxHp*0.04*s.stacks);
+      st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
+      showEnemyActionDebuff && showEnemyActionDebuff('burn');
+    }
+    if(s.type==='poison'){
+      const dmg=Math.round(st.myMaxHp*0.025*s.stacks);
+      st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
+      showEnemyActionDebuff && showEnemyActionDebuff('poison');
+    }
+    s.turns--;
+    return s.turns>0;
+  });
+  if(totalDmg>0){
+    updatePvpMyHP();
+    // 自分のHP更新をFirestoreに送信
+    if(st.roomRef){
+      const myKey=st.amHost?'hostHp':'guestHp';
+      st.roomRef.update({[myKey]:st.myHp}).catch(()=>{});
+    }
+    if(st.myHp<=0){ endRtPvpBattle(false,'status'); }
+  }
+  renderPvpMyStatuses();
+}
+
+function renderPvpMyStatuses(){
+  const st=pvpBattleState; if(!st) return;
+  let area=document.getElementById('pvp-my-status-area');
+  if(!area) return;
+  const labels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺'};
+  const cls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'};
+  const statuses=st.myStatuses||[];
+  area.innerHTML=statuses.filter(s=>s.turns>0).map(function(s){
+    return '<div class="status-chip chip-'+s.type+'">'
+      +(labels[s.type]||s.type)
+      +(s.stacks>1?'×'+s.stacks:'')
+      +'<span class="chip-turns">'+s.turns+'T</span></div>';
+  }).join('');
+}
+
+// デバッファーのPvPスキル（攻撃時に相手に状態異常付与）
+function pvpCheckDebufferSkill(action){
+  const st=pvpBattleState; if(!st) return null;
+  const myPartyAlive=st.myParty.filter(function(m){return m.hp>0;});
+  let statusToApply=null;
+  myPartyAlive.forEach(function(m){
+    const c=CHARS.find(function(ch){return ch.id===m.id;});
+    if(!c||c.role!=='debuffer') return;
+    const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison'};
+    const probMap={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
+    const statusType=debuffMap[c.id];
+    const prob=probMap[c.id]||0.15;
+    if(statusType&&Math.random()<prob){
+      statusToApply={type:statusType,stacks:1,charName:c.name};
+    }
+  });
+  return statusToApply;
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -7530,6 +7907,32 @@ function toggleServerBanner(){
     ⚠️ 一部オンライン機能停止中：フレンド機能 / PvPランキング / 引継ぎ / ギフト受取
   </div>
   <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px;" id="seb-retry-txt"></div>
+</div>
+
+<!-- マクロ警告オーバーレイ -->
+<div class="macro-overlay" id="macro-warning-overlay">
+  <div class="macro-warn-box">
+    <div class="macro-box-title">⚠️ 異常な操作を検出</div>
+    <div class="macro-box-body">
+      自動操作（マクロ）の疑いが検出されました。<br>
+      引き続き検出された場合、一時的にアカウントが制限されます。
+    </div>
+    <div class="macro-box-reason" id="macro-warn-reason"></div>
+    <button onclick="document.getElementById('macro-warning-overlay').classList.remove('show')" style="margin-top:12px;padding:8px 20px;border-radius:8px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-family:inherit;">閉じる</button>
+  </div>
+</div>
+
+<!-- マクロロックオーバーレイ -->
+<div class="macro-overlay" id="macro-lock-overlay">
+  <div class="macro-lock-box">
+    <div class="macro-box-title" style="color:#ff8080;">🚫 操作がロックされました</div>
+    <div class="macro-box-body">
+      自動操作（マクロ）が複数回検出されたため、<br>
+      <strong id="macro-lock-time">10分間</strong>操作がロックされます。<br><br>
+      ロック解除後は通常通り遊べます。
+    </div>
+    <div id="macro-lock-countdown" style="font-size:13px;color:#ff6060;font-weight:700;margin-top:8px;"></div>
+  </div>
 </div>
 </body>
 </html>
