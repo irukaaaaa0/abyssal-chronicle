@@ -2503,29 +2503,29 @@ const CHAPTERS=[
     bgColor:['#140400','#280800'],
     layers:[
       {id:401,name:'4-1 溶岩の入口',    emoji:'🌋',boss:false,
-       enemy:{name:'溶岩クラゲ',    emoji:'🪼',hp:12000,atk:800,spd:2},
+       enemy:{name:'溶岩クラゲ',    emoji:'🪼',hp:8000,atk:350,spd:2},
        gold:1500,gem:60,
        story:[
         {char:'司令官',icon:'🌊',text:'旧破神を倒した後も、深海の異変は続いていた。新たな歪みが発生した灼熱の深溝へ向かう。'},
         {char:'謎の声',icon:'👁️',text:'ここは旧破の炎が漏れ出した場所だ。通常の水は存在しない——炎そのものが海になっている。'},
        ]},
       {id:402,name:'4-2 炎海の回廊',    emoji:'🔥',boss:false,
-       enemy:{name:'炎海の蛇竜',   emoji:'🐍',hp:18000,atk:950,spd:2},
+       enemy:{name:'炎海の蛇竜',   emoji:'🐍',hp:13000,atk:450,spd:2},
        gold:1800,gem:70,story:[{char:'司令官',icon:'🌊',text:'炎が海のように揺れている。まともに触れれば即死だ。'}]},
       {id:403,name:'4-3 灼熱の番所',    emoji:'💥',boss:false,
-       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:25000,atk:1100,spd:2,statusPatterns:[{"type": "burn", "prob": 0.35, "stacks": 1}]},
+       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:18000,atk:550,spd:2,statusPatterns:[{"type": "burn", "prob": 0.35, "stacks": 1}]},
        gold:2200,gem:80,story:[{char:'ナレーター',icon:'📖',text:'炎の番兵が道を塞いでいた。通り抜けるには全力の戦闘が必要だ。'}]},
       {id:404,name:'4-4 溶岩竜の巣',    emoji:'🐉',boss:false,
-       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:35000,atk:1300,spd:3,statusPatterns:[{"type": "burn", "prob": 0.25, "stacks": 1}]},
+       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:25000,atk:650,spd:3,statusPatterns:[{"type": "burn", "prob": 0.25, "stacks": 1}]},
        gold:2800,gem:95,story:[{char:'司令官',icon:'🌊',text:'巨大な溶岩竜の幼体が群れをなしている。親はどこだ…？'}]},
       {id:405,name:'4-5 炎獄の試練',    emoji:'🔱',boss:false,
-       enemy:{name:'炎獄の試練者', emoji:'⚔️',hp:48000,atk:1500,spd:3},
+       enemy:{name:'炎獄の試練者', emoji:'⚔️',hp:35000,atk:750,spd:3},
        gold:3500,gem:110,story:[{char:'謎の声',icon:'👁️',text:'この試練を越えたものだけが次の層へ進める。全力で挑め。'}]},
       {id:406,name:'4-6 炎帝の玉座',    emoji:'🌋',boss:false,
-       enemy:{name:'炎帝の眷属',   emoji:'🔥',hp:65000,atk:1800,spd:3},
+       enemy:{name:'炎帝の眷属',   emoji:'🔥',hp:45000,atk:900,spd:3},
        gold:4500,gem:130,story:[{char:'ナレーター',icon:'📖',text:'炎帝の玉座に近づくほど熱気が増す。キャラの強化なしでは突破不可能だ。'}]},
       {id:407,name:'4-7 BOSS 炎帝フレアノス',emoji:'🌋',boss:true,
-       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:180000,atk:2500,spd:3,statusPatterns:[{"type": "burn", "prob": 0.5, "stacks": 2}, {"type": "para", "prob": 0.2, "stacks": 1}]},
+       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:80000,atk:1100,spd:3,statusPatterns:[{"type": "burn", "prob": 0.5, "stacks": 2}, {"type": "para", "prob": 0.2, "stacks": 1}]},
        gold:8000,gem:200,
        story:[
         {char:'ナレーター',icon:'📖',text:'灼熱の深溝の支配者。その炎は深海をも蒸発させると言われる。'},
@@ -2543,23 +2543,23 @@ const CHAPTERS=[
     bgColor:['#000814','#001428'],
     layers:[
       {id:501,name:'5-1 氷結の入口',   emoji:'❄️',boss:false,
-       enemy:{name:'氷晶の守衛',   emoji:'🧊',hp:80000,atk:2200,spd:2},
+       enemy:{name:'氷晶の守衛',   emoji:'🧊',hp:55000,atk:1100,spd:2},
        gold:5000,gem:150,
        story:[{char:'司令官',icon:'🌊',text:'炎帝を倒した先に広がっていたのは、永久凍土の世界だった。時間すら凍っているような錯覚を覚える。'}]},
       {id:502,name:'5-2 凍海の回廊',   emoji:'🌨️',boss:false,
-       enemy:{name:'凍海の巨鯨',   emoji:'🐋',hp:120000,atk:2600,spd:2},
+       enemy:{name:'凍海の巨鯨',   emoji:'🐋',hp:80000,atk:1300,spd:2},
        gold:6000,gem:170,story:[{char:'謎の声',icon:'👁️',text:'あの鯨は永劫の眠りについていたはずだ。旧破の影響で目覚めてしまったのか…'}]},
       {id:503,name:'5-3 氷の迷宮',     emoji:'🔮',boss:false,
-       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:160000,atk:3000,spd:3,statusPatterns:[{"type": "freeze", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:110000,atk:1500,spd:3,statusPatterns:[{"type": "freeze", "prob": 0.3, "stacks": 1}]},
        gold:7500,gem:190,story:[{char:'ナレーター',icon:'📖',text:'氷の迷宮は敵の幻影で溢れていた。どれが本物か見抜く眼が必要だ。'}]},
       {id:504,name:'5-4 永劫の試練',   emoji:'⚔️',boss:false,
-       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:220000,atk:3500,spd:3,statusPatterns:[{"type": "para", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:150000,atk:1800,spd:3,statusPatterns:[{"type": "para", "prob": 0.3, "stacks": 1}]},
        gold:9000,gem:220,story:[{char:'司令官',icon:'🌊',text:'この騎士は永劫に渡って氷獄を守り続けてきた番人だ。全力で挑め！'}]},
       {id:505,name:'5-5 氷獄の核',     emoji:'❄️',boss:false,
-       enemy:{name:'氷獄の核結晶', emoji:'💎',hp:300000,atk:4000,spd:3},
+       enemy:{name:'氷獄の核結晶', emoji:'💎',hp:200000,atk:2100,spd:3},
        gold:12000,gem:260,story:[{char:'謎の声',icon:'👁️',text:'この結晶が氷獄全体のエネルギー源だ。破壊すれば氷獄の神も目覚める。'}]},
       {id:506,name:'5-6 BOSS 氷獄神アイギス',emoji:'❄️',boss:true,
-       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:600000,atk:5500,spd:4,statusPatterns:[{"type": "freeze", "prob": 0.4, "stacks": 1}, {"type": "poison", "prob": 0.3, "stacks": 2}]},
+       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:320000,atk:2600,spd:4,statusPatterns:[{"type": "freeze", "prob": 0.4, "stacks": 1}, {"type": "poison", "prob": 0.3, "stacks": 2}]},
        gold:20000,gem:400,
        story:[
         {char:'ナレーター',icon:'📖',text:'氷獄の支配者が目覚めた。その冷気は空間ごと凍らせる。'},
@@ -2577,20 +2577,20 @@ const CHAPTERS=[
     bgColor:['#020005','#08001a'],
     layers:[
       {id:601,name:'6-1 星屑の入口',   emoji:'✨',boss:false,
-       enemy:{name:'星屑の番兵',   emoji:'⭐',hp:400000,atk:5000,spd:3},
+       enemy:{name:'星屑の番兵',   emoji:'⭐',hp:250000,atk:2800,spd:3},
        gold:15000,gem:300,
        story:[{char:'司令官',icon:'🌊',text:'氷獄を越えた先には宇宙が広がっていた。深海の底に宇宙？旧破の歪みがここまで来ている。'}]},
       {id:602,name:'6-2 星核の迷宮',   emoji:'🌟',boss:false,
-       enemy:{name:'星核の守護者', emoji:'💫',hp:600000,atk:6000,spd:3},
+       enemy:{name:'星核の守護者', emoji:'💫',hp:380000,atk:3200,spd:3},
        gold:18000,gem:340,story:[{char:'謎の声',icon:'👁️',text:'星の核が旧破のエネルギーで汚染されている。このままでは…宇宙ごと崩壊する。'}]},
       {id:603,name:'6-3 虚空の戦場',   emoji:'🌌',boss:false,
-       enemy:{name:'虚空の戦士',   emoji:'🌌',hp:800000,atk:7500,spd:4},
+       enemy:{name:'虚空の戦士',   emoji:'🌌',hp:520000,atk:3800,spd:4},
        gold:22000,gem:380,story:[{char:'司令官',icon:'🌊',text:'ここは重力も時間も狂っている。常識を捨てて戦え！'}]},
       {id:604,name:'6-4 星滅の核心',   emoji:'💥',boss:false,
-       enemy:{name:'星滅の結晶体', emoji:'💥',hp:1200000,atk:9000,spd:4},
+       enemy:{name:'星滅の結晶体', emoji:'💥',hp:700000,atk:4400,spd:4},
        gold:30000,gem:450,story:[{char:'ナレーター',icon:'📖',text:'この結晶体は星のエネルギーを吸収し続けている。止めなければ無限に強くなる。'}]},
       {id:605,name:'6-5 BOSS 星滅神アステリア',emoji:'💫',boss:true,
-       enemy:{name:'星滅神アステリア',emoji:'💫',hp:3000000,atk:12000,spd:4,statusPatterns:[{"type": "para", "prob": 0.4, "stacks": 1}, {"type": "burn", "prob": 0.3, "stacks": 2}]},
+       enemy:{name:'星滅神アステリア',emoji:'💫',hp:1200000,atk:5200,spd:4,statusPatterns:[{"type": "para", "prob": 0.4, "stacks": 1}, {"type": "burn", "prob": 0.3, "stacks": 2}]},
        gold:60000,gem:800,
        story:[
         {char:'星滅神アステリア',icon:'💫',text:'……お前たちは面白い存在だ。深海から宇宙まで辿り着くとは。だが——この星ごと消えてもらおう。'},
@@ -2607,20 +2607,20 @@ const CHAPTERS=[
     bgColor:['#000000','#030003'],
     layers:[
       {id:701,name:'7-1 根源への道',   emoji:'🌑',boss:false,
-       enemy:{name:'根源の番犬',   emoji:'🐺',hp:2000000,atk:15000,spd:4},
+       enemy:{name:'根源の番犬',   emoji:'🐺',hp:900000,atk:5500,spd:4},
        gold:50000,gem:600,
        story:[{char:'謎の声',icon:'👁️',text:'旅人よ……ここは旧破そのものだ。私の力でも補助できない。お前の力だけが頼りだ。'}]},
       {id:702,name:'7-2 虚無の廊下',   emoji:'⚫',boss:false,
-       enemy:{name:'虚無の使者',   emoji:'⚫',hp:3500000,atk:18000,spd:4},
+       enemy:{name:'虚無の使者',   emoji:'⚫',hp:1500000,atk:6500,spd:4},
        gold:70000,gem:700,story:[{char:'司令官',icon:'🌊',text:'何もない廊下に、圧倒的な存在感。ここが旧破の中心か…。'}]},
       {id:703,name:'7-3 崩壊の胎動',   emoji:'💀',boss:false,
-       enemy:{name:'崩壊の原初体', emoji:'💀',hp:5000000,atk:22000,spd:5,statusPatterns:[{"type": "poison", "prob": 0.5, "stacks": 2}]},
+       enemy:{name:'崩壊の原初体', emoji:'💀',hp:2200000,atk:7800,spd:5,statusPatterns:[{"type": "poison", "prob": 0.5, "stacks": 2}]},
        gold:90000,gem:800,story:[{char:'ナレーター',icon:'📖',text:'全ての崩壊の源。これを倒せば旧破は終わる——そう信じて進め。'}]},
       {id:704,name:'7-4 根源の核',     emoji:'🌑',boss:false,
-       enemy:{name:'旧破の核',     emoji:'🌑',hp:8000000,atk:28000,spd:5},
+       enemy:{name:'旧破の核',     emoji:'🌑',hp:3500000,atk:9000,spd:5},
        gold:120000,gem:1000,story:[{char:'旧破の核',icon:'🌑',text:'……お前が来ることは分かっていた。だが——お前も私も、同じ「虚無」に向かっている。'}]},
       {id:705,name:'7-5 BOSS 旧破真神ゼロス',emoji:'⭕',boss:true,
-       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:20000000,atk:40000,spd:5,statusPatterns:[{"type": "burn", "prob": 0.4, "stacks": 2}, {"type": "poison", "prob": 0.4, "stacks": 2}, {"type": "freeze", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:6000000,atk:11000,spd:5,statusPatterns:[{"type": "burn", "prob": 0.4, "stacks": 2}, {"type": "poison", "prob": 0.4, "stacks": 2}, {"type": "freeze", "prob": 0.3, "stacks": 1}]},
        gold:300000,gem:3000,
        story:[
         {char:'ナレーター',icon:'📖',text:'全ての始まりにして全ての終わり。旧破の真の神が姿を現した。'},
@@ -2638,14 +2638,14 @@ const CHAPTERS=[
     bgColor:['#000408','#001020'],
     layers:[
       {id:801,name:'8-1 彼方の序章',   emoji:'🌊',boss:false,
-       enemy:{name:'深淵の先兵',   emoji:'🦑',hp:15000000,atk:50000,spd:5},
+       enemy:{name:'深淵の先兵',   emoji:'🦑',hp:5000000,atk:12000,spd:5},
        gold:200000,gem:2000,
        story:[{char:'謎の声',icon:'👁️',text:'旅人よ、ゼロスを倒した後もまだ先がある。深淵の彼方——本当の深海の最果てだ。'}]},
       {id:802,name:'8-2 彼方の試練',   emoji:'⚡',boss:false,
-       enemy:{name:'彼方の試練者', emoji:'⚡',hp:30000000,atk:70000,spd:5},
+       enemy:{name:'彼方の試練者', emoji:'⚡',hp:10000000,atk:16000,spd:5},
        gold:350000,gem:3000,story:[{char:'司令官',icon:'🌊',text:'強い。今まで戦った中で最強の敵だ。全ての力を解放しなければ勝てない。'}]},
       {id:803,name:'8-3 BOSS 深淵の彼方',emoji:'🌊',boss:true,
-       enemy:{name:'深淵の彼方神', emoji:'🌊',hp:100000000,atk:150000,spd:5},
+       enemy:{name:'深淵の彼方神', emoji:'🌊',hp:20000000,atk:22000,spd:5},
        gold:1000000,gem:10000,
        story:[
         {char:'深淵の彼方神',icon:'🌊',text:'……お前が来た。長い間、待っていた。真の挑戦者を。さあ——全力で来い。'},
@@ -2662,14 +2662,14 @@ const CHAPTERS=[
     bgColor:['#000000','#000000'],
     layers:[
       {id:901,name:'9-1 循環の始まり', emoji:'♾️',boss:false,
-       enemy:{name:'循環の守護者', emoji:'♾️',hp:500000000,atk:500000,spd:5},
+       enemy:{name:'循環の守護者', emoji:'♾️',hp:40000000,atk:30000,spd:5},
        gold:5000000,gem:50000,
        story:[
         {char:'謎の声',icon:'👁️',text:'……旅人よ。お前はついにここまで来た。永劫循環——それは終わりのない試練だ。'},
         {char:'司令官',icon:'🌊',text:'ここが……本当の最果てか。退けない。進むだけだ。'},
        ]},
       {id:902,name:'9-2 BOSS 永劫の神',emoji:'♾️',boss:true,
-       enemy:{name:'永劫の神',     emoji:'♾️',hp:9999999999,atk:9999999,spd:5},
+       enemy:{name:'永劫の神',     emoji:'♾️',hp:100000000,atk:50000,spd:5},
        gold:99999999,gem:99999,
        story:[
         {char:'永劫の神',icon:'♾️',text:'……お前が来ることは、永劫の前から決まっていた。さあ——永遠に戦い続けよう。'},
@@ -4522,20 +4522,20 @@ const GRIND_QUESTS=[
    desc:'SSR Lv.40以上が安定ライン。'},
   // ===== 難易度: 上級 =====
   {id:'g5', name:'深淵の前哨 — 上級', emoji:'💀', diff:'hard', diffLabel:'上級',
-   enemy:{name:'深淵の番兵',    emoji:'👾',hp:7000,atk:350, spd:2},
+   enemy:{name:'深淵の番兵',    emoji:'👾',hp:5000,atk:280, spd:2},
    gold:18000, unlockRank:20,
    desc:'UR or SSR Lv.60以上必須。コンボが重要。'},
   {id:'g6', name:'崩壊の坩堝 — 上級+', emoji:'🔥', diff:'hard', diffLabel:'上級+',
-   enemy:{name:'崩壊炎獄鬼',   emoji:'👹',hp:12000,atk:480, spd:3},
+   enemy:{name:'崩壊炎獄鬼',   emoji:'👹',hp:9000,atk:380, spd:3},
    gold:35000, unlockRank:30,
    desc:'UR複数 or SSR最大育成が必要。属性コンボ必須。'},
   // ===== 難易度: 極限 =====
   {id:'g7', name:'虚無の深淵 — 極限', emoji:'🌑', diff:'extreme', diffLabel:'極限',
-   enemy:{name:'旧破の残影',    emoji:'🌑',hp:25000,atk:700, spd:3},
+   enemy:{name:'旧破の残影',    emoji:'🌑',hp:18000,atk:550, spd:3},
    gold:80000, unlockRank:40,
    desc:'URフル強化でも油断禁物。全員Lv.80以上推奨。'},
   {id:'g8', name:'永劫の虚無 — 最高峰', emoji:'⚫', diff:'extreme', diffLabel:'最高峰',
-   enemy:{name:'永劫の番人',    emoji:'⚫',hp:50000,atk:1000,spd:4},
+   enemy:{name:'永劫の番人',    emoji:'⚫',hp:35000,atk:750,spd:4},
    gold:200000,unlockRank:50,
    desc:'最強クラス。UR Lv.100×3 + 限界突破5が目安。安定周回できれば真のエンドゲーム。'},
 ];
@@ -4636,29 +4636,48 @@ function startGrind(qid, count){
 // ================================================================
 // 階層ごとの敵データ生成（階層が上がるほど強くなる）
 function getTowerEnemy(floor){
+  // 設計：
+  // 1〜30F:  UR常設パーティで勝てる
+  // 31〜60F: UR常設フルパーティ+デバフ・属性活用が必要
+  // 61〜90F: 限定キャラ1体あると楽になる
+  // 91〜120F: 限定キャラ2体推奨
+  // 121F+:   限定キャラ3体必須
+
   const bases=[
-    {name:'深海スライム',emoji:'🟢',hp:300,atk:40},
-    {name:'霧クラゲ',    emoji:'🪼',hp:500,atk:60},
-    {name:'岩石ガニ',    emoji:'🦀',hp:800,atk:90},
-    {name:'深海鰻',      emoji:'🐍',hp:1200,atk:130},
-    {name:'古代魚',      emoji:'🐡',hp:1800,atk:180},
-    {name:'深海竜',      emoji:'🐉',hp:3000,atk:280},
-    {name:'崩壊体',      emoji:'👾',hp:5000,atk:380},
-    {name:'旧破の使徒',  emoji:'💀',hp:8000,atk:500},
-    {name:'深淵の神眷属',emoji:'🌑',hp:15000,atk:700,statusPatterns:[{"type": "poison", "prob": 0.25, "stacks": 1}]},
-    {name:'永遠の番人',  emoji:'⚫',hp:30000,atk:1000},
+    {name:'深海スライム',  emoji:'🟢',hp:300,  atk:30},   // 1〜10F
+    {name:'霧クラゲ',      emoji:'🪼',hp:600,  atk:55},   // 11〜20F
+    {name:'岩石ガニ',      emoji:'🦀',hp:1000, atk:80},   // 21〜30F
+    {name:'深海鰻',        emoji:'🐍',hp:1800, atk:120},  // 31〜40F
+    {name:'古代魚',        emoji:'🐡',hp:3000, atk:170},  // 41〜50F
+    {name:'深海竜',        emoji:'🐉',hp:5500, atk:250},  // 51〜60F
+    {name:'崩壊体',        emoji:'👾',hp:9000, atk:350,   // 61〜70F ←限定1体欲しい
+      statusPatterns:[{"type":"burn","prob":0.2,"stacks":1}]},
+    {name:'旧破の使徒',    emoji:'💀',hp:15000,atk:480,   // 71〜80F
+      statusPatterns:[{"type":"poison","prob":0.25,"stacks":1}]},
+    {name:'深淵の神眷属',  emoji:'🌑',hp:25000,atk:650,   // 81〜90F
+      statusPatterns:[{"type":"poison","prob":0.3,"stacks":1},{"type":"para","prob":0.15,"stacks":1}]},
+    {name:'永遠の番人',    emoji:'⚫',hp:40000,atk:900,   // 91〜100F ←限定2体欲しい
+      statusPatterns:[{"type":"freeze","prob":0.2,"stacks":1}]},
+    {name:'深淵神の眷属',  emoji:'🩸',hp:65000,atk:1200, // 101〜110F
+      statusPatterns:[{"type":"burn","prob":0.3,"stacks":2},{"type":"para","prob":0.2,"stacks":1}]},
+    {name:'旧破の化身',    emoji:'🌌',hp:100000,atk:1600, // 111〜120F ←限定3体必須
+      statusPatterns:[{"type":"poison","prob":0.35,"stacks":2},{"type":"freeze","prob":0.25,"stacks":1}]},
   ];
   const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
   const base = bases[tier];
-  const mul  = 1 + (floor-1)*0.15 + Math.floor((floor-1)/10)*0.5;
+  // 成長係数を緩やか（特に低層）
+  const floorInTier = ((floor-1) % 10);
+  const mul = 1 + floorInTier * 0.08 + Math.floor((floor-1)/10) * 0.3;
   const isBoss = floor%10===0;
+  const statusPatterns = base.statusPatterns || [];
   return {
     name: isBoss ? `【BOSS】${base.name}` : base.name,
     emoji: isBoss ? '👑' : base.emoji,
-    hp:  Math.round(base.hp  * mul * (isBoss?3:1)),
-    atk: Math.round(base.atk * mul * (isBoss?2:1)),
-    spd: floor>=30?3:floor>=15?2:1,
+    hp:  Math.round(base.hp  * mul * (isBoss?2.5:1)),
+    atk: Math.round(base.atk * mul * (isBoss?1.8:1)),
+    spd: floor>=91?4:floor>=61?3:floor>=31?2:1,
     boss: isBoss,
+    statusPatterns: isBoss ? statusPatterns : [],
   };
 }
 
