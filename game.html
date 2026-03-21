@@ -10364,6 +10364,22 @@ function fixMissingIconRewards(){
   if(!S.ownedIcons) S.ownedIcons = ['🌊'];
   if(!S.receivedAchievementRewards) S.receivedAchievementRewards = {};
 
+  // 旧データ対応：stockCopiesが未定義のキャラを補完
+  var od = S.ownedData||{};
+  var stockFixed = false;
+  Object.keys(od).forEach(function(id){
+    var cd = od[id];
+    if(cd.stockCopies===undefined||cd.stockCopies===null){
+      var copies = cd.copies||1;
+      var breakthrough = cd.breakthrough||0;
+      cd.stockCopies = Math.max(0, copies - 1 - breakthrough);
+      if(cd.stockCopies>0) stockFixed=true;
+    }
+  });
+  if(stockFixed){
+    console.log('[FIX] stockCopies補完完了');
+  }
+
   // アプデ前達成者向け：条件を満たしているが未登録の実績を自動登録
   ACHIEVEMENT_LIST.forEach(function(a){
     if(!S.achievements[a.id] && a.cond && a.cond(S)){
@@ -10532,10 +10548,20 @@ function renderBagMats(){
   var stockList = [];
   Object.keys(od).forEach(function(id){
     var cd = od[id];
-    if((cd.stockCopies||0)<=0) return;
-    var c = CHARS.find(function(ch){ return ch.id===parseInt(id); });
+    var stock = cd.stockCopies;
+    // 旧データ対応：stockCopiesが未定義の場合はcopiesとbreakthroughから推定
+    if(stock===undefined||stock===null){
+      var copies = cd.copies||1;
+      var breakthrough = cd.breakthrough||0;
+      // copies=所持数合計、breakthrough=現在の凸数
+      // stockCopies = copies - 1（初回分）- breakthrough（凸に使った分）
+      stock = Math.max(0, copies - 1 - breakthrough);
+    }
+    if(stock<=0) return;
+    var cid = parseInt(id)||Number(id);
+    var c = CHARS.find(function(ch){ return ch.id===cid; });
     if(!c) return;
-    stockList.push({c:c, stock:cd.stockCopies});
+    stockList.push({c:c, stock:stock, id:cid});
   });
   // レアリティ順でソート（UR>SSR>SR>R）
   var rarOrder = {UR:0,SSR:1,SR:2,R:3};
