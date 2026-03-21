@@ -9838,9 +9838,11 @@ function setBgmVolume(vol){
 }
 
 function getBgmKeyForScreen(sc){
-  if(['gacha'].includes(sc)) return 'gacha';
-  if(['pvp'].includes(sc)) return 'pvp';
-  return 'home'; // ホーム・その他は全てhome.mp3
+  if(sc==='gacha') return 'gacha';
+  if(sc==='pvp') return 'pvp';
+  // battle系はinitBattle/bgmStartBattleで制御するのでここでは切り替えない
+  if(sc==='battle' || sc==='pvp-battle') return null;
+  return 'home';
 }
 
 function bgmStartBattle(isBoss){
