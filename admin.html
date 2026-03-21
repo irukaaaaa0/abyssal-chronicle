@@ -659,7 +659,7 @@ function toggleGiftChar(id){
 }
 
 async function confirmGiftModal(){
-  if(!giftTargetUid) return;
+  if(!giftTargetUid){ adminToast('対象プレイヤーが選択されていません'); return; }
   var gem=parseInt(document.getElementById('gm-gem').value)||0;
   var gold=parseInt(document.getElementById('gm-gold').value)||0;
   var ticket=parseInt(document.getElementById('gm-ticket').value)||0;
@@ -676,7 +676,8 @@ async function confirmGiftModal(){
   if(ticket>0) summary.push('🎫'+ticket+'枚');
   if(cpVal>0)  summary.push('🔷'+cpVal+cpRar+'pt');
   if(charIds.length>0) summary.push('🎭'+charIds.length+'体');
-  if(!confirm(giftTargetPlayerId+' に\n'+summary.join(' / ')+'\nを配布しますか？')) return;
+
+  adminToast('⏳ 配布中... '+giftTargetPlayerId);
   try{
     await db.collection('gifts').doc('gift_ind_'+Date.now()).set({
       gem,gold,ticket,
@@ -702,7 +703,10 @@ async function confirmGiftModal(){
     }
     adminToast('✅ 配布完了: '+giftTargetPlayerId+' → '+summary.join(' / '));
     closeGiftModal(); loadGifts();
-  }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
+  }catch(e){
+    console.error('配布失敗:', e);
+    adminToast('❌ 配布失敗: '+e.message);
+  }
 }
 
 async function sendIndividualGift(uid, gem, gold, msg, playerId){
