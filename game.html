@@ -6607,18 +6607,18 @@ function pvpAttack(){
   const debuffResult=pvpCheckDebufferSkill();
   if(debuffResult){
     const cfg=STATUS_CONFIG[debuffResult.type];
-    // oppStatusをactionとは別の独立したフィールドで送信
     const debuffKey=st.amHost?'hostDebuff':'guestDebuff';
     data[debuffKey]={
       type:debuffResult.type,
       stacks:debuffResult.stacks,
       ts:nowTs,
-      charName:debuffResult.charName
+      charName:debuffResult.charName,
+      targetName:debuffResult.targetName||'相手',
+      targetId:debuffResult.targetId||null,
     };
-    // actionにも入れておく（後方互換）
-    data[atkKey].oppStatus = data[debuffKey];
+    data[atkKey].oppStatus=data[debuffKey];
     showSpecialAtkBanner&&showSpecialAtkBanner(
-      debuffResult.charName+' スキル発動！相手に'+(cfg?cfg.label:debuffResult.type)+'付与！',
+      debuffResult.charName+'のスキル発動！'+debuffResult.targetName+'に'+(cfg?cfg.label:debuffResult.type)+'付与！',
       cfg?cfg.color:'#c080ff'
     );
   }
@@ -6658,7 +6658,10 @@ function onPvpRoomUpdate(data){
       st.lastOppStatusTs=debuffData.ts;
       pvpApplyStatusToMe(debuffData.type, debuffData.stacks||1);
       const cfg=STATUS_CONFIG&&STATUS_CONFIG[debuffData.type];
-      if(cfg) showToast('⚠️ '+debuffData.charName+'のスキルで'+cfg.label+'を受けた！');
+      if(cfg){
+        var targetMsg=debuffData.targetName?debuffData.targetName+'が':('あなたが');
+        showToast('⚠️ 相手の'+debuffData.charName+'のスキルで'+targetMsg+(cfg.label)+'を受けた！');
+      }
     }
   }
 
@@ -8446,24 +8449,38 @@ function renderPvpMyStatuses(){
   }).join('');
 }
 
-// デバッファーのPvPスキル（攻撃時に相手に状態異常付与）
+// デバッファーのPvPスキル（攻撃時に相手パーティの1体にデバフ付与）
 function pvpCheckDebufferSkill(action){
   const st=pvpBattleState; if(!st) return null;
   // 凍結中はデバフスキルも無効
   const frozen=(st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
   if(frozen) return null;
-  // 生存キャラのみ
+  // 自分パーティの生存デバッファーのみ
   const myPartyAlive=st.myParty.filter(function(m){return m.hp>0;});
+  // 相手パーティの生存キャラ（対象候補）
+  const oppAlive=st.oppParty.filter(function(m){return m.hp>0;});
+  if(!oppAlive.length) return null;
+
   let statusToApply=null;
   myPartyAlive.forEach(function(m){
+    if(statusToApply) return; // 1体のみ発動
     const c=CHARS.find(function(ch){return ch.id===m.id;});
     if(!c||c.role!=='debuffer') return;
-    const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison'};
-    const probMap={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
+    const debuffMap={2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison',202:'burn'};
+    const probMap={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15,202:0.4};
     const statusType=debuffMap[c.id];
     const prob=probMap[c.id]||0.15;
     if(statusType&&Math.random()<prob){
-      statusToApply={type:statusType,stacks:1,charName:c.name};
+      // 相手パーティのランダム1体を対象に
+      const target=oppAlive[Math.floor(Math.random()*oppAlive.length)];
+      const targetChar=CHARS.find(function(ch){return ch.id===target.charId||ch.id===target.id;});
+      statusToApply={
+        type:statusType,
+        stacks:1,
+        charName:c.name,           // 付与者名
+        targetName:targetChar?targetChar.name:'相手', // 対象キャラ名
+        targetId:target.charId||target.id,
+      };
     }
   });
   return statusToApply;
