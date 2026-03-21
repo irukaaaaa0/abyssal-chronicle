@@ -8966,8 +8966,20 @@ function tickCountdown(){
     timerEl.style.color='#ff4060';
     if(barEl) barEl.style.width='0%';
     if(labelEl) labelEl.textContent='このバナーは終了しました';
-    // カテゴリをリロード
-    selectGachaCategory('limited');
+    // 現在のバナーをactive:falseに
+    var b=BANNERS[currentBanner];
+    if(b&&b.limited) b.active=false;
+    // Firestoreも更新
+    try{
+      db.collection('notices').doc('banner_status').get().then(function(doc){
+        var data=doc.exists?doc.data():{};
+        var key='banner_'+b.id;
+        data[key]={...(data[key]||{}),active:false};
+        db.collection('notices').doc('banner_status').set(data);
+      });
+    }catch(e){}
+    // 限定タブ・バナーを非表示にして恒常へ切り替え
+    updateLimitedTabVisibility();
     return;
   }
 
