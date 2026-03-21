@@ -3796,7 +3796,7 @@ function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.select
 // ================================================================
 function initBattle(quest,pids){
   // ボス戦かどうか判定してBGM切り替え
-  var isBoss = quest && quest.enemy && (quest.enemy.boss || quest.isBoss);
+  var isBoss = quest && (quest.boss === true || (quest.enemy && quest.enemy.boss === true));
   bgmStartBattle(isBoss);
   BT.quest=quest;BT.enemyHp=quest.enemy.hp;
   var pidsWithSupport = [...pids];
