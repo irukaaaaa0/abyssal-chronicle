@@ -1037,7 +1037,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 
 
 /* 複数敵 */
-.multi-enemy-area{display:flex;justify-content:center;gap:6px;width:100%;padding:4px 8px;}
+.multi-enemy-area{display:flex;justify-content:center;align-items:flex-start;gap:6px;width:100%;max-width:400px;margin:0 auto;padding:4px 8px;box-sizing:border-box;}
 .enemy-card{flex:1;max-width:110px;background:rgba(0,10,30,.5);border:.5px solid rgba(60,80,120,.4);border-radius:10px;padding:6px;text-align:center;cursor:pointer;transition:border-color .2s,transform .1s;position:relative;}
 .enemy-card:hover{border-color:rgba(255,200,50,.6);transform:scale(1.03);}
 .enemy-card.focused{border-color:#ffd060!important;box-shadow:0 0 8px rgba(255,208,0,.5);}
@@ -1710,10 +1710,10 @@ function onPvpEnd(won, quest){
       <div class="phase-txt" id="phase-txt">YOUR TURN</div>
     </div>
     <!-- 単体敵（互換用・複数敵時は非表示） -->
-    <div id="enemy-single">
+    <div id="enemy-single" style="display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;">
       <div class="enemy-ico" id="enemy-ico">🦑</div>
       <div class="enemy-nm" id="enemy-nm">???</div>
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
+      <div class="enemy-hp-bar" style="margin:0 auto;"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
       <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
     </div>
     <!-- 複数敵エリア -->
@@ -3668,12 +3668,16 @@ function doGacha(count){
              : CHARS.filter(c=>c.rarity===rar&&!c.limited); // 恒常プールのみ
       }
     } else {
-      // 恒常バナー：限定キャラは排出されない
+      // 恒常バナー：限定キャラは絶対に排出されない
       const pickupPool=CHARS.filter(c=>c.rarity===rar&&b.pickupIds.includes(c.id)&&!c.limited);
       const normalPool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
       pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
     }
+    // フォールバック：限定キャラを確実に除外
     if(!pool||!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
+    // 最終安全チェック：限定キャラが混入していたら除外
+    pool=pool.filter(c=>!c.limited);
+    if(!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
     ch=pool[Math.floor(Math.random()*pool.length)];
 
     const isDupe = S.owned.includes(ch.id);
@@ -3786,7 +3790,8 @@ function openGachaDetail(){
   const order=['UR','SSR','SR','R'];
   let allHtml='';
   order.forEach(rar=>{
-    const pool=CHARS.filter(c=>c.rarity===rar);
+    // 恒常バナーは限定キャラを除外
+    const pool=CHARS.filter(c=>c.rarity===rar&&(b.limited||!c.limited));
     if(!pool.length)return;
     const rarColor=rar==='UR'?'#ffe040':rar==='SSR'?'#d4a020':rar==='SR'?'#a060e0':'#4080c0';
     const totalRate=rar==='UR'?0.1:rar==='SSR'?1.9:rar==='SR'?13:85;
@@ -4358,7 +4363,7 @@ function getPartyMaxSelect(){
   const activeMembers = getActiveSkillMembers(BT.partyHp, statusArr);
   let bonus=0;
   activeMembers.forEach(function(m){
-    if(m.id===1||m.id===59) bonus+=1;
+    if(m.id===1||m.id===59||m.id===200) bonus+=1; // アルカナ/ヴォイド/イブリス
   });
   // 麻痺で-2
   var hasPara = statusArr.some(function(s){return s.type==='para'&&s.stacks>0;});
@@ -4648,7 +4653,14 @@ function executeAttack(){
   const typeCounts = {};
   sel.forEach(c=>{ if(c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
   const maxEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
-  const typeBonus = maxEntry ? (COMBO_TYPE_BONUS[maxEntry[0]]||0)*maxEntry[1] : 0;
+  var typeBonus = maxEntry ? (COMBO_TYPE_BONUS[maxEntry[0]]||0)*maxEntry[1] : 0;
+  // イブリス（id:200）の闇コンボ時+55%
+  if(maxEntry && maxEntry[0]==='dark'){
+    var hasIblis = BT.partyHp.some(function(m){
+      return m.id===200 && m.hp>0;
+    });
+    if(hasIblis) typeBonus += 0.55;
+  }
 
   let total = 0;
   let cb = 1.0;
@@ -9759,7 +9771,7 @@ function getPvpMaxSelect(){
   var max=4;
   notFrozenMembers.forEach(function(m){
     var id=m.charId||m.id;
-    if(id===1||id===59) max++;
+    if(id===1||id===59||id===200) max++; // アルカナ/ヴォイド/イブリス
   });
 
   // 凍結キャラの分だけカード枚数を減らす（1キャラあたり-1枚）
@@ -11047,7 +11059,9 @@ function initMultiEnemies(quest){
       };
     });
     document.getElementById('enemy-single').style.display='none';
-    document.getElementById('enemy-multi').style.display='';
+    var em=document.getElementById('enemy-multi');
+    em.style.display='block';
+    em.style.width='100%';
     renderMultiEnemies();
   }
   BT_FOCUS_TARGET = -1;
