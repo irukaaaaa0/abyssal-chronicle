@@ -1520,13 +1520,15 @@ function onPvpEnd(won, quest){
       <!-- アイテムタブ -->
       <div id="bag-content-items">
         <!-- クラフトポイント -->
-        <div style="background:linear-gradient(135deg,rgba(20,60,120,.4),rgba(10,30,80,.4));border:.5px solid rgba(60,120,220,.4);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
-          <div style="font-size:28px;">🔷</div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">クラフトポイント</div>
-            <div style="font-size:10px;color:var(--text2);">凸素材と交換できるポイント</div>
+        <div style="background:linear-gradient(135deg,rgba(20,60,120,.4),rgba(10,30,80,.4));border:.5px solid rgba(60,120,220,.4);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:700;margin-bottom:8px;">🔷 クラフトポイント</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="bag-craft-pts">
+            <div style="text-align:center;background:rgba(20,40,80,.4);border-radius:8px;padding:6px 4px;"><div style="font-size:9px;color:#4080c0;font-weight:700;">R</div><div style="font-size:14px;font-weight:800;color:#60a0ff;" id="cp-r">0</div></div>
+            <div style="text-align:center;background:rgba(40,20,80,.4);border-radius:8px;padding:6px 4px;"><div style="font-size:9px;color:#a060e0;font-weight:700;">SR</div><div style="font-size:14px;font-weight:800;color:#c080ff;" id="cp-sr">0</div></div>
+            <div style="text-align:center;background:rgba(60,40,0,.4);border-radius:8px;padding:6px 4px;"><div style="font-size:9px;color:#d4a020;font-weight:700;">SSR</div><div style="font-size:14px;font-weight:800;color:#ffc040;" id="cp-ssr">0</div></div>
+            <div style="text-align:center;background:rgba(60,50,0,.4);border-radius:8px;padding:6px 4px;"><div style="font-size:9px;color:#ffe040;font-weight:700;">UR</div><div style="font-size:14px;font-weight:800;color:#ffe870;" id="cp-ur">0</div></div>
           </div>
-          <div style="font-size:22px;font-weight:800;color:#60c0ff;" id="bag-craft-pts">0</div>
+          <div style="font-size:8px;color:var(--text3);margin-top:6px;">ガチャ上限到達時に各レアリティポイントを獲得</div>
         </div>
         <!-- ガチャチケット -->
         <div style="background:linear-gradient(135deg,rgba(120,60,20,.4),rgba(80,30,10,.4));border:.5px solid rgba(220,140,40,.4);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
@@ -1578,7 +1580,12 @@ function onPvpEnd(won, quest){
           <div style="font-size:12px;font-weight:700;">所持クラフトポイント</div>
           <div style="font-size:9px;color:var(--text2);">ガチャ上限到達時に獲得</div>
         </div>
-        <div style="font-size:22px;font-weight:800;color:#60c0ff;" id="shop-craft-pts">0</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;" id="shop-craft-pts">
+            <div style="text-align:center;"><div style="font-size:9px;color:#4080c0;font-weight:700;">R</div><div style="font-size:14px;font-weight:800;color:#60a0ff;" id="scp-r">0</div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:#a060e0;font-weight:700;">SR</div><div style="font-size:14px;font-weight:800;color:#c080ff;" id="scp-sr">0</div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:#d4a020;font-weight:700;">SSR</div><div style="font-size:14px;font-weight:800;color:#ffc040;" id="scp-ssr">0</div></div>
+            <div style="text-align:center;"><div style="font-size:9px;color:#ffe040;font-weight:700;">UR</div><div style="font-size:14px;font-weight:800;color:#ffe870;" id="scp-ur">0</div></div>
+          </div>
       </div>
       <!-- レアリティタブ -->
       <div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;">
@@ -2146,7 +2153,7 @@ async function saveToCloud(){
     ownedIcons: S.ownedIcons||['🌊'],
     receivedAchievementRewards: S.receivedAchievementRewards||{},
     gachaTickets: S.gachaTickets||0,
-    craftPoints: S.craftPoints||0,
+    craftPoints: S.craftPoints||{R:0,SR:0,SSR:0,UR:0},
     craftMaterials: S.craftMaterials||{},
     bagItems: S.bagItems||{},
     lastSaved: new Date().toISOString()
@@ -2888,7 +2895,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:0, craftMaterials:{}, bagItems:{},
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
   lastLoginDate:'',dailyRewardClaimed:false,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
@@ -3597,9 +3604,9 @@ function doGacha(count){
         isMaxCopies=true;
         dupeGold={R:2000,SR:8000,SSR:30000,UR:100000}[ch.rarity]||2000;
         S.gold+=dupeGold;
-        var cpts=MAX_COPIES_POINT[ch.rarity]||5;
-        if(!S.craftPoints) S.craftPoints=0;
-        S.craftPoints+=cpts;
+        var cpts=MAX_COPIES_POINT[ch.rarity]||20;
+        if(!S.craftPoints||typeof S.craftPoints!=='object') S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+        S.craftPoints[ch.rarity]=(S.craftPoints[ch.rarity]||0)+cpts;
       } else {
         // 凸素材としてストック
         cd.stockCopies=Math.min((cd.stockCopies||0)+1, 9);
@@ -10443,10 +10450,10 @@ function getMatKey(attr, rarity){
 }
 
 // 素材ショップの値段（クラフトポイント）
-const MAT_SHOP_COST = {R:10, SR:30, SSR:100, UR:300};
+const MAT_SHOP_COST = {R:30, SR:60, SSR:120, UR:300};
 
 // ガチャ上限到達時のポイント付与量
-const MAX_COPIES_POINT = {R:5, SR:15, SSR:50, UR:150};
+const MAX_COPIES_POINT = {R:20, SR:60, SSR:150, UR:400};
 
 // 凸素材でbreakthroughCharを行う
 function breakthroughWithMaterial(charId){
@@ -10485,11 +10492,15 @@ function openBag(){
 
 function renderBag(){
   // アイテムタブ更新
-  var cpEl = document.getElementById('bag-craft-pts');
   var tkEl = document.getElementById('bag-tickets');
   var gmEl = document.getElementById('bag-gem');
   var gdEl = document.getElementById('bag-gold');
-  if(cpEl) cpEl.textContent = (S.craftPoints||0).toLocaleString();
+  // レアリティ別クラフトポイント更新
+  var cp=typeof S.craftPoints==='object'?S.craftPoints:{R:0,SR:0,SSR:0,UR:0};
+  var cpR=document.getElementById('cp-r'); if(cpR) cpR.textContent=cp.R||0;
+  var cpSR=document.getElementById('cp-sr'); if(cpSR) cpSR.textContent=cp.SR||0;
+  var cpSSR=document.getElementById('cp-ssr'); if(cpSSR) cpSSR.textContent=cp.SSR||0;
+  var cpUR=document.getElementById('cp-ur'); if(cpUR) cpUR.textContent=cp.UR||0;
   if(tkEl) tkEl.textContent = (S.gachaTickets||0).toLocaleString();
   if(gmEl) gmEl.textContent = (S.gem||0).toLocaleString();
   if(gdEl) gdEl.textContent = (S.gold||0).toLocaleString();
@@ -10572,13 +10583,15 @@ function renderBagShop(rar){
 
 function buyMaterial(key){
   var m = CRAFT_MATERIALS[key]; if(!m) return;
-  var cost = MAT_SHOP_COST[m.rarity]||10;
-  if((S.craftPoints||0)<cost){ showToast('🔷 クラフトポイントが足りません（必要: '+cost+'pt）'); return; }
-  S.craftPoints = (S.craftPoints||0)-cost;
+  var cost = MAT_SHOP_COST[m.rarity]||30;
+  if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+  var have=(S.craftPoints[m.rarity]||0);
+  if(have<cost){ showToast('足りません！ '+m.rarity+'ポイント: '+have+'/'+cost+'pt'); return; }
+  S.craftPoints[m.rarity]=have-cost;
   if(!S.craftMaterials) S.craftMaterials={};
   S.craftMaterials[key] = (S.craftMaterials[key]||0)+1;
   saveGameImmediate(); sfx('select');
-  showToast('✅ 「'+m.name+'」を購入しました！ 残り🔷'+(S.craftPoints)+'pt');
+  showToast('✅ 「'+m.name+'」購入！ 残り'+m.rarity+'pt: '+(S.craftPoints[m.rarity]));
   renderBag();
 }
 
@@ -10586,8 +10599,11 @@ function buyMaterial(key){
 //  ショップ画面（独立）
 // ================================================================
 function renderShopScreen(){
-  var cpEl = document.getElementById('shop-craft-pts');
-  if(cpEl) cpEl.textContent = (S.craftPoints||0).toLocaleString();
+  var cp2=typeof S.craftPoints==='object'?S.craftPoints:{R:0,SR:0,SSR:0,UR:0};
+  var scpR=document.getElementById('scp-r'); if(scpR) scpR.textContent=cp2.R||0;
+  var scpSR=document.getElementById('scp-sr'); if(scpSR) scpSR.textContent=cp2.SR||0;
+  var scpSSR=document.getElementById('scp-ssr'); if(scpSSR) scpSSR.textContent=cp2.SSR||0;
+  var scpUR=document.getElementById('scp-ur'); if(scpUR) scpUR.textContent=cp2.UR||0;
   renderMainShop(_shopRarity);
   // アクティブタブを更新
   ['R','SR','SSR','UR'].forEach(function(r){
@@ -10607,11 +10623,12 @@ function showShopRarity(rar){
 
 function renderMainShop(rar){
   var el = document.getElementById('shop-main-list'); if(!el) return;
-  var cp = S.craftPoints||0;
-  var cost = MAT_SHOP_COST[rar]||10;
+  var cpObj=typeof S.craftPoints==='object'?S.craftPoints:{R:0,SR:0,SSR:0,UR:0};
+  var cp = cpObj[rar]||0;
+  var cost = MAT_SHOP_COST[rar]||30;
   var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
   var attrs = ['fire','ice','thunder','water','dark','light','none'];
-  var html2 = '<div style="font-size:10px;color:var(--text3);margin-bottom:10px;">🔷クラフトポイントで凸素材と交換 / 1個 = <span style="color:#60c0ff;font-weight:700;">🔷'+cost+'pt</span></div>';
+  var html2 = '<div style="font-size:10px;color:var(--text3);margin-bottom:10px;">'+rar+'ポイント所持: <span style="color:'+( rarColor[rar]||'#60c0ff')+';font-weight:700;">'+cp+'pt</span> / 1個 = '+cost+'pt</div>';
   html2 += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">';
   attrs.forEach(function(attr){
     var key = getMatKey(attr, rar);
@@ -10638,13 +10655,15 @@ function renderMainShop(rar){
 
 function buyMaterialFromShop(key){
   var m = CRAFT_MATERIALS[key]; if(!m) return;
-  var cost = MAT_SHOP_COST[m.rarity]||10;
-  if((S.craftPoints||0)<cost){ showToast('🔷 クラフトポイントが足りません（必要: '+cost+'pt）'); return; }
-  S.craftPoints = (S.craftPoints||0)-cost;
+  var cost = MAT_SHOP_COST[m.rarity]||30;
+  if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+  var have=(S.craftPoints[m.rarity]||0);
+  if(have<cost){ showToast(m.rarity+'ポイントが足りません（必要: '+cost+'pt / 所持: '+have+'pt）'); return; }
+  S.craftPoints[m.rarity]=have-cost;
   if(!S.craftMaterials) S.craftMaterials={};
   S.craftMaterials[key] = (S.craftMaterials[key]||0)+1;
   saveGameImmediate(); sfx('select');
-  showToast('✅ 「'+m.name+'」を購入！ 残り🔷'+(S.craftPoints)+'pt');
+  showToast('✅ 「'+m.name+'」購入！ 残り'+m.rarity+'pt: '+(S.craftPoints[m.rarity]));
   renderShopScreen();
 }
 </script>
