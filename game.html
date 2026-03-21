@@ -1043,8 +1043,12 @@ function onPvpEnd(won, quest){
   S.pvpRank = Math.max(0, (S.pvpRank||1200)+pointChange);
   if(won){ S.pvpWin=(S.pvpWin||0)+1; }
   else   { S.pvpLose=(S.pvpLose||0)+1; }
-  checkAchievement('pvp_win10', (S.pvpWin||0)>=10);
-  checkAchievement('pvp_win50', (S.pvpWin||0)>=50);
+  checkAchievement('pvp_win10',    (S.pvpWin||0)>=10);
+  checkAchievement('pvp_win50',    (S.pvpWin||0)>=50);
+  checkAchievement('pvp_win100',   (S.pvpWin||0)>=100);
+  checkAchievement('pvp_first',    (S.pvpWin||0)>=1);
+  checkAchievement('pvp_rate1500', (S.pvpRank||1200)>=1500);
+  checkAchievement('pvp_rate2000', (S.pvpRank||1200)>=2000);
   saveGame();
 }
 </script>
@@ -5891,6 +5895,11 @@ function addRankExp(exp){
     const rewards=getRankupRewards(S.rank);
     rewards.forEach(r=>{ if(r.type==='gem') S.gem+=r.amount; if(r.type==='gold') S.gold+=r.amount; });
     queue.push({rank:S.rank,rewards});
+    // rank実績チェック
+    checkAchievement('rank10', S.rank>=10);
+    checkAchievement('rank30', S.rank>=30);
+    checkAchievement('rank50', S.rank>=50);
+    checkAchievement('rank100', S.rank>=100);
   }
   saveGame(); updateRankBar();
   return queue;
@@ -7503,6 +7512,10 @@ async function sendFriendRequest(){
       rank:targetData.rank||1,
       helperChar:targetData.helperChar||null,
     });
+    // friend実績チェック
+    checkAchievement('friend1',  S.friends.length>=1);
+    checkAchievement('friend5',  S.friends.length>=5);
+    checkAchievement('friend10', S.friends.length>=10);
 
     // 自分のFirestoreを更新
     if(playerDocRef){
@@ -10161,9 +10174,16 @@ function selectIcon(icon){
 //  起動時：達成済み実績の未受取報酬（アイコン・ジェム）を補填
 // ================================================================
 function fixMissingIconRewards(){
-  if(!S.achievements) return;
+  if(!S.achievements) S.achievements={};
   if(!S.ownedIcons) S.ownedIcons = ['🌊'];
   if(!S.receivedAchievementRewards) S.receivedAchievementRewards = {};
+
+  // アプデ前達成者向け：条件を満たしているが未登録の実績を自動登録
+  ACHIEVEMENT_LIST.forEach(function(a){
+    if(!S.achievements[a.id] && a.cond && a.cond(S)){
+      S.achievements[a.id] = Date.now();
+    }
+  });
 
   var iconGained = [];
   var gemGained = 0;
