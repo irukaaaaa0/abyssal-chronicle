@@ -1223,11 +1223,11 @@ function onPvpEnd(won, quest){
       </div>
       <div class="gacha-btns">
         <div class="gacha-btn" onclick="doGacha(1)">
-          <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>300</div></div>
+          <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>160</div></div>
           <div class="gacha-btn-ico">🎲</div>
         </div>
         <div class="gacha-btn" onclick="doGacha(10)">
-          <div><div class="gacha-btn-name">10連召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>3000（1回おまけ）</div></div>
+          <div><div class="gacha-btn-name">10連召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>1600（1回おまけ）</div></div>
           <div class="gacha-btn-ico">🌊</div>
         </div>
       </div>
@@ -2708,7 +2708,10 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:''};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'',
+  lastLoginDate:'',dailyRewardClaimed:false,
+  weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
+};
 
 function saveGame(){
   // lastSavedを更新してからローカルに保存
@@ -2825,7 +2828,7 @@ function goTo(sc){
   if(sc==='grind')renderGrind();
   if(sc==='achieve'){renderAchieve();}
   if(sc==='library') renderLibrary();
-  if(sc==='home') setTimeout(checkRankRewardBadge,400);
+  if(sc==='home'){ setTimeout(checkRankRewardBadge,400); if(typeof initDailyMissions==='function') initDailyMissions(); }
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
   if(sc==='pvp')renderPvp();
@@ -3304,7 +3307,7 @@ function doGacha(count){
   }
   MacroDetector.recordClick('gacha');
   MacroDetector.checkGachaAbuse();
-  const cost=count===1?300:3000;
+  const cost=count===1?160:1600;
   if(S.gem<cost){showToast('💎 深海結晶が足りません！');return;}
   sfx('gacha'); S.gem-=cost;
   if(!S.pityPerBanner||S.pityPerBanner.length<BANNERS.length)S.pityPerBanner=BANNERS.map((_,i)=>S.pityPerBanner&&S.pityPerBanner[i]||0);
@@ -3356,7 +3359,7 @@ function doGacha(count){
     if(isDupe) S.gold += dupeGold;
     res.push({...ch, isDupe, dupeGold});
   }
-  saveGameImmediate(); showResult(res); refreshGacha();
+  updateMissionProgress("gacha"); saveGameImmediate(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
   document.getElementById('gold-val').textContent=S.gold.toLocaleString();
 }
@@ -5895,6 +5898,11 @@ function winBattle(){
   BT.active=false; sfx('win');
   S.gold+=BT.quest.gold; S.gem+=BT.quest.gem;
   S.dailyDone=Math.min(5,S.dailyDone+1);
+  // ミッション進捗
+  if(!BT.quest.isGrind){
+    if(BT.quest.isTower) updateMissionProgress('tower');
+    else updateMissionProgress('quest');
+  }
   if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
   if(BT.quest.isTower) onTowerClear(BT.quest);
   if(BT.quest.isGrind){
@@ -6637,6 +6645,7 @@ function onPvpEnd(won, quest){
     showToast(won?'⚔️ NPC戦勝利！（pts変動なし）':'⚔️ NPC戦敗北（pts変動なし）');
     return;
   }
+  if(won) updateMissionProgress('pvp');
   const ptChange = won ? Math.round(20+(((quest&&quest.opponent)||{rank:1200}).rank||1200)/100) : -15;
   S.pvpRank = Math.max(0, (S.pvpRank||1200)+ptChange);
   if(won){ S.pvpWin=(S.pvpWin||0)+1; }
@@ -9139,6 +9148,125 @@ function getActiveSkillMembers(partyHpArr, statusArr){
   return (partyHpArr||[]).filter(function(m){
     return canActivateSkill(m.id, partyHpArr, statusArr);
   });
+}
+
+// ================================================================
+//  デイリー・週次ミッション定義
+// ================================================================
+const DAILY_MISSIONS = [
+  {id:'quest',    label:'クエストを3回クリア',  target:3,  gem:15, key:'questCount'},
+  {id:'pvp',      label:'PvP戦を1回プレイ',    target:1,  gem:10, key:'pvpCount'},
+  {id:'login',    label:'ログインボーナス',      target:1,  gem:20, key:'loginDone'},
+  {id:'gacha',    label:'召喚を1回行う',        target:1,  gem:10, key:'gachaCount'},
+  {id:'tower',    label:'無限塔を1回クリア',    target:1,  gem:15, key:'towerCount'},
+];
+// デイリー全完了ボーナス
+const DAILY_COMPLETE_BONUS = 50; // 💎50
+
+const WEEKLY_MISSIONS = [
+  {id:'wQuest',  label:'クエストを20回クリア', target:20, gem:80,  key:'quest'},
+  {id:'wPvp',    label:'PvP戦を5回勝利',      target:5,  gem:60,  key:'pvp'},
+  {id:'wTower',  label:'無限塔を10回クリア',  target:10, gem:70,  key:'tower'},
+  {id:'wGacha',  label:'召喚を10回行う',       target:10, gem:50,  key:'gacha'},
+];
+// 週次全完了ボーナス
+const WEEKLY_COMPLETE_BONUS = 200; // 💎200
+
+// デイリー進捗（当日のみ有効）
+var dailyProgress = {questCount:0, pvpCount:0, loginDone:0, gachaCount:0, towerCount:0};
+var dailyRewardClaimedIds = []; // 受け取り済みミッションID
+
+function getTodayStr(){ return new Date().toISOString().slice(0,10); }
+function getWeekStr(){
+  var d=new Date(); var day=d.getDay();
+  var mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1));
+  return mon.toISOString().slice(0,10);
+}
+
+// ログイン時初期化
+function initDailyMissions(){
+  var today = getTodayStr();
+  if(S.lastLoginDate !== today){
+    // 新しい日→デイリーリセット
+    S.lastLoginDate = today;
+    S.dailyDone = 0;
+    S.dailyRewardClaimed = false;
+    dailyProgress = {questCount:0, pvpCount:0, loginDone:0, gachaCount:0, towerCount:0};
+    dailyRewardClaimedIds = [];
+    // ログインボーナス自動付与
+    dailyProgress.loginDone = 1;
+  } else {
+    // 同じ日→ローカルから復元
+    dailyProgress = S.dailyProgress || {questCount:0, pvpCount:0, loginDone:1, gachaCount:0, towerCount:0};
+    dailyRewardClaimedIds = S.dailyRewardClaimedIds || [];
+  }
+  // 週次リセット
+  var thisWeek = getWeekStr();
+  if(S.lastWeeklyReset !== thisWeek){
+    S.lastWeeklyReset = thisWeek;
+    S.weeklyProgress = {quest:0, pvp:0, tower:0, gacha:0};
+    S.weeklyRewardClaimed = [];
+  }
+  saveGame();
+}
+
+// ミッション進捗を更新
+function updateMissionProgress(type, amount){
+  amount = amount || 1;
+  if(type==='quest')  { dailyProgress.questCount+=amount; (S.weeklyProgress||{}).quest=(S.weeklyProgress.quest||0)+amount; }
+  if(type==='pvp')    { dailyProgress.pvpCount+=amount;   (S.weeklyProgress||{}).pvp=(S.weeklyProgress.pvp||0)+amount; }
+  if(type==='tower')  { dailyProgress.towerCount+=amount; (S.weeklyProgress||{}).tower=(S.weeklyProgress.tower||0)+amount; }
+  if(type==='gacha')  { dailyProgress.gachaCount+=amount; (S.weeklyProgress||{}).gacha=(S.weeklyProgress.gacha||0)+amount; }
+  S.dailyProgress = dailyProgress;
+  saveGame();
+  // 自動クレーム（達成したら即付与）
+  autoClaimMissions();
+}
+
+function autoClaimMissions(){
+  var claimed = false;
+  DAILY_MISSIONS.forEach(function(m){
+    if(dailyRewardClaimedIds.includes(m.id)) return;
+    var prog = dailyProgress[m.key]||0;
+    if(prog >= m.target){
+      S.gem += m.gem;
+      dailyRewardClaimedIds.push(m.id);
+      showToast('🎯 デイリー達成！「'+m.label+'」 💎+'+m.gem);
+      claimed = true;
+    }
+  });
+  // 全完了ボーナス
+  var allDone = DAILY_MISSIONS.every(function(m){ return dailyRewardClaimedIds.includes(m.id); });
+  if(allDone && !S.dailyRewardClaimed){
+    S.gem += DAILY_COMPLETE_BONUS;
+    S.dailyRewardClaimed = true;
+    showToast('🎉 デイリー全完了ボーナス！ 💎+'+DAILY_COMPLETE_BONUS);
+    claimed = true;
+  }
+  // 週次ミッション
+  WEEKLY_MISSIONS.forEach(function(m){
+    if((S.weeklyRewardClaimed||[]).includes(m.id)) return;
+    var prog = (S.weeklyProgress||{})[m.key]||0;
+    if(prog >= m.target){
+      S.gem += m.gem;
+      S.weeklyRewardClaimed.push(m.id);
+      showToast('📅 週次達成！「'+m.label+'」 💎+'+m.gem);
+      claimed = true;
+    }
+  });
+  // 週次全完了ボーナス
+  var allWeeklyDone = WEEKLY_MISSIONS.every(function(m){ return (S.weeklyRewardClaimed||[]).includes(m.id); });
+  if(allWeeklyDone && !(S.weeklyRewardClaimed||[]).includes('weekly_all')){
+    S.gem += WEEKLY_COMPLETE_BONUS;
+    S.weeklyRewardClaimed.push('weekly_all');
+    showToast('🏆 週次全完了ボーナス！ 💎+'+WEEKLY_COMPLETE_BONUS);
+    claimed = true;
+  }
+  if(claimed){
+    S.dailyRewardClaimedIds = dailyRewardClaimedIds;
+    saveGameImmediate();
+    refreshHome();
+  }
 }
 </script>
 
