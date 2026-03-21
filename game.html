@@ -1587,14 +1587,34 @@ function onPvpEnd(won, quest){
             <div style="text-align:center;"><div style="font-size:9px;color:#ffe040;font-weight:700;">UR</div><div style="font-size:14px;font-weight:800;color:#ffe870;" id="scp-ur">0</div></div>
           </div>
       </div>
-      <!-- レアリティタブ -->
-      <div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;">
-        <button onclick="showShopRarity('R')" id="shop-tab-r" style="padding:6px 14px;border-radius:8px;border:.5px solid #4080c0;background:rgba(20,40,80,.4);color:#4080c0;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">R</button>
-        <button onclick="showShopRarity('SR')" id="shop-tab-sr" style="padding:6px 14px;border-radius:8px;border:.5px solid #a060e0;background:rgba(40,20,80,.3);color:#a060e0;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">SR</button>
-        <button onclick="showShopRarity('SSR')" id="shop-tab-ssr" style="padding:6px 14px;border-radius:8px;border:.5px solid #d4a020;background:rgba(60,40,0,.3);color:#d4a020;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">SSR</button>
-        <button onclick="showShopRarity('UR')" id="shop-tab-ur" style="padding:6px 14px;border-radius:8px;border:.5px solid #ffe040;background:rgba(60,50,0,.3);color:#ffe040;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">UR</button>
+      <!-- メインタブ：変換 / 購入 -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="gacha-cat-btn active" id="shop-mode-convert" onclick="switchShopMode('convert')" style="flex:1;padding:8px;">🔄 素材→ポイント変換</button>
+        <button class="gacha-cat-btn" id="shop-mode-buy" onclick="switchShopMode('buy')" style="flex:1;padding:8px;">🛒 ポイント→素材購入</button>
       </div>
-      <div id="shop-main-list"></div>
+      <!-- 変換モード -->
+      <div id="shop-convert-area">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">💥 凸素材をクラフトポイントに変換します</div>
+        <!-- レアリティタブ -->
+        <div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;">
+          <button onclick="showConvertRarity('R')"   id="cvt-tab-r"   style="padding:5px 12px;border-radius:6px;border:.5px solid #4080c0;background:rgba(20,40,80,.5);color:#4080c0;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">R</button>
+          <button onclick="showConvertRarity('SR')"  id="cvt-tab-sr"  style="padding:5px 12px;border-radius:6px;border:.5px solid #a060e0;background:rgba(40,20,80,.3);color:#a060e0;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">SR</button>
+          <button onclick="showConvertRarity('SSR')" id="cvt-tab-ssr" style="padding:5px 12px;border-radius:6px;border:.5px solid #d4a020;background:rgba(60,40,0,.3);color:#d4a020;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">SSR</button>
+          <button onclick="showConvertRarity('UR')"  id="cvt-tab-ur"  style="padding:5px 12px;border-radius:6px;border:.5px solid #ffe040;background:rgba(60,50,0,.3);color:#ffe040;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">UR</button>
+        </div>
+        <div id="shop-convert-list"></div>
+      </div>
+      <!-- 購入モード -->
+      <div id="shop-buy-area" style="display:none;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">🔷 クラフトポイントで属性凸素材を購入します</div>
+        <div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;">
+          <button onclick="showShopRarity('R')"   id="shop-tab-r"   style="padding:5px 12px;border-radius:6px;border:.5px solid #4080c0;background:rgba(20,40,80,.5);color:#4080c0;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">R</button>
+          <button onclick="showShopRarity('SR')"  id="shop-tab-sr"  style="padding:5px 12px;border-radius:6px;border:.5px solid #a060e0;background:rgba(40,20,80,.3);color:#a060e0;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">SR</button>
+          <button onclick="showShopRarity('SSR')" id="shop-tab-ssr" style="padding:5px 12px;border-radius:6px;border:.5px solid #d4a020;background:rgba(60,40,0,.3);color:#d4a020;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">SSR</button>
+          <button onclick="showShopRarity('UR')"  id="shop-tab-ur"  style="padding:5px 12px;border-radius:6px;border:.5px solid #ffe040;background:rgba(60,50,0,.3);color:#ffe040;cursor:pointer;font-size:10px;font-family:inherit;font-weight:600;">UR</button>
+        </div>
+        <div id="shop-main-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3600,16 +3620,20 @@ function doGacha(count){
       var currentStock=cd.stockCopies||0;
       var currentBreak=cd.breakthrough||0;
       if(currentBreak>=9 && currentStock>=9){
-        // 最大凸かつ素材フル：ゴールド＋クラフトポイントに変換
+        // 最大凸かつ素材フル：ゴールドに変換（ポイントはショップで素材から変換）
         isMaxCopies=true;
         dupeGold={R:2000,SR:8000,SSR:30000,UR:100000}[ch.rarity]||2000;
         S.gold+=dupeGold;
-        var cpts=MAX_COPIES_POINT[ch.rarity]||20;
-        if(!S.craftPoints||typeof S.craftPoints!=='object') S.craftPoints={R:0,SR:0,SSR:0,UR:0};
-        S.craftPoints[ch.rarity]=(S.craftPoints[ch.rarity]||0)+cpts;
+        // 素材上限999を超えた分もゴールドに変換
+        if(cd.stockCopies>=999){
+          S.gold+=dupeGold;
+        } else {
+          cd.stockCopies=Math.min((cd.stockCopies||0)+1, 999);
+          isMaxCopies=false; // 999未満なら素材としてストック
+        }
       } else {
         // 凸素材としてストック
-        cd.stockCopies=Math.min((cd.stockCopies||0)+1, 9);
+        cd.stockCopies=Math.min((cd.stockCopies||0)+1, 999);
         copiesGained=1;
       }
     }
@@ -10676,16 +10700,8 @@ function renderShopScreen(){
   var scpSR=document.getElementById('scp-sr'); if(scpSR) scpSR.textContent=cp2.SR||0;
   var scpSSR=document.getElementById('scp-ssr'); if(scpSSR) scpSSR.textContent=cp2.SSR||0;
   var scpUR=document.getElementById('scp-ur'); if(scpUR) scpUR.textContent=cp2.UR||0;
-  renderMainShop(_shopRarity);
-  // アクティブタブを更新
-  ['R','SR','SSR','UR'].forEach(function(r){
-    var btn = document.getElementById('shop-tab-'+r.toLowerCase());
-    if(!btn) return;
-    var isActive = r===_shopRarity;
-    var colors = {R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
-    btn.style.background = isActive ? 'rgba(30,60,120,.6)' : 'rgba(20,40,80,.3)';
-    btn.style.boxShadow = isActive ? '0 0 8px '+colors[r]+'66' : 'none';
-  });
+  if(_shopMode==='convert') renderConvertList(_convertRarity);
+  else renderMainShop(_shopRarity);
 }
 
 function showShopRarity(rar){
@@ -10737,6 +10753,152 @@ function buyMaterialFromShop(key){
   saveGameImmediate(); sfx('select');
   showToast('✅ 「'+m.name+'」購入！ 残り'+m.rarity+'pt: '+(S.craftPoints[m.rarity]));
   renderShopScreen();
+}
+
+// ================================================================
+//  ショップ：素材→ポイント変換システム
+// ================================================================
+var _shopMode = 'convert';
+var _convertRarity = 'R';
+
+// 素材1個あたりのポイント変換レート
+const MAT_CONVERT_RATE = {R:20, SR:60, SSR:150, UR:400};
+
+function switchShopMode(mode){
+  _shopMode = mode;
+  var cvtBtn  = document.getElementById('shop-mode-convert');
+  var buyBtn  = document.getElementById('shop-mode-buy');
+  var cvtArea = document.getElementById('shop-convert-area');
+  var buyArea = document.getElementById('shop-buy-area');
+  if(cvtBtn)  cvtBtn.className  = 'gacha-cat-btn'+(mode==='convert'?' active':'');
+  if(buyBtn)  buyBtn.className  = 'gacha-cat-btn'+(mode==='buy'?' active':'');
+  if(cvtArea) cvtArea.style.display = mode==='convert'?'':'none';
+  if(buyArea) buyArea.style.display = mode==='buy'?'':'none';
+  if(mode==='convert') renderConvertList(_convertRarity);
+  if(mode==='buy')     renderMainShop(_shopRarity);
+}
+
+function showConvertRarity(rar){
+  _convertRarity = rar;
+  // タブのアクティブ状態更新
+  ['R','SR','SSR','UR'].forEach(function(r){
+    var btn = document.getElementById('cvt-tab-'+r.toLowerCase());
+    if(!btn) return;
+    var rarColors = {R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+    btn.style.background = r===rar?'rgba(30,60,120,.6)':'rgba(20,40,80,.3)';
+    btn.style.boxShadow  = r===rar?'0 0 8px '+rarColors[r]+'66':'none';
+  });
+  renderConvertList(rar);
+}
+
+function renderConvertList(rar){
+  var el = document.getElementById('shop-convert-list'); if(!el) return;
+  var od  = S.ownedData||{};
+  var rate = MAT_CONVERT_RATE[rar]||20;
+  var rarColor = {R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'}[rar]||'#888';
+
+  // 該当レアリティのキャラで凸素材を持つものを抽出
+  var list = [];
+  S.owned.forEach(function(id){
+    var c = CHARS.find(function(ch){ return ch.id===id; });
+    if(!c || c.rarity!==rar) return;
+    var cd = od[id]||{};
+    var stock = cd.stockCopies;
+    if(stock===undefined||stock===null){
+      var copies = cd.copies||1;
+      var bt = cd.breakthrough||0;
+      stock = Math.max(0, copies-1-bt);
+    }
+    if(stock<=0) return;
+    list.push({c:c, stock:stock, id:id});
+  });
+
+  if(list.length===0){
+    el.innerHTML = '<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">変換できる'+rar+'素材なし</div>';
+    return;
+  }
+
+  var cp = typeof S.craftPoints==='object'?S.craftPoints:{R:0,SR:0,SSR:0,UR:0};
+  var totalStock = list.reduce(function(s,x){return s+x.stock;},0);
+  var totalPt = totalStock * rate;
+
+  var html2 = '';
+  // 一括変換ボタン
+  html2 += '<div style="background:rgba(0,40,80,.3);border:.5px solid rgba(30,100,180,.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:12px;font-weight:700;color:'+rarColor+';">'+rar+'素材 一括変換</div>'
+    +'<div style="font-size:10px;color:var(--text2);">合計 '+totalStock+'個 → 🔷'+totalPt+'pt</div>'
+    +'</div>'
+    +'<button data-rar="'+rar+'" onclick="convertAllMats(this.dataset.rar)" style="padding:8px 14px;border-radius:8px;border:.5px solid rgba(30,120,200,.5);background:rgba(20,60,140,.5);color:#80c0ff;cursor:pointer;font-size:11px;font-family:inherit;font-weight:600;">一括変換</button>'
+    +'</div>';
+
+  // 所持ポイント表示
+  html2 += '<div style="font-size:10px;color:var(--text3);margin-bottom:8px;">所持'+rar+'pt: <span style="color:'+rarColor+';font-weight:700;">'+(cp[rar]||0)+'pt</span> / 変換レート: 1個 = '+rate+'pt</div>';
+
+  // 個別選択変換
+  html2 += list.map(function(x){
+    var ptVal = x.stock * rate;
+    return '<div style="background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+x.c.bg+';border:.5px solid '+x.c.border+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+x.c.emoji+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+x.c.name+'</div>'
+      +'<div style="font-size:9px;color:var(--text2);">素材 ×'+x.stock+' → 🔷'+ptVal+'pt</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
+      +'<button data-cid="'+x.id+'" onclick="convertOneMat(this.dataset.cid,this.dataset.rar,1)" data-rar="'+rar+'" style="padding:4px 8px;border-radius:6px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,50,120,.4);color:#60a0e0;cursor:pointer;font-size:9px;font-family:inherit;">×1変換</button>'
+      +'<button data-cid="'+x.id+'" onclick="convertOneMat(this.dataset.cid,this.dataset.rar,-1)" data-rar="'+rar+'" style="padding:4px 8px;border-radius:6px;border:.5px solid rgba(30,180,120,.4);background:rgba(10,80,60,.4);color:#40e0a0;cursor:pointer;font-size:9px;font-family:inherit;">全変換</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  el.innerHTML = html2;
+}
+
+// 1体のキャラの素材を変換
+function convertOneMat(charId, rar, amount){
+  var id = parseInt(charId)||Number(charId);
+  var c = CHARS.find(function(ch){return ch.id===id;}); if(!c) return;
+  if(!S.ownedData) S.ownedData={};
+  if(!S.ownedData[id]) S.ownedData[id]={level:1,breakthrough:0,copies:1,stockCopies:0};
+  var cd = S.ownedData[id];
+  var stock = cd.stockCopies||0;
+  if(stock<=0){ showToast('素材がありません'); return; }
+  var rate = MAT_CONVERT_RATE[rar]||20;
+  var use = amount===-1 ? stock : Math.min(amount, stock);
+  var pts = use * rate;
+  cd.stockCopies = stock - use;
+  if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+  S.craftPoints[rar] = (S.craftPoints[rar]||0) + pts;
+  saveGameImmediate(); sfx('select');
+  showToast('🔄 '+c.name+' 素材×'+use+' → 🔷'+pts+'pt（'+rar+'）');
+  renderShopScreen();
+  renderBag();
+}
+
+// レアリティ一括変換
+function convertAllMats(rar){
+  var od = S.ownedData||{};
+  var totalPts = 0;
+  var totalStock = 0;
+  var rate = MAT_CONVERT_RATE[rar]||20;
+  S.owned.forEach(function(id){
+    var c = CHARS.find(function(ch){return ch.id===id;});
+    if(!c||c.rarity!==rar) return;
+    if(!od[id]) return;
+    var cd = od[id];
+    var stock = cd.stockCopies||0;
+    if(stock<=0) return;
+    totalPts  += stock * rate;
+    totalStock += stock;
+    cd.stockCopies = 0;
+  });
+  if(totalStock===0){ showToast('変換できる'+rar+'素材がありません'); return; }
+  if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+  S.craftPoints[rar] = (S.craftPoints[rar]||0) + totalPts;
+  saveGameImmediate(); sfx('win');
+  showToast('🔄 '+rar+'素材 '+totalStock+'個 → 🔷'+totalPts+'pt 一括変換！');
+  renderShopScreen();
+  renderBag();
 }
 </script>
 
