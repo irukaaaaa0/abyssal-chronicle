@@ -9775,128 +9775,98 @@ function openPickupCardDetailModal(charId){
   modal.style.display = 'flex';
 }
 
+
 // ================================================================
-//  BGM システム（YouTube IFrame API）
+//  BGM システム（MP3）
+//  📁 ファイル配置場所：GitHubリポジトリの /bgm/ フォルダ
+//
+//  ホーム画面用  → /bgm/home.mp3
+//  クエスト戦闘 → /bgm/quest.mp3
+//  ボス戦闘     → /bgm/boss.mp3
+//  PvP闘技場    → /bgm/pvp.mp3
+//  ガチャ画面   → /bgm/gacha.mp3
 // ================================================================
-const BGM_VIDEOS = {
-  home:  'TMeeP_LBQUY',
-  quest: 'W40VRrkkC2k',
-  pvp:   '3CpWo-RFcr8',
-  gacha: '6qIiSuqHPqA',
-  boss:  'W7z0SNbcsgw',
+
+// ▼▼▼ BGMファイルのパスを設定 ▼▼▼
+const BGM_FILES = {
+  home:  'https://drive.google.com/uc?export=download&id=1wnDl_Gs4hQ-xdq_BT6g1c4peCxIoqM6-',  // ホーム・メニュー画面
+  quest: 'https://drive.google.com/uc?export=download&id=1q-Wnwlzo9Hp5YdxPzmoTna1rg9ybjel3',   // クエスト通常戦闘
+  boss:  'https://drive.google.com/uc?export=download&id=1EJmOtpHnwlqz9TSkwJqd4hu_QwZNj4mn',   // ボス戦闘
+  pvp:   'https://drive.google.com/uc?export=download&id=1P0fJ_dErTbh_AoGSbEWVraiHKf0xejZK',   // PvP闘技場
+  gacha: 'https://drive.google.com/uc?export=download&id=13p1EIX_lkhzECMNzak4xif0012_12Dsf',   // ガチャ（召喚）画面
 };
+// ▲▲▲ ここまで ▲▲▲
 
-var bgmPlayer = null;
-var bgmReady = false;
-var bgmCurrentKey = null;
-var bgmEnabled = true;
-var bgmVolume = 40; // デフォルト音量40%
-var bgmPendingKey = null; // API準備前にリクエストされたキー
-
-// YouTube IFrame API 読み込み
-function loadYouTubeAPI(){
-  if(window.YT && window.YT.Player){ onYouTubeIframeAPIReady(); return; }
-  var tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(tag);
-}
-
-function onYouTubeIframeAPIReady(){
-  bgmPlayer = new YT.Player('yt-bgm-player',{
-    height:'1', width:'1',
-    playerVars:{
-      autoplay:0, controls:0, disablekb:1,
-      fs:0, iv_load_policy:3, modestbranding:1,
-      playsinline:1, rel:0, loop:1,
-    },
-    events:{
-      onReady: function(){
-        bgmReady = true;
-        bgmPlayer.setVolume(bgmVolume);
-        if(bgmPendingKey){ playBgm(bgmPendingKey); bgmPendingKey=null; }
-      },
-      onStateChange: function(e){
-        // 終了したらループ再生
-        if(e.data === YT.PlayerState.ENDED){
-          bgmPlayer.playVideo();
-        }
-      },
-      onError: function(){ console.log('[BGM] YouTube再生エラー'); }
-    }
-  });
-}
+var bgmAudio = null;        // 現在再生中のAudioオブジェクト
+var bgmCurrentKey = null;   // 現在のBGMキー
+var bgmEnabled = true;      // BGM ON/OFF
+var bgmVolume = 0.4;        // BGM音量（0.0〜1.0）
 
 function playBgm(key){
   if(!bgmEnabled) return;
-  if(!key || BGM_VIDEOS[key]===undefined) return;
-  if(!bgmReady){ bgmPendingKey=key; return; }
-  if(bgmCurrentKey===key) return; // 同じ曲なら何もしない
+  if(!key || !BGM_FILES[key] || BGM_FILES[key]==='') return;
+  if(bgmCurrentKey === key && bgmAudio && !bgmAudio.paused) return; // 同じ曲再生中
   bgmCurrentKey = key;
-  var videoId = BGM_VIDEOS[key];
-  bgmPlayer.loadVideoById({videoId:videoId, startSeconds:0});
-  bgmPlayer.setVolume(bgmVolume);
+  // 現在の曲をフェードアウトして切り替え
+  if(bgmAudio){
+    bgmAudio.pause();
+    bgmAudio = null;
+  }
+  var audio = new Audio(BGM_FILES[key]);
+  audio.loop = true;
+  audio.volume = bgmVolume;
+  audio.play().catch(function(){ /* 自動再生ブロック時は無視 */ });
+  bgmAudio = audio;
 }
 
 function stopBgm(){
-  if(bgmReady && bgmPlayer) bgmPlayer.stopVideo();
+  if(bgmAudio){ bgmAudio.pause(); bgmAudio = null; }
   bgmCurrentKey = null;
 }
 
 function setBgmEnabled(on){
   bgmEnabled = on;
-  if(!on) stopBgm();
-  else if(bgmCurrentKey) playBgm(bgmCurrentKey);
-  // ローカル保存
+  if(!on){ stopBgm(); }
+  else if(bgmCurrentKey){ playBgm(bgmCurrentKey); }
   try{ localStorage.setItem('abyssal_bgm_on', on?'1':'0'); }catch(e){}
 }
 
 function setBgmVolume(vol){
-  bgmVolume = vol;
-  if(bgmReady && bgmPlayer) bgmPlayer.setVolume(vol);
+  bgmVolume = vol / 100;
+  if(bgmAudio) bgmAudio.volume = bgmVolume;
   try{ localStorage.setItem('abyssal_bgm_vol', vol); }catch(e){}
 }
 
-// 画面に対応したBGMキーを返す
 function getBgmKeyForScreen(sc){
-  if(sc==='home' || sc==='pvp'||sc==='achieve'||sc==='notices'||sc==='settings'||sc==='library'||sc==='friends'||sc==='daily') return 'home';
-  if(sc==='gacha') return 'gacha';
-  if(sc==='pvp-battle') return 'pvp';
-  return null;
+  if(['gacha'].includes(sc)) return 'gacha';
+  if(['pvp'].includes(sc)) return 'pvp';
+  return 'home'; // ホーム・その他は全てhome.mp3
 }
 
-// 戦闘開始時にBGM切り替え（通常/ボス）
 function bgmStartBattle(isBoss){
+  bgmCurrentKey = null; // 強制切り替え
   playBgm(isBoss ? 'boss' : 'quest');
 }
 
-// 戦闘終了時にホームBGMに戻る
 function bgmEndBattle(){
-  bgmCurrentKey = null; // 強制切り替え許可
+  bgmCurrentKey = null;
   playBgm('home');
 }
 
-// 設定の読み込み
 function loadBgmSettings(){
   try{
-    var on = localStorage.getItem('abyssal_bgm_on');
+    var on  = localStorage.getItem('abyssal_bgm_on');
     var vol = localStorage.getItem('abyssal_bgm_vol');
-    if(on !== null) bgmEnabled = on === '1';
-    if(vol !== null) bgmVolume = parseInt(vol)||40;
+    if(on  !== null) bgmEnabled = on === '1';
+    if(vol !== null) bgmVolume  = (parseInt(vol)||40) / 100;
   }catch(e){}
 }
-
-// 初期化
-loadBgmSettings();
-// ページ読み込み後にYouTube API読み込み
-window.addEventListener('load', function(){
-  loadYouTubeAPI();
-});
 
 function toggleBgm(){
   bgmEnabled = !bgmEnabled;
   setBgmEnabled(bgmEnabled);
   var btn = document.getElementById('bgm-toggle');
-  if(btn){ btn.className = 'toggle-btn '+(bgmEnabled?'on':'off'); }
+  if(btn) btn.className = 'toggle-btn '+(bgmEnabled?'on':'off');
 }
 
 function onBgmVol(val){
@@ -9910,10 +9880,14 @@ function refreshBgmSettings(){
   var toggle = document.getElementById('bgm-toggle');
   var slider = document.getElementById('bgm-vol');
   var valEl  = document.getElementById('bgm-vol-val');
+  var volInt = Math.round(bgmVolume * 100);
   if(toggle) toggle.className = 'toggle-btn '+(bgmEnabled?'on':'off');
-  if(slider) slider.value = bgmVolume;
-  if(valEl)  valEl.textContent = bgmVolume;
+  if(slider) slider.value = volInt;
+  if(valEl)  valEl.textContent = volInt;
 }
+
+// 初期化
+loadBgmSettings();
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -10004,10 +9978,5 @@ function refreshBgmSettings(){
 </div>
 
 <!-- アップデートログポップアップ -->
-
-<!-- YouTube BGMプレイヤー（非表示） -->
-<div id="yt-bgm-container" style="position:fixed;bottom:-200px;left:-200px;width:1px;height:1px;pointer-events:none;z-index:-1;">
-  <div id="yt-bgm-player"></div>
-</div>
 </body>
 </html>
