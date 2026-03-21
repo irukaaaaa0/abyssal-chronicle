@@ -2348,6 +2348,15 @@ async function checkGifts(){
       }
     }
 
+    // 個別ギフトのキャラ・クラフトポイントを適用
+    for(const gift of [...globalGifts.docs, ...(typeof indGifts!=='undefined'?indGifts.docs:[])].filter(g=>received.includes(g.id))){
+      const gd2 = gift.data();
+      // クラフトポイント付与
+      if(gd2.craftPoints&&gd2.craftPoints.val>0){
+        if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+        S.craftPoints[gd2.craftPoints.rar] = (S.craftPoints[gd2.craftPoints.rar]||0)+gd2.craftPoints.val;
+      }
+    }
     if(totalGem>0 || totalGold>0 || totalTicket>0){
       S.gem          += totalGem;
       S.gold         += totalGold;

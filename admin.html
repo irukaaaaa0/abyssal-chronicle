@@ -294,6 +294,58 @@ label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
   </div>
 </div>
 
+<!-- 個別配布モーダル -->
+<div class="modal-overlay" id="gift-modal" onclick="if(event.target===this)closeGiftModal()" style="z-index:600;">
+  <div class="modal-box" style="max-width:480px;max-height:88vh;overflow-y:auto;">
+    <div class="modal-title">🎁 個別配布</div>
+    <div id="gift-modal-target" style="font-size:11px;color:#3a8ac0;margin-bottom:14px;padding:8px;background:rgba(0,30,60,.4);border-radius:8px;"></div>
+
+    <!-- タブ -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button id="gtab-items" onclick="switchGiftTab('items')" style="flex:1;padding:7px;border-radius:8px;border:.5px solid #1a6090;background:rgba(10,60,120,.4);color:#60c0ff;cursor:pointer;font-size:11px;font-weight:600;">💰 アイテム</button>
+      <button id="gtab-chars" onclick="switchGiftTab('chars')" style="flex:1;padding:7px;border-radius:8px;border:.5px solid #1a3050;background:rgba(0,20,40,.3);color:#4a8aac;cursor:pointer;font-size:11px;font-weight:600;">🎭 キャラ</button>
+    </div>
+
+    <!-- アイテムタブ -->
+    <div id="gtab-content-items">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div><label style="font-size:11px;color:#4a8aac;">💎 ジェム</label><input type="number" id="gm-gem" value="0" min="0" style="width:100%;margin-top:4px;"></div>
+        <div><label style="font-size:11px;color:#4a8aac;">💰 ゴールド</label><input type="number" id="gm-gold" value="0" min="0" style="width:100%;margin-top:4px;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div><label style="font-size:11px;color:#4a8aac;">🎫 ガチャチケット</label><input type="number" id="gm-ticket" value="0" min="0" style="width:100%;margin-top:4px;"></div>
+        <div><label style="font-size:11px;color:#4a8aac;">🔷 クラフトポイント</label>
+          <select id="gm-cp-rar" style="width:100%;margin-top:4px;padding:7px;border-radius:6px;border:.5px solid #1a3050;background:#060c18;color:#c0d8e8;">
+            <option value="R">R</option><option value="SR">SR</option><option value="SSR">SSR</option><option value="UR">UR</option>
+          </select>
+          <input type="number" id="gm-cp-val" value="0" min="0" placeholder="ポイント数" style="width:100%;margin-top:4px;">
+        </div>
+      </div>
+      <div><label style="font-size:11px;color:#4a8aac;">📝 メッセージ</label><input id="gm-msg" placeholder="例: バグ補償" style="width:100%;margin-top:4px;"></div>
+    </div>
+
+    <!-- キャラ配布タブ -->
+    <div id="gtab-content-chars" style="display:none;">
+      <div style="font-size:10px;color:#3a6080;margin-bottom:8px;">未所持のキャラのみ配布可能（所持済みはグレーアウト）</div>
+      <!-- レアリティフィルター -->
+      <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+        <button onclick="filterGiftChars('ALL')" id="gcf-all" style="padding:4px 10px;border-radius:6px;border:.5px solid #1a6090;background:rgba(10,60,120,.5);color:#60c0ff;cursor:pointer;font-size:10px;">全て</button>
+        <button onclick="filterGiftChars('UR')" id="gcf-ur" style="padding:4px 10px;border-radius:6px;border:.5px solid #443800;background:rgba(40,30,0,.3);color:#ffe040;cursor:pointer;font-size:10px;">UR</button>
+        <button onclick="filterGiftChars('SSR')" id="gcf-ssr" style="padding:4px 10px;border-radius:6px;border:.5px solid #3a2800;background:rgba(30,20,0,.3);color:#d4a020;cursor:pointer;font-size:10px;">SSR</button>
+        <button onclick="filterGiftChars('SR')" id="gcf-sr" style="padding:4px 10px;border-radius:6px;border:.5px solid #2a1850;background:rgba(20,10,40,.3);color:#a060e0;cursor:pointer;font-size:10px;">SR</button>
+        <button onclick="filterGiftChars('R')" id="gcf-r" style="padding:4px 10px;border-radius:6px;border:.5px solid #0a2050;background:rgba(5,15,40,.3);color:#4080c0;cursor:pointer;font-size:10px;">R</button>
+      </div>
+      <div id="gift-char-list" style="max-height:280px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;"></div>
+      <div id="gift-char-selected" style="margin-top:8px;font-size:10px;color:#60c0ff;"></div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn-primary" onclick="confirmGiftModal()">✅ 配布実行</button>
+      <button class="btn-sm" onclick="closeGiftModal()" style="padding:8px 16px;">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <!-- 削除確認モーダル -->
 <div class="modal-overlay" id="delete-modal">
   <div class="modal-box">
@@ -522,27 +574,142 @@ async function confirmDeleteUser(){
 // 個別ギフト配布
 // ================================================================
 let giftTargetUid = null;
+let giftTargetPlayerId = null;
+let giftTargetOwnedIds = [];
+let giftSelectedCharIds = new Set();
+let giftCharFilter = "ALL";
+let giftTab = "items";
 function openGiftModal(uid, playerId){
   giftTargetUid = uid;
-  const gem  = prompt('💎 ジェムを配布（'+playerId+'）\n数量を入力:','100');
-  if(gem===null) return;
-  const gold = prompt('💰 ゴールドを配布（'+playerId+'）\n数量を入力:','0');
-  if(gold===null) return;
-  const msg  = prompt('メッセージ:','管理者より') || '管理者より';
-  sendIndividualGift(uid, parseInt(gem)||0, parseInt(gold)||0, msg, playerId);
+  giftTargetPlayerId = playerId;
+  giftSelectedCharIds = new Set();
+  giftTab = 'items';
+  var el = document.getElementById('gift-modal-target');
+  if(el) el.innerHTML = '🎯 対象: <strong style="color:#fff;">'+playerId+'</strong> <span style="font-size:9px;opacity:.6;">UID: '+uid+'</span>';
+  ['gm-gem','gm-gold','gm-ticket','gm-cp-val'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.value='0';
+  });
+  var msgEl=document.getElementById('gm-msg'); if(msgEl) msgEl.value='管理者より';
+  switchGiftTab('items');
+  db.collection('players').doc(uid).get().then(function(doc){
+    giftTargetOwnedIds = doc.exists?(doc.data().owned||[]):[];
+    renderGiftCharList();
+  });
+  document.getElementById('gift-modal').classList.add('show');
 }
+
+function closeGiftModal(){
+  document.getElementById('gift-modal').classList.remove('show');
+}
+
+function switchGiftTab(tab){
+  giftTab = tab;
+  ['items','chars'].forEach(function(t){
+    var btn=document.getElementById('gtab-'+t);
+    var content=document.getElementById('gtab-content-'+t);
+    if(btn){
+      btn.style.background=t===tab?'rgba(10,60,120,.4)':'rgba(0,20,40,.3)';
+      btn.style.color=t===tab?'#60c0ff':'#4a8aac';
+      btn.style.borderColor=t===tab?'#1a6090':'#1a3050';
+    }
+    if(content) content.style.display=t===tab?'':'none';
+  });
+}
+
+function filterGiftChars(rar){
+  giftCharFilter=rar;
+  renderGiftCharList();
+}
+
+function renderGiftCharList(){
+  var el=document.getElementById('gift-char-list'); if(!el) return;
+  if(typeof CHARS_SIMPLE==='undefined'||!CHARS_SIMPLE.length){
+    el.innerHTML='<div style="color:#3a6080;font-size:11px;padding:10px;">キャラデータなし</div>'; return;
+  }
+  var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
+  var rarOrder={UR:0,SSR:1,SR:2,R:3};
+  var list=CHARS_SIMPLE.filter(function(c){
+    return giftCharFilter==='ALL'||c.rarity===giftCharFilter;
+  }).sort(function(a,b){return (rarOrder[a.rarity]||9)-(rarOrder[b.rarity]||9);});
+  el.innerHTML=list.map(function(c){
+    var owned=giftTargetOwnedIds.includes(c.id);
+    var selected=giftSelectedCharIds.has(c.id);
+    return '<div onclick="toggleGiftChar('+c.id+')" style="padding:7px;border-radius:8px;cursor:'+(owned?'default':'pointer')+';'
+      +'border:.5px solid '+(selected?'#60c0ff':owned?'#0a2030':'#1a3050')+';'
+      +'background:'+(selected?'rgba(10,60,120,.5)':owned?'rgba(0,10,20,.2)':'rgba(0,15,30,.4)')+';'
+      +'opacity:'+(owned?'0.35':'1')+';display:flex;align-items:center;gap:6px;">'
+      +'<div style="font-size:18px;">'+c.emoji+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+c.name+'</div>'
+      +'<div style="font-size:8px;color:'+(rarColor[c.rarity]||'#888')+';">'+c.rarity+(owned?' ✅':'')+'</div>'
+      +'</div>'+(selected?'<div style="color:#60c0ff;font-size:12px;">✓</div>':'')
+      +'</div>';
+  }).join('');
+  var selEl=document.getElementById('gift-char-selected');
+  if(selEl) selEl.textContent=giftSelectedCharIds.size>0?'✅ '+giftSelectedCharIds.size+'体選択中':'';
+}
+
+function toggleGiftChar(id){
+  if(giftTargetOwnedIds.includes(id)) return;
+  if(giftSelectedCharIds.has(id)) giftSelectedCharIds.delete(id);
+  else giftSelectedCharIds.add(id);
+  renderGiftCharList();
+}
+
+async function confirmGiftModal(){
+  if(!giftTargetUid) return;
+  var gem=parseInt(document.getElementById('gm-gem').value)||0;
+  var gold=parseInt(document.getElementById('gm-gold').value)||0;
+  var ticket=parseInt(document.getElementById('gm-ticket').value)||0;
+  var cpRar=document.getElementById('gm-cp-rar').value||'R';
+  var cpVal=parseInt(document.getElementById('gm-cp-val').value)||0;
+  var msg=document.getElementById('gm-msg').value.trim()||'管理者より';
+  var charIds=Array.from(giftSelectedCharIds);
+  if(gem===0&&gold===0&&ticket===0&&cpVal===0&&charIds.length===0){
+    adminToast('配布内容を入力してください'); return;
+  }
+  var summary=[];
+  if(gem>0)    summary.push('💎'+gem);
+  if(gold>0)   summary.push('💰'+gold.toLocaleString());
+  if(ticket>0) summary.push('🎫'+ticket+'枚');
+  if(cpVal>0)  summary.push('🔷'+cpVal+cpRar+'pt');
+  if(charIds.length>0) summary.push('🎭'+charIds.length+'体');
+  if(!confirm(giftTargetPlayerId+' に\n'+summary.join(' / ')+'\nを配布しますか？')) return;
+  try{
+    await db.collection('gifts').doc('gift_ind_'+Date.now()).set({
+      gem,gold,ticket,
+      craftPoints:cpVal>0?{rar:cpRar,val:cpVal}:null,
+      charIds:charIds,
+      message:msg,
+      targetUid:giftTargetUid,
+      targetPlayerId:giftTargetPlayerId,
+      isIndividual:true,
+      type:'individual',
+      createdAt:new Date().toISOString(),
+      active:true,
+    });
+    // キャラを直接付与
+    if(charIds.length>0){
+      var pdoc=await db.collection('players').doc(giftTargetUid).get();
+      if(pdoc.exists){
+        var owned2=pdoc.data().owned||[];
+        var newOwned=owned2.concat(charIds.filter(function(id){return !owned2.includes(id);}));
+        var future=new Date(Date.now()+172800000).toISOString();
+        await db.collection('players').doc(giftTargetUid).update({owned:newOwned,lastSaved:future});
+      }
+    }
+    adminToast('✅ 配布完了: '+giftTargetPlayerId+' → '+summary.join(' / '));
+    closeGiftModal(); loadGifts();
+  }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
+}
+
 async function sendIndividualGift(uid, gem, gold, msg, playerId){
   try{
-    const giftId = 'gift_individual_'+Date.now();
-    await db.collection('gifts').doc(giftId).set({
-      gem, gold, message:msg,
-      targetUid: uid,
-      targetPlayerId: playerId,
-      isIndividual: true,
-      createdAt: new Date().toISOString(),
-      active: true,
+    await db.collection('gifts').doc('gift_individual_'+Date.now()).set({
+      gem,gold,message:msg,targetUid:uid,targetPlayerId:playerId,
+      isIndividual:true,createdAt:new Date().toISOString(),active:true,
     });
-    adminToast('✅ '+playerId+' に 💎'+gem+' 💰'+gold.toLocaleString()+' を配布しました');
+    adminToast('✅ '+playerId+' に配布しました');
   }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
 }
 
@@ -999,6 +1166,8 @@ async function toggleLimitedTab(){
     setTimeout(loadBannerPanel,300);
   }catch(e){ adminToast('❌ '+e.message); }
 }
+
+const CHARS_SIMPLE = [{"id": 10, "name": "血潮の剣聖", "emoji": "🗡️", "rarity": "SSR"}, {"id": 11, "name": "星砕の魔王", "emoji": "🌟", "rarity": "SSR"}, {"id": 12, "name": "深海の福音", "emoji": "🐋", "rarity": "SSR"}, {"id": 13, "name": "海流の剣士", "emoji": "🌊", "rarity": "SR"}, {"id": 14, "name": "氷海の聖者", "emoji": "🧊", "rarity": "SR"}, {"id": 15, "name": "珊瑚の守護", "emoji": "🪸", "rarity": "SR"}, {"id": 16, "name": "暗渦の術士", "emoji": "🌀", "rarity": "SR"}, {"id": 17, "name": "深海の斬艦刀", "emoji": "⚓", "rarity": "SR"}, {"id": 18, "name": "灼熱の踊り子", "emoji": "💃", "rarity": "SR"}, {"id": 19, "name": "霧中の狙撃手", "emoji": "🎯", "rarity": "SR"}, {"id": 20, "name": "鉄壁の守護神", "emoji": "🛡️", "rarity": "SR"}, {"id": 21, "name": "翠嵐の風使い", "emoji": "🌿", "rarity": "SR"}, {"id": 22, "name": "幻影の忍者", "emoji": "🥷", "rarity": "SR"}, {"id": 23, "name": "金剛の力士", "emoji": "💪", "rarity": "SR"}, {"id": 24, "name": "閃光の剣姫", "emoji": "⚔️", "rarity": "SR"}, {"id": 25, "name": "深淵の吟遊詩人", "emoji": "🎵", "rarity": "SR"}, {"id": 26, "name": "荒波の船長", "emoji": "🏴\u200d☠️", "rarity": "SR"}, {"id": 27, "name": "氷結の術師", "emoji": "🧙", "rarity": "SR"}, {"id": 28, "name": "炎舞の戦姫", "emoji": "🔥", "rarity": "SR"}, {"id": 29, "name": "沈黙の鎧", "emoji": "⚙️", "rarity": "R"}, {"id": 30, "name": "暗礁の弓手", "emoji": "🏹", "rarity": "R"}, {"id": 31, "name": "渦の魔導師", "emoji": "💫", "rarity": "R"}, {"id": 32, "name": "海底の漁師", "emoji": "🎣", "rarity": "R"}, {"id": 33, "name": "さびれた騎士", "emoji": "🗡️", "rarity": "R"}, {"id": 34, "name": "密林の罠師", "emoji": "🌿", "rarity": "R"}, {"id": 35, "name": "流浪の商人", "emoji": "💼", "rarity": "R"}, {"id": 36, "name": "砂塵の踊り子", "emoji": "🎭", "rarity": "R"}, {"id": 37, "name": "錆びた砲手", "emoji": "💣", "rarity": "R"}, {"id": 38, "name": "海霧の斥候", "emoji": "🌫️", "rarity": "R"}, {"id": 39, "name": "古参の衛兵", "emoji": "🪖", "rarity": "R"}, {"id": 40, "name": "海底の蟹兵", "emoji": "🦀", "rarity": "R"}, {"id": 41, "name": "呪われた人形", "emoji": "🪆", "rarity": "R"}, {"id": 42, "name": "波間の見張り", "emoji": "👁️", "rarity": "R"}, {"id": 43, "name": "朽ちた剣士", "emoji": "🧟", "rarity": "R"}, {"id": 44, "name": "深底の採掘者", "emoji": "⛏️", "rarity": "R"}, {"id": 45, "name": "嵐の伝令", "emoji": "🌪️", "rarity": "R"}, {"id": 46, "name": "錨鎖の守門", "emoji": "⛓️", "rarity": "R"}, {"id": 47, "name": "深淵の下僕", "emoji": "👾", "rarity": "R"}, {"id": 48, "name": "海月の幻師", "emoji": "🪼", "rarity": "R"}, {"id": 49, "name": "廃船の亡霊", "emoji": "👻", "rarity": "R"}, {"id": 50, "name": "鉄爪の捕食者", "emoji": "🦈", "rarity": "R"}, {"id": 51, "name": "泥沼の伏兵", "emoji": "🐊", "rarity": "R"}, {"id": 52, "name": "古代の番犬", "emoji": "🐺", "rarity": "R"}, {"id": 53, "name": "深海の案内人", "emoji": "🐠", "rarity": "R"}, {"id": 54, "name": "闇夜の密偵", "emoji": "🦇", "rarity": "R"}, {"id": 55, "name": "砂嵐の剣士", "emoji": "🏜️", "rarity": "R"}, {"id": 56, "name": "岩礁の重撃兵", "emoji": "🪨", "rarity": "R"}, {"id": 57, "name": "霜の見習い", "emoji": "🌨️", "rarity": "R"}, {"id": 58, "name": "炎の見習い", "emoji": "🕯️", "rarity": "R"}, {"id": 100, "name": "深淵の見習い", "emoji": "🌑", "rarity": "R"}, {"id": 200, "name": "深淵神イブリス", "emoji": "🩸", "rarity": "UR"}];
 </script>
 </body>
 </html>
