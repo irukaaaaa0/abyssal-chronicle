@@ -3978,23 +3978,31 @@ function getAttrBadgeHtml(c){
   return `<span class="attr-badge attr-${c.attribute}" style="font-size:7px;">${a.emoji}</span>`;
 }
 function getPartyMaxSelect(){
-  // カード選択+1スキル持ちの人数分だけ加算（1体→5枚、2体→6枚、3体→7枚）
-  const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
-  let bonus = 0;
-  ap.forEach(c=>{
-    if(c.id===1||c.id===59) bonus+=1; // フルドライブ系：1体につき+1
+  // 死亡・凍結キャラのスキルは無効
+  const statusArr = BT.statusEffects||[];
+  const activeMembers = getActiveSkillMembers(BT.partyHp, statusArr);
+  let bonus=0;
+  activeMembers.forEach(function(m){
+    if(m.id===1||m.id===59) bonus+=1;
   });
-  return 4+bonus;
+  // 麻痺で-2
+  var hasPara = statusArr.some(function(s){return s.type==='para'&&s.stacks>0;});
+  return Math.max(1, 4+bonus - (hasPara?2:0));
 }
 
 function getPartyHealRate(){
-  const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
+  // 死亡・凍結中はサポートスキル無効
+  const statusArr = BT.statusEffects||[];
+  const activeMembers = getActiveSkillMembers(BT.partyHp, statusArr);
+  const activeIds = activeMembers.map(function(m){return m.id;});
+  const ap = BT.partyHp.map(m=>CHARS.find(c=>c.id===m.id)).filter(function(c){
+    return c && activeIds.includes(c.id);
+  });
   let rate=0;
-  ap.forEach(c=>{
+  ap.forEach(function(c){
     if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01,201:0.05}[c.id]||0.005);
-    // アルテア：光コンボ時に追加回復ボーナス（スキル効果）
     if(c.id===201){
-      const hasLightCombo = BT.hand && BT.hand.filter(card=>card.selected&&card.comboType==='light').length>=2;
+      const hasLightCombo = BT.hand && BT.hand.filter(function(card){return card.selected&&card.comboType==='light';}).length>=2;
       if(hasLightCombo) rate+=0.03;
     }
   });
@@ -4024,6 +4032,8 @@ function applyTankHate(){
 
 function applyDebufferSkill(charId, targetType){
   const c=CHARS.find(ch=>ch.id===charId); if(!c||c.role!=='debuffer') return;
+  // 死亡・凍結中はスキル無効
+  if(!canActivateSkill(charId, BT.partyHp, BT.statusEffects||[])) return;
   const probs={2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
   const prob=probs[charId]||0.15;
   if(Math.random()>prob) return;
@@ -6461,16 +6471,17 @@ function pvpAttack(){
   // Firestoreに「残HP」を書き込む（ダメージではなく残HP）
   const myKey =st.amHost?'hostHp':'guestHp';   // 自分の残HP
   const atkKey=st.amHost?'hostAction':'guestAction';
+  const nowTs = Date.now();
   const data = {
     [atkKey]:{
       dmg:total,
-      myRemainHp:st.myHp,   // 自分の残HP（相手が参照）
-      ts:Date.now(),
+      myRemainHp:st.myHp,
+      ts:nowTs,
       role:st.role,
       turn:st.turn,
     },
     [myKey]:st.myHp,
-    lastAction:Date.now(),
+    lastAction:nowTs,
   };
 
   if(st.oppHp<=0){
@@ -6485,8 +6496,17 @@ function pvpAttack(){
   // デバッファースキル判定（相手に状態異常付与）
   const debuffResult=pvpCheckDebufferSkill();
   if(debuffResult){
-    data.oppStatus={type:debuffResult.type,stacks:debuffResult.stacks,ts:Date.now(),charName:debuffResult.charName};
     const cfg=STATUS_CONFIG[debuffResult.type];
+    // oppStatusをactionとは別の独立したフィールドで送信
+    const debuffKey=st.amHost?'hostDebuff':'guestDebuff';
+    data[debuffKey]={
+      type:debuffResult.type,
+      stacks:debuffResult.stacks,
+      ts:nowTs,
+      charName:debuffResult.charName
+    };
+    // actionにも入れておく（後方互換）
+    data[atkKey].oppStatus = data[debuffKey];
     showSpecialAtkBanner&&showSpecialAtkBanner(
       debuffResult.charName+' スキル発動！相手に'+(cfg?cfg.label:debuffResult.type)+'付与！',
       cfg?cfg.color:'#c080ff'
@@ -6519,14 +6539,16 @@ function onPvpRoomUpdate(data){
     }
   }
 
-  // 相手からの状態異常付与を受信
-  if(action&&action.oppStatus&&action.oppStatus.ts){
-    var isMyAction2=(st.amHost&&action.role==='host')||(!st.amHost&&action.role==='guest');
-    if(!isMyAction2&&action.oppStatus.ts>(st.lastOppStatusTs||0)){
-      st.lastOppStatusTs=action.oppStatus.ts;
-      pvpApplyStatusToMe(action.oppStatus.type, action.oppStatus.stacks||1);
-      const cfg=STATUS_CONFIG&&STATUS_CONFIG[action.oppStatus.type];
-      if(cfg) showToast('⚠️ '+action.oppStatus.charName+'のスキルで'+cfg.label+'を受けた！');
+  // 相手からの状態異常付与を受信（独立フィールド優先）
+  const myDebuffKey=st.amHost?'guestDebuff':'hostDebuff';
+  const debuffData=data[myDebuffKey]||(action&&action.oppStatus);
+  if(debuffData&&debuffData.ts&&debuffData.ts>(st.lastOppStatusTs||0)){
+    var isMyDebuff=(st.amHost&&myDebuffKey==='hostDebuff')||(!st.amHost&&myDebuffKey==='guestDebuff');
+    if(!isMyDebuff){
+      st.lastOppStatusTs=debuffData.ts;
+      pvpApplyStatusToMe(debuffData.type, debuffData.stacks||1);
+      const cfg=STATUS_CONFIG&&STATUS_CONFIG[debuffData.type];
+      if(cfg) showToast('⚠️ '+debuffData.charName+'のスキルで'+cfg.label+'を受けた！');
     }
   }
 
@@ -8316,6 +8338,10 @@ function renderPvpMyStatuses(){
 // デバッファーのPvPスキル（攻撃時に相手に状態異常付与）
 function pvpCheckDebufferSkill(action){
   const st=pvpBattleState; if(!st) return null;
+  // 凍結中はデバフスキルも無効
+  const frozen=(st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
+  if(frozen) return null;
+  // 生存キャラのみ
   const myPartyAlive=st.myParty.filter(function(m){return m.hp>0;});
   let statusToApply=null;
   myPartyAlive.forEach(function(m){
@@ -9075,15 +9101,44 @@ function initBannerTabSlider(){
 function getPvpMaxSelect(){
   const st=pvpBattleState; if(!st) return 4;
   let max=4;
+  // 死亡していないキャラのみスキル有効
   (st.myParty||[]).forEach(function(m){
-    // id:1(アルカナ) or id:59(ヴォイド)で+1
+    if(m.hp<=0) return; // 死亡は無効
     if(m.id===1||m.id===59) max++;
   });
+  // 凍結中は全行動不能（スキルも含む）
+  var frozen=(st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
+  if(frozen) return 0; // 凍結→カード選択不可（ターンスキップ）
   // 麻痺で-2
   if((st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0;})){
     max=Math.max(1,max-2);
   }
   return max;
+}
+
+// ================================================================
+//  スキル発動可否チェック（全戦闘共通）
+// ================================================================
+function canActivateSkill(charId, partyHpArr, statusArr){
+  // 死亡チェック
+  var member = (partyHpArr||[]).find(function(m){return m.id===charId;});
+  if(!member || member.hp<=0) return false;
+  // 行動阻害系状態異常チェック（凍結・麻痺はスキル無効）
+  var myStatuses = statusArr||[];
+  // プレイヤーが該当の状態異常を受けている場合、そのターンは全スキル無効
+  var hasFreeze = myStatuses.some(function(s){return s.type==='freeze'&&s.turns>0;});
+  var hasPara   = myStatuses.some(function(s){return s.type==='para'&&s.turns>0;});
+  // 凍結は完全行動不能（全スキル無効）
+  if(hasFreeze) return false;
+  // 麻痺はカード枚数制限のみ（スキル自体は発動可能）
+  return true;
+}
+
+// パーティ全体のスキル有効メンバーを返す
+function getActiveSkillMembers(partyHpArr, statusArr){
+  return (partyHpArr||[]).filter(function(m){
+    return canActivateSkill(m.id, partyHpArr, statusArr);
+  });
 }
 </script>
 
