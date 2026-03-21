@@ -1180,12 +1180,12 @@ function onPvpEnd(won, quest){
     <div class="gacha-content">
       <!-- カテゴリタブ -->
       <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <button class="gacha-cat-btn active" id="cat-limited"  onclick="selectGachaCategory('limited')" style="display:none;">
+        <button class="gacha-cat-btn active" id="cat-limited"  onclick="selectGachaCategory('limited')">
           🩸 限定召喚
-          <span id="limited-new-badge" style="display:none;"></span>
+          <span id="limited-new-badge" style="font-size:8px;background:#e03060;color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">NEW</span>
         </button>
-        <button class="gacha-cat-btn active" id="cat-permanent" onclick="selectGachaCategory('permanent')">
-          🌊 召喚
+        <button class="gacha-cat-btn" id="cat-permanent" onclick="selectGachaCategory('permanent')">
+          🌊 恒常召喚
         </button>
       </div>
       <div class="banner-tabs" id="banner-tabs"></div>
@@ -2288,10 +2288,10 @@ const CHARS=[
   {id:98, name:'霧雨の少女',   emoji:'🌧️',rarity:'R', bg:'rgba(70,80,100,.2)', border:'rgba(120,140,170,.4)',hp:590,atk:93, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
   {id:99, name:'古代の守護石', emoji:'🗿',rarity:'R', bg:'rgba(70,60,40,.2)',  border:'rgba(120,100,70,.4)',hp:680,atk:82, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
   {id:100,name:'深淵の見習い', emoji:'🌑',rarity:'R', bg:'rgba(20,15,30,.2)',  border:'rgba(60,50,80,.4)',  hp:595,atk:94, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
-  // ===== 限定UR =====
-  {id:200,name:'深淵神イブリス',   emoji:'🩸',rarity:'UR',bg:'rgba(80,0,20,.3)',   border:'rgba(220,30,60,.6)',  hp:6200,atk:980,level:1,attribute:'dark', role:'attacker',skillName:'深淵崩壊撃', skillDesc:'闇属性コンボ時、全体ダメージ+55%。カード選択+1枚。',limited:true},
-  {id:201,name:'星海の巫女アルテア',emoji:'⭐',rarity:'UR',bg:'rgba(0,20,60,.3)',   border:'rgba(100,180,255,.6)', hp:5800,atk:890,level:1,attribute:'light',role:'support',  skillName:'星の祝福',      skillDesc:'毎ターンHP回復率+3%。光属性コンボ時、全員に追加回復。',limited:true},
-  {id:202,name:'業炎の覇王カルドス',emoji:'🔱',rarity:'UR',bg:'rgba(60,10,0,.3)',   border:'rgba(255,80,20,.6)',  hp:5600,atk:1050,level:1,attribute:'fire',role:'debuffer',  skillName:'業火滅却',     skillDesc:'炎属性コンボ時、相手に炎症×2スタック付与確率+40%。',limited:true},
+  // ===== 限定UR（恒常URより少し強め） =====
+  {id:200,name:'深淵神イブリス',    emoji:'🩸',rarity:'UR',bg:'rgba(80,0,20,.3)',  border:'rgba(220,30,60,.6)',  hp:1900,atk:380,level:1,attribute:'dark', role:'attacker',skillName:'深淵崩壊撃',skillDesc:'闇属性コンボ時、全体ダメージ+55%。カード選択+1枚。',limited:true},
+  {id:201,name:'星海の巫女アルテア',emoji:'⭐', rarity:'UR',bg:'rgba(0,20,60,.3)',  border:'rgba(100,180,255,.6)',hp:2100,atk:310,level:1,attribute:'light',role:'support',  skillName:'星の祝福',     skillDesc:'毎ターンHP回復率+3%。光属性コンボ時、全員に追加回復。',limited:true},
+  {id:202,name:'業炎の覇王カルドス',emoji:'🔱', rarity:'UR',bg:'rgba(60,10,0,.3)', border:'rgba(255,80,20,.6)',  hp:1850,atk:350,level:1,attribute:'fire', role:'debuffer', skillName:'業火滅却',     skillDesc:'炎属性コンボ時、相手に炎症×2スタック付与確率+40%。',limited:true},
 ];
 // comboType: 同じタイプを連続すると追加ボーナス
 // fire=炎 ice=氷 thunder=雷 water=水 dark=闇 light=光 none=無
@@ -3193,15 +3193,15 @@ let BANNERS=[
     pickup:['UR','SSR'],
     pickupIds:[67,71,69],
   },
-  // ===== 限定バナー（管理画面でON/OFF） =====
+  // ===== 限定バナー =====
   {
     id:9, name:'深淵神降臨 -Abyssal God-', icon:'🩸', limited:true, active:true,
     sub:'★限定★ 深淵神イブリス（UR）・星海の巫女アルテア（UR）期間限定排出！',
     color:'rgba(80,0,30,.5)', border:'rgba(220,30,60,.6)',
     pickup:['UR','SSR'],
     pickupIds:[200,201,68,70],
-    limitedIds:[200,201], // このバナー専用の限定キャラID
-    pity:100, // 限定バナーは天井100回
+    limitedIds:[200,201],
+    pity:100,
     period:'期間限定開催中',
   },
   {
@@ -3221,7 +3221,7 @@ let BANNERS=[
 var LIMITED_BANNER_STATUS = {};
 
 let currentBanner=0;
-let currentGachaCategory='permanent'; // 限定非表示のため恒常固定
+let currentGachaCategory='limited'; // 'limited' or 'permanent'
 
 function refreshGacha(){
   document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
@@ -4070,11 +4070,8 @@ function getPartyHealRate(){
   });
   let rate=0;
   ap.forEach(function(c){
-    if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01,201:0.05}[c.id]||0.005);
-    if(c.id===201){
-      const hasLightCombo = BT.hand && BT.hand.filter(function(card){return card.selected&&card.comboType==='light';}).length>=2;
-      if(hasLightCombo) rate+=0.03;
-    }
+    if(c.role==='support') rate+=({9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01}[c.id]||0.005);
+
   });
   return rate;
 }
@@ -6568,7 +6565,7 @@ function pvpAttack(){
   (st.myParty||[]).forEach(function(m){
     var c=CHARS.find(function(ch){return ch.id===m.id;});
     if(c&&c.role==='support'){
-      var rateMap={9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01,201:0.05};
+      var rateMap={9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01};
       healRate+=(rateMap[c.id]||0.005);
     }
   });
@@ -8970,7 +8967,7 @@ function tickCountdown(){
     if(barEl) barEl.style.width='0%';
     if(labelEl) labelEl.textContent='このバナーは終了しました';
     // カテゴリをリロード
-    selectGachaCategory('permanent');
+    selectGachaCategory('limited');
     return;
   }
 
@@ -9570,12 +9567,12 @@ function makeMissionCard(label,prog,target,gem,done,pct){
 // ================================================================
 //  デバッファースキル定義（クエスト・PvP共通）
 // ================================================================
-const DEBUFFER_MAP = {2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison',202:'burn'};
-const DEBUFFER_PROB = {2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15,202:0.4};
+const DEBUFFER_MAP = {2:'para',8:'poison',16:'para',27:'freeze',64:'para',66:'poison',68:'burn',74:'poison',80:'freeze',86:'poison',91:'poison'};
+const DEBUFFER_PROB = {2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3,80:0.15,86:0.2,91:0.15};
 // デバフの持続ターン数（クエストと同じ3ターン）
 const DEBUFF_TURNS = 3;
 // デバフのスタック数（キャラごと）
-const DEBUFFER_STACKS = {68:2, 202:2}; // 炎症系は2スタック、それ以外は1
+const DEBUFFER_STACKS = {68:2}; // 炎症系は2スタック、それ以外は1
 
 function limitBreakChar(){
   if(detailCharId===-1) return;
