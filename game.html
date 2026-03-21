@@ -9140,9 +9140,9 @@ function openPickupCardDetail(charId){
   var role = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
   var rarColor = {UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'}[c.rarity]||'#fff';
 
-  // デスクトップではopenPartyCharDetailを使用
+  // デスクトップもスマホも統一モーダルを使用（Lv120 0凸表示のため）
   if(window.innerWidth > 600){
-    openPartyCharDetail(charId);
+    openPickupCardDetailModal(charId);
     return;
   }
 
@@ -9178,15 +9178,21 @@ function openPickupCardDetail(charId){
     +'</div>'
     +'<div onclick="closePickupDetail()" style="font-size:22px;color:var(--text3);cursor:pointer;align-self:flex-start;">✕</div>'
     +'</div>'
-    // ステータス
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">'
-    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
-    +'<div style="font-size:9px;color:var(--text3);">HP</div>'
-    +'<div style="font-size:16px;font-weight:700;">'+c.hp+'</div></div>'
-    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
-    +'<div style="font-size:9px;color:var(--text3);">ATK</div>'
-    +'<div style="font-size:16px;font-weight:700;">'+c.atk+'</div></div>'
-    +'</div>'
+    // ステータス（Lv.120 0凸の最大値を表示）
+    +(function(){
+      var maxLvMul = 1 + (120-1)*0.08; // Lv120 0凸
+      var maxHp  = Math.round(c.hp  * maxLvMul);
+      var maxAtk = Math.round(c.atk * maxLvMul);
+      return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">'
+        +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+        +'<div style="font-size:9px;color:var(--text3);">HP</div>'
+        +'<div style="font-size:16px;font-weight:700;">'+maxHp+'</div></div>'
+        +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+        +'<div style="font-size:9px;color:var(--text3);">ATK</div>'
+        +'<div style="font-size:16px;font-weight:700;">'+maxAtk+'</div></div>'
+        +'</div>'
+        +'<div style="font-size:9px;color:var(--text3);text-align:right;margin-bottom:10px;">※ Lv.120 / 0凸時のステータス</div>';
+    })()
     // スキル
     +'<div style="background:rgba(20,60,100,.2);border:.5px solid rgba(30,100,180,.3);border-radius:8px;padding:10px;margin-bottom:12px;">'
     +'<div style="font-size:10px;color:var(--teal);font-weight:600;margin-bottom:4px;">⚡ '+c.skillName+'</div>'
@@ -9676,6 +9682,77 @@ function updateLimitedTabVisibility(){
       refreshGachaDisplay();
     }
   }
+}
+
+function openPickupCardDetailModal(charId){
+  sfx('click');
+  var c = CHARS.find(function(ch){ return ch.id===charId; });
+  if(!c) return;
+  var attr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+  var role = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+  var rarColor = {UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'}[c.rarity]||'#fff';
+  var isOwned = S.owned.includes(c.id);
+  var limitedTag = c.limited
+    ? '<span style="font-size:9px;background:linear-gradient(90deg,#c02040,#e05080);color:#fff;border-radius:4px;padding:1px 7px;margin-left:6px;">限定</span>'
+    : '';
+
+  // Lv120 0凸の最大ステータス
+  var maxLvMul = 1 + (120-1)*0.08;
+  var maxHp  = Math.round(c.hp  * maxLvMul);
+  var maxAtk = Math.round(c.atk * maxLvMul);
+
+  var modal = document.getElementById('pickup-detail-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'pickup-detail-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,5,20,.88);z-index:1000;'
+      +'display:flex;align-items:center;justify-content:center;';
+    modal.onclick = function(e){ if(e.target===modal) modal.style.display='none'; };
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = '<div style="background:var(--bg2);border:.5px solid var(--border2);border-radius:16px;'
+    +'padding:20px 18px;width:min(380px,92vw);max-height:80vh;overflow-y:auto;">'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">'
+    +'<div style="width:56px;height:56px;border-radius:14px;display:flex;align-items:center;'
+    +'justify-content:center;font-size:28px;background:'+c.bg+';border:.5px solid '+c.border+';">'+c.emoji+'</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:16px;font-weight:700;">'+c.name+limitedTag+'</div>'
+    +'<div style="font-size:11px;color:'+rarColor+';font-weight:700;margin-top:2px;">'+c.rarity
+      +' <span class="attr-badge attr-'+(c.attribute||'none')+'">'+attr.emoji+attr.label+'</span>'
+      +' <span class="role-badge role-'+(c.role||'attacker')+'">'+role.emoji+role.label+'</span>'
+    +'</div>'
+    +(isOwned?'<div style="font-size:10px;color:#60e080;margin-top:2px;">✅ 所持中</div>':'<div style="font-size:10px;color:#e08080;margin-top:2px;">❌ 未所持</div>')
+    +'</div>'
+    +'<div onclick="closePickupDetail()" style="font-size:22px;color:var(--text3);cursor:pointer;align-self:flex-start;">✕</div>'
+    +'</div>'
+    // ステータス（Lv.120 0凸）
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">HP</div>'
+    +'<div style="font-size:16px;font-weight:700;">'+maxHp+'</div></div>'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">ATK</div>'
+    +'<div style="font-size:16px;font-weight:700;">'+maxAtk+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:9px;color:var(--text3);text-align:right;margin-bottom:10px;">※ Lv.120 / 0凸時のステータス</div>'
+    // スキル
+    +'<div style="background:rgba(20,60,100,.2);border:.5px solid rgba(30,100,180,.3);border-radius:8px;padding:10px;margin-bottom:10px;">'
+    +'<div style="font-size:10px;color:var(--teal);font-weight:600;margin-bottom:4px;">⚡ '+c.skillName+'</div>'
+    +'<div style="font-size:10px;color:var(--text2);">'+c.skillDesc+'</div>'
+    +'</div>'
+    // ピックアップ確率
+    +'<div style="background:rgba(180,120,0,.15);border:.5px solid rgba(220,160,0,.3);border-radius:8px;padding:10px;">'
+    +'<div style="font-size:10px;color:#ffd060;font-weight:600;margin-bottom:3px;">🎯 ピックアップ情報</div>'
+    +'<div style="font-size:10px;color:var(--text2);">'
+    +(c.limited
+      ? 'このキャラは<span style="color:#ff8090;font-weight:600;">限定ピックアップ</span>です。<br>天井100回でUR確定（75%でこのキャラ）'
+      : 'ピックアップ中はUR/SSR出現時に<span style="color:#ffd060;font-weight:600;">50%の確率</span>でこのキャラが出現します')
+    +'</div>'
+    +'</div>'
+    +'</div>';
+
+  modal.style.display = 'flex';
 }
 </script>
 
