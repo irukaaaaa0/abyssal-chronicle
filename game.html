@@ -2029,6 +2029,7 @@ async function saveToCloud(){
     receivedRankRewards: S.receivedRankRewards||[],
     playerIcon: S.playerIcon||'🌊',
     ownedIcons: S.ownedIcons||['🌊'],
+    receivedAchievementRewards: S.receivedAchievementRewards||{},
     lastSaved: new Date().toISOString()
   };
   S.lastSaved = saveData.lastSaved; // ローカルも同期
@@ -2763,7 +2764,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'],
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{},
   lastLoginDate:'',dailyRewardClaimed:false,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
@@ -4893,6 +4894,8 @@ function checkAchievement(id, condition){
   if(!def) return false;
   if(!S.achievements) S.achievements={};
   S.achievements[id] = Date.now();
+  if(!S.receivedAchievementRewards) S.receivedAchievementRewards={};
+  S.receivedAchievementRewards[id] = true;
   // 報酬付与
   if(def.reward.gem)  S.gem  += def.reward.gem;
   if(def.reward.gold) S.gold += def.reward.gold;
@@ -5469,6 +5472,8 @@ function checkAchievement(id, condition){
   if(!def) return false;
   if(!S.achievements) S.achievements={};
   S.achievements[id] = Date.now();
+  if(!S.receivedAchievementRewards) S.receivedAchievementRewards={};
+  S.receivedAchievementRewards[id] = true;
   // 報酬付与
   if(def.reward.gem)  S.gem  += def.reward.gem;
   if(def.reward.gold) S.gold += def.reward.gold;
@@ -10153,24 +10158,43 @@ function selectIcon(icon){
 }
 
 // ================================================================
-//  起動時：達成済み実績のアイコン未付与を補填
+//  起動時：達成済み実績の未受取報酬（アイコン・ジェム）を補填
 // ================================================================
 function fixMissingIconRewards(){
   if(!S.achievements) return;
   if(!S.ownedIcons) S.ownedIcons = ['🌊'];
+  if(!S.receivedAchievementRewards) S.receivedAchievementRewards = {};
+
+  var iconGained = [];
+  var gemGained = 0;
   var changed = false;
+
   ACHIEVEMENT_LIST.forEach(function(a){
-    if(!a.reward || !a.reward.icon) return;
-    // 実績達成済み かつ アイコン未所持 → 付与
-    if(S.achievements[a.id] && !S.ownedIcons.includes(a.reward.icon)){
-      S.ownedIcons.push(a.reward.icon);
-      changed = true;
-      console.log('[FIX] アイコン補填:', a.reward.icon, '実績:', a.name);
+    if(!S.achievements[a.id]) return; // 未達成はスキップ
+    if(S.receivedAchievementRewards[a.id]) return; // 既に受取済み
+
+    // 新規追加実績（receivedAchievementRewardsに記録がない）→補填
+    if(a.reward){
+      if(a.reward.gem){
+        S.gem += a.reward.gem;
+        gemGained += a.reward.gem;
+      }
+      if(a.reward.icon && !S.ownedIcons.includes(a.reward.icon)){
+        S.ownedIcons.push(a.reward.icon);
+        iconGained.push(a.reward.icon);
+      }
     }
+    S.receivedAchievementRewards[a.id] = true;
+    changed = true;
+    console.log('[FIX] 補填:', a.name, 'gem:'+( a.reward&&a.reward.gem||0));
   });
+
   if(changed){
     saveGameImmediate();
-    showToast('🎨 未受取のアイコン報酬を受け取りました！');
+    var msg = '🎁 未受取の実績報酬を受け取りました！';
+    if(gemGained>0) msg += ' 💎+'+gemGained;
+    if(iconGained.length>0) msg += ' 🎨'+iconGained.join('');
+    showToast(msg);
   }
 }
 </script>
