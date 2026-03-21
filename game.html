@@ -9992,26 +9992,23 @@ async function loadFriendProfileData(uid, playerId){
     var charsEl=document.getElementById('fp-chars');
     if(charsEl) charsEl.textContent = owned.length;
 
-    // 最高レベルキャラTOP3
+    // 現在の編成パーティ
     var topEl=document.getElementById('fp-top-chars');
     if(topEl){
       var od = d.ownedData||{};
-      var charList = owned.map(function(id){
-        var c = CHARS.find(function(ch){return ch.id===id;});
-        var cd = od[id]||{level:1,breakthrough:0};
-        return c ? {c:c, lv:cd.level||1, bt:cd.breakthrough||0} : null;
-      }).filter(Boolean);
-      charList.sort(function(a,b){ return (b.lv*10+b.bt)-(a.lv*10+a.bt); });
-      var top3 = charList.slice(0,3);
+      var party = (d.party||[]).filter(function(id){return id!==-1;});
       var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
-      topEl.innerHTML = top3.length===0
-        ? '<div style="font-size:10px;color:var(--text3);">キャラなし</div>'
-        : top3.map(function(item){
+      topEl.innerHTML = party.length===0
+        ? '<div style="font-size:10px;color:var(--text3);">パーティ未編成</div>'
+        : party.map(function(id){
+            var c=CHARS.find(function(ch){return ch.id===id;});
+            if(!c) return '';
+            var cd=od[id]||{level:1,breakthrough:0};
             return '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,15,35,.4);border-radius:8px;padding:6px 8px;flex:1;min-width:80px;">'
-              +'<div style="width:28px;height:28px;border-radius:8px;background:'+item.c.bg+';border:.5px solid '+item.c.border+';display:flex;align-items:center;justify-content:center;font-size:14px;">'+item.c.emoji+'</div>'
+              +'<div style="width:28px;height:28px;border-radius:8px;background:'+c.bg+';border:.5px solid '+c.border+';display:flex;align-items:center;justify-content:center;font-size:14px;">'+c.emoji+'</div>'
               +'<div>'
-              +'<div style="font-size:9px;font-weight:600;color:'+( rarColor[item.c.rarity]||'#fff')+';">'+item.c.name+'</div>'
-              +'<div style="font-size:8px;color:var(--text2);">Lv.'+item.lv+(item.bt>0?' '+item.bt+'凸':'')+'</div>'
+              +'<div style="font-size:9px;font-weight:600;color:'+(rarColor[c.rarity]||'#fff')+';">'+c.name+'</div>'
+              +'<div style="font-size:8px;color:var(--text2);">Lv.'+(cd.level||1)+(cd.breakthrough>0?' '+(cd.breakthrough)+'凸':'')+'</div>'
               +'</div>'
               +'</div>';
           }).join('');
@@ -10168,7 +10165,7 @@ function closeFriendProfile(){
     </div>
     <!-- 最高レベルキャラ -->
     <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;margin-bottom:12px;">
-      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;">🏆 最高レベルキャラ</div>
+      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;">⚔️ 現在の編成パーティ</div>
       <div id="fp-top-chars" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
     <!-- 更新ボタン -->
