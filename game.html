@@ -7351,7 +7351,10 @@ async function renderFriend(){
           +'<div class="friend-card-name">'+(f.name||'司令官')+'</div>'
           +'<div class="friend-card-rank">ID: '+f.id+' | Rank '+(f.rank||1)+'</div>'
           +'</div>'
+          +'<div style="display:flex;gap:6px;">'
+          +'<button onclick="openFriendProfile(\''+( f.uid||'')+'\',\''+f.id+'\')" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,50,100,.3);color:#60a0e0;cursor:pointer;font-size:10px;font-family:inherit;">👤 詳細</button>'
           +'<button onclick="removeFriend(\''+f.id+'\')" class="friend-action-btn friend-remove-btn">削除</button>'
+          +'</div>'
           +'</div>';
       }).join(''))
     +'</div>'
@@ -9907,6 +9910,124 @@ function unlockBgm(){
 }
 document.addEventListener('click',  unlockBgm, {once:false, passive:true});
 document.addEventListener('touchstart', unlockBgm, {once:false, passive:true});
+
+// ================================================================
+//  フレンドプロフィール
+// ================================================================
+var _fpCurrentUid = null;
+var _fpCurrentId  = null;
+
+async function openFriendProfile(uid, playerId){
+  _fpCurrentUid = uid;
+  _fpCurrentId  = playerId;
+  var modal = document.getElementById('friend-profile-modal');
+  if(modal) modal.classList.add('show');
+
+  // 初期表示
+  var nameEl = document.getElementById('fp-name');
+  if(nameEl) nameEl.textContent = '読込中...';
+
+  await loadFriendProfileData(uid, playerId);
+}
+
+async function refreshFriendProfile(){
+  showToast('🔄 最新データを取得中...');
+  await loadFriendProfileData(_fpCurrentUid, _fpCurrentId);
+}
+
+async function loadFriendProfileData(uid, playerId){
+  try{
+    var docRef = null;
+    if(uid){
+      docRef = db.collection('players').doc(uid);
+    } else {
+      // UIDなしの場合playerIdで検索
+      var snap = await db.collection('players').where('playerId','==',playerId).limit(1).get();
+      if(!snap.empty) docRef = snap.docs[0].ref;
+    }
+    if(!docRef){ showToast('プロフィールを取得できませんでした'); return; }
+    var doc = await docRef.get();
+    if(!doc.exists){ showToast('データが見つかりません'); return; }
+    var d = doc.data();
+
+    // 名前・ID
+    var nameEl=document.getElementById('fp-name');
+    var idEl=document.getElementById('fp-id');
+    if(nameEl) nameEl.textContent = d.playerName||'司令官';
+    if(idEl) idEl.textContent = 'ID: '+(d.playerId||playerId)+' | UID: '+(uid||'').slice(0,8)+'...';
+
+    // ランク
+    var rankEl=document.getElementById('fp-rank');
+    if(rankEl) rankEl.textContent = 'Lv.'+(d.rank||1);
+
+    // PvPレート
+    var pvpEl=document.getElementById('fp-pvp');
+    if(pvpEl) pvpEl.textContent = (d.pvpRank||1200)+'pt';
+
+    // PvP戦績
+    var pvpRecEl=document.getElementById('fp-pvp-record');
+    if(pvpRecEl) pvpRecEl.innerHTML =
+      '<span style="color:#40e080;">'+(d.pvpWin||0)+'勝</span>'
+      +' <span style="color:var(--text3);">/</span> '
+      +'<span style="color:#e06060;">'+(d.pvpLose||0)+'敗</span>';
+
+    // クエストクリア数
+    var cleared = d.cleared||[];
+    var questEl=document.getElementById('fp-quests');
+    var questSubEl=document.getElementById('fp-quests-sub');
+    if(questEl) questEl.textContent = cleared.length;
+    // 最終クリアクエストを取得
+    if(questSubEl && cleared.length>0){
+      var lastQid = cleared[cleared.length-1];
+      var lastQ = QUESTS ? QUESTS.find(function(q){return q.id===lastQid;}) : null;
+      questSubEl.textContent = lastQ ? lastQ.name : '';
+    }
+
+    // 無限塔
+    var towerEl=document.getElementById('fp-tower');
+    if(towerEl) towerEl.textContent = (d.towerBest||d.towerFloor||1)+'F';
+
+    // 所持キャラ数
+    var owned = d.owned||[];
+    var charsEl=document.getElementById('fp-chars');
+    if(charsEl) charsEl.textContent = owned.length;
+
+    // 最高レベルキャラTOP3
+    var topEl=document.getElementById('fp-top-chars');
+    if(topEl){
+      var od = d.ownedData||{};
+      var charList = owned.map(function(id){
+        var c = CHARS.find(function(ch){return ch.id===id;});
+        var cd = od[id]||{level:1,breakthrough:0};
+        return c ? {c:c, lv:cd.level||1, bt:cd.breakthrough||0} : null;
+      }).filter(Boolean);
+      charList.sort(function(a,b){ return (b.lv*10+b.bt)-(a.lv*10+a.bt); });
+      var top3 = charList.slice(0,3);
+      var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
+      topEl.innerHTML = top3.length===0
+        ? '<div style="font-size:10px;color:var(--text3);">キャラなし</div>'
+        : top3.map(function(item){
+            return '<div style="display:flex;align-items:center;gap:6px;background:rgba(0,15,35,.4);border-radius:8px;padding:6px 8px;flex:1;min-width:80px;">'
+              +'<div style="width:28px;height:28px;border-radius:8px;background:'+item.c.bg+';border:.5px solid '+item.c.border+';display:flex;align-items:center;justify-content:center;font-size:14px;">'+item.c.emoji+'</div>'
+              +'<div>'
+              +'<div style="font-size:9px;font-weight:600;color:'+( rarColor[item.c.rarity]||'#fff')+';">'+item.c.name+'</div>'
+              +'<div style="font-size:8px;color:var(--text2);">Lv.'+item.lv+(item.bt>0?' '+item.bt+'凸':'')+'</div>'
+              +'</div>'
+              +'</div>';
+          }).join('');
+    }
+
+    showToast('✅ '+(d.playerName||'司令官')+'のプロフィールを取得しました');
+  }catch(e){
+    console.log('[PROFILE] エラー:', e.message);
+    showToast('❌ データ取得に失敗しました');
+  }
+}
+
+function closeFriendProfile(){
+  var modal=document.getElementById('friend-profile-modal');
+  if(modal) modal.classList.remove('show');
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -9997,5 +10118,62 @@ document.addEventListener('touchstart', unlockBgm, {once:false, passive:true});
 </div>
 
 <!-- アップデートログポップアップ -->
+
+<!-- フレンドプロフィールモーダル -->
+<div class="modal-overlay" id="friend-profile-modal" onclick="if(event.target===this)closeFriendProfile()" style="z-index:500;">
+  <div class="modal" style="width:min(360px,92vw);max-height:85vh;overflow-y:auto;padding:20px 16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:.5px solid var(--border2);">
+      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0a3060,#1a6090);display:flex;align-items:center;justify-content:center;font-size:22px;">🌊</div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:700;" id="fp-name">読込中...</div>
+        <div style="font-size:10px;color:var(--text2);" id="fp-id"></div>
+      </div>
+      <div onclick="closeFriendProfile()" style="font-size:22px;color:var(--text3);cursor:pointer;">✕</div>
+    </div>
+    <!-- ランク・PvP -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">ランク</div>
+        <div style="font-size:18px;font-weight:700;color:var(--gold);" id="fp-rank">—</div>
+      </div>
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">PvPレート</div>
+        <div style="font-size:18px;font-weight:700;color:#c080ff;" id="fp-pvp">—</div>
+      </div>
+    </div>
+    <!-- クエスト・塔 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">クリアクエスト</div>
+        <div style="font-size:18px;font-weight:700;color:var(--teal);" id="fp-quests">—</div>
+        <div style="font-size:8px;color:var(--text3);" id="fp-quests-sub"></div>
+      </div>
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">無限塔</div>
+        <div style="font-size:18px;font-weight:700;color:#60c0ff;" id="fp-tower">—</div>
+        <div style="font-size:8px;color:var(--text3);">到達階層</div>
+      </div>
+    </div>
+    <!-- キャラ・PvP戦績 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">所持キャラ</div>
+        <div style="font-size:18px;font-weight:700;color:#e0a040;" id="fp-chars">—</div>
+        <div style="font-size:8px;color:var(--text3);">体</div>
+      </div>
+      <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">PvP戦績</div>
+        <div style="font-size:13px;font-weight:700;" id="fp-pvp-record">—</div>
+      </div>
+    </div>
+    <!-- 最高レベルキャラ -->
+    <div style="background:rgba(0,20,40,.4);border-radius:8px;padding:10px;margin-bottom:12px;">
+      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;">🏆 最高レベルキャラ</div>
+      <div id="fp-top-chars" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <!-- 更新ボタン -->
+    <button onclick="refreshFriendProfile()" style="width:100%;padding:10px;border-radius:10px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,50,100,.3);color:#60a0e0;cursor:pointer;font-family:inherit;font-size:12px;">🔄 最新データを取得</button>
+  </div>
+</div>
 </body>
 </html>
