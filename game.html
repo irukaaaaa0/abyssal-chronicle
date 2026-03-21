@@ -1035,6 +1035,20 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   font-family:inherit;font-size:13px;font-weight:500;
 }
 
+
+/* 複数敵 */
+.multi-enemy-area{display:flex;justify-content:center;gap:6px;width:100%;padding:4px 8px;}
+.enemy-card{flex:1;max-width:110px;background:rgba(0,10,30,.5);border:.5px solid rgba(60,80,120,.4);border-radius:10px;padding:6px;text-align:center;cursor:pointer;transition:border-color .2s,transform .1s;position:relative;}
+.enemy-card:hover{border-color:rgba(255,200,50,.6);transform:scale(1.03);}
+.enemy-card.focused{border-color:#ffd060!important;box-shadow:0 0 8px rgba(255,208,0,.5);}
+.enemy-card.dead{opacity:.3;pointer-events:none;filter:grayscale(1);}
+.enemy-card-ico{font-size:26px;margin-bottom:3px;}
+.enemy-card-nm{font-size:8px;color:var(--text2);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.enemy-card-hp-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:2px;}
+.enemy-card-hp-fill{height:100%;background:linear-gradient(90deg,#cc3030,#802020);border-radius:2px;transition:width .4s;}
+.enemy-card-hp-txt{font-size:7px;color:var(--text3);}
+.enemy-card-status{font-size:8px;min-height:12px;}
+.sync-attack-warn{position:absolute;top:-8px;left:0;right:0;text-align:center;font-size:8px;color:#ff6040;font-weight:700;animation:pulse 1s infinite;}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1695,11 +1709,18 @@ function onPvpEnd(won, quest){
     <div class="phase-indicator" id="phase-indicator">
       <div class="phase-txt" id="phase-txt">YOUR TURN</div>
     </div>
-    <div class="enemy-ico" id="enemy-ico">🦑</div>
-    <div class="enemy-nm" id="enemy-nm">???</div>
-    <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
-    <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
+    <!-- 単体敵（互換用・複数敵時は非表示） -->
+    <div id="enemy-single">
+      <div class="enemy-ico" id="enemy-ico">🦑</div>
+      <div class="enemy-nm" id="enemy-nm">???</div>
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="enemy-hp-fill" style="width:100%"></div></div>
+      <div class="enemy-hp-txt" id="enemy-hp-txt">HP: ??? / ???</div>
+    </div>
+    <!-- 複数敵エリア -->
+    <div id="enemy-multi" style="display:none;width:100%;"></div>
     <div class="enemy-action-txt" id="enemy-action-txt"></div>
+    <!-- 集中狙い表示 -->
+    <div id="focus-target-disp" style="display:none;font-size:9px;color:#ffd060;text-align:center;margin-top:2px;"></div>
   </div>
   <!-- 味方状態異常パネル -->
   <div class="battle-status-panel" id="battle-status-panel"></div>
@@ -2675,7 +2696,7 @@ const CHAPTERS=[
         {char:'司令官',  icon:'🌊',text:'…足元が消えていく。意識を繋ぎ止めろ！仲間の声だけを頼りに戦え！'},
        ]},
       {id:303, name:'3-3 旧破の残滓',  emoji:'👾',boss:false,
-       enemy:{name:'旧破の使徒',   emoji:'👾',hp:5500,atk:390,spd:3,statusPatterns:[{"type": "burn", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'旧破の使徒',   emoji:'👾',hp:5500,atk:390,spd:3,statusPatterns:[{"type": "burn", "prob": 0.15, "stacks": 1}]},
        gold:800,gem:80,
        story:[
         {char:'旧破の使徒',icon:'👾',text:'……お前たち、ここまで来たのか。旧破神は今、深い眠りの中にいる。邪魔はさせない。'},
@@ -2689,7 +2710,7 @@ const CHAPTERS=[
         {char:'司令官',  icon:'🌊',text:'コンボを繋げ！単発では傷一つつけられない。属性コンボを使え！'},
        ]},
       {id:305, name:'3-5 中間BOSS 深海竜',emoji:'🐉',boss:true,
-       enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:18000,atk:550,spd:3},
+       enemy:{name:'深海竜ヴォルガ',emoji:'🐉',hp:12000,atk:440,spd:3},
        gold:2000,gem:200,
        story:[
         {char:'ナレーター',icon:'📖',text:'旧破の扉の前。突如として海底が震え、地響きのような咆哮が轟いた。'},
@@ -2727,29 +2748,29 @@ const CHAPTERS=[
     bgColor:['#140400','#280800'],
     layers:[
       {id:401,name:'4-1 溶岩の入口',    emoji:'🌋',boss:false,
-       enemy:{name:'溶岩クラゲ',    emoji:'🪼',hp:8000,atk:350,spd:2},
+       enemy:{name:'溶岩クラゲ',    emoji:'🪼',hp:5600,atk:280,spd:2},
        gold:1500,gem:60,
        story:[
         {char:'司令官',icon:'🌊',text:'旧破神を倒した後も、深海の異変は続いていた。新たな歪みが発生した灼熱の深溝へ向かう。'},
         {char:'謎の声',icon:'👁️',text:'ここは旧破の炎が漏れ出した場所だ。通常の水は存在しない——炎そのものが海になっている。'},
        ]},
       {id:402,name:'4-2 炎海の回廊',    emoji:'🔥',boss:false,
-       enemy:{name:'炎海の蛇竜',   emoji:'🐍',hp:13000,atk:450,spd:2},
+       enemy:{name:'炎海の蛇竜',   emoji:'🐍',hp:9000,atk:360,spd:2},
        gold:1800,gem:70,story:[{char:'司令官',icon:'🌊',text:'炎が海のように揺れている。まともに触れれば即死だ。'}]},
       {id:403,name:'4-3 灼熱の番所',    emoji:'💥',boss:false,
-       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:18000,atk:550,spd:2,statusPatterns:[{"type": "burn", "prob": 0.35, "stacks": 1}]},
+       enemy:{name:'灼熱の番兵',   emoji:'👹',hp:12000,atk:440,spd:2,statusPatterns:[{"type": "burn", "prob": 0.15, "stacks": 1}]},
        gold:2200,gem:80,story:[{char:'ナレーター',icon:'📖',text:'炎の番兵が道を塞いでいた。通り抜けるには全力の戦闘が必要だ。'}]},
       {id:404,name:'4-4 溶岩竜の巣',    emoji:'🐉',boss:false,
-       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:25000,atk:650,spd:3,statusPatterns:[{"type": "burn", "prob": 0.25, "stacks": 1}]},
+       enemy:{name:'溶岩竜の幼体', emoji:'🐉',hp:17000,atk:520,spd:3,statusPatterns:[{"type": "burn", "prob": 0.25, "stacks": 1}]},
        gold:2800,gem:95,story:[{char:'司令官',icon:'🌊',text:'巨大な溶岩竜の幼体が群れをなしている。親はどこだ…？'}]},
       {id:405,name:'4-5 炎獄の試練',    emoji:'🔱',boss:false,
-       enemy:{name:'炎獄の試練者', emoji:'⚔️',hp:35000,atk:750,spd:3},
+       enemy:{name:'炎獄の試練者', emoji:'⚔️',hp:24000,atk:600,spd:3},
        gold:3500,gem:110,story:[{char:'謎の声',icon:'👁️',text:'この試練を越えたものだけが次の層へ進める。全力で挑め。'}]},
       {id:406,name:'4-6 炎帝の玉座',    emoji:'🌋',boss:false,
-       enemy:{name:'炎帝の眷属',   emoji:'🔥',hp:45000,atk:900,spd:3},
+       enemy:{name:'炎帝の眷属',   emoji:'🔥',hp:30000,atk:720,spd:3},
        gold:4500,gem:130,story:[{char:'ナレーター',icon:'📖',text:'炎帝の玉座に近づくほど熱気が増す。キャラの強化なしでは突破不可能だ。'}]},
       {id:407,name:'4-7 BOSS 炎帝フレアノス',emoji:'🌋',boss:true,
-       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:80000,atk:1100,spd:3,statusPatterns:[{"type": "burn", "prob": 0.5, "stacks": 2}, {"type": "para", "prob": 0.2, "stacks": 1}]},
+       enemy:{name:'炎帝フレアノス',emoji:'🌋',hp:55000,atk:880,spd:3,statusPatterns:[{"type": "burn", "prob": 0.2, "stacks": 1}, {"type": "para", "prob": 0.2, "stacks": 1}]},
        gold:8000,gem:200,
        story:[
         {char:'ナレーター',icon:'📖',text:'灼熱の深溝の支配者。その炎は深海をも蒸発させると言われる。'},
@@ -2767,23 +2788,23 @@ const CHAPTERS=[
     bgColor:['#000814','#001428'],
     layers:[
       {id:501,name:'5-1 氷結の入口',   emoji:'❄️',boss:false,
-       enemy:{name:'氷晶の守衛',   emoji:'🧊',hp:55000,atk:1100,spd:2},
+       enemy:{name:'氷晶の守衛',   emoji:'🧊',hp:38000,atk:880,spd:2},
        gold:5000,gem:150,
        story:[{char:'司令官',icon:'🌊',text:'炎帝を倒した先に広がっていたのは、永久凍土の世界だった。時間すら凍っているような錯覚を覚える。'}]},
       {id:502,name:'5-2 凍海の回廊',   emoji:'🌨️',boss:false,
-       enemy:{name:'凍海の巨鯨',   emoji:'🐋',hp:80000,atk:1300,spd:2},
+       enemy:{name:'凍海の巨鯨',   emoji:'🐋',hp:55000,atk:1040,spd:2},
        gold:6000,gem:170,story:[{char:'謎の声',icon:'👁️',text:'あの鯨は永劫の眠りについていたはずだ。旧破の影響で目覚めてしまったのか…'}]},
       {id:503,name:'5-3 氷の迷宮',     emoji:'🔮',boss:false,
-       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:110000,atk:1500,spd:3,statusPatterns:[{"type": "freeze", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'氷鏡の幻影',   emoji:'💠',hp:75000,atk:1200,spd:3,statusPatterns:[{"type": "freeze", "prob": 0.15, "stacks": 1}]},
        gold:7500,gem:190,story:[{char:'ナレーター',icon:'📖',text:'氷の迷宮は敵の幻影で溢れていた。どれが本物か見抜く眼が必要だ。'}]},
       {id:504,name:'5-4 永劫の試練',   emoji:'⚔️',boss:false,
-       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:150000,atk:1800,spd:3,statusPatterns:[{"type": "para", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'永劫の騎士',   emoji:'🛡️',hp:100000,atk:1440,spd:3,statusPatterns:[{"type": "para", "prob": 0.15, "stacks": 1}]},
        gold:9000,gem:220,story:[{char:'司令官',icon:'🌊',text:'この騎士は永劫に渡って氷獄を守り続けてきた番人だ。全力で挑め！'}]},
       {id:505,name:'5-5 氷獄の核',     emoji:'❄️',boss:false,
-       enemy:{name:'氷獄の核結晶', emoji:'💎',hp:200000,atk:2100,spd:3},
+       enemy:{name:'氷獄の核結晶', emoji:'💎',hp:140000,atk:1680,spd:3},
        gold:12000,gem:260,story:[{char:'謎の声',icon:'👁️',text:'この結晶が氷獄全体のエネルギー源だ。破壊すれば氷獄の神も目覚める。'}]},
       {id:506,name:'5-6 BOSS 氷獄神アイギス',emoji:'❄️',boss:true,
-       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:320000,atk:2600,spd:4,statusPatterns:[{"type": "freeze", "prob": 0.4, "stacks": 1}, {"type": "poison", "prob": 0.3, "stacks": 2}]},
+       enemy:{name:'氷獄神アイギス',emoji:'❄️',hp:220000,atk:2080,spd:4,statusPatterns:[{"type": "freeze", "prob": 0.18, "stacks": 1}, {"type": "poison", "prob": 0.15, "stacks": 1}]},
        gold:20000,gem:400,
        story:[
         {char:'ナレーター',icon:'📖',text:'氷獄の支配者が目覚めた。その冷気は空間ごと凍らせる。'},
@@ -2801,20 +2822,20 @@ const CHAPTERS=[
     bgColor:['#020005','#08001a'],
     layers:[
       {id:601,name:'6-1 星屑の入口',   emoji:'✨',boss:false,
-       enemy:{name:'星屑の番兵',   emoji:'⭐',hp:250000,atk:2800,spd:3},
+       enemy:{name:'星屑の番兵',   emoji:'⭐',hp:175000,atk:2240,spd:3},
        gold:15000,gem:300,
        story:[{char:'司令官',icon:'🌊',text:'氷獄を越えた先には宇宙が広がっていた。深海の底に宇宙？旧破の歪みがここまで来ている。'}]},
       {id:602,name:'6-2 星核の迷宮',   emoji:'🌟',boss:false,
-       enemy:{name:'星核の守護者', emoji:'💫',hp:380000,atk:3200,spd:3},
+       enemy:{name:'星核の守護者', emoji:'💫',hp:265000,atk:2560,spd:3},
        gold:18000,gem:340,story:[{char:'謎の声',icon:'👁️',text:'星の核が旧破のエネルギーで汚染されている。このままでは…宇宙ごと崩壊する。'}]},
       {id:603,name:'6-3 虚空の戦場',   emoji:'🌌',boss:false,
-       enemy:{name:'虚空の戦士',   emoji:'🌌',hp:520000,atk:3800,spd:4},
+       enemy:{name:'虚空の戦士',   emoji:'🌌',hp:360000,atk:3040,spd:4},
        gold:22000,gem:380,story:[{char:'司令官',icon:'🌊',text:'ここは重力も時間も狂っている。常識を捨てて戦え！'}]},
       {id:604,name:'6-4 星滅の核心',   emoji:'💥',boss:false,
-       enemy:{name:'星滅の結晶体', emoji:'💥',hp:700000,atk:4400,spd:4},
+       enemy:{name:'星滅の結晶体', emoji:'💥',hp:490000,atk:3520,spd:4},
        gold:30000,gem:450,story:[{char:'ナレーター',icon:'📖',text:'この結晶体は星のエネルギーを吸収し続けている。止めなければ無限に強くなる。'}]},
       {id:605,name:'6-5 BOSS 星滅神アステリア',emoji:'💫',boss:true,
-       enemy:{name:'星滅神アステリア',emoji:'💫',hp:1200000,atk:5200,spd:4,statusPatterns:[{"type": "para", "prob": 0.4, "stacks": 1}, {"type": "burn", "prob": 0.3, "stacks": 2}]},
+       enemy:{name:'星滅神アステリア',emoji:'💫',hp:840000,atk:4160,spd:4,statusPatterns:[{"type": "para", "prob": 0.18, "stacks": 1}, {"type": "burn", "prob": 0.15, "stacks": 1}]},
        gold:60000,gem:800,
        story:[
         {char:'星滅神アステリア',icon:'💫',text:'……お前たちは面白い存在だ。深海から宇宙まで辿り着くとは。だが——この星ごと消えてもらおう。'},
@@ -2831,20 +2852,20 @@ const CHAPTERS=[
     bgColor:['#000000','#030003'],
     layers:[
       {id:701,name:'7-1 根源への道',   emoji:'🌑',boss:false,
-       enemy:{name:'根源の番犬',   emoji:'🐺',hp:900000,atk:5500,spd:4},
+       enemy:{name:'根源の番犬',   emoji:'🐺',hp:630000,atk:4400,spd:4},
        gold:50000,gem:600,
        story:[{char:'謎の声',icon:'👁️',text:'旅人よ……ここは旧破そのものだ。私の力でも補助できない。お前の力だけが頼りだ。'}]},
       {id:702,name:'7-2 虚無の廊下',   emoji:'⚫',boss:false,
-       enemy:{name:'虚無の使者',   emoji:'⚫',hp:1500000,atk:6500,spd:4},
+       enemy:{name:'虚無の使者',   emoji:'⚫',hp:1050000,atk:5200,spd:4},
        gold:70000,gem:700,story:[{char:'司令官',icon:'🌊',text:'何もない廊下に、圧倒的な存在感。ここが旧破の中心か…。'}]},
       {id:703,name:'7-3 崩壊の胎動',   emoji:'💀',boss:false,
-       enemy:{name:'崩壊の原初体', emoji:'💀',hp:2200000,atk:7800,spd:5,statusPatterns:[{"type": "poison", "prob": 0.5, "stacks": 2}]},
+       enemy:{name:'崩壊の原初体', emoji:'💀',hp:1540000,atk:6240,spd:5,statusPatterns:[{"type": "poison", "prob": 0.2, "stacks": 1}]},
        gold:90000,gem:800,story:[{char:'ナレーター',icon:'📖',text:'全ての崩壊の源。これを倒せば旧破は終わる——そう信じて進め。'}]},
       {id:704,name:'7-4 根源の核',     emoji:'🌑',boss:false,
-       enemy:{name:'旧破の核',     emoji:'🌑',hp:3500000,atk:9000,spd:5},
+       enemy:{name:'旧破の核',     emoji:'🌑',hp:2450000,atk:7200,spd:5},
        gold:120000,gem:1000,story:[{char:'旧破の核',icon:'🌑',text:'……お前が来ることは分かっていた。だが——お前も私も、同じ「虚無」に向かっている。'}]},
       {id:705,name:'7-5 BOSS 旧破真神ゼロス',emoji:'⭕',boss:true,
-       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:6000000,atk:11000,spd:5,statusPatterns:[{"type": "burn", "prob": 0.4, "stacks": 2}, {"type": "poison", "prob": 0.4, "stacks": 2}, {"type": "freeze", "prob": 0.3, "stacks": 1}]},
+       enemy:{name:'旧破真神ゼロス',emoji:'⭕',hp:4200000,atk:8800,spd:5,statusPatterns:[{"type": "burn", "prob": 0.18, "stacks": 1}, {"type": "poison", "prob": 0.18, "stacks": 1}, {"type": "freeze", "prob": 0.15, "stacks": 1}]},
        gold:300000,gem:3000,
        story:[
         {char:'ナレーター',icon:'📖',text:'全ての始まりにして全ての終わり。旧破の真の神が姿を現した。'},
@@ -2854,26 +2875,50 @@ const CHAPTERS=[
     ]
   },
   // ============================================================
-  // 第8章: 深淵の彼方 (推奨Lv:100+ / エンドコンテンツ)
+  // 第8章: 深淵の彼方 (推奨Lv:100+ / 複数敵登場)
   // ============================================================
   {
     id:8, name:'深淵の彼方', emoji:'🌊',
-    sub:'エンドコンテンツ。最強プレイヤーへの挑戦状。',
+    sub:'エンドコンテンツ。複数の強敵が立ちはだかる。',
     bgColor:['#000408','#001020'],
     layers:[
       {id:801,name:'8-1 彼方の序章',   emoji:'🌊',boss:false,
-       enemy:{name:'深淵の先兵',   emoji:'🦑',hp:5000000,atk:12000,spd:5},
+       // 2体同時出現
+       enemies:[
+         {name:'深淵の先兵A', emoji:'🦑',hp:1500000,atk:6000,spd:3,role:'attacker'},
+         {name:'深淵の先兵B', emoji:'🦠',hp:1200000,atk:5000,spd:4,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.3,stacks:2}]},
+       ],
+       enemy:{name:'深淵の先兵群', emoji:'🦑',hp:2700000,atk:6000,spd:4}, // 後方互換
        gold:200000,gem:2000,
        story:[{char:'謎の声',icon:'👁️',text:'旅人よ、ゼロスを倒した後もまだ先がある。深淵の彼方——本当の深海の最果てだ。'}]},
       {id:802,name:'8-2 彼方の試練',   emoji:'⚡',boss:false,
-       enemy:{name:'彼方の試練者', emoji:'⚡',hp:10000000,atk:16000,spd:5},
-       gold:350000,gem:3000,story:[{char:'司令官',icon:'🌊',text:'強い。今まで戦った中で最強の敵だ。全ての力を解放しなければ勝てない。'}]},
-      {id:803,name:'8-3 BOSS 深淵の彼方',emoji:'🌊',boss:true,
-       enemy:{name:'深淵の彼方神', emoji:'🌊',hp:20000000,atk:22000,spd:5},
+       // 3体同時出現
+       enemies:[
+         {name:'試練の剣士',  emoji:'⚔️',hp:1800000,atk:7000,spd:3,role:'attacker'},
+         {name:'試練の術士',  emoji:'🔮',hp:1200000,atk:5000,spd:5,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.25,stacks:1},{type:'para',prob:0.2,stacks:1}]},
+         {name:'試練の盾兵',  emoji:'🛡️',hp:2500000,atk:3000,spd:2,role:'tank'},
+       ],
+       enemy:{name:'彼方の試練者群', emoji:'⚡',hp:5500000,atk:7000,spd:4},
+       gold:350000,gem:3000,
+       story:[{char:'司令官',icon:'🌊',text:'3体同時！デバフを駆使して倒せ！'}]},
+      {id:803,name:'8-3 BOSS 深淵将軍',emoji:'🌊',boss:true,
+       // ボス+護衛2体
+       enemies:[
+         {name:'深淵護衛α',   emoji:'🦑',hp:1000000,atk:5000,spd:4,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.3,stacks:2}]},
+         {name:'深淵の彼方将', emoji:'🌊',hp:8000000,atk:15000,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.2,stacks:1},{type:'burn',prob:0.25,stacks:2}],
+          syncAttack:true}, // 全員揃っている時に強力な連携技
+         {name:'深淵護衛β',   emoji:'🦠',hp:1000000,atk:5000,spd:4,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.35,stacks:2}]},
+       ],
+       enemy:{name:'深淵の彼方将', emoji:'🌊',hp:10000000,atk:15000,spd:4},
        gold:1000000,gem:10000,
        story:[
-        {char:'深淵の彼方神',icon:'🌊',text:'……お前が来た。長い間、待っていた。真の挑戦者を。さあ——全力で来い。'},
-        {char:'司令官',icon:'🌊',text:'第8章最終BOSS！これが今の最高峰！全力でかかれ！！！'},
+        {char:'深淵の彼方将',icon:'🌊',text:'我が護衛を倒してから来い！一人では相手しない！'},
+        {char:'司令官',icon:'🌊',text:'護衛を先に倒してからボスを狙え！'},
        ]},
     ]
   },
@@ -2882,22 +2927,41 @@ const CHAPTERS=[
   // ============================================================
   {
     id:9, name:'永劫循環', emoji:'♾️',
-    sub:'【隠し章】深淵の彼方を超えた先。永劫に続く試練。',
+    sub:'【隠し章】深淵の彼方を超えた先。3体の神が立ちふさがる。',
     bgColor:['#000000','#000000'],
     layers:[
-      {id:901,name:'9-1 循環の始まり', emoji:'♾️',boss:false,
-       enemy:{name:'循環の守護者', emoji:'♾️',hp:40000000,atk:30000,spd:5},
+      {id:901,name:'9-1 三神の試練',   emoji:'♾️',boss:false,
+       // 3体の神同時出現
+       enemies:[
+         {name:'炎の神格',  emoji:'🔥',hp:5000000,atk:12000,spd:4,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.4,stacks:2}]},
+         {name:'氷の神格',  emoji:'❄️',hp:5000000,atk:10000,spd:3,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.3,stacks:1},{type:'para',prob:0.2,stacks:1}]},
+         {name:'雷の神格',  emoji:'⚡',hp:5000000,atk:11000,spd:5,role:'attacker',
+          statusPatterns:[{type:'para',prob:0.4,stacks:1}]},
+       ],
+       enemy:{name:'三神格', emoji:'♾️',hp:15000000,atk:12000,spd:5},
        gold:5000000,gem:50000,
        story:[
-        {char:'謎の声',icon:'👁️',text:'……旅人よ。お前はついにここまで来た。永劫循環——それは終わりのない試練だ。'},
-        {char:'司令官',icon:'🌊',text:'ここが……本当の最果てか。退けない。進むだけだ。'},
+        {char:'謎の声',icon:'👁️',text:'三神が行く手を阻む。全員を倒さなければ前には進めない。'},
+        {char:'司令官',icon:'🌊',text:'3体同時……属性デバフを全力で使え！'},
        ]},
       {id:902,name:'9-2 BOSS 永劫の神',emoji:'♾️',boss:true,
-       enemy:{name:'永劫の神',     emoji:'♾️',hp:100000000,atk:50000,spd:5},
+       // 分裂して3体になるボス
+       enemies:[
+         {name:'永劫の右腕',  emoji:'🌀',hp:8000000,atk:18000,spd:4,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.3,stacks:2},{type:'poison',prob:0.3,stacks:2}]},
+         {name:'永劫の神',    emoji:'♾️',hp:30000000,atk:25000,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.3,stacks:1},{type:'freeze',prob:0.25,stacks:1}],
+          syncAttack:true},
+         {name:'永劫の左腕',  emoji:'🌀',hp:8000000,atk:18000,spd:4,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.35,stacks:1},{type:'poison',prob:0.35,stacks:2}]},
+       ],
+       enemy:{name:'永劫の神', emoji:'♾️',hp:46000000,atk:25000,spd:5},
        gold:99999999,gem:99999,
        story:[
-        {char:'永劫の神',icon:'♾️',text:'……お前が来ることは、永劫の前から決まっていた。さあ——永遠に戦い続けよう。'},
-        {char:'司令官',icon:'🌊',text:'これが…真のエンドゲーム。全力で！'},
+        {char:'永劫の神',icon:'♾️',text:'……この力、受け取れるか？我が右腕と左腕も合わせて相手にしよう。'},
+        {char:'司令官',icon:'🌊',text:'腕を先に倒せ！本体への道を開く！'},
        ]},
     ]
   },
@@ -4002,10 +4066,11 @@ function removeSlot(i){sfx('click');S.party[i]=-1;if(S.selectedSlot===i)S.select
 //  BATTLE
 // ================================================================
 function initBattle(quest,pids){
-  // ボス戦かどうか判定してBGM切り替え
   var isBoss = quest && (quest.boss === true || (quest.enemy && quest.enemy.boss === true));
   bgmStartBattle(isBoss);
-  BT.quest=quest;BT.enemyHp=quest.enemy.hp;
+  BT.quest=quest;
+  // 複数敵システム初期化
+  initMultiEnemies(quest);
   var pidsWithSupport = [...pids];
   BT.partyHp=pidsWithSupport.map(function(id){
     const c=CHARS.find(ch=>ch.id===id);
@@ -4150,6 +4215,11 @@ function applyStatus(memberId, type, stacks=1){
 
 // 敵に状態異常付与
 function applyEnemyStatus(type, stacks=1){
+  var tgtIdx = getAttackTargetIndex();
+  if(BT_ENEMIES.length>1){
+    applyEnemyStatusMulti(tgtIdx, type, stacks);
+    return;
+  }
   const existing = enemyStatuses.find(s=>s.type===type);
   if(existing){
     if(type==='poison') existing.stacks=Math.min(existing.stacks+stacks,5);
@@ -4201,12 +4271,14 @@ function processEnemyStatuses(){
   enemyStatuses=enemyStatuses.filter(s=>{
     if(s.type==='burn'){
       const dmg=Math.round(BT.quest.enemy.hp*0.03*s.stacks);
-      BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+      var tgt1=getAttackTargetIndex();
+      damageEnemy(tgt1, dmg); totalDmg+=dmg;
       showEnemyStatusEffect('burn', dmg);
     }
     if(s.type==='poison'){
       const dmg=Math.round(BT.quest.enemy.hp*0.02*s.stacks);
-      BT.enemyHp=Math.max(0,BT.enemyHp-dmg); totalDmg+=dmg;
+      var tgt2=getAttackTargetIndex();
+      damageEnemy(tgt2, dmg); totalDmg+=dmg;
       showEnemyStatusEffect('poison', dmg);
     }
     if(s.type==='freeze') isFrozen=true;
@@ -4216,7 +4288,7 @@ function processEnemyStatuses(){
   });
 
   if(totalDmg>0){ updateEnemyHP(); showDmg(totalDmg,false); }
-  if(BT.enemyHp<=0){ setTimeout(winBattle,400); return {proceed:false}; }
+  if(areAllEnemiesDead()){ setTimeout(winBattle,400); return {proceed:false}; }
   renderEnemyStatuses();
   return {proceed:true, isFrozen, isParalyzed};
 }
@@ -4581,14 +4653,16 @@ function executeAttack(){
   });
   BT.selectedOrder = [];
 
-  BT.enemyHp = Math.max(0, BT.enemyHp - total);
+  // BT_ENEMIESにダメージを反映
+  var tgtExec = getAttackTargetIndex();
+  damageEnemy(tgtExec, total);
   showDmg(total, typeBonus>0);
   updateEnemyHP();
-  document.getElementById('combo-disp').textContent = `コンボ: ${BT.combo}`;
+  document.getElementById('combo-disp').textContent = 'コンボ: '+BT.combo;
   updateComboGauge();
   renderHand();
 
-  if(BT.enemyHp<=0){ setTimeout(winBattle,700); return; }
+  if(areAllEnemiesDead()){ setTimeout(winBattle,700); return; }
   // デバッファースキル発動チェック
   BT.partyHp.filter(m=>m.hp>0).forEach(m=>applyDebufferSkill(m.id,'enemy'));
   renderEnemyStatuses();
@@ -4682,7 +4756,13 @@ function enemyTurn(){
     const enemyParalyzed = statusResult.isParalyzed;
 
     // 敵の攻撃（速度により複数回攻撃）
-    const spd = BT.quest.enemy.spd || 1;
+    // 複数敵攻撃
+    var multiAtk = getMultiEnemyAttack();
+    var spd = multiAtk.isSync ? 3 : (BT.quest.enemy.spd||1);
+    if(multiAtk.actions.length>0){
+      var actEl=document.getElementById('enemy-action-txt');
+      if(actEl) actEl.textContent=multiAtk.actions[0];
+    }
     const attacks = Math.min(spd, 3);
 
     let attackCount = 0;
@@ -4704,7 +4784,9 @@ function enemyTurn(){
       const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
       // ダメージ軽減（タンク・スキル）
       const reduction = getPartyDamageReduction();
-      let rawDmg = Math.round(BT.quest.enemy.atk*(.8+Math.random()*.4));
+      // 複数敵の場合はmultiAtkのATKを使う
+      var baseAtk = multiAtk&&multiAtk.totalAtk>0 ? multiAtk.totalAtk : ((BT.quest&&BT.quest.enemy&&BT.quest.enemy.atk)||100);
+      let rawDmg = Math.round(baseAtk*(.8+Math.random()*.4));
       const dmg = Math.round(rawDmg*(1-reduction));
       tgt.hp = Math.max(0, tgt.hp-dmg);
       sfx('hit');
@@ -4801,9 +4883,24 @@ function showDmg(dmg, comboBonus=false){
 }
 
 function updateEnemyHP(){
-  const pct=BT.enemyHp/BT.quest.enemy.hp*100;
-  document.getElementById('enemy-hp-fill').style.width=pct+'%';
-  document.getElementById('enemy-hp-txt').textContent=`HP: ${BT.enemyHp} / ${BT.quest.enemy.hp}`;
+  var totalHp, totalMaxHp;
+  if(BT_ENEMIES&&BT_ENEMIES.length>0){
+    totalHp    = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
+    totalMaxHp = BT_ENEMIES.reduce(function(s,e){return s+e.maxHp;},0)||1;
+  } else {
+    // フォールバック
+    totalHp    = BT.enemyHp||0;
+    totalMaxHp = (BT.quest&&BT.quest.enemy&&BT.quest.enemy.hp)||1;
+  }
+  var pct = Math.max(0, totalHp/totalMaxHp*100);
+  var fill = document.getElementById('enemy-hp-fill');
+  var txt  = document.getElementById('enemy-hp-txt');
+  if(fill) fill.style.width = pct+'%';
+  if(BT_ENEMIES.length<=1 && txt){
+    txt.textContent = 'HP: '+totalHp.toLocaleString()+' / '+totalMaxHp.toLocaleString();
+  }
+  // 複数敵モードの場合は各カードも更新
+  if(BT_ENEMIES.length>1) renderMultiEnemies();
 }
 
 function updatePartyHP(){
@@ -4847,11 +4944,11 @@ const GRIND_QUESTS=[
    desc:'UR複数 or SSR最大育成が必要。属性コンボ必須。'},
   // ===== 難易度: 極限 =====
   {id:'g7', name:'虚無の深淵 — 極限', emoji:'🌑', diff:'extreme', diffLabel:'極限',
-   enemy:{name:'旧破の残影',    emoji:'🌑',hp:18000,atk:550, spd:3},
+   enemy:{name:'旧破の残影',    emoji:'🌑',hp:12000,atk:440, spd:3},
    gold:80000, unlockRank:40,
    desc:'URフル強化でも油断禁物。全員Lv.80以上推奨。'},
   {id:'g8', name:'永劫の虚無 — 最高峰', emoji:'⚫', diff:'extreme', diffLabel:'最高峰',
-   enemy:{name:'永劫の番人',    emoji:'⚫',hp:35000,atk:750,spd:4},
+   enemy:{name:'永劫の番人',    emoji:'⚫',hp:24000,atk:600,spd:4},
    gold:200000,unlockRank:50,
    desc:'最強クラス。UR Lv.100×3 + 限界突破5が目安。安定周回できれば真のエンドゲーム。'},
 ];
@@ -4970,7 +5067,7 @@ function getTowerEnemy(floor){
       statusPatterns:[{"type":"burn","prob":0.2,"stacks":1}]},
     {name:'旧破の使徒',    emoji:'💀',hp:15000,atk:480,   // 71〜80F
       statusPatterns:[{"type":"poison","prob":0.25,"stacks":1}]},
-    {name:'深淵の神眷属',  emoji:'🌑',hp:25000,atk:650,   // 81〜90F
+    {name:'深淵の神眷属',  emoji:'🌑',hp:17000,atk:520,   // 81〜90F
       statusPatterns:[{"type":"poison","prob":0.3,"stacks":1},{"type":"para","prob":0.15,"stacks":1}]},
     {name:'永遠の番人',    emoji:'⚫',hp:40000,atk:900,   // 91〜100F ←限定2体欲しい
       statusPatterns:[{"type":"freeze","prob":0.2,"stacks":1}]},
@@ -10899,6 +10996,212 @@ function convertAllMats(rar){
   showToast('🔄 '+rar+'素材 '+totalStock+'個 → 🔷'+totalPts+'pt 一括変換！');
   renderShopScreen();
   renderBag();
+}
+
+// ================================================================
+//  複数敵戦闘システム
+// ================================================================
+var BT_ENEMIES = []; // [{name,emoji,hp,maxHp,atk,spd,statuses,role,syncAttack}]
+var BT_FOCUS_TARGET = -1; // 集中狙いの敵インデックス（-1=ランダム）
+
+// クエスト開始時に複数敵を初期化
+function initMultiEnemies(quest){
+  var enemies = quest.enemies;
+  if(!enemies||enemies.length===0){
+    // 単体敵（後方互換）
+    BT_ENEMIES = [{
+      name: quest.enemy.name,
+      emoji: quest.enemy.emoji,
+      hp: quest.enemy.hp,
+      maxHp: quest.enemy.hp,
+      atk: quest.enemy.atk,
+      spd: quest.enemy.spd||1,
+      statuses: [],
+      role: 'single',
+      statusPatterns: quest.enemy.statusPatterns||[],
+    }];
+    document.getElementById('enemy-single').style.display='';
+    document.getElementById('enemy-multi').style.display='none';
+  } else {
+    BT_ENEMIES = enemies.map(function(e){
+      return {
+        name: e.name,
+        emoji: e.emoji,
+        hp: e.hp,
+        maxHp: e.hp,
+        atk: e.atk,
+        spd: e.spd||1,
+        statuses: [],
+        role: e.role||'attacker',
+        statusPatterns: e.statusPatterns||[],
+        syncAttack: e.syncAttack||false,
+      };
+    });
+    document.getElementById('enemy-single').style.display='none';
+    document.getElementById('enemy-multi').style.display='';
+    renderMultiEnemies();
+  }
+  BT_FOCUS_TARGET = -1;
+  document.getElementById('focus-target-disp').style.display='none';
+  // 後方互換：BT.enemyHpをメイン敵HPに設定
+  BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
+}
+
+// 複数敵の表示
+function renderMultiEnemies(){
+  var el = document.getElementById('enemy-multi'); if(!el) return;
+  var aliveCount = BT_ENEMIES.filter(function(e){return e.hp>0;}).length;
+  // 全員揃っている場合の連携技警告
+  var hasSyncReady = aliveCount===BT_ENEMIES.length &&
+    BT_ENEMIES.some(function(e){return e.syncAttack;});
+
+  el.innerHTML = '<div class="multi-enemy-area">'
+    + BT_ENEMIES.map(function(e,i){
+      var pct = Math.max(0, e.hp/e.maxHp*100);
+      var hpColor = pct>50?'linear-gradient(90deg,#20cc60,#108040)':pct>20?'linear-gradient(90deg,#cc8020,#804010)':'linear-gradient(90deg,#cc3030,#802020)';
+      var isFocused = BT_FOCUS_TARGET===i;
+      var isDead = e.hp<=0;
+      var statusStr = e.statuses&&e.statuses.length
+        ? e.statuses.filter(function(s){return s.turns>0;}).map(function(s){
+            return {burn:'🔥',poison:'☠️',freeze:'❄️',para:'⚡'}[s.type]||'';
+          }).join('')
+        : '';
+      var syncWarn = e.syncAttack && aliveCount===BT_ENEMIES.length
+        ? '<div class="sync-attack-warn">⚡連携</div>' : '';
+      return '<div class="enemy-card'+(isFocused?' focused':'')+(isDead?' dead':'')+'" '
+        +'onclick="toggleFocusTarget('+i+')" title="クリックで集中狙い">'
+        +syncWarn
+        +'<div class="enemy-card-ico">'+e.emoji+'</div>'
+        +'<div class="enemy-card-nm">'+e.name+'</div>'
+        +'<div class="enemy-card-hp-bar"><div class="enemy-card-hp-fill" style="width:'+pct+'%;background:'+hpColor+';"></div></div>'
+        +'<div class="enemy-card-hp-txt">'+(isDead?'💀 DEAD':Math.max(0,e.hp).toLocaleString())+'</div>'
+        +'<div class="enemy-card-status">'+statusStr+'</div>'
+        +(isFocused?'<div style="font-size:8px;color:#ffd060;margin-top:2px;">🎯 狙い中</div>':'')
+        +'</div>';
+    }).join('')
+    +'</div>';
+}
+
+// 集中狙いのトグル
+function toggleFocusTarget(idx){
+  if(BT_ENEMIES[idx]&&BT_ENEMIES[idx].hp<=0) return;
+  if(BT_FOCUS_TARGET===idx){
+    // 解除
+    BT_FOCUS_TARGET = -1;
+    document.getElementById('focus-target-disp').style.display='none';
+    showToast('集中狙いを解除しました');
+  } else {
+    BT_FOCUS_TARGET = idx;
+    var disp = document.getElementById('focus-target-disp');
+    if(disp){
+      disp.style.display='';
+      disp.textContent='🎯 集中狙い: '+BT_ENEMIES[idx].name;
+    }
+    showToast('🎯 '+BT_ENEMIES[idx].name+' を集中狙い！');
+  }
+  renderMultiEnemies();
+}
+
+// 攻撃対象の敵インデックスを取得
+function getAttackTargetIndex(){
+  var alive = BT_ENEMIES.map(function(e,i){return {e:e,i:i};})
+    .filter(function(x){return x.e.hp>0;});
+  if(alive.length===0) return 0;
+  // 集中狙いが設定されていて生存中
+  if(BT_FOCUS_TARGET>=0 && BT_ENEMIES[BT_FOCUS_TARGET] && BT_ENEMIES[BT_FOCUS_TARGET].hp>0){
+    return BT_FOCUS_TARGET;
+  }
+  // ランダム
+  return alive[Math.floor(Math.random()*alive.length)].i;
+}
+
+// 複数敵にダメージを与える（攻撃処理から呼ぶ）
+function damageEnemy(idx, dmg){
+  if(!BT_ENEMIES[idx]) return;
+  BT_ENEMIES[idx].hp = Math.max(0, BT_ENEMIES[idx].hp - dmg);
+  // 後方互換：BT.enemyHpを合計HPに
+  BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
+  if(BT_ENEMIES.length===1){
+    // 単体：従来のHP表示を更新
+    updateEnemyHpDisplay();
+  } else {
+    renderMultiEnemies();
+  }
+  // 集中狙いターゲットが死んだら解除
+  if(BT_FOCUS_TARGET>=0 && BT_ENEMIES[BT_FOCUS_TARGET] && BT_ENEMIES[BT_FOCUS_TARGET].hp<=0){
+    BT_FOCUS_TARGET = -1;
+    document.getElementById('focus-target-disp').style.display='none';
+  }
+}
+
+// 全敵が倒れたか
+function areAllEnemiesDead(){
+  if(!BT_ENEMIES||BT_ENEMIES.length===0) return BT.enemyHp<=0;
+  return BT_ENEMIES.every(function(e){return e.hp<=0;});
+}
+
+// 連携技チェック（全員生存時）
+function checkSyncAttack(){
+  var alive = BT_ENEMIES.filter(function(e){return e.hp>0;});
+  if(alive.length < BT_ENEMIES.length) return false;
+  return BT_ENEMIES.some(function(e){return e.syncAttack&&e.hp>0;});
+}
+
+// 敵ターン処理（複数敵対応）
+function getMultiEnemyAttack(){
+  var alive = BT_ENEMIES.filter(function(e){return e.hp>0;});
+  if(alive.length===0) return {totalAtk:0, actions:[]};
+  // 連携技
+  if(checkSyncAttack()){
+    var syncAtk = alive.reduce(function(s,e){return s+e.atk;},0) * 1.5;
+    return {totalAtk:Math.round(syncAtk), actions:['⚡ 全員連携攻撃！'], isSync:true};
+  }
+  // 各敵が個別に攻撃
+  var actions = [];
+  var totalAtk = 0;
+  alive.forEach(function(e){
+    if(Math.random()<0.7){ // 70%で攻撃
+      var spd = e.spd||1;
+      var atkVal = Math.round(e.atk * (0.8+Math.random()*0.4));
+      totalAtk += atkVal;
+      actions.push(e.emoji+' '+e.name+'の攻撃！');
+    }
+  });
+  if(actions.length===0){
+    // 少なくとも1体は攻撃
+    var e2 = alive[Math.floor(Math.random()*alive.length)];
+    totalAtk = e2.atk;
+    actions.push(e2.emoji+' '+e2.name+'の攻撃！');
+  }
+  return {totalAtk:totalAtk, actions:actions};
+}
+
+// 敵状態異常の適用（複数敵対応）
+function applyEnemyStatusMulti(idx, type, stacks){
+  if(!BT_ENEMIES[idx]) return;
+  var e = BT_ENEMIES[idx];
+  if(!e.statuses) e.statuses=[];
+  var ex = e.statuses.find(function(s){return s.type===type;});
+  if(ex){
+    if(type==='poison') ex.stacks=Math.min(ex.stacks+stacks,5);
+    ex.turns=Math.max(ex.turns,3);
+  } else {
+    e.statuses.push({type:type,stacks:stacks||1,turns:3});
+  }
+  if(BT_ENEMIES.length>1) renderMultiEnemies();
+  else renderEnemyStatuses();
+}
+
+// updateEnemyHpDisplay（単体互換）
+function updateEnemyHpDisplay(){
+  if(BT_ENEMIES.length===1){
+    var e0=BT_ENEMIES[0];
+    var pct=e0.maxHp>0?e0.hp/e0.maxHp*100:0;
+    var fill=document.getElementById('enemy-hp-fill');
+    var txt=document.getElementById('enemy-hp-txt');
+    if(fill) fill.style.width=Math.max(0,pct)+'%';
+    if(txt) txt.textContent='HP: '+e0.hp.toLocaleString()+' / '+e0.maxHp.toLocaleString();
+  }
 }
 </script>
 
