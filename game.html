@@ -3131,7 +3131,7 @@ let BANNERS=[
     pickup:['UR','SSR'],
     pickupIds:[200,201,68,70],
     limitedIds:[200,201], // このバナー専用の限定キャラID
-    pity:80, // 限定バナーは天井80回
+    pity:100, // 限定バナーは天井100回
     period:'期間限定開催中',
   },
   {
@@ -3141,7 +3141,7 @@ let BANNERS=[
     pickup:['UR','SSR'],
     pickupIds:[202,60,73],
     limitedIds:[202],
-    pity:80,
+    pity:100,
     period:'期間限定開催中',
   },
 ];
@@ -5426,7 +5426,6 @@ async function loadOnlineData(){
     // if(nd.updateLog) UPDATE_LOG = nd.updateLog;
     console.log('[ABYSSAL] Notices loaded. version:', GAME_VERSION);
     // アップデートログポップアップチェック（ホーム画面遷移後に表示）
-    setTimeout(checkUpdateLogPopup, 800);
   }catch(e){
     console.log('[ABYSSAL] loadOnlineData failed:', e);
   }
@@ -5528,7 +5527,11 @@ let readNoticeIds = JSON.parse(localStorage.getItem('read_notices')||'[]');
 function showOnlineNotices(){
   // アップデートログが新しければポップアップ表示
   if(UPDATE_LOG.length > 0){
-    var latest = UPDATE_LOG[0];
+    // 最新バージョンを日付・バージョン番号でソートして取得
+    var sortedLogs = UPDATE_LOG.slice().sort(function(a,b){
+      return (b.version||'').localeCompare(a.version||'');
+    });
+    var latest = sortedLogs[0];
     var latestKey = 'log_seen_v' + (latest.version||'unknown');
     var alreadySeen = localStorage.getItem(latestKey);
     if(!alreadySeen){
@@ -7935,18 +7938,18 @@ var MacroDetector = {
   },
 
   checkSpeed: function(log, type){
-    if(log.length < 5) return false;
-    var recent = log.slice(-5);
+    if(log.length < 8) return false; // 判定に必要な回数を5→8に増加
+    var recent = log.slice(-8);
     var intervals = [];
     for(var i=1;i<recent.length;i++){
       intervals.push(recent[i]-recent[i-1]);
     }
     var avgInterval = intervals.reduce(function(a,b){return a+b;},0)/intervals.length;
 
-    // 閾値（ミリ秒）
-    var threshold = type==='gacha'  ? 800  :  // ガチャ：0.8秒未満が5連続
-                    type==='attack' ? 400  :  // 攻撃：0.4秒未満が5連続
-                                      300;    // 一般：0.3秒未満が5連続
+    // 閾値（ミリ秒）- 人間でも速いタップを考慮して緩めに設定
+    var threshold = type==='gacha'  ? 400  :  // ガチャ：0.4秒未満が8連続（旧0.8秒×5回）
+                    type==='attack' ? 200  :  // 攻撃：0.2秒未満が8連続（旧0.4秒×5回）
+                                      150;    // 一般：0.15秒未満が8連続（旧0.3秒×5回）
 
     if(avgInterval < threshold){
       this.trigger('速度異常: '+type+'操作が'+Math.round(avgInterval)+'ms間隔（閾値'+threshold+'ms）');
@@ -7956,12 +7959,12 @@ var MacroDetector = {
   },
 
   // ---------------------------------------------------
-  // 連続ガチャ検出（1分以内に30回以上）
+  // 連続ガチャ検出（1分以内に50回以上）→ 旧30回から緩和
   // ---------------------------------------------------
   checkGachaAbuse: function(){
     var now = Date.now();
     var oneMin = this.gachaTimes.filter(function(t){return now-t<60000;});
-    if(oneMin.length >= 30){
+    if(oneMin.length >= 50){
       this.trigger('連続ガチャ: 1分以内に'+oneMin.length+'回のガチャ');
       return true;
     }
@@ -8317,7 +8320,8 @@ function openPvpInfoPanel(){
 var libFilter = {status:'all', rar:'all', attr:'all', role:'all', name:''};
 
 function setLibFilter(type, val){
-  libFilter[type] = val;
+  // attr/roleはトグル処理内でセットするので先頭代入はstatus/rarのみ
+  if(type!=='attr' && type!=='role') libFilter[type] = val;
   if(type==='status'){
     ['all','owned','notowned'].forEach(function(v){
       var el=document.getElementById('lf-status-'+v);
@@ -8686,9 +8690,9 @@ function initPickupSlider(){
   });
   window.addEventListener('mouseup', function(){
     mouseDown = false; isDragging = false;
-    row.style.cursor = 'grab';
+    row.style.cursor = 'default';
   });
-  row.style.cursor = 'grab';
+  row.style.cursor = 'default';
 }
 
 function updatePickupArrows(){
@@ -8809,7 +8813,7 @@ function openPickupCardDetail(charId){
     +'<div style="font-size:10px;color:#ffd060;font-weight:600;margin-bottom:3px;">🎯 ピックアップ情報</div>'
     +'<div style="font-size:10px;color:var(--text2);">'
     +(c.limited
-      ? 'このキャラは<span style="color:#ff8090;font-weight:600;">限定ピックアップ</span>です。<br>天井80回でUR確定（75%でこのキャラ）'
+      ? 'このキャラは<span style="color:#ff8090;font-weight:600;">限定ピックアップ</span>です。<br>天井100回でUR確定（75%でこのキャラ）'
       : 'ピックアップ中はUR/SSR出現時に<span style="color:#ffd060;font-weight:600;">50%の確率</span>でこのキャラが出現します')
     +'</div>'
     +'</div>'
@@ -8882,60 +8886,53 @@ function closeUpdateLogModal(){
 // ================================================================
 //  アップデートログポップアップ
 // ================================================================
-function checkUpdateLogPopup(){
-  if(!UPDATE_LOG || UPDATE_LOG.length===0) return;
-  // 最新のバージョンを取得
-  var latest = UPDATE_LOG.sort(function(a,b){
-    return (b.version||'').localeCompare(a.version||'');
-  })[0];
-  if(!latest) return;
-  // 前回見たバージョンと比較
-  var lastSeen = S.lastSeenVersion||'';
-  if(latest.version && latest.version !== lastSeen){
-    showUpdatePopup(latest);
-  }
-}
+// checkUpdateLogPopup → showUpdateLogModalに統合済み
 
-function showUpdatePopup(log){
-  var popup = document.getElementById('update-log-popup');
-  if(!popup) return;
-  var verEl = document.getElementById('update-popup-version');
-  var contentEl = document.getElementById('update-popup-content');
-  if(verEl) verEl.textContent = 'v'+log.version + (log.date?' — '+log.date:'');
-  if(contentEl){
-    // items配列 or 改行テキスト両方に対応
-    var lines = [];
-    if(Array.isArray(log.items) && log.items.length>0){
-      lines = log.items.map(function(item){
-        return typeof item==='string' ? item : (item.text||String(item));
-      });
-    } else {
-      var raw = log.content||log.body||log.text||'';
-      lines = raw.split('\n').filter(function(l){return l.trim();});
-    }
-    contentEl.innerHTML = lines.map(function(l){
-      return '<div style="display:flex;gap:8px;margin-bottom:5px;">'
-        +'<span style="color:var(--teal);flex-shrink:0;">▶</span>'
-        +'<span>'+l.replace(/^[・▶\-\*]\s*/,'')+'</span>'
-        +'</div>';
-    }).join('');
-  }
-  popup.style.display = 'flex';
-}
 
-function closeUpdatePopup(){
-  var popup = document.getElementById('update-log-popup');
-  if(popup) popup.style.display = 'none';
-  // 見たバージョンを記録
-  if(UPDATE_LOG && UPDATE_LOG.length>0){
-    var latest = UPDATE_LOG.sort(function(a,b){
-      return (b.version||'').localeCompare(a.version||'');
-    })[0];
-    if(latest && latest.version){
-      S.lastSeenVersion = latest.version;
-      saveGame();
+// ================================================================
+//  バナータブ スワイプスライド
+// ================================================================
+function initBannerTabSlider(){
+  var tabs = document.getElementById('banner-tabs');
+  if(!tabs) return;
+  // 既にイベント登録済みならスキップ
+  if(tabs._sliderInited) return;
+  tabs._sliderInited = true;
+
+  var startX = 0, startScroll = 0, dragging = false;
+
+  tabs.addEventListener('touchstart', function(e){
+    startX = e.touches[0].clientX;
+    startScroll = tabs.scrollLeft;
+    dragging = false;
+  }, {passive:true});
+
+  tabs.addEventListener('touchmove', function(e){
+    var dx = startX - e.touches[0].clientX;
+    if(Math.abs(dx) > 8){
+      dragging = true;
+      tabs.scrollLeft = startScroll + dx;
     }
-  }
+  }, {passive:true});
+
+  // マウスドラッグ対応
+  tabs.addEventListener('mousedown', function(e){
+    startX = e.clientX;
+    startScroll = tabs.scrollLeft;
+    dragging = false;
+    tabs._mouseDown = true;
+    tabs.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!tabs._mouseDown) return;
+    var dx = startX - e.clientX;
+    if(Math.abs(dx) > 5){ dragging = true; tabs.scrollLeft = startScroll + dx; }
+  });
+  window.addEventListener('mouseup', function(){
+    tabs._mouseDown = false;
+    tabs.style.cursor = '';
+  });
+  tabs.style.cursor = 'grab';
 }
 </script>
 
@@ -9027,23 +9024,5 @@ function closeUpdatePopup(){
 </div>
 
 <!-- アップデートログポップアップ -->
-<div class="modal-overlay" id="update-log-popup" style="display:none;z-index:2000;">
-  <div class="modal" style="max-height:80vh;overflow-y:auto;width:min(360px,92vw);">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-      <div style="font-size:20px;">🆕</div>
-      <div style="flex:1;">
-        <div class="modal-ttl" style="margin-bottom:0;">アップデート情報</div>
-        <div id="update-popup-version" style="font-size:10px;color:var(--teal);"></div>
-      </div>
-      <div onclick="closeUpdatePopup()" style="font-size:20px;color:var(--text3);cursor:pointer;">✕</div>
-    </div>
-    <div id="update-popup-content" style="font-size:11px;color:var(--text2);line-height:1.8;"></div>
-    <button onclick="closeUpdatePopup()" style="width:100%;margin-top:14px;padding:11px;border-radius:10px;
-      border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);
-      cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;">
-      ✅ 確認しました
-    </button>
-  </div>
-</div>
 </body>
 </html>
