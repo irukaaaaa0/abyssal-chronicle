@@ -1137,7 +1137,7 @@ function onPvpEnd(won, quest){
       <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
       <div class="menu-btn" onclick="goTo('settings');sfx('click')"><div class="menu-icon-w mi-m">⚙️</div><div class="menu-lbl">設定</div></div>
     </div>
-    <div class="daily-section">
+    <div class="daily-section" onclick="goTo('daily');sfx('click')" style="cursor:pointer;">
       <div class="sec-lbl">DAILY MISSION</div>
       <div class="daily-card">
         <div class="daily-icon-w">📜</div>
@@ -1461,6 +1461,25 @@ function onPvpEnd(won, quest){
   </div>
 </div>
 
+
+<!-- DAILY MISSION SCREEN -->
+<div class="screen" id="screen-daily">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">MISSIONS</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div style="padding:12px 12px 80px;">
+      <!-- デイリー -->
+      <div style="font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:8px;">📅 DAILY — 毎日リセット</div>
+      <div id="daily-mission-list"></div>
+      <!-- 週次 -->
+      <div style="font-size:9px;color:var(--text3);letter-spacing:.12em;margin:14px 0 8px;">📆 WEEKLY — 毎週月曜リセット</div>
+      <div id="weekly-mission-list"></div>
+    </div>
+  </div>
+</div>
 <!-- GRIND SCREEN -->
 <div class="screen" id="screen-grind">
   <div class="header">
@@ -1752,11 +1771,22 @@ function onPvpEnd(won, quest){
       <div class="cdp-stat"><div class="cdp-stat-lbl">HP</div><div class="cdp-stat-val" id="cdp-hp"></div></div>
       <div class="cdp-stat"><div class="cdp-stat-lbl">攻撃力</div><div class="cdp-stat-val" id="cdp-atk"></div></div>
       <div class="cdp-stat"><div class="cdp-stat-lbl">レアリティ</div><div class="cdp-stat-val" id="cdp-rar2"></div></div>
-      <div class="cdp-stat"><div class="cdp-stat-lbl">限界突破</div><div class="cdp-stat-val" id="cdp-break"></div></div>
+      <div class="cdp-stat"><div class="cdp-stat-lbl">上限解放</div><div class="cdp-stat-val" id="cdp-break" style="color:#c080ff;"></div></div>
+    </div>
+    <!-- 凸ボーナス表示 -->
+    <div id="cdp-copies-bar" style="background:rgba(80,0,100,.2);border:.5px solid rgba(160,40,160,.3);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:10px;display:none;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="color:#c080ff;font-weight:600;">💥 凸ボーナス</span>
+        <span id="cdp-copies-pct" style="color:#e0a0ff;"></span>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <div id="cdp-copies-dots" style="display:flex;gap:3px;flex:1;"></div>
+        <span id="cdp-copies-next" style="font-size:9px;color:var(--text3);white-space:nowrap;"></span>
+      </div>
     </div>
     <div class="grow-btns">
       <div class="grow-btn grow-btn-lv" onclick="levelUpChar()">⬆️ レベルアップ<br><span style="font-size:10px;color:var(--text2);" id="lvup-cost">💰 100</span></div>
-      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()">💎 限界突破<br><span style="font-size:10px;color:var(--text2);" id="break-cost">💎 50</span></div>
+      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()" style="background:rgba(60,0,80,.4);border-color:rgba(140,40,180,.4);color:#c080ff;">🔓 上限解放<br><span style="font-size:10px;color:var(--text2);" id="break-cost">💎 100</span></div>
     </div>
     <div style="font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.7;" id="cdp-desc"></div>
     <button class="cdp-close" onclick="closeCharDetail()">閉じる</button>
@@ -2828,6 +2858,7 @@ function goTo(sc){
   if(sc==='grind')renderGrind();
   if(sc==='achieve'){renderAchieve();}
   if(sc==='library') renderLibrary();
+  if(sc==='daily') renderDailyScreen();
   if(sc==='home'){ setTimeout(checkRankRewardBadge,400); if(typeof initDailyMissions==='function') initDailyMissions(); }
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
@@ -3354,10 +3385,31 @@ function doGacha(count){
     ch=pool[Math.floor(Math.random()*pool.length)];
 
     const isDupe = S.owned.includes(ch.id);
-    const dupeGold = isDupe ? {R:500,SR:2000,SSR:8000,UR:30000}[ch.rarity]||500 : 0;
-    if(!isDupe) S.owned.push(ch.id);
-    if(isDupe) S.gold += dupeGold;
-    res.push({...ch, isDupe, dupeGold});
+    if(!S.ownedData) S.ownedData={};
+    if(!S.ownedData[ch.id]) S.ownedData[ch.id]={level:1,exp:0,breakthrough:0,copies:0};
+    const cd = S.ownedData[ch.id];
+    let dupeGold=0, copiesGained=0, isMaxCopies=false;
+
+    if(!isDupe){
+      // 初回入手
+      S.owned.push(ch.id);
+      cd.copies=1;
+    } else {
+      // 被り
+      cd.copies=(cd.copies||1)+1;
+      if(cd.copies<=10){
+        // 2〜10体目：凸UP（breakthrough自動上昇）
+        const newBreak=Math.min(cd.copies-1,9);
+        cd.breakthrough=newBreak;
+        copiesGained=1;
+      } else {
+        // 11体目以降：ゴールドに変換
+        isMaxCopies=true;
+        dupeGold={R:2000,SR:8000,SSR:30000,UR:100000}[ch.rarity]||2000;
+        S.gold+=dupeGold;
+      }
+    }
+    res.push({...ch, isDupe, dupeGold, copiesGained, isMaxCopies, copies:cd.copies});
   }
   updateMissionProgress("gacha"); saveGameImmediate(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
@@ -3372,7 +3424,9 @@ function showResult(res){
     const rAttr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
     const rRole=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
     const dupeTag = c.isDupe
-      ? `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#e0a040;padding:1px 0;">💰+${c.dupeGold?.toLocaleString()}</div>`
+      ? c.isMaxCopies
+        ? `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#e0a040;padding:1px 0;">💰+${c.dupeGold?.toLocaleString()}</div>`
+        : `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#c080ff;padding:1px 0;">💥 ${c.copies-1}凸！</div>`
       : '';
     const newTag = !c.isDupe
       ? `<div style="position:absolute;top:4px;left:4px;font-size:8px;background:rgba(20,160,120,.8);color:#fff;border-radius:3px;padding:1px 4px;">NEW</div>`
@@ -3581,7 +3635,8 @@ function refreshGrow(){
   el.innerHTML=filtered.map(id=>{
     const c=CHARS.find(ch=>ch.id===id);if(!c)return'';
     const cd=(S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-    const maxLv=20+(cd.breakthrough||0)*20;
+    const limitSt=cd.limitBreak||0;
+    const maxLv=[50,70,90,110,120][limitSt]||50;
     const rarColor=c.rarity==='UR'?'#ffe040':c.rarity==='SSR'?'#d4a020':c.rarity==='SR'?'#a060e0':'#4080c0';
     const lvPct=(cd.level/maxLv*100).toFixed(0);
     const growAttr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
@@ -3725,7 +3780,7 @@ function initBattle(quest,pids){
     const c=CHARS.find(ch=>ch.id===id);
     if(!c) return null;
     const cd=(S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-    const lvMul=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+    const lvMul=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.08;
     const hp=Math.round(c.hp*lvMul);
     const atk=Math.round(c.atk*lvMul);
     return{id,hp,maxHp:hp,atk};
@@ -5805,9 +5860,9 @@ function doTransfer(){
 //  CHAR DETAIL / GROW
 // ================================================================
 let detailCharId=-1;
-const RARITY_COST={R:1,SR:2.5,SSR:6,UR:15};
+const RARITY_COST={R:1,SR:1.5,SSR:3,UR:6};
 
-function calcLvCost(rarity,lv){ return Math.round(500*(RARITY_COST[rarity]||1)*Math.ceil(lv/10)); }
+function calcLvCost(rarity,lv){ return Math.round(200*(RARITY_COST[rarity]||1)*Math.ceil(lv/10)); }
 function calcBreakCost(rarity,stage){ return Math.round(200*(RARITY_COST[rarity]||1)*Math.pow(stage+1,1.5)); }
 
 function openCharDetail(charId){
@@ -5822,7 +5877,7 @@ function refreshCharDetail(){
   const charData=owned[id]||{level:1,exp:0,breakthrough:0};
   const base=CHARS.find(c=>c.id===id); if(!base) return;
   const lv=charData.level;
-  const lvMul=1+(lv-1)*0.08+(charData.breakthrough||0)*0.15;
+  const lvMul=1+(lv-1)*0.08+(charData.breakthrough||0)*0.08;
   const hp=Math.round(base.hp*lvMul), atk=Math.round(base.atk*lvMul);
   const expNeeded=lv*100, expPct=Math.min((charData.exp||0)/expNeeded*100,100);
   const rarColor=base.rarity==='UR'?'#ffe040':base.rarity==='SSR'?'#d4a020':base.rarity==='SR'?'#a060e0':'#4080c0';
@@ -5832,19 +5887,57 @@ function refreshCharDetail(){
   document.getElementById('cdp-name').textContent=base.name;
   document.getElementById('cdp-rar').textContent=base.rarity;
   document.getElementById('cdp-rar').style.color=rarColor;
-  document.getElementById('cdp-lv-txt').textContent=`Lv.${lv} / 100`;
+  var lbStage2=charData.limitBreak||0;
+  var maxLvDisp=[50,70,90,110,120][lbStage2]||50;
+  document.getElementById('cdp-lv-txt').textContent=`Lv.${lv} / ${maxLvDisp}`;
   document.getElementById('cdp-exp-txt').textContent=`EXP: ${charData.exp||0} / ${expNeeded}`;
   document.getElementById('cdp-exp-fill').style.width=expPct+'%';
   document.getElementById('cdp-hp').textContent=hp;
   document.getElementById('cdp-atk').textContent=atk;
   document.getElementById('cdp-rar2').textContent=base.rarity;
   document.getElementById('cdp-rar2').style.color=rarColor;
-  document.getElementById('cdp-break').textContent=`${charData.breakthrough||0} / 5`;
+  const copiesNow=charData.copies||1;
+  const breakNow=charData.breakthrough||0;
+  var lbStage=charData.limitBreak||0;
+  var lbCaps=[50,70,90,110,120]; // 正しい5段階
+  document.getElementById('cdp-break').textContent=lbStage>0?lbStage+'段階解放 (Lv.'+lbCaps[lbStage]+'上限)':'未解放 (Lv.50上限)';
+  // 凸ドット表示
+  const copiesBar=document.getElementById('cdp-copies-bar');
+  const copiesDots=document.getElementById('cdp-copies-dots');
+  const copiesPct=document.getElementById('cdp-copies-pct');
+  const copiesNext=document.getElementById('cdp-copies-next');
+  if(copiesBar){
+    copiesBar.style.display = 'block';
+    const bonus=Math.round(breakNow*8);
+    if(copiesPct) copiesPct.textContent='HP・ATK +'+bonus+'%';
+    if(copiesDots){
+      copiesDots.innerHTML='';
+      for(var di=0;di<9;di++){
+        var dot=document.createElement('div');
+        dot.style.cssText='width:14px;height:14px;border-radius:50%;flex-shrink:0;border:.5px solid rgba(160,40,160,.5);'
+          +(di<breakNow?'background:rgba(160,40,200,.7);':'background:rgba(40,0,60,.4);');
+        copiesDots.appendChild(dot);
+      }
+    }
+    if(copiesNext){
+      copiesNext.textContent = copiesNow>=10 ? '最大凸達成！' : 'あと'+(10-copiesNow)+'体で'+(breakNow+1)+'凸';
+    }
+  }
   const lvCost=calcLvCost(base.rarity,lv);
   const brStage=charData.breakthrough||0;
   const brCost=calcBreakCost(base.rarity,brStage);
   document.getElementById('lvup-cost').textContent=`💰 ${lvCost.toLocaleString()}`;
-  document.getElementById('break-cost').textContent=lv<(brStage+1)*20?`Lv.${(brStage+1)*20}必要`:`💎 ${brCost.toLocaleString()}`;
+  // 上限解放コスト表示（凸とは完全独立・ジェムのみ）
+  var limitStage=(charData.limitBreak||0); // 0=Lv50上限, 1=Lv70, 2=Lv90, 3=Lv100
+  var rarLimitCosts={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
+  var limitCosts=rarLimitCosts[base.rarity]||rarLimitCosts.R;
+  var limitCost=limitCosts[limitStage]||limitCosts[limitCosts.length-1];
+  var limitNext=[70,90,110,120][limitStage];
+  if(limitStage>=4){
+    document.getElementById('break-cost').textContent='上限MAX (Lv.120)';
+  } else {
+    document.getElementById('break-cost').textContent='💎 '+limitCost+' → Lv.'+limitNext+'上限';
+  }
 }
 
 function levelUpChar(){
@@ -5853,8 +5946,14 @@ function levelUpChar(){
   if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
   const cd=S.ownedData[detailCharId];
   const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
-  const maxLv=20+(cd.breakthrough||0)*20;
-  if(cd.level>=maxLv){ showToast((cd.breakthrough||0)>=5?'最大レベルです！':`限界突破が必要です（上限Lv.${maxLv}）`); return; }
+  var limitStage=cd.limitBreak||0;
+  var maxLv=[50,70,90,110,120][limitStage]||50;
+  if(cd.level>=maxLv){
+    if(limitStage>=4){ showToast('最大レベル（Lv.120）に達しています！'); return; }
+    var hintCosts=[100,150,200,300]; // R基準の次段階コスト目安
+    showToast('上限Lv.'+maxLv+'です！🔓 上限解放ボタンで解放できます');
+    return;
+  }
   const cost=calcLvCost(base.rarity,cd.level);
   if(S.gold<cost){ showToast(`💰 ゴールドが足りません（必要: ${cost.toLocaleString()}）`); return; }
   S.gold-=cost; cd.level++;
@@ -5866,18 +5965,21 @@ function levelUpChar(){
 function breakthroughChar(){
   if(detailCharId===-1) return;
   if(!S.ownedData) S.ownedData={};
-  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0};
+  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0,copies:1,limitBreak:0};
   const cd=S.ownedData[detailCharId];
   const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
-  const stage=cd.breakthrough||0;
-  if(stage>=5){ showToast('最大限界突破済みです！'); return; }
-  const reqLv=(stage+1)*20;
-  if(cd.level<reqLv){ showToast(`Lv.${reqLv}に達してから限界突破できます`); return; }
-  const cost=calcBreakCost(base.rarity,stage);
-  if(S.gem<cost){ showToast(`💎 深海結晶が足りません（必要: ${cost.toLocaleString()}）`); return; }
-  S.gem-=cost; cd.breakthrough=stage+1;
-  saveGame(); sfx('win');
-  showToast(`💥 ${base.name} 限界突破${cd.breakthrough}段階！上限Lv.${20+cd.breakthrough*20}に解放！`);
+  const stage=cd.limitBreak||0;
+  if(stage>=4){ showToast('上限解放は最大です！（Lv.100）'); return; }
+  const rarCosts={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
+  const costs=rarCosts[base.rarity]||rarCosts.R;
+  const nextLvCaps=[70,90,110,120];
+  const cost=costs[stage];
+  if(S.gem<cost){ showToast('💎 深海結晶が足りません（必要: '+cost+'）'); return; }
+  S.gem-=cost;
+  cd.limitBreak=stage+1;
+  const newCap=nextLvCaps[stage];
+  saveGameImmediate(); sfx('win');
+  showToast('🔓 上限解放！レベル上限がLv.'+newCap+'に拡張されました！');
   refreshCharDetail(); refreshHome();
 }
 
@@ -6049,7 +6151,7 @@ async function joinPvpRoom(){
   const myCards = ap.map(id=>{
     const c = CHARS.find(ch=>ch.id===id);
     const cd = (S.ownedData&&S.ownedData[id])||{level:1,breakthrough:0};
-    const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+    const lvMul = 1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.08;
     const baseHp = Math.round(c.hp*lvMul);
     return {
       id, name:c.name, emoji:c.emoji,
@@ -7553,8 +7655,8 @@ function setHelperChar(charId){
   var c=CHARS.find(function(ch){return ch.id===charId;}); if(!c) return;
   var cd=(S.ownedData&&S.ownedData[charId])||{level:1,breakthrough:0};
   S.helperChar={id:charId,name:c.name,emoji:c.emoji,rarity:c.rarity,
-    level:cd.level,breakthrough:cd.breakthrough,atk:Math.round(c.atk*(1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15)),
-    hp:Math.round(c.hp*(1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15)),
+    level:cd.level,breakthrough:cd.breakthrough,atk:Math.round(c.atk*(1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.08)),
+    hp:Math.round(c.hp*(1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.08)),
     attribute:c.attribute||'none',role:c.role||'attacker',bg:c.bg,border:c.border};
   saveGame();
   showToast('✅ '+c.name+'を助っ人に設定しました！');
@@ -8652,7 +8754,7 @@ function openLibDetail(charId){
   }
 
   var cd=S.ownedData&&S.ownedData[c.id]?S.ownedData[c.id]:{level:1,breakthrough:0};
-  var mult=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+  var mult=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.08;
 
   modal.innerHTML='<div class="lib-detail-box">'
     +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">'
@@ -9267,6 +9369,85 @@ function autoClaimMissions(){
     saveGameImmediate();
     refreshHome();
   }
+}
+
+// ================================================================
+//  デイリー・週次ミッション画面描画
+// ================================================================
+function renderDailyScreen(){
+  initDailyMissions();
+  renderDailyList();
+  renderWeeklyList();
+}
+
+function renderDailyList(){
+  var el=document.getElementById('daily-mission-list'); if(!el) return;
+  var html='';
+  DAILY_MISSIONS.forEach(function(m){
+    var prog=dailyProgress[m.key]||0;
+    var done=dailyRewardClaimedIds.includes(m.id);
+    var pct=Math.min(prog/m.target*100,100);
+    html+=makeMissionCard(m.label,prog,m.target,m.gem,done,pct);
+  });
+  // 全完了ボーナス
+  var allDone=DAILY_MISSIONS.every(function(m){return dailyRewardClaimedIds.includes(m.id);});
+  var bonusClaimed=S.dailyRewardClaimed||false;
+  html+='<div style="background:rgba(180,120,0,.15);border:.5px solid rgba(220,160,0,.3);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
+    +'<div style="font-size:20px;">'+(bonusClaimed?'✅':'🎁')+'</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:12px;font-weight:600;color:#ffd060;">全ミッション達成ボーナス</div>'
+    +'<div style="font-size:10px;color:var(--text2);">全5ミッションをクリアで獲得</div>'
+    +'</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#ffd060;">💎'+DAILY_COMPLETE_BONUS+'</div>'
+    +(bonusClaimed?'<div style="font-size:9px;color:#40e080;padding:2px 6px;background:rgba(0,100,40,.3);border-radius:4px;">受取済</div>'
+      :allDone?'<div style="font-size:9px;color:#ffd060;padding:2px 6px;background:rgba(140,100,0,.3);border-radius:4px;animation:pulse 1s infinite;">達成！</div>'
+      :'<div style="font-size:9px;color:var(--text3);">未達成</div>')
+    +'</div>';
+  el.innerHTML=html;
+}
+
+function renderWeeklyList(){
+  var el=document.getElementById('weekly-mission-list'); if(!el) return;
+  var html='';
+  WEEKLY_MISSIONS.forEach(function(m){
+    var prog=(S.weeklyProgress||{})[m.key]||0;
+    var done=(S.weeklyRewardClaimed||[]).includes(m.id);
+    var pct=Math.min(prog/m.target*100,100);
+    html+=makeMissionCard(m.label,prog,m.target,m.gem,done,pct);
+  });
+  // 週次全完了ボーナス
+  var allWeekly=WEEKLY_MISSIONS.every(function(m){return (S.weeklyRewardClaimed||[]).includes(m.id);});
+  var weekBonusClaimed=(S.weeklyRewardClaimed||[]).includes('weekly_all');
+  html+='<div style="background:rgba(0,80,180,.15);border:.5px solid rgba(30,120,220,.3);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">'
+    +'<div style="font-size:20px;">'+(weekBonusClaimed?'✅':'🏆')+'</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:12px;font-weight:600;color:#60c0ff;">週次全ミッション達成ボーナス</div>'
+    +'<div style="font-size:10px;color:var(--text2);">全4週次ミッションをクリアで獲得</div>'
+    +'</div>'
+    +'<div style="font-size:13px;font-weight:700;color:#60c0ff;">💎'+WEEKLY_COMPLETE_BONUS+'</div>'
+    +(weekBonusClaimed?'<div style="font-size:9px;color:#40e080;padding:2px 6px;background:rgba(0,100,40,.3);border-radius:4px;">受取済</div>'
+      :allWeekly?'<div style="font-size:9px;color:#60c0ff;padding:2px 6px;background:rgba(0,60,140,.3);border-radius:4px;animation:pulse 1s infinite;">達成！</div>'
+      :'<div style="font-size:9px;color:var(--text3);">未達成</div>')
+    +'</div>';
+  el.innerHTML=html;
+}
+
+function makeMissionCard(label,prog,target,gem,done,pct){
+  var icon = done?'✅': pct>=100?'🎯':'⬜';
+  var barColor = done?'#40e080': pct>=100?'#ffd060':'rgba(30,160,220,.7)';
+  return '<div style="background:rgba(0,15,35,.5);border:.5px solid '+(done?'rgba(0,150,80,.4)':'var(--border2)')+';border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+    +'<div style="font-size:16px;">'+icon+'</div>'
+    +'<div style="flex:1;font-size:11px;font-weight:500;color:'+(done?'var(--text3)':'var(--text)')+';'+(done?'text-decoration:line-through;':'')+'">'+label+'</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#ffd060;">💎'+gem+'</div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:6px;">'
+    +'<div style="flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;">'
+    +'<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width .3s;"></div>'
+    +'</div>'
+    +'<div style="font-size:9px;color:var(--text3);white-space:nowrap;">'+Math.min(prog,target)+'/'+target+'</div>'
+    +'</div>'
+    +'</div>';
 }
 </script>
 
