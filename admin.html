@@ -827,15 +827,18 @@ async function toggleBanner(id){
     const doc=await ref.get();
     const data=doc.exists?doc.data():{};
     const key='banner_'+id;
-    const isOn=!(data[key]&&data[key].active===false);
-    data[key]={...(data[key]||{}),active:!isOn};
+    const current=data[key]||{active:false};
+    const wasOn=current.active===true;
+    data[key]={...current, active:!wasOn};
     await ref.set(data);
     const btn=document.getElementById('btoggle-'+id);
     if(btn){
-      btn.className='banner-toggle '+(!isOn?'on':'off');
-      btn.nextElementSibling.textContent=!isOn?'ON':'OFF';
+      btn.className='banner-toggle '+(!wasOn?'on':'off');
+      btn.nextElementSibling.textContent=!wasOn?'ON':'OFF';
     }
-    adminToast(!isOn?'✅ バナーをONにしました':'⛔ バナーをOFFにしました');
+    adminToast(!wasOn?'✅ 限定バナーを公開しました（プレイヤーに表示されます）':'⛔ 限定バナーを非公開にしました（プレイヤーに非表示）');
+    // パネルを再描画して最新状態を反映
+    setTimeout(loadBannerPanel, 500);
   }catch(e){ adminToast('❌ '+e.message); }
 }
 

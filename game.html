@@ -3245,9 +3245,11 @@ function selectGachaCategory(cat){
 }
 
 function getFilteredBanners(){
-  return currentGachaCategory==='limited'
-    ? BANNERS.filter(function(b){return b.limited===true;})
-    : BANNERS.filter(function(b){return !b.limited;});
+  if(currentGachaCategory==='limited'){
+    return BANNERS.filter(function(b){return b.limited===true && b.active!==false;});
+  } else {
+    return BANNERS.filter(function(b){return !b.limited;});
+  }
 }
 
 function renderBannerTabs(){
@@ -9593,6 +9595,70 @@ function limitBreakChar(){
   saveGameImmediate(); sfx('win');
   showToast('🔓 上限解放'+( stage+1)+'段階！レベル上限がLv.'+nextCaps[stage]+'に拡張！');
   refreshCharDetail(); refreshHome();
+}
+
+// ================================================================
+//  起動時にFirestoreからバナー状態取得
+// ================================================================
+async function loadLimitedBannerStatus(){
+  try{
+    var doc = await db.collection('notices').doc('banner_status').get();
+    if(!doc.exists) return;
+    var data = doc.data();
+    LIMITED_BANNER_STATUS = data;
+    // バナーのactiveフラグとendsAtを更新
+    BANNERS.forEach(function(b){
+      if(!b.limited) return;
+      var key = 'banner_'+b.id;
+      var status = data[key];
+      if(status){
+        // activeがfalseならバナーを非表示に
+        b.active = status.active !== false;
+        // endsAtが過ぎていたら非表示
+        if(status.endsAt){
+          var endsAt = new Date(status.endsAt).getTime();
+          if(Date.now() > endsAt) b.active = false;
+        }
+      } else {
+        // Firestoreに設定なし→デフォルトで非表示（安全のため）
+        b.active = false;
+      }
+    });
+    // 限定タブの表示を更新
+    updateLimitedTabVisibility();
+  }catch(e){
+    console.log('[GACHA] バナー状態取得失敗:', e.message);
+    // 失敗時は全限定バナーを非表示
+    BANNERS.forEach(function(b){ if(b.limited) b.active=false; });
+    updateLimitedTabVisibility();
+  }
+}
+
+function updateLimitedTabVisibility(){
+  var hasActiveLimited = BANNERS.some(function(b){ return b.limited && b.active; });
+  var limitedBtn = document.getElementById('cat-limited');
+  var newBadge = document.getElementById('limited-new-badge');
+  if(limitedBtn){
+    if(hasActiveLimited){
+      limitedBtn.style.display = '';
+      limitedBtn.style.opacity = '1';
+      if(newBadge) newBadge.style.display = '';
+    } else {
+      // 限定バナーが全てOFF→タブを非表示
+      limitedBtn.style.display = 'none';
+      if(newBadge) newBadge.style.display = 'none';
+      // 現在限定タブ表示中なら恒常に切り替え
+      if(currentGachaCategory === 'limited'){
+        currentGachaCategory = 'permanent';
+        var permBtn = document.getElementById('cat-permanent');
+        if(permBtn) permBtn.className = 'gacha-cat-btn active';
+        var filtered = getFilteredBanners();
+        if(filtered.length>0) currentBanner = BANNERS.indexOf(filtered[0]);
+        renderBannerTabs();
+        refreshGachaDisplay();
+      }
+    }
+  }
 }
 </script>
 
