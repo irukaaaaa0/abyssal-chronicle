@@ -1068,7 +1068,7 @@ function onPvpEnd(won, quest){
 <div class="screen" id="screen-home">
   <div class="header" style="position:relative;">
     <div class="player-info">
-      <div class="avatar">🌊</div>
+      <div class="avatar" id="player-icon-display" onclick="openIconModal()" style="cursor:pointer;" title="タップでアイコン変更">🌊</div>
       <div>
           <div class="pname" id="pname-el" onclick="openNameChangeModal()" style="cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.3);" title="タップで名前変更">深海司令官</div>
           <div class="prank" id="home-prank">Rank 1</div>
@@ -1949,6 +1949,10 @@ async function loadCloudSave(){
         // ローカルの方が新しい→ローカルを使ってFirestoreを更新
         console.log('[ABYSSAL] Local is newer → uploading local data to Firestore');
         S = {...DEFAULT_S, ...localData};
+        // playerNameが空になるバグ対策
+        if(!S.playerName||S.playerName==='') S.playerName='深海司令官';
+        if(!S.playerIcon) S.playerIcon='🌊';
+        if(!S.ownedIcons||!S.ownedIcons.length) S.ownedIcons=['🌊'];
         // ローカルデータをFirestoreに即アップロード
         await playerDocRef.set({...S, lastSaved: new Date().toISOString()}, {merge:true});
         console.log('[ABYSSAL] Local data uploaded. gem:', S.gem);
@@ -1956,6 +1960,10 @@ async function loadCloudSave(){
         // Firestoreの方が新しい（または同じ）→Firestoreを使う
         console.log('[ABYSSAL] Cloud is newer → using cloud data. gem:', cloudData.gem);
         S = {...DEFAULT_S, ...cloudData};
+        // playerNameが空になるバグ対策
+        if(!S.playerName||S.playerName==='') S.playerName='深海司令官';
+        if(!S.playerIcon) S.playerIcon='🌊';
+        if(!S.ownedIcons||!S.ownedIcons.length) S.ownedIcons=['🌊'];
         try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
       }
       console.log('[ABYSSAL] Final gem:', S.gem, 'PlayerID:', S.playerId);
@@ -2013,11 +2021,14 @@ async function saveToCloud(){
     friends: S.friends||[],
     pendingRequests: S.pendingRequests||[],
     helperChar: S.helperChar||null,
+    playerIcon: S.playerIcon||'🌊',
     supportChar: S.supportChar||null,
     pvpRank: S.pvpRank||1200,
     pvpWin: S.pvpWin||0,
     pvpLose: S.pvpLose||0,
     receivedRankRewards: S.receivedRankRewards||[],
+    playerIcon: S.playerIcon||'🌊',
+    ownedIcons: S.ownedIcons||['🌊'],
     lastSaved: new Date().toISOString()
   };
   S.lastSaved = saveData.lastSaved; // ローカルも同期
@@ -2752,7 +2763,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'',
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'],
   lastLoginDate:'',dailyRewardClaimed:false,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
@@ -4885,8 +4896,19 @@ function checkAchievement(id, condition){
   // 報酬付与
   if(def.reward.gem)  S.gem  += def.reward.gem;
   if(def.reward.gold) S.gold += def.reward.gold;
+  // アイコン報酬
+  if(def.reward.icon){
+    if(!S.ownedIcons) S.ownedIcons=['🌊'];
+    if(!S.ownedIcons.includes(def.reward.icon)){
+      S.ownedIcons.push(def.reward.icon);
+      showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0)+' 🎨 アイコン「'+def.reward.icon+'」入手！');
+      sfx('win');
+      saveGame();
+      return true;
+    }
+  }
   saveGame();
-  showToast(`🎖️ 実績解除「${def.name}」！ 💎+${def.reward.gem||0}`);
+  showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0));
   sfx('win');
   return true;
 }
@@ -5394,29 +5416,50 @@ function onTowerClear(quest){
 //  🎖️ ACHIEVEMENT（実績・称号）
 // ================================================================
 const ACHIEVEMENT_LIST=[
-  // クエスト系
-  {id:'first_clear',  name:'冒険の始まり',    emoji:'⚓',desc:'初めてクエストをクリア',          cond:s=>s.cleared&&s.cleared.length>=1,    reward:{gem:50}, title:'新米司令官'},
+  // ===== クエスト系 =====
+  {id:'first_clear',  name:'冒険の始まり',    emoji:'⚓',desc:'初めてクエストをクリア',          cond:s=>s.cleared&&s.cleared.length>=1,    reward:{gem:50,  icon:'⚓'}, title:'新米司令官'},
   {id:'ch1_clear',    name:'第1章制覇',       emoji:'🌊',desc:'第1章を全層クリア',               cond:s=>CHAPTERS[0]&&CHAPTERS[0].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:100}, title:'霧の覇者'},
   {id:'ch2_clear',    name:'第2章制覇',       emoji:'🪨',desc:'第2章を全層クリア',               cond:s=>CHAPTERS[1]&&CHAPTERS[1].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:200}, title:'岩礁の征服者'},
-  {id:'ch3_clear',    name:'深淵の覇者',      emoji:'🌑',desc:'第3章を全層クリア',               cond:s=>CHAPTERS[2]&&CHAPTERS[2].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:500}, title:'旧破の終焉者'},
-  // ガチャ系
-  {id:'gacha10',      name:'召喚師見習い',    emoji:'🔮',desc:'10回召喚する',                   cond:s=>(s.owned&&s.owned.length)>=10,      reward:{gem:30},  title:'召喚師'},
-  {id:'gacha_ssr',    name:'SSR獲得',        emoji:'⭐',desc:'SSRキャラを獲得',                 cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='SSR';}), reward:{gem:100}, title:''},
-  {id:'gacha_ur',     name:'UR覚醒',         emoji:'🌟',desc:'URキャラを獲得',                  cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='UR';}),  reward:{gem:300}, title:'深淵の選ばれし者'},
-  // 育成系
-  {id:'lv50',         name:'育成の道',        emoji:'🧬',desc:'いずれかのキャラをLv.50にする',   cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>d.level>=50), reward:{gem:150}, title:'育成マスター'},
-  {id:'breakthrough5',name:'限界超越',        emoji:'💥',desc:'いずれかのキャラを限界突破5段階', cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>(d.breakthrough||0)>=5), reward:{gem:200}, title:'限界突破者'},
-  // タワー系
-  {id:'tower10',      name:'塔の挑戦者',      emoji:'🏆',desc:'無限塔10Fに到達',                cond:s=>(s.towerBest||0)>=10,               reward:{gem:100}, title:'塔の登攀者'},
-  {id:'tower30',      name:'深淵の登山者',    emoji:'🗼',desc:'無限塔30Fに到達',                cond:s=>(s.towerBest||0)>=30,               reward:{gem:300}, title:'深淵の登山者'},
-  {id:'tower50',      name:'塔の征服者',      emoji:'👑',desc:'無限塔50Fに到達',                cond:s=>(s.towerBest||0)>=50,               reward:{gem:500}, title:'無限塔の覇者'},
-  {id:'tower100',     name:'無限の彼方へ',    emoji:'⚫',desc:'無限塔100Fに到達',               cond:s=>(s.towerBest||0)>=100,              reward:{gem:1000},title:'深淵の支配者'},
-  // Rank系
-  {id:'rank10',       name:'指揮官昇進',      emoji:'🎖️',desc:'Rank10に到達',                   cond:s=>(s.rank||1)>=10,                    reward:{gem:100}, title:'歴戦の指揮官'},
-  {id:'rank50',       name:'深海提督',        emoji:'⚓',desc:'Rank50に到達',                   cond:s=>(s.rank||1)>=50,                    reward:{gem:500}, title:'深海提督'},
-  // PvP系
-  {id:'pvp_win10',    name:'闘技場の戦士',    emoji:'⚔️',desc:'PvPで10勝する',                  cond:s=>(s.pvpWin||0)>=10,                  reward:{gem:150}, title:'闘技場の戦士'},
-  {id:'pvp_win50',    name:'闘技場の覇者',    emoji:'🏅',desc:'PvPで50勝する',                  cond:s=>(s.pvpWin||0)>=50,                  reward:{gem:500}, title:'闘技場の覇者'},
+  {id:'ch3_clear',    name:'深淵の覇者',      emoji:'🌑',desc:'第3章を全層クリア',               cond:s=>CHAPTERS[2]&&CHAPTERS[2].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:500, icon:'💀'}, title:'旧破の終焉者'},
+  {id:'ch4_clear',    name:'炎獄制覇',        emoji:'🔥',desc:'第4章を全層クリア',               cond:s=>CHAPTERS[3]&&CHAPTERS[3].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:800}, title:'炎獄の覇者'},
+  {id:'ch5_clear',    name:'氷獄制覇',        emoji:'❄️',desc:'第5章を全層クリア',               cond:s=>CHAPTERS[4]&&CHAPTERS[4].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:1000}, title:'氷獄の覇者'},
+  {id:'ch6_clear',    name:'星滅制覇',        emoji:'💫',desc:'第6章を全層クリア',               cond:s=>CHAPTERS[5]&&CHAPTERS[5].layers.every(l=>s.cleared&&s.cleared.includes(l.id)), reward:{gem:1500}, title:'星滅の覇者'},
+  {id:'all_clear',    name:'全章制覇',        emoji:'🕳️',desc:'全章をクリア',                    cond:s=>s.cleared&&s.cleared.length>=50,   reward:{gem:3000,icon:'🕳️'}, title:'深淵の征服者'},
+  {id:'clear50',      name:'歴戦の司令官',    emoji:'🗡️',desc:'クエストを50回クリア',            cond:s=>s.cleared&&s.cleared.length>=50,   reward:{gem:300}, title:'歴戦の司令官'},
+  // ===== ガチャ系 =====
+  {id:'gacha10',      name:'召喚師見習い',    emoji:'🔮',desc:'キャラを10体集める',              cond:s=>(s.owned&&s.owned.length)>=10,     reward:{gem:30, icon:'🔮'}, title:'召喚師'},
+  {id:'gacha30',      name:'召喚師',          emoji:'🔮',desc:'キャラを30体集める',              cond:s=>(s.owned&&s.owned.length)>=30,     reward:{gem:100}, title:'熟練召喚師'},
+  {id:'gacha_ssr',    name:'SSR獲得',         emoji:'⭐',desc:'SSRキャラを獲得',                cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='SSR';}), reward:{gem:100,icon:'⭐'}, title:''},
+  {id:'gacha_ur',     name:'UR覚醒',          emoji:'🌟',desc:'URキャラを獲得',                 cond:s=>s.owned&&s.owned.some(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='UR';}),  reward:{gem:300,icon:'🌟'}, title:'深淵の選ばれし者'},
+  {id:'gacha_ur5',    name:'UR収集家',        emoji:'💠',desc:'URキャラを5体獲得',              cond:s=>s.owned&&s.owned.filter(id=>{const c=CHARS.find(ch=>ch.id===id);return c&&c.rarity==='UR';}).length>=5, reward:{gem:500}, title:'UR収集家'},
+  // ===== 育成系 =====
+  {id:'lv50',         name:'育成の道',        emoji:'💎',desc:'いずれかのキャラをLv.50にする',  cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>d.level>=50), reward:{gem:150,icon:'💎'}, title:'育成マスター'},
+  {id:'lv100',        name:'限界への挑戦',    emoji:'🔱',desc:'いずれかのキャラをLv.100にする', cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>d.level>=100),reward:{gem:500,icon:'🔱'}, title:'限界突破者'},
+  {id:'lv120',        name:'超越者',          emoji:'✨',desc:'いずれかのキャラをLv.120にする', cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>d.level>=120),reward:{gem:1000}, title:'超越者'},
+  {id:'breakthrough5',name:'限界超越',        emoji:'💥',desc:'いずれかのキャラを凸5段階',      cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>(d.breakthrough||0)>=5), reward:{gem:200,icon:'💥'}, title:'限界突破者'},
+  {id:'breakthrough9',name:'最大覚醒',        emoji:'🌠',desc:'いずれかのキャラを最大9凸',      cond:s=>s.ownedData&&Object.values(s.ownedData).some(d=>(d.breakthrough||0)>=9), reward:{gem:800}, title:'完全覚醒者'},
+  // ===== 無限塔系 =====
+  {id:'tower10',      name:'塔の挑戦者',      emoji:'🏆',desc:'無限塔10Fに到達',               cond:s=>(s.towerBest||0)>=10,  reward:{gem:100}, title:'塔の登攀者'},
+  {id:'tower30',      name:'深淵の登山者',    emoji:'🗼',desc:'無限塔30Fに到達',               cond:s=>(s.towerBest||0)>=30,  reward:{gem:300}, title:'深淵の登山者'},
+  {id:'tower50',      name:'塔の征服者',      emoji:'👑',desc:'無限塔50Fに到達',               cond:s=>(s.towerBest||0)>=50,  reward:{gem:500,icon:'👑'}, title:'無限塔の覇者'},
+  {id:'tower100',     name:'無限の彼方へ',    emoji:'⚫',desc:'無限塔100Fに到達',              cond:s=>(s.towerBest||0)>=100, reward:{gem:1000,icon:'⚫'}, title:'深淵の支配者'},
+  {id:'tower200',     name:'永劫の登攀者',    emoji:'♾️',desc:'無限塔200Fに到達',              cond:s=>(s.towerBest||0)>=200, reward:{gem:3000,icon:'♾️'}, title:'永劫の登攀者'},
+  // ===== Rank系 =====
+  {id:'rank10',       name:'指揮官昇進',      emoji:'🎖️',desc:'Rank10に到達',                  cond:s=>(s.rank||1)>=10,       reward:{gem:100}, title:'歴戦の指揮官'},
+  {id:'rank30',       name:'深海の将',        emoji:'🔱',desc:'Rank30に到達',                  cond:s=>(s.rank||1)>=30,       reward:{gem:300}, title:'深海の将'},
+  {id:'rank50',       name:'深海提督',        emoji:'🌑',desc:'Rank50に到達',                  cond:s=>(s.rank||1)>=50,       reward:{gem:500,icon:'🌑'}, title:'深海提督'},
+  {id:'rank100',      name:'深淵の神将',      emoji:'🕳️',desc:'Rank100に到達',                 cond:s=>(s.rank||1)>=100,      reward:{gem:2000}, title:'深淵の神将'},
+  // ===== PvP系 =====
+  {id:'pvp_first',    name:'初陣',            emoji:'⚔️',desc:'PvPで初勝利',                   cond:s=>(s.pvpWin||0)>=1,      reward:{gem:50}, title:''},
+  {id:'pvp_win10',    name:'闘技場の戦士',    emoji:'⚔️',desc:'PvPで10勝する',                 cond:s=>(s.pvpWin||0)>=10,     reward:{gem:150,icon:'⚔️'}, title:'闘技場の戦士'},
+  {id:'pvp_win50',    name:'闘技場の覇者',    emoji:'🏅',desc:'PvPで50勝する',                 cond:s=>(s.pvpWin||0)>=50,     reward:{gem:500,icon:'🏅'}, title:'闘技場の覇者'},
+  {id:'pvp_win100',   name:'無敗の剣士',      emoji:'🌌',desc:'PvPで100勝する',                cond:s=>(s.pvpWin||0)>=100,    reward:{gem:1000,icon:'🌌'}, title:'無敗の剣士'},
+  {id:'pvp_rate1500', name:'レート1500',      emoji:'💜',desc:'PvPレート1500到達',             cond:s=>(s.pvpRank||1200)>=1500,reward:{gem:300}, title:''},
+  {id:'pvp_rate2000', name:'深淵の闘神',      emoji:'🩸',desc:'PvPレート2000到達',             cond:s=>(s.pvpRank||1200)>=2000,reward:{gem:1000}, title:'深淵の闘神'},
+  // ===== フレンド系 =====
+  {id:'friend1',      name:'最初の仲間',      emoji:'🫧',desc:'フレンドを1人追加',             cond:s=>(s.friends||[]).length>=1, reward:{gem:50,icon:'🫧'}, title:''},
+  {id:'friend5',      name:'仲間たち',        emoji:'🫧',desc:'フレンドを5人追加',             cond:s=>(s.friends||[]).length>=5, reward:{gem:200}, title:'深海の仲間'},
+  {id:'friend10',     name:'深海の絆',        emoji:'🌊',desc:'フレンドを10人追加',            cond:s=>(s.friends||[]).length>=10,reward:{gem:500}, title:'深海の盟友'},
 ];
 
 function checkAchievement(id, condition){
@@ -5429,8 +5472,19 @@ function checkAchievement(id, condition){
   // 報酬付与
   if(def.reward.gem)  S.gem  += def.reward.gem;
   if(def.reward.gold) S.gold += def.reward.gold;
+  // アイコン報酬
+  if(def.reward.icon){
+    if(!S.ownedIcons) S.ownedIcons=['🌊'];
+    if(!S.ownedIcons.includes(def.reward.icon)){
+      S.ownedIcons.push(def.reward.icon);
+      showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0)+' 🎨 アイコン「'+def.reward.icon+'」入手！');
+      sfx('win');
+      saveGame();
+      return true;
+    }
+  }
   saveGame();
-  showToast(`🎖️ 実績解除「${def.name}」！ 💎+${def.reward.gem||0}`);
+  showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0));
   sfx('win');
   return true;
 }
@@ -7346,7 +7400,7 @@ async function renderFriend(){
       ?'<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンドがいません</div>'
       :friends.map(function(f){
         return '<div class="friend-card">'
-          +'<div class="friend-card-ico">🌊</div>'
+          +'<div class="friend-card-ico">'+(f.icon||'🌊')+'</div>'
           +'<div style="flex:1;">'
           +'<div class="friend-card-name">'+(f.name||'司令官')+'</div>'
           +'<div class="friend-card-rank">ID: '+f.id+' | Rank '+(f.rank||1)+'</div>'
@@ -7366,7 +7420,7 @@ async function renderFriend(){
         var eid=encodeURIComponent(r.fromId||'');
         var ename=encodeURIComponent(r.fromName||'司令官');
         return '<div class="req-card">'
-          +'<div class="friend-card-ico">🌊</div>'
+          +'<div class="friend-card-ico">'+(f.icon||'🌊')+'</div>'
           +'<div style="flex:1;">'
           +'<div style="font-size:12px;font-weight:500;">'+(r.fromName||'司令官')+'</div>'
           +'<div style="font-size:9px;color:var(--text2);">ID: '+r.fromId+'</div>'
@@ -7873,6 +7927,7 @@ async function openSupportSelect(){
         S.friends[i].rank=fd.rank||1;
         S.friends[i].pvpRank=fd.pvpRank||1200;
         S.friends[i].name=fd.playerName||f.name||'司令官';
+        S.friends[i].icon=fd.playerIcon||'🌊';
       }
     }catch(e){}
     if(f.helperChar) helperItems.push({f:f,hc:f.helperChar,idx:i});
@@ -10025,6 +10080,75 @@ function closeFriendProfile(){
   var modal=document.getElementById('friend-profile-modal');
   if(modal) modal.classList.remove('show');
 }
+
+// ================================================================
+//  アイコン定義
+// ================================================================
+const ICON_LIST = [{"id": "🌊", "name": "深海", "rarity": "common", "desc": "デフォルトアイコン"}, {"id": "⚓", "name": "錨", "rarity": "common", "desc": "実績「冒険の始まり」報酬"}, {"id": "🔮", "name": "水晶球", "rarity": "rare", "desc": "実績「召喚師見習い」報酬"}, {"id": "⭐", "name": "星", "rarity": "rare", "desc": "実績「SSR獲得」報酬"}, {"id": "🌟", "name": "輝く星", "rarity": "epic", "desc": "実績「UR覚醒」報酬"}, {"id": "👑", "name": "王冠", "rarity": "epic", "desc": "実績「塔の征服者」報酬"}, {"id": "⚔️", "name": "剣", "rarity": "rare", "desc": "実績「闘技場の戦士」報酬"}, {"id": "🏅", "name": "メダル", "rarity": "epic", "desc": "実績「闘技場の覇者」報酬"}, {"id": "💀", "name": "骸骨", "rarity": "rare", "desc": "実績「深淵の覇者」報酬"}, {"id": "🐉", "name": "龍", "rarity": "legendary", "desc": "実績「無限の彼方へ」報酬"}, {"id": "🌑", "name": "暗黒", "rarity": "legendary", "desc": "実績「深海提督」報酬"}, {"id": "💎", "name": "宝石", "rarity": "epic", "desc": "実績「育成マスター」報酬"}, {"id": "💥", "name": "爆発", "rarity": "rare", "desc": "実績「限界超越」報酬"}, {"id": "🩸", "name": "血の滴", "rarity": "legendary", "desc": "実績「旧破の終焉者」報酬"}, {"id": "⚫", "name": "深淵", "rarity": "legendary", "desc": "実績「深淵の支配者」報酬"}, {"id": "🌌", "name": "宇宙", "rarity": "legendary", "desc": "実績「PvP100勝」報酬"}, {"id": "🔱", "name": "三叉の矛", "rarity": "epic", "desc": "実績「Lv.100到達」報酬"}, {"id": "🫧", "name": "泡", "rarity": "common", "desc": "実績「フレンド10人」報酬"}, {"id": "🕳️", "name": "虚無", "rarity": "legendary", "desc": "実績「全章制覇」報酬"}, {"id": "♾️", "name": "無限", "rarity": "legendary", "desc": "実績「塔200F」報�する"}];
+const ICON_RARITY_COLOR = {
+  common:'#8090a0', rare:'#60a0e0', epic:'#c080ff', legendary:'#ffe040'
+};
+const ICON_RARITY_LABEL = {
+  common:'コモン', rare:'レア', epic:'エピック', legendary:'レジェンダリー'
+};
+
+// ================================================================
+//  アイコン変更システム
+// ================================================================
+function openIconModal(){
+  sfx('click');
+  renderIconGrid();
+  document.getElementById('icon-change-modal').classList.add('show');
+}
+
+function closeIconModal(){
+  document.getElementById('icon-change-modal').classList.remove('show');
+}
+
+function renderIconGrid(){
+  var grid = document.getElementById('icon-grid');
+  if(!grid) return;
+  var ownedIcons = S.ownedIcons||['🌊'];
+  var current = S.playerIcon||'🌊';
+  var rarColor = ICON_RARITY_COLOR;
+
+  grid.innerHTML = ICON_LIST.map(function(ic){
+    var owned = ownedIcons.includes(ic.id);
+    var isActive = ic.id === current;
+    var clickAct = owned ? 'selectIcon(this.dataset.icon)' : 'showToast(this.dataset.msg)';
+    var div = document.createElement('div');
+    div.dataset.icon = ic.id;
+    div.dataset.msg = '実績を解除して入手してください';
+    div.onclick = owned
+      ? function(){ selectIcon(this.dataset.icon); }
+      : function(){ showToast(this.dataset.msg); };
+    div.style.cssText = 'aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:'+(owned?'pointer':'default')+';'
+      +'background:'+(isActive?'rgba(20,160,120,.3)':'rgba(0,15,35,.5)')+';'
+      +'border:.5px solid '+(isActive?'rgba(20,160,120,.8)':(owned?rarColor[ic.rarity]||'#334':'#222'))+';'
+      +(owned?'':' opacity:.35; filter:grayscale(.8);');
+    div.innerHTML = '<div style="font-size:22px;">'+(owned?ic.id:'🔒')+'</div>'
+      +'<div style="font-size:7px;color:'+(rarColor[ic.rarity]||'#888')+';">'+(ICON_RARITY_LABEL[ic.rarity]||'')+'</div>';
+    return div.outerHTML;
+  }).join('');
+  // イベントを再バインド
+  Array.from(grid.children).forEach(function(el,i){
+    var ic = ICON_LIST[i];
+    var owned = ownedIcons.includes(ic.id);
+    el.onclick = owned
+      ? function(){ selectIcon(ic.id); }
+      : function(){ showToast('実績を解除して入手してください'); };
+  });
+}
+
+function selectIcon(icon){
+  if(!(S.ownedIcons||[]).includes(icon)){ showToast('このアイコンは未入手です'); return; }
+  S.playerIcon = icon;
+  saveGameImmediate();
+  updatePlayerNameDisplay();
+  renderIconGrid();
+  sfx('select');
+  showToast('🎨 アイコンを「'+icon+'」に変更しました！');
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -10170,6 +10294,19 @@ function closeFriendProfile(){
     </div>
     <!-- 更新ボタン -->
     <button onclick="refreshFriendProfile()" style="width:100%;padding:10px;border-radius:10px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,50,100,.3);color:#60a0e0;cursor:pointer;font-family:inherit;font-size:12px;">🔄 最新データを取得</button>
+  </div>
+</div>
+
+<!-- アイコン変更モーダル -->
+<div class="modal-overlay" id="icon-change-modal" onclick="if(event.target===this)closeIconModal()" style="z-index:500;">
+  <div class="modal" style="width:min(360px,92vw);max-height:80vh;overflow-y:auto;">
+    <div class="modal-ttl" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>🎨 アイコン変更</span>
+      <span onclick="closeIconModal()" style="cursor:pointer;font-size:18px;color:var(--text3);">✕</span>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;">実績を解除するとアイコンを入手できます</div>
+    <div id="icon-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;"></div>
+    <button onclick="closeIconModal()" style="width:100%;padding:10px;border-radius:10px;border:.5px solid var(--border2);background:rgba(0,20,40,.4);color:var(--text2);cursor:pointer;font-family:inherit;">閉じる</button>
   </div>
 </div>
 </body>
