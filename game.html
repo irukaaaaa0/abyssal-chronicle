@@ -1128,17 +1128,34 @@ function onPvpEnd(won, quest){
       <div class="notice-new">NEW</div>
     </div>
     <div style="text-align:right;padding:0 14px 6px;font-size:9px;color:rgba(100,140,180,.5);letter-spacing:.05em;" id="home-version-display">v0.4.0</div>
-    <div class="menu-grid">
+    <!-- ⚔️ バトル系 -->
+    <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;padding:8px 12px 4px;">⚔️ バトル</div>
+    <div class="menu-grid" style="grid-template-columns:repeat(4,1fr);">
       <div class="menu-btn" onclick="goTo('quest');sfx('click')"><div class="menu-icon-w mi-q">⚓</div><div class="menu-lbl">クエスト</div></div>
+      <div class="menu-btn" onclick="goTo('grind');sfx('click')"><div class="menu-icon-w" style="background:rgba(160,110,0,.2);">💰</div><div class="menu-lbl">周回</div></div>
+      <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
+      <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
+    </div>
+    <!-- 🔮 召喚・育成 -->
+    <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;padding:8px 12px 4px;">🔮 召喚・育成</div>
+    <div class="menu-grid" style="grid-template-columns:repeat(4,1fr);">
       <div class="menu-btn" onclick="goTo('gacha');sfx('click')"><div class="menu-new">NEW</div><div class="menu-icon-w mi-g">🔮</div><div class="menu-lbl">召喚</div></div>
       <div class="menu-btn" onclick="goTo('party');sfx('click')"><div class="menu-icon-w mi-p">🐙</div><div class="menu-lbl">編成</div></div>
       <div class="menu-btn" onclick="goTo('grow');sfx('click')"><div class="menu-icon-w mi-gr">🧬</div><div class="menu-lbl">育成</div></div>
-      <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
-      <div class="menu-btn" onclick="goTo('achieve');sfx('click')"><div class="menu-icon-w" style="background:rgba(200,160,0,.15);">🎖️</div><div class="menu-lbl">実績</div></div>
       <div class="menu-btn" onclick="goTo('library');sfx('click')"><div class="menu-icon-w" style="background:rgba(0,100,160,.15);">📖</div><div class="menu-lbl">図鑑</div></div>
-      <div class="menu-btn" onclick="goTo('grind');sfx('click')"><div class="menu-icon-w" style="background:rgba(160,110,0,.2);">💰</div><div class="menu-lbl">周回</div></div>
+    </div>
+    <!-- 🎒 アイテム・その他 -->
+    <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;padding:8px 12px 4px;">🎒 アイテム・その他</div>
+    <div class="menu-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="menu-btn" onclick="goTo('bag');sfx('click')"><div class="menu-icon-w" style="background:rgba(30,100,60,.2);">🎒</div><div class="menu-lbl">バッグ</div></div>
+      <div class="menu-btn" onclick="goTo('shop');sfx('click')"><div class="menu-icon-w" style="background:rgba(180,120,0,.2);">🏪</div><div class="menu-lbl">ショップ</div></div>
+      <div class="menu-btn" onclick="goTo('achieve');sfx('click')"><div class="menu-icon-w" style="background:rgba(200,160,0,.15);">🎖️</div><div class="menu-lbl">実績</div></div>
       <div class="menu-btn" onclick="goTo('friend');sfx('click')"><div class="menu-icon-w" style="background:rgba(40,120,200,.2);">👥</div><div class="menu-lbl">フレンド</div></div>
-      <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
+    </div>
+    <!-- ⚙️ システム -->
+    <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;padding:8px 12px 4px;">⚙️ システム</div>
+    <div class="menu-grid" style="grid-template-columns:repeat(2,1fr);padding-bottom:12px;">
+      <div class="menu-btn" onclick="goTo('daily');sfx('click')"><div class="menu-icon-w" style="background:rgba(0,120,180,.2);">📅</div><div class="menu-lbl">ミッション</div></div>
       <div class="menu-btn" onclick="goTo('settings');sfx('click')"><div class="menu-icon-w mi-m">⚙️</div><div class="menu-lbl">設定</div></div>
     </div>
     <div class="daily-section" onclick="goTo('daily');sfx('click')" style="cursor:pointer;">
@@ -1484,6 +1501,97 @@ function onPvpEnd(won, quest){
     </div>
   </div>
 </div>
+
+<!-- バッグ画面 -->
+<div class="screen" id="screen-bag">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">🎒 バッグ</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div style="padding:12px 12px 80px;">
+      <!-- タブ -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="gacha-cat-btn active" id="bag-tab-items" onclick="showBagTab('items')" style="flex:1;padding:8px;">アイテム</button>
+        <button class="gacha-cat-btn" id="bag-tab-mats" onclick="showBagTab('mats')" style="flex:1;padding:8px;">凸素材</button>
+
+      </div>
+      <!-- アイテムタブ -->
+      <div id="bag-content-items">
+        <!-- クラフトポイント -->
+        <div style="background:linear-gradient(135deg,rgba(20,60,120,.4),rgba(10,30,80,.4));border:.5px solid rgba(60,120,220,.4);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">🔷</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">クラフトポイント</div>
+            <div style="font-size:10px;color:var(--text2);">凸素材と交換できるポイント</div>
+          </div>
+          <div style="font-size:22px;font-weight:800;color:#60c0ff;" id="bag-craft-pts">0</div>
+        </div>
+        <!-- ガチャチケット -->
+        <div style="background:linear-gradient(135deg,rgba(120,60,20,.4),rgba(80,30,10,.4));border:.5px solid rgba(220,140,40,.4);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">🎫</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">ガチャチケット</div>
+            <div style="font-size:10px;color:var(--text2);">単発召喚1回分・10連に併用可</div>
+          </div>
+          <div style="font-size:22px;font-weight:800;color:#ffd060;" id="bag-tickets">0</div>
+        </div>
+        <!-- ジェム・ゴールド -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:rgba(0,20,40,.4);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;">💎</div>
+            <div style="font-size:11px;color:var(--text2);margin:4px 0 2px;">深海結晶</div>
+            <div style="font-size:16px;font-weight:700;" id="bag-gem">0</div>
+          </div>
+          <div style="background:rgba(0,20,40,.4);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;">💰</div>
+            <div style="font-size:11px;color:var(--text2);margin:4px 0 2px;">ゴールド</div>
+            <div style="font-size:16px;font-weight:700;" id="bag-gold">0</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:var(--text3);text-align:center;margin-top:6px;">※ ガチャ上限到達時にクラフトポイントが追加で貰えます</div>
+      </div>
+      <!-- 凸素材タブ -->
+      <div id="bag-content-mats" style="display:none;">
+        <div id="bag-mats-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ショップ画面 -->
+<div class="screen" id="screen-shop">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">🏪 ショップ</div>
+    <div style="width:50px;"></div>
+  </div>
+  <div class="content">
+    <div style="padding:12px 12px 80px;">
+      <!-- クラフトポイント表示 -->
+      <div style="background:linear-gradient(135deg,rgba(20,60,120,.4),rgba(10,30,80,.4));border:.5px solid rgba(60,120,220,.4);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:24px;">🔷</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:700;">所持クラフトポイント</div>
+          <div style="font-size:9px;color:var(--text2);">ガチャ上限到達時に獲得</div>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:#60c0ff;" id="shop-craft-pts">0</div>
+      </div>
+      <!-- レアリティタブ -->
+      <div style="display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;">
+        <button onclick="showShopRarity('R')" id="shop-tab-r" style="padding:6px 14px;border-radius:8px;border:.5px solid #4080c0;background:rgba(20,40,80,.4);color:#4080c0;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">R</button>
+        <button onclick="showShopRarity('SR')" id="shop-tab-sr" style="padding:6px 14px;border-radius:8px;border:.5px solid #a060e0;background:rgba(40,20,80,.3);color:#a060e0;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">SR</button>
+        <button onclick="showShopRarity('SSR')" id="shop-tab-ssr" style="padding:6px 14px;border-radius:8px;border:.5px solid #d4a020;background:rgba(60,40,0,.3);color:#d4a020;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">SSR</button>
+        <button onclick="showShopRarity('UR')" id="shop-tab-ur" style="padding:6px 14px;border-radius:8px;border:.5px solid #ffe040;background:rgba(60,50,0,.3);color:#ffe040;cursor:pointer;font-size:11px;font-family:inherit;white-space:nowrap;font-weight:600;">UR</button>
+      </div>
+      <div id="shop-main-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- GRIND SCREEN -->
 <div class="screen" id="screen-grind">
   <div class="header">
@@ -1801,10 +1909,11 @@ function onPvpEnd(won, quest){
     </div>
     <div class="grow-btns">
       <div class="grow-btn grow-btn-lv" onclick="levelUpChar()">⬆️ レベルアップ<br><span style="font-size:10px;color:var(--text2);" id="lvup-cost">💰 100</span></div>
-      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()" style="background:rgba(60,0,80,.4);border-color:rgba(140,40,180,.4);color:#c080ff;">💥 凸を進める<br><span style="font-size:10px;color:var(--text2);" id="break-cost">素材0個</span></div>
+      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()" style="background:rgba(60,0,80,.4);border-color:rgba(140,40,180,.4);color:#c080ff;">💥 凸（ガチャ素材）<br><span style="font-size:10px;color:var(--text2);" id="break-cost">素材0個</span></div>
     </div>
     <div class="grow-btns" style="margin-top:6px;">
-      <div class="grow-btn grow-btn-max" onclick="limitBreakChar()" style="background:rgba(80,40,0,.4);border-color:rgba(180,100,20,.4);color:#e0a060;width:100%;">🔓 上限解放<br><span style="font-size:10px;color:var(--text2);" id="limit-break-cost">💎 300</span></div>
+      <div class="grow-btn grow-btn-max" onclick="breakthroughWithMaterial(detailCharId)" style="background:rgba(0,40,80,.4);border-color:rgba(30,120,200,.4);color:#60c0ff;flex:2;">🔷 素材で凸<br><span style="font-size:10px;color:var(--text2);" id="mat-break-cost">素材0個</span></div>
+      <div class="grow-btn grow-btn-max" onclick="limitBreakChar()" style="background:rgba(80,40,0,.4);border-color:rgba(180,100,20,.4);color:#e0a060;flex:1;">🔓 上限解放<br><span style="font-size:10px;color:var(--text2);" id="limit-break-cost">💎 300</span></div>
     </div>
     <div style="font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.7;" id="cdp-desc"></div>
     <button class="cdp-close" onclick="closeCharDetail()">閉じる</button>
@@ -2036,6 +2145,10 @@ async function saveToCloud(){
     playerIcon: S.playerIcon||'🌊',
     ownedIcons: S.ownedIcons||['🌊'],
     receivedAchievementRewards: S.receivedAchievementRewards||{},
+    gachaTickets: S.gachaTickets||0,
+    craftPoints: S.craftPoints||0,
+    craftMaterials: S.craftMaterials||{},
+    bagItems: S.bagItems||{},
     lastSaved: new Date().toISOString()
   };
   S.lastSaved = saveData.lastSaved; // ローカルも同期
@@ -2157,11 +2270,13 @@ async function checkGifts(){
       .where('type','==','global')
       .where('active','==',true)
       .get();
+    let totalTicket = 0;
     for(const gift of globalGifts.docs){
       const gd = gift.data();
       if(received.includes(gift.id)) continue;
-      totalGem  += gd.gem  || 0;
-      totalGold += gd.gold || 0;
+      totalGem    += gd.gem    || 0;
+      totalGold   += gd.gold   || 0;
+      totalTicket += gd.ticket || 0;
       received.push(gift.id);
     }
 
@@ -2176,22 +2291,25 @@ async function checkGifts(){
       for(const gift of indGifts.docs){
         const gd = gift.data();
         if(received.includes(gift.id)) continue;
-        totalGem  += gd.gem  || 0;
-        totalGold += gd.gold || 0;
+        totalGem    += gd.gem    || 0;
+        totalGold   += gd.gold   || 0;
+        totalTicket += gd.ticket || 0;
         received.push(gift.id);
         // メッセージがあればトースト表示
         if(gd.message) showToast('📩 '+gd.message);
       }
     }
 
-    if(totalGem>0 || totalGold>0){
-      S.gem  += totalGem;
-      S.gold += totalGold;
+    if(totalGem>0 || totalGold>0 || totalTicket>0){
+      S.gem          += totalGem;
+      S.gold         += totalGold;
+      S.gachaTickets  = (S.gachaTickets||0) + totalTicket;
       S.receivedGifts = received;
       try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
       try{
         await playerDocRef.update({
           gem: S.gem, gold: S.gold,
+          gachaTickets: S.gachaTickets,
           receivedGifts: received,
           lastSaved: new Date().toISOString()
         });
@@ -2770,7 +2888,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{},
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:0, craftMaterials:{}, bagItems:{},
   lastLoginDate:'',dailyRewardClaimed:false,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
@@ -2899,6 +3017,8 @@ function goTo(sc){
   if(sc==='achieve'){renderAchieve();}
   if(sc==='library') renderLibrary();
   if(sc==='daily') renderDailyScreen();
+  if(sc==='bag') renderBag();
+  if(sc==='shop') renderShopScreen();
   if(sc==='home'){ setTimeout(checkRankRewardBadge,400); if(typeof initDailyMissions==='function') initDailyMissions(); }
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
@@ -3266,6 +3386,8 @@ let currentGachaCategory='limited'; // 'limited' or 'permanent'
 
 function refreshGacha(){
   document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
+  var tkDisp=document.getElementById('gacha-ticket-disp');
+  if(tkDisp) tkDisp.textContent='🎫 '+( S.gachaTickets||0);
   renderBannerTabs();
   refreshGachaDisplay();
 }
@@ -3384,9 +3506,33 @@ function doGacha(count){
   }
   MacroDetector.recordClick('gacha');
   MacroDetector.checkGachaAbuse();
-  const cost=count===1?160:1600;
-  if(S.gem<cost){showToast('💎 深海結晶が足りません！');return;}
-  sfx('gacha'); S.gem-=cost;
+
+  // チケット＋ジェム併用処理
+  const tickets = S.gachaTickets||0;
+  if(count===1){
+    // 単発：チケット1枚 or ジェム160
+    if(tickets>=1){
+      S.gachaTickets = tickets-1;
+    } else if(S.gem>=160){
+      S.gem -= 160;
+    } else {
+      showToast('💎 深海結晶またはガチャチケット(🎫)が足りません！'); return;
+    }
+  } else {
+    // 10連：チケット+ジェム併用（チケット1枚=160ジェム相当）
+    const ticketUse = Math.min(tickets, 10);
+    const gemNeed = (10-ticketUse)*160;
+    if(S.gem < gemNeed){
+      if(ticketUse>0){
+        showToast('💎 ジェムが足りません（チケット'+ticketUse+'枚使用で残り'+gemNeed+'💎必要）'); return;
+      } else {
+        showToast('💎 深海結晶が足りません！（必要: 1600💎 or チケット併用）'); return;
+      }
+    }
+    S.gachaTickets = tickets - ticketUse;
+    S.gem -= gemNeed;
+  }
+  sfx('gacha');
   if(!S.pityPerBanner||S.pityPerBanner.length<BANNERS.length)S.pityPerBanner=BANNERS.map((_,i)=>S.pityPerBanner&&S.pityPerBanner[i]||0);
 
   const b=BANNERS[currentBanner];
@@ -3447,10 +3593,13 @@ function doGacha(count){
       var currentStock=cd.stockCopies||0;
       var currentBreak=cd.breakthrough||0;
       if(currentBreak>=9 && currentStock>=9){
-        // 最大凸かつ素材フル：ゴールドに変換
+        // 最大凸かつ素材フル：ゴールド＋クラフトポイントに変換
         isMaxCopies=true;
         dupeGold={R:2000,SR:8000,SSR:30000,UR:100000}[ch.rarity]||2000;
         S.gold+=dupeGold;
+        var cpts=MAX_COPIES_POINT[ch.rarity]||5;
+        if(!S.craftPoints) S.craftPoints=0;
+        S.craftPoints+=cpts;
       } else {
         // 凸素材としてストック
         cd.stockCopies=Math.min((cd.stockCopies||0)+1, 9);
@@ -6053,7 +6202,18 @@ function refreshCharDetail(){
   if(breakBtn){
     if(breakNow2>=9) breakBtn.textContent='最大9凸達成！';
     else if(stockNow<=0) breakBtn.textContent='素材なし（ガチャで獲得）';
-    else breakBtn.textContent='素材'+stockNow+'個 → '+( breakNow2+1)+'凸へ';
+    else breakBtn.textContent='素材'+stockNow+'個 → '+(breakNow2+1)+'凸へ';
+  }
+  // 凸素材ボタン表示更新
+  var matBtn=document.getElementById('mat-break-cost');
+  if(matBtn && base){
+    if(breakNow2>=9){ matBtn.textContent='最大凸達成！'; }
+    else {
+      var matKey2=getMatKey(base.attribute, base.rarity);
+      var matM=CRAFT_MATERIALS[matKey2];
+      var matHave=(S.craftMaterials||{})[matKey2]||0;
+      matBtn.textContent = matM?(matM.name+' ×'+matHave):'素材なし';
+    }
   }
   // 上限解放ボタン
   var lbBtn=document.getElementById('limit-break-cost');
@@ -10235,6 +10395,257 @@ function fixMissingIconRewards(){
     if(iconGained.length>0) msg += ' 🎨'+iconGained.join('');
     showToast(msg);
   }
+}
+
+// ================================================================
+//  バッグ・凸素材・ショップシステム
+// ================================================================
+
+// 凸素材定義（レアリティ×属性）
+const CRAFT_MATERIALS = {
+  // R素材（各属性）
+  mat_fire_r:    {name:'炎の欠片',    emoji:'🔥', attr:'fire',    rarity:'R',   desc:'炎属性Rキャラの凸素材'},
+  mat_ice_r:     {name:'氷の欠片',    emoji:'❄️', attr:'ice',     rarity:'R',   desc:'氷属性Rキャラの凸素材'},
+  mat_thunder_r: {name:'雷の欠片',    emoji:'⚡', attr:'thunder', rarity:'R',   desc:'雷属性Rキャラの凸素材'},
+  mat_water_r:   {name:'水の欠片',    emoji:'🌊', attr:'water',   rarity:'R',   desc:'水属性Rキャラの凸素材'},
+  mat_dark_r:    {name:'闇の欠片',    emoji:'🌑', attr:'dark',    rarity:'R',   desc:'闇属性Rキャラの凸素材'},
+  mat_light_r:   {name:'光の欠片',    emoji:'✨', attr:'light',   rarity:'R',   desc:'光属性Rキャラの凸素材'},
+  mat_none_r:    {name:'無の欠片',    emoji:'⚪', attr:'none',    rarity:'R',   desc:'無属性Rキャラの凸素材'},
+  // SR素材
+  mat_fire_sr:   {name:'炎の結晶',    emoji:'🔥', attr:'fire',    rarity:'SR',  desc:'炎属性SRキャラの凸素材'},
+  mat_ice_sr:    {name:'氷の結晶',    emoji:'❄️', attr:'ice',     rarity:'SR',  desc:'氷属性SRキャラの凸素材'},
+  mat_thunder_sr:{name:'雷の結晶',    emoji:'⚡', attr:'thunder', rarity:'SR',  desc:'雷属性SRキャラの凸素材'},
+  mat_water_sr:  {name:'水の結晶',    emoji:'🌊', attr:'water',   rarity:'SR',  desc:'水属性SRキャラの凸素材'},
+  mat_dark_sr:   {name:'闇の結晶',    emoji:'🌑', attr:'dark',    rarity:'SR',  desc:'闇属性SRキャラの凸素材'},
+  mat_light_sr:  {name:'光の結晶',    emoji:'✨', attr:'light',   rarity:'SR',  desc:'光属性SRキャラの凸素材'},
+  mat_none_sr:   {name:'無の結晶',    emoji:'⚪', attr:'none',    rarity:'SR',  desc:'無属性SRキャラの凸素材'},
+  // SSR素材
+  mat_fire_ssr:  {name:'炎の核',      emoji:'🔥', attr:'fire',    rarity:'SSR', desc:'炎属性SSRキャラの凸素材'},
+  mat_ice_ssr:   {name:'氷の核',      emoji:'❄️', attr:'ice',     rarity:'SSR', desc:'氷属性SSRキャラの凸素材'},
+  mat_thunder_ssr:{name:'雷の核',     emoji:'⚡', attr:'thunder', rarity:'SSR', desc:'雷属性SSRキャラの凸素材'},
+  mat_water_ssr: {name:'水の核',      emoji:'🌊', attr:'water',   rarity:'SSR', desc:'水属性SSRキャラの凸素材'},
+  mat_dark_ssr:  {name:'闇の核',      emoji:'🌑', attr:'dark',    rarity:'SSR', desc:'闇属性SSRキャラの凸素材'},
+  mat_light_ssr: {name:'光の核',      emoji:'✨', attr:'light',   rarity:'SSR', desc:'光属性SSRキャラの凸素材'},
+  mat_none_ssr:  {name:'無の核',      emoji:'⚪', attr:'none',    rarity:'SSR', desc:'無属性SSRキャラの凸素材'},
+  // UR素材
+  mat_fire_ur:   {name:'炎の神核',    emoji:'🔥', attr:'fire',    rarity:'UR',  desc:'炎属性URキャラの凸素材'},
+  mat_ice_ur:    {name:'氷の神核',    emoji:'❄️', attr:'ice',     rarity:'UR',  desc:'氷属性URキャラの凸素材'},
+  mat_thunder_ur:{name:'雷の神核',    emoji:'⚡', attr:'thunder', rarity:'UR',  desc:'雷属性URキャラの凸素材'},
+  mat_water_ur:  {name:'水の神核',    emoji:'🌊', attr:'water',   rarity:'UR',  desc:'水属性URキャラの凸素材'},
+  mat_dark_ur:   {name:'闇の神核',    emoji:'🌑', attr:'dark',    rarity:'UR',  desc:'闇属性URキャラの凸素材'},
+  mat_light_ur:  {name:'光の神核',    emoji:'✨', attr:'light',   rarity:'UR',  desc:'光属性URキャラの凸素材'},
+  mat_none_ur:   {name:'無の神核',    emoji:'⚪', attr:'none',    rarity:'UR',  desc:'無属性URキャラの凸素材'},
+};
+
+// 素材キー取得
+function getMatKey(attr, rarity){
+  return 'mat_'+(attr||'none')+'_'+( rarity||'r').toLowerCase();
+}
+
+// 素材ショップの値段（クラフトポイント）
+const MAT_SHOP_COST = {R:10, SR:30, SSR:100, UR:300};
+
+// ガチャ上限到達時のポイント付与量
+const MAX_COPIES_POINT = {R:5, SR:15, SSR:50, UR:150};
+
+// 凸素材でbreakthroughCharを行う
+function breakthroughWithMaterial(charId){
+  const c = CHARS.find(ch=>ch.id===charId); if(!c) return;
+  if(!S.ownedData) S.ownedData={};
+  if(!S.ownedData[charId]) S.ownedData[charId]={level:1,exp:0,breakthrough:0,copies:1,stockCopies:0,limitBreak:0};
+  const cd = S.ownedData[charId];
+  const currentBreak = cd.breakthrough||0;
+  if(currentBreak>=9){ showToast('✨ 最大9凸達成済みです！'); return; }
+
+  const matKey = getMatKey(c.attribute, c.rarity);
+  const mats = S.craftMaterials||{};
+  const have = mats[matKey]||0;
+  if(have<=0){
+    showToast('素材が足りません！ショップで「'+( CRAFT_MATERIALS[matKey]?CRAFT_MATERIALS[matKey].name:'素材')+'」を購入してください');
+    return;
+  }
+  // 素材消費
+  mats[matKey] = have-1;
+  S.craftMaterials = mats;
+  cd.breakthrough = currentBreak+1;
+  saveGameImmediate(); sfx('win');
+  showToast('💥 '+c.name+' '+(currentBreak+1)+'凸！ HP・ATK +'+(currentBreak+1)*8+'%');
+  refreshCharDetail(); refreshHome();
+}
+
+// ================================================================
+//  バッグシステム
+// ================================================================
+var _bagTab = 'items';
+var _shopRarity = 'R';
+
+function openBag(){
+  goTo('bag'); sfx('click');
+}
+
+function renderBag(){
+  // アイテムタブ更新
+  var cpEl = document.getElementById('bag-craft-pts');
+  var tkEl = document.getElementById('bag-tickets');
+  var gmEl = document.getElementById('bag-gem');
+  var gdEl = document.getElementById('bag-gold');
+  if(cpEl) cpEl.textContent = (S.craftPoints||0).toLocaleString();
+  if(tkEl) tkEl.textContent = (S.gachaTickets||0).toLocaleString();
+  if(gmEl) gmEl.textContent = (S.gem||0).toLocaleString();
+  if(gdEl) gdEl.textContent = (S.gold||0).toLocaleString();
+  renderBagMats();
+  renderBagShop(_shopRarity);
+}
+
+function showBagTab(tab){
+  _bagTab = tab;
+  ['items','mats'].forEach(function(t){
+    var btn = document.getElementById('bag-tab-'+t);
+    var content = document.getElementById('bag-content-'+t);
+    if(btn) btn.className = 'gacha-cat-btn'+(t===tab?' active':'');
+    if(content) content.style.display = t===tab?'':'none';
+  });
+  if(tab==='mats') renderBagMats();
+
+}
+
+function renderBagMats(){
+  var el = document.getElementById('bag-mats-list'); if(!el) return;
+  var mats = S.craftMaterials||{};
+  var items = Object.keys(CRAFT_MATERIALS).map(function(key){
+    var m = CRAFT_MATERIALS[key];
+    var count = mats[key]||0;
+    return {key:key, m:m, count:count};
+  }).filter(function(x){ return x.count>0; });
+
+  if(items.length===0){
+    el.innerHTML='<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">素材なし<br>ショップで購入できます</div>';
+    return;
+  }
+
+  var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+  el.innerHTML = items.map(function(x){
+    return '<div style="background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">'
+      +'<div style="font-size:24px;">'+x.m.emoji+'</div>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:12px;font-weight:600;">'+x.m.name+'</div>'
+      +'<div style="font-size:9px;color:'+(rarColor[x.m.rarity]||'#888')+';">'+x.m.rarity+' • '+(ATTR_INFO[x.m.attr]||{label:x.m.attr}).label+'属性</div>'
+      +'</div>'
+      +'<div style="font-size:18px;font-weight:800;color:#60c0ff;">×'+x.count+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function showShopRarity(rar){
+  _shopRarity = rar;
+  ['R','SR','SSR','UR'].forEach(function(r){
+    var btn = document.getElementById('shop-tab-'+r.toLowerCase());
+    if(btn) btn.className = 'shop-rarity-btn'+(r===rar?' active':'');
+  });
+  renderBagShop(rar);
+}
+
+function renderBagShop(rar){
+  var el = document.getElementById('bag-shop-list'); if(!el) return;
+  var cp = S.craftPoints||0;
+  var cost = MAT_SHOP_COST[rar]||10;
+  var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+  var attrs = ['fire','ice','thunder','water','dark','light','none'];
+  var html2 = '<div style="font-size:10px;color:var(--text3);margin-bottom:8px;">所持ポイント: <span style="color:#60c0ff;font-weight:700;">🔷'+cp+'</span> / 1個 = <span style="color:#60c0ff;">🔷'+cost+'pt</span></div>';
+  html2 += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  attrs.forEach(function(attr){
+    var key = getMatKey(attr, rar);
+    var m = CRAFT_MATERIALS[key];
+    if(!m) return;
+    var have = (S.craftMaterials||{})[key]||0;
+    var canBuy = cp>=cost;
+    html2 += '<div style="background:rgba(0,15,35,.5);border:.5px solid '+(canBuy?'rgba(60,120,220,.4)':'var(--border2)')+';border-radius:10px;padding:10px;text-align:center;">'
+      +'<div style="font-size:22px;">'+m.emoji+'</div>'
+      +'<div style="font-size:10px;font-weight:600;margin:4px 0 2px;">'+m.name+'</div>'
+      +'<div style="font-size:8px;color:var(--text3);margin-bottom:6px;">所持: '+have+'個</div>'
+      +'<button data-matkey="'+key+'" onclick="buyMaterial(this.dataset.matkey)" style="width:100%;padding:5px;border-radius:6px;border:.5px solid '+(canBuy?'rgba(60,120,220,.5)':'rgba(80,80,80,.3)')+';background:'+(canBuy?'rgba(20,50,120,.4)':'rgba(20,20,20,.3)')+';color:'+(canBuy?'#60c0ff':'var(--text3)')+';cursor:'+(canBuy?'pointer':'default')+';font-size:9px;font-family:inherit;">🔷'+cost+'pt で購入</button>'
+      +'</div>';
+  });
+  html2 += '</div>';
+  el.innerHTML = html2;
+}
+
+function buyMaterial(key){
+  var m = CRAFT_MATERIALS[key]; if(!m) return;
+  var cost = MAT_SHOP_COST[m.rarity]||10;
+  if((S.craftPoints||0)<cost){ showToast('🔷 クラフトポイントが足りません（必要: '+cost+'pt）'); return; }
+  S.craftPoints = (S.craftPoints||0)-cost;
+  if(!S.craftMaterials) S.craftMaterials={};
+  S.craftMaterials[key] = (S.craftMaterials[key]||0)+1;
+  saveGameImmediate(); sfx('select');
+  showToast('✅ 「'+m.name+'」を購入しました！ 残り🔷'+(S.craftPoints)+'pt');
+  renderBag();
+}
+
+// ================================================================
+//  ショップ画面（独立）
+// ================================================================
+function renderShopScreen(){
+  var cpEl = document.getElementById('shop-craft-pts');
+  if(cpEl) cpEl.textContent = (S.craftPoints||0).toLocaleString();
+  renderMainShop(_shopRarity);
+  // アクティブタブを更新
+  ['R','SR','SSR','UR'].forEach(function(r){
+    var btn = document.getElementById('shop-tab-'+r.toLowerCase());
+    if(!btn) return;
+    var isActive = r===_shopRarity;
+    var colors = {R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+    btn.style.background = isActive ? 'rgba(30,60,120,.6)' : 'rgba(20,40,80,.3)';
+    btn.style.boxShadow = isActive ? '0 0 8px '+colors[r]+'66' : 'none';
+  });
+}
+
+function showShopRarity(rar){
+  _shopRarity = rar;
+  renderShopScreen();
+}
+
+function renderMainShop(rar){
+  var el = document.getElementById('shop-main-list'); if(!el) return;
+  var cp = S.craftPoints||0;
+  var cost = MAT_SHOP_COST[rar]||10;
+  var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+  var attrs = ['fire','ice','thunder','water','dark','light','none'];
+  var html2 = '<div style="font-size:10px;color:var(--text3);margin-bottom:10px;">🔷クラフトポイントで凸素材と交換 / 1個 = <span style="color:#60c0ff;font-weight:700;">🔷'+cost+'pt</span></div>';
+  html2 += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">';
+  attrs.forEach(function(attr){
+    var key = getMatKey(attr, rar);
+    var m = CRAFT_MATERIALS[key];
+    if(!m) return;
+    var have = (S.craftMaterials||{})[key]||0;
+    var canBuy = cp>=cost;
+    var attrInfo = ATTR_INFO[attr]||{emoji:'⚪',label:attr};
+    html2 += '<div style="background:rgba(0,15,35,.6);border:.5px solid '+(canBuy?'rgba(60,120,220,.35)':'rgba(40,40,60,.4)')+';border-radius:12px;padding:12px;text-align:center;">'
+      +'<div style="font-size:26px;margin-bottom:4px;">'+m.emoji+'</div>'
+      +'<div style="font-size:11px;font-weight:700;margin-bottom:2px;">'+m.name+'</div>'
+      +'<div style="font-size:9px;color:'+(rarColor[rar]||'#888')+';margin-bottom:2px;">'+rar+' • '+attrInfo.label+'属性</div>'
+      +'<div style="font-size:10px;color:var(--text2);margin-bottom:8px;">所持: <span style="color:#60c0ff;font-weight:600;">'+have+'個</span></div>'
+      +'<button data-matkey="'+key+'" onclick="buyMaterialFromShop(this.dataset.matkey)" '
+      +'style="width:100%;padding:7px;border-radius:8px;border:.5px solid '+(canBuy?'rgba(60,120,220,.6)':'rgba(60,60,60,.4)')+';'
+      +'background:'+(canBuy?'rgba(20,60,140,.5)':'rgba(20,20,20,.3)')+';'
+      +'color:'+(canBuy?'#80c0ff':'var(--text3)')+';cursor:'+(canBuy?'pointer':'default')+';'
+      +'font-size:10px;font-family:inherit;font-weight:600;">🔷'+cost+'pt で購入</button>'
+      +'</div>';
+  });
+  html2 += '</div>';
+  el.innerHTML = html2;
+}
+
+function buyMaterialFromShop(key){
+  var m = CRAFT_MATERIALS[key]; if(!m) return;
+  var cost = MAT_SHOP_COST[m.rarity]||10;
+  if((S.craftPoints||0)<cost){ showToast('🔷 クラフトポイントが足りません（必要: '+cost+'pt）'); return; }
+  S.craftPoints = (S.craftPoints||0)-cost;
+  if(!S.craftMaterials) S.craftMaterials={};
+  S.craftMaterials[key] = (S.craftMaterials[key]||0)+1;
+  saveGameImmediate(); sfx('select');
+  showToast('✅ 「'+m.name+'」を購入！ 残り🔷'+(S.craftPoints)+'pt');
+  renderShopScreen();
 }
 </script>
 

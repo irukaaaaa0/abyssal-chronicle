@@ -245,9 +245,10 @@ label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
   <div class="panel" id="panel-gifts">
     <div class="card">
       <div class="card-title">🎁 全ユーザーへギフト配布</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div><label>💎 ジェム</label><input type="number" id="gift-gem" value="0" min="0"></div>
         <div><label>💰 ゴールド</label><input type="number" id="gift-gold" value="0" min="0"></div>
+        <div><label>🎫 ガチャチケット</label><input type="number" id="gift-ticket" value="0" min="0"></div>
       </div>
       <label>メッセージ</label>
       <input id="gift-msg" placeholder="配布メッセージ（例: メンテナンス補償）">
@@ -604,21 +605,34 @@ async function deleteNotice(id){
 // ギフト配布
 // ================================================================
 async function createGift(){
-  const gem  = parseInt(document.getElementById('gift-gem').value)||0;
-  const gold = parseInt(document.getElementById('gift-gold').value)||0;
-  const msg  = document.getElementById('gift-msg').value.trim()||'管理者よりギフト';
-  if(gem===0&&gold===0){ adminToast('ジェムまたはゴールドを入力してください'); return; }
-  if(!confirm('全ユーザーに 💎'+gem+' 💰'+gold+' を配布しますか？')){ return; }
+  const gem    = parseInt(document.getElementById('gift-gem').value)||0;
+  const gold   = parseInt(document.getElementById('gift-gold').value)||0;
+  const ticket = parseInt(document.getElementById('gift-ticket').value)||0;
+  const msg    = document.getElementById('gift-msg').value.trim()||'管理者よりギフト';
+  if(gem===0&&gold===0&&ticket===0){ adminToast('ジェム・ゴールド・チケットのいずれかを入力してください'); return; }
+  var confirmMsg = '全ユーザーに';
+  if(gem>0)    confirmMsg += ' 💎'+gem;
+  if(gold>0)   confirmMsg += ' 💰'+gold;
+  if(ticket>0) confirmMsg += ' 🎫'+ticket+'枚';
+  confirmMsg += ' を配布しますか？';
+  if(!confirm(confirmMsg)){ return; }
   try{
     await db.collection('gifts').add({
-      gem,gold,message:msg,
-      isIndividual:false,
-      createdAt:new Date().toISOString(),
-      active:true,
+      gem, gold, ticket,
+      message: msg,
+      isIndividual: false,
+      createdAt: new Date().toISOString(),
+      active: true,
     });
-    adminToast('✅ ギフトを配布しました（💎'+gem+' 💰'+gold+'）');
+    var successMsg = '✅ ギフトを配布しました（';
+    if(gem>0)    successMsg += '💎'+gem+' ';
+    if(gold>0)   successMsg += '💰'+gold+' ';
+    if(ticket>0) successMsg += '🎫'+ticket+'枚 ';
+    successMsg += '）';
+    adminToast(successMsg);
     document.getElementById('gift-gem').value='0';
     document.getElementById('gift-gold').value='0';
+    document.getElementById('gift-ticket').value='0';
     document.getElementById('gift-msg').value='';
     loadGifts();
   }catch(e){ adminToast('❌ 配布失敗: '+e.message); }
@@ -632,6 +646,7 @@ async function loadGifts(){
     el.innerHTML = snap.docs.map(d=>{
       const g=d.data();
       const target = g.isIndividual ? ('個別: '+g.targetPlayerId) : '全員';
+      const ticketStr = g.ticket>0 ? ' 🎫'+g.ticket+'枚' : '';
       return '<div class="notice-item">'
         +'<div><div style="font-size:12px;font-weight:500;">'+g.message+'</div>'
         +'<div style="font-size:10px;color:#3a5878;margin-top:3px;">'+target+' | 💎'+g.gem+' 💰'+(g.gold||0).toLocaleString()+' | '+(g.createdAt||'').slice(0,10)+'</div></div>'
