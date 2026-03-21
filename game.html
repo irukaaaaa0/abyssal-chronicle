@@ -10522,29 +10522,75 @@ function showBagTab(tab){
 
 function renderBagMats(){
   var el = document.getElementById('bag-mats-list'); if(!el) return;
+  var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
+  var html2 = '';
+
+  // ================================================================
+  // セクション1：ガチャ凸素材（キャラ被り）
+  // ================================================================
+  var od = S.ownedData||{};
+  var stockList = [];
+  Object.keys(od).forEach(function(id){
+    var cd = od[id];
+    if((cd.stockCopies||0)<=0) return;
+    var c = CHARS.find(function(ch){ return ch.id===parseInt(id); });
+    if(!c) return;
+    stockList.push({c:c, stock:cd.stockCopies});
+  });
+  // レアリティ順でソート（UR>SSR>SR>R）
+  var rarOrder = {UR:0,SSR:1,SR:2,R:3};
+  stockList.sort(function(a,b){ return (rarOrder[a.c.rarity]||9)-(rarOrder[b.c.rarity]||9); });
+
+  html2 += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:8px;">💥 ガチャ凸素材（キャラ被り）</div>';
+  if(stockList.length===0){
+    html2 += '<div style="text-align:center;padding:16px 0;font-size:11px;color:var(--text3);background:rgba(0,10,25,.4);border-radius:10px;margin-bottom:12px;">なし（ガチャで同じキャラを引くと蓄積）</div>';
+  } else {
+    html2 += stockList.map(function(x){
+      return '<div style="background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
+        +'<div style="width:36px;height:36px;border-radius:10px;background:'+x.c.bg+';border:.5px solid '+x.c.border+';display:flex;align-items:center;justify-content:center;font-size:18px;">'+x.c.emoji+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:11px;font-weight:600;">'+x.c.name+'</div>'
+        +'<div style="font-size:9px;color:'+(rarColor[x.c.rarity]||'#888')+';">'+x.c.rarity+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;">'
+        +'<div style="font-size:16px;font-weight:800;color:#c080ff;">×'+x.stock+'</div>'
+        +'<div style="font-size:8px;color:var(--text3);">凸素材</div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  // ================================================================
+  // セクション2：ショップ購入素材（属性×レアリティ）
+  // ================================================================
   var mats = S.craftMaterials||{};
-  var items = Object.keys(CRAFT_MATERIALS).map(function(key){
+  var shopItems = Object.keys(CRAFT_MATERIALS).map(function(key){
     var m = CRAFT_MATERIALS[key];
     var count = mats[key]||0;
     return {key:key, m:m, count:count};
   }).filter(function(x){ return x.count>0; });
 
-  if(items.length===0){
-    el.innerHTML='<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">素材なし<br>ショップで購入できます</div>';
-    return;
+  html2 += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 8px;">🔷 属性凸素材（ショップ購入）</div>';
+  if(shopItems.length===0){
+    html2 += '<div style="text-align:center;padding:16px 0;font-size:11px;color:var(--text3);background:rgba(0,10,25,.4);border-radius:10px;">なし（ショップでクラフトポイントと交換）</div>';
+  } else {
+    html2 += shopItems.map(function(x){
+      return '<div style="background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
+        +'<div style="font-size:24px;">'+x.m.emoji+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:12px;font-weight:600;">'+x.m.name+'</div>'
+        +'<div style="font-size:9px;color:'+(rarColor[x.m.rarity]||'#888')+';">'+x.m.rarity+' • '+(ATTR_INFO[x.m.attr]||{label:x.m.attr}).label+'属性</div>'
+        +'</div>'
+        +'<div style="font-size:18px;font-weight:800;color:#60c0ff;">×'+x.count+'</div>'
+        +'</div>';
+    }).join('');
   }
 
-  var rarColor={R:'#4080c0',SR:'#a060e0',SSR:'#d4a020',UR:'#ffe040'};
-  el.innerHTML = items.map(function(x){
-    return '<div style="background:rgba(0,15,35,.5);border:.5px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">'
-      +'<div style="font-size:24px;">'+x.m.emoji+'</div>'
-      +'<div style="flex:1;">'
-      +'<div style="font-size:12px;font-weight:600;">'+x.m.name+'</div>'
-      +'<div style="font-size:9px;color:'+(rarColor[x.m.rarity]||'#888')+';">'+x.m.rarity+' • '+(ATTR_INFO[x.m.attr]||{label:x.m.attr}).label+'属性</div>'
-      +'</div>'
-      +'<div style="font-size:18px;font-weight:800;color:#60c0ff;">×'+x.count+'</div>'
-      +'</div>';
-  }).join('');
+  if(stockList.length===0 && shopItems.length===0){
+    el.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:11px;color:var(--text3);">凸素材なし</div>';
+    return;
+  }
+  el.innerHTML = html2;
 }
 
 function showShopRarity(rar){
