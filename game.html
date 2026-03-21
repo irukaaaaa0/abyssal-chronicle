@@ -4721,12 +4721,35 @@ function toggleAuto(){
 function runAutoTurn(){
   if(!BT.auto || !BT.active || BT_PHASE!=='player') return;
 
-  // 強いカードをダメージ順に最大4枚自動選択
-  const available = BT.hand
+  // 凍結・麻痺を考慮したカード選択上限を計算
+  // キャラごとの選択可能枚数を管理
+  const charSelectCount = {}; // charId → 選択済み枚数
+
+  // 強いカードをダメージ順にソート（未使用のみ）
+  const sorted = BT.hand
     .map((c,i)=>({...c,i}))
     .filter(c=>!c.used)
-    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0)+a.dmg))
-    .slice(0, MAX_SELECT);
+    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0)+a.dmg));
+
+  const available = [];
+  for(const c of sorted){
+    if(available.length >= MAX_SELECT) break;
+    const owner = BT.partyHp.find(m=>m.id===c.charId);
+    if(!owner) continue;
+    const statuses = owner.statuses||[];
+
+    // 凍結中キャラのカードは選択不可
+    const isFrozen = statuses.some(s=>s.type==='freeze'&&s.turns>0);
+    if(isFrozen) continue;
+
+    // 麻痺中キャラは1枚のみ
+    const isPara = statuses.some(s=>s.type==='para'&&s.turns>0);
+    const alreadySel = charSelectCount[c.charId]||0;
+    if(isPara && alreadySel >= 1) continue;
+
+    charSelectCount[c.charId] = alreadySel + 1;
+    available.push(c);
+  }
 
   if(!available.length){ return; }
 
