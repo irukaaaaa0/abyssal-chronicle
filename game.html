@@ -9890,6 +9890,23 @@ function refreshBgmSettings(){
 
 // 初期化
 loadBgmSettings();
+
+// ブラウザの自動再生制限を解除：最初のタップ/クリックでBGM開始
+var _bgmUnlocked = false;
+function unlockBgm(){
+  if(_bgmUnlocked) return;
+  _bgmUnlocked = true;
+  if(bgmEnabled && !bgmCurrentKey){
+    playBgm('home');
+  } else if(bgmEnabled && bgmCurrentKey){
+    // 再生が止まっていたら再開
+    if(bgmAudio && bgmAudio.paused){
+      bgmAudio.play().catch(function(){});
+    }
+  }
+}
+document.addEventListener('click',  unlockBgm, {once:false, passive:true});
+document.addEventListener('touchstart', unlockBgm, {once:false, passive:true});
 </script>
 
 <!-- 戦闘詳細パネル -->
