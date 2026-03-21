@@ -6347,6 +6347,14 @@ function endRtPvpBattle(won,reason){
   refreshHome(); sfx(won?'win':'lose');
   pvpBattleState=null;
 
+  // 降参ボタンを非表示（試合終了後に押せないよう）
+  const forfeitBtn = document.querySelector('[onclick="confirmPvpForfeit()"]');
+  if(forfeitBtn) forfeitBtn.style.display='none';
+
+  // 戦闘画面を非表示（降参ボタンなどを隠す）
+  const sc=document.getElementById('pvp-battle-screen');
+  if(sc) sc.classList.remove('show');
+
   const existing=document.getElementById('pvp-result-overlay');
   if(existing) existing.remove();
   const ptChange=won?22:-15;
@@ -6368,6 +6376,9 @@ function closePvpBattleScreen(){
   if(ov) ov.remove();
   const sc=document.getElementById('pvp-battle-screen');
   if(sc) sc.classList.remove('show');
+  // 降参ボタンを再表示（次の試合のために）
+  const forfeitBtn = document.querySelector('[onclick="confirmPvpForfeit()"]');
+  if(forfeitBtn) forfeitBtn.style.display='';
   goTo('pvp');
 }
 
