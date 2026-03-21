@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Check Update Logs</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:monospace;background:#060a10;color:#c0d8c0;padding:20px;font-size:12px;}
+button{background:#10c0a0;color:#000;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;margin:4px;}
+.btn-del{background:#e03060;color:#fff;}
+#log{white-space:pre-wrap;background:#0a1a0a;padding:14px;border-radius:8px;margin-top:12px;}
+</style>
+</head>
+<body>
+<h2 style="color:#10c0a0;">🔍 updateLogコレクション確認・重複削除</h2>
+<button onclick="checkLogs()">🔍 全ドキュメント確認</button>
+<button class="btn-del" onclick="deleteAll()">🗑️ 全削除して再投稿</button>
+<div id="log">待機中...</div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
+  authDomain:"abyssal-chronicle.firebaseapp.com",
+  projectId:"abyssal-chronicle",
+  storageBucket:"abyssal-chronicle.appspot.com",
+  messagingSenderId:"601713323896",
+  appId:"1:601713323896:web:92e756bfcae26a1745228d"
+});
+const db = firebase.firestore();
+const el = document.getElementById('log');
+
+async function checkLogs(){
+  el.textContent = '取得中...\n';
+  const snap = await db.collection('updateLog').get();
+  el.textContent = '合計: ' + snap.docs.length + ' ドキュメント\n\n';
+  snap.docs.forEach(d=>{
+    const data = d.data();
+    el.textContent += 'ID: ' + d.id + '\n';
+    el.textContent += '  version: ' + data.version + '\n';
+    el.textContent += '  date: ' + data.date + '\n';
+    el.textContent += '  items数: ' + (data.items||data.changes||[]).length + '\n\n';
+  });
+}
+
+const LOGS = [
+  {version:"0.3.0",date:"2026-03-01",items:["ゲーム基本システムを実装","クエスト1〜3章を追加","ガチャシステム（9バナー）を実装","PvP闘技場・無限塔を追加","フレンド・助っ人システムを実装","実績・称号システムを追加","Firebase/Firestoreによるオンラインセーブ対応"]},
+  {version:"0.4.0",date:"2026-03-10",items:["属性システムを全キャラに適用（7属性）","状態異常システムを実装（炎症・毒・凍結・麻痺）","ロール別戦闘効果を強化","フレンド機能をUID対応に刷新","ランクマイルストーン報酬システムを実装","PvPに属性・状態異常システムを適用","サーバー障害時の警告バナーを追加","保存システムを最適化"]},
+  {version:"0.4.1",date:"2026-03-15",items:["PvP戦闘詳細パネルを追加","助っ人スロットのリアルタイム更新対応","フレンド削除時に双方から削除されるよう修正","各種バグ修正・安定性向上"]},
+  {version:"0.5.0",date:"2026-03-18",items:["限定召喚システムを実装（専用天井80回・UR率1.5%）","限定URキャラ3体を追加","召喚画面を限定/恒常の2カテゴリに分類","バナー名をリニューアル","キャラクター図鑑を追加","admin画面にバナー管理タブを追加"]},
+  {version:"0.5.1",date:"2026-03-19",items:["限定バナーのリアルタイムカウントダウンを追加","ピックアップカードにスワイプ対応","スマホでピックアップキャラ詳細が見られるよう対応","admin画面の構文エラーを修正"]},
+  {version:"0.5.2",date:"2026-03-20",items:["アップデートログ起動時ポップアップを実装","admin画面からアップデートログを投稿できる機能を追加","スライドバーをグラデーション表示に改善"]},
+  {version:"0.5.3",date:"2026-03-21",items:["アップデートログの既読管理を修正（確認済みは再表示しない）","お知らせ画面のupdateLog表示デザインを改善","各種バグ修正"]}
+];
+
+async function deleteAll(){
+  el.textContent = '全削除中...\n';
+  const snap = await db.collection('updateLog').get();
+  for(const doc of snap.docs){
+    await db.collection('updateLog').doc(doc.id).delete();
+    el.textContent += '🗑️ 削除: ' + doc.id + '\n';
+  }
+  el.textContent += '\n再投稿中...\n';
+  for(const log of LOGS){
+    const docId = 'v' + log.version.replace(/\./g,'_');
+    await db.collection('updateLog').doc(docId).set({...log, postedAt: new Date().toISOString()});
+    el.textContent += '✅ v' + log.version + ' 投稿完了\n';
+  }
+  el.textContent += '\n🎉 完了！';
+}
+</script>
+</body>
+</html>
