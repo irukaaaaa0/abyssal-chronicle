@@ -6248,7 +6248,8 @@ function renderPvpHand(){
   }).join('');
   const n=st.hand.filter(c=>c.selected).length;
   const info=document.getElementById('pvp-card-select-info');
-  if(info) info.textContent=n+' / 4 枚選択';
+  var pvpMaxI=getPvpMaxSelect();
+  if(info) info.textContent=n+' / '+pvpMaxI+' 枚選択';
   const btn=document.getElementById('pvp-atk-btn');
   if(btn&&st.myTurn) btn.textContent=n>0?`⚔️ ${n}枚で攻撃`:'⚔️ 選択して攻撃';
 }
@@ -6263,11 +6264,12 @@ function pvpToggleCard(i){
     const owner=st.myParty.find(function(m){return m.id===card.charId;});
     const isPara=(st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0;});
     if(isPara){
-      const maxPara=Math.max(1,4-2);
-      const alreadySel=st.hand.filter(function(c){return c.selected&&c.charId===card.charId;}).length;
+      const maxPara=Math.max(1,getPvpMaxSelect()-2);
+      const alreadySel=st.selectedOrder.length;
       if(alreadySel>=maxPara){showToast('⚡ 麻痺中！最大'+maxPara+'枚まで');return;}
     }
-    if((st.selectedOrder||[]).length>=4){showToast('最大4枚まで');return;}
+    var pvpMax=getPvpMaxSelect();
+    if((st.selectedOrder||[]).length>=pvpMax){showToast('最大'+pvpMax+'枚まで');return;}
     st.hand[i].selected=true;
     st.selectedOrder.push(i);
   } else {
@@ -6283,7 +6285,8 @@ function pvpStartLongPress(i){
     const st=pvpBattleState; if(!st||!st.myTurn) return;
     const charId=st.hand[i]?.charId;
     st.hand.forEach((c,idx)=>{
-      if(c.charId===charId&&!c.used&&!c.selected&&(st.selectedOrder||[]).length<4){
+      var pvpMaxLP=getPvpMaxSelect();
+      if(c.charId===charId&&!c.used&&!c.selected&&(st.selectedOrder||[]).length<pvpMaxLP){
         c.selected=true; if(!st.selectedOrder) st.selectedOrder=[]; st.selectedOrder.push(idx);
       }
     });
@@ -6504,27 +6507,27 @@ function onPvpRoomUpdate(data){
     return;
   }
 
-  // 相手の攻撃データを受信
+  // 相手の攻撃データを受信（roleチェックをなくしtsのみで判定）
   const oppAtkKey=st.amHost?'guestAction':'hostAction';
   const action=data[oppAtkKey];
-  if(action&&action.ts&&action.role!==st.role&&action.ts>(st.lastOppActionTs||0)){
+  if(action&&action.ts&&action.ts>(st.lastOppActionTs||0)){
     st.lastOppActionTs=action.ts;
-    processOppAction(action);
+    // 自分の行動でないことを確認（amHostとroleが一致するのが自分の行動）
+    const isMyAction = (st.amHost && action.role==='host') || (!st.amHost && action.role==='guest');
+    if(!isMyAction){
+      processOppAction(action);
+    }
   }
 
   // 相手からの状態異常付与を受信
-  const oppStatusKey=st.amHost?'guestStatus':'hostStatus';
-  // oppStatusはhostActionに含まれているのでactionから取得
-  if(action&&action.oppStatus&&action.oppStatus.ts&&action.oppStatus.ts>(st.lastOppActionTs||0)){
-    pvpApplyStatusToMe(action.oppStatus.type, action.oppStatus.stacks||1);
-    const cfg=STATUS_CONFIG[action.oppStatus.type];
-    addPvpLog&&addPvpLog('⚠️ '+action.oppStatus.charName+'のスキルで'+(cfg?cfg.label:action.oppStatus.type)+'を受けた！','sys');
-  }
-
-  // oppStatusフィールドも確認（別キーで送られる場合）
-  if(data[oppStatusKey]&&data[oppStatusKey].ts&&data[oppStatusKey].ts>(st.lastOppStatusTs||0)){
-    st.lastOppStatusTs=data[oppStatusKey].ts;
-    pvpApplyStatusToMe(data[oppStatusKey].type, data[oppStatusKey].stacks||1);
+  if(action&&action.oppStatus&&action.oppStatus.ts){
+    var isMyAction2=(st.amHost&&action.role==='host')||(!st.amHost&&action.role==='guest');
+    if(!isMyAction2&&action.oppStatus.ts>(st.lastOppStatusTs||0)){
+      st.lastOppStatusTs=action.oppStatus.ts;
+      pvpApplyStatusToMe(action.oppStatus.type, action.oppStatus.stacks||1);
+      const cfg=STATUS_CONFIG&&STATUS_CONFIG[action.oppStatus.type];
+      if(cfg) showToast('⚠️ '+action.oppStatus.charName+'のスキルで'+cfg.label+'を受けた！');
+    }
   }
 
   // 相手残HPを直接反映（表示同期）
@@ -9067,6 +9070,20 @@ function initBannerTabSlider(){
     tabs.style.cursor = '';
   });
   tabs.style.cursor = 'grab';
+}
+
+function getPvpMaxSelect(){
+  const st=pvpBattleState; if(!st) return 4;
+  let max=4;
+  (st.myParty||[]).forEach(function(m){
+    // id:1(アルカナ) or id:59(ヴォイド)で+1
+    if(m.id===1||m.id===59) max++;
+  });
+  // 麻痺で-2
+  if((st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0;})){
+    max=Math.max(1,max-2);
+  }
+  return max;
 }
 </script>
 
