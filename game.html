@@ -7236,7 +7236,7 @@ function submitNameChange(){
   // 変更実行
   S.gem -= NAME_CHANGE_COST;
   S.playerName = newName;
-  saveGame();
+  saveGameImmediate();
   closeNameChangeModal();
   updatePlayerNameDisplay();
   refreshHome();
