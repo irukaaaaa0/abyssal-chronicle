@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>凸リセット</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+body{font-family:monospace;background:#060a10;color:#c0d8c0;padding:20px;font-size:13px;}
+button{background:#10c0a0;color:#000;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;margin:4px;}
+.btn-red{background:#e03060;color:#fff;}
+.btn-yellow{background:#e0a020;color:#000;}
+input{background:rgba(0,20,40,.6);border:.5px solid #334;border-radius:6px;padding:8px;font-size:12px;color:#c8dce8;width:300px;font-family:monospace;}
+#log{white-space:pre-wrap;background:#0a1a0a;padding:14px;border-radius:8px;margin-top:12px;max-height:400px;overflow-y:auto;}
+</style>
+</head>
+<body>
+<h2 style="color:#10c0a0;margin-bottom:16px;">💥 凸データリセットツール</h2>
+
+<!-- ★ 自分のローカルキャッシュをその場でリセット -->
+<div style="background:rgba(0,80,40,.2);border:.5px solid rgba(0,160,80,.4);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;">
+  <strong style="color:#40e080;">✅ まずここを実行してください（このブラウザのキャッシュを直接リセット）</strong><br>
+  ゲームと同じブラウザで開いている場合、localStorageの凸データを即座にリセットできます。
+</div>
+<button class="btn-yellow" onclick="resetLocalCache()">🗑️ このブラウザのローカルキャッシュをリセット</button>
+<hr style="border-color:#1a3a4a;margin:16px 0;">
+
+<!-- Firestore側のリセット -->
+<div style="background:rgba(180,60,0,.2);border:.5px solid rgba(220,100,0,.4);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;">
+  <strong>Firestoreのデータもリセット（全プレイヤーまたは特定プレイヤー）</strong>
+</div>
+<label style="font-size:11px;color:#8aabb8;">対象プレイヤーのUID（空欄=全員）</label><br>
+<input id="target-uid" placeholder="UID（空欄で全員）" style="margin:8px 0;"><br>
+<button onclick="previewReset()">🔍 プレビュー</button>
+<button class="btn-red" onclick="confirmReset()">⚠️ Firestore凸リセット実行</button>
+<div id="log">待機中...</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBVgzrDFTUE9JuXxqUv9LHyO4dwFPXyKpE",
+  authDomain:"abyssal-chronicle.firebaseapp.com",
+  projectId:"abyssal-chronicle",
+  storageBucket:"abyssal-chronicle.appspot.com",
+  messagingSenderId:"601713323896",
+  appId:"1:601713323896:web:92e756bfcae26a1745228d"
+});
+const db=firebase.firestore();
+const SAVE_KEY='abyssal_save_v1';
+const el=document.getElementById('log');
+function log(msg){el.textContent+=msg+'\n';}
+
+// ================================================================
+// ローカルキャッシュを直接リセット
+// ================================================================
+function resetLocalCache(){
+  el.textContent='ローカルキャッシュをリセット中...\n';
+  try{
+    var raw=localStorage.getItem(SAVE_KEY);
+    if(!raw){ log('❌ ローカルセーブデータが見つかりません。\nゲームと同じブラウザで開いてください。'); return; }
+    var S=JSON.parse(raw);
+    var od=S.ownedData||{};
+    var resetCount=0;
+    Object.keys(od).forEach(function(id){
+      if((od[id].breakthrough||0)>0||(od[id].stockCopies||0)>0){
+        log('リセット: キャラID '+id+' breakthrough:'+od[id].breakthrough+' → 0');
+        od[id].breakthrough=0;
+        od[id].stockCopies=0;
+        resetCount++;
+      }
+    });
+    if(resetCount===0){ log('✅ 凸済みキャラはありませんでした。'); return; }
+    // lastSavedを未来に設定してFirestoreより優先させる
+    S.ownedData=od;
+    S.lastSaved=new Date(Date.now()+172800000).toISOString(); // 2日後
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    log('\n✅ '+resetCount+'体の凸をローカルでリセットしました！');
+    log('ゲームをリロードすると反映されます。');
+  }catch(e){ log('❌ エラー: '+e.message); }
+}
+
+// ================================================================
+// Firestoreリセット
+// ================================================================
+async function getTargetDocs(){
+  var uid=document.getElementById('target-uid').value.trim();
+  if(uid){ var doc=await db.collection('players').doc(uid).get(); return doc.exists?[doc]:[]; }
+  return (await db.collection('players').get()).docs;
+}
+
+async function previewReset(){
+  el.textContent='プレビュー中...\n';
+  try{
+    var docs=await getTargetDocs();
+    log('対象: '+docs.length+'人\n');
+    docs.forEach(function(doc){
+      var d=doc.data(), od=d.ownedData||{};
+      var has=Object.entries(od).filter(function(e){return (e[1].breakthrough||0)>0||(e[1].stockCopies||0)>0;});
+      log('👤 '+(d.playerName||'不明')+' ('+doc.id.slice(0,8)+'...)');
+      if(!has.length){log('  凸なし\n');return;}
+      has.forEach(function(e){log('  ID:'+e[0]+' 凸:'+e[1].breakthrough+' 素材:'+(e[1].stockCopies||0));});
+      log('');
+    });
+    log('✅ プレビュー完了');
+  }catch(e){log('❌ '+e.message);}
+}
+
+async function confirmReset(){
+  if(!confirm('Firestoreの凸データをリセットしますか？')) return;
+  el.textContent='リセット中...\n';
+  try{
+    var docs=await getTargetDocs();
+    var futureTime=new Date(Date.now()+172800000).toISOString(); // 2日後
+    var count=0;
+    for(var doc of docs){
+      var d=doc.data(), od=d.ownedData||{};
+      var updated=false;
+      Object.keys(od).forEach(function(id){
+        if((od[id].breakthrough||0)>0||(od[id].stockCopies||0)>0){
+          od[id].breakthrough=0; od[id].stockCopies=0; updated=true;
+        }
+      });
+      if(updated){
+        await db.collection('players').doc(doc.id).update({ownedData:od,lastSaved:futureTime});
+        log('✅ '+(d.playerName||doc.id.slice(0,8)));
+        count++;
+      } else {
+        log('⏭️ スキップ: '+(d.playerName||doc.id.slice(0,8)));
+      }
+    }
+    log('\n🎉 '+count+'人リセット完了！ゲームを再起動すると反映されます。');
+  }catch(e){log('❌ '+e.message);}
+}
+</script>
+</body>
+</html>
