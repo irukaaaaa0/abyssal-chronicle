@@ -184,6 +184,30 @@ label{font-size:11px;color:#5a7898;display:block;margin-bottom:4px;}
 
   <!-- お知らせ -->
   <div class="panel" id="panel-notices">
+
+    <!-- アップデートログ管理 -->
+    <div class="card" style="border-color:rgba(30,160,220,.4);margin-bottom:14px;">
+      <div class="card-title" style="color:#60c0ff;">🚀 アップデートログ管理</div>
+      <div style="font-size:11px;color:#8aabb8;margin-bottom:12px;">
+        ここで登録すると、プレイヤーがゲームを起動した際にポップアップで表示されます。
+      </div>
+      <label>バージョン番号</label>
+      <input id="ul-version" placeholder="例: 0.5.2" style="margin-bottom:8px;">
+      <label>日付</label>
+      <input id="ul-date" placeholder="例: 2026-03-21" style="margin-bottom:8px;" id="ul-date">
+      <label>更新内容（1行1項目）</label>
+      <textarea id="ul-items" rows="6" placeholder="ガチャに限定バナーを追加&#10;フレンド機能を改善&#10;バグを修正" style="width:100%;background:rgba(0,20,40,.6);border:.5px solid #2a4a5e;border-radius:8px;padding:10px;font-size:12px;color:#c8dce8;font-family:inherit;resize:vertical;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn-primary" onclick="postUpdateLog()" style="flex:1;">🚀 投稿</button>
+        <button class="btn-sm primary" onclick="loadUpdateLogs()" style="width:auto;">🔄 一覧更新</button>
+      </div>
+      <div id="ul-result" style="font-size:11px;margin-top:8px;"></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:10px;color:#6a8898;margin-bottom:6px;">📋 投稿済みログ</div>
+        <div id="ul-list"></div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">📝 お知らせ投稿</div>
       <label>タイトル</label>
@@ -303,6 +327,7 @@ async function adminLogin(){
 
 function switchTab(tab){
   if(tab==='banners') loadBannerPanel();
+  if(tab==='notices') loadUpdateLogs();
   document.querySelectorAll('.tab').forEach((t,i)=>{
     const tabs=['dashboard','users','notices','gifts','macro'];
     t.classList.toggle('active', tabs[i]===tab);
@@ -826,6 +851,86 @@ async function setBannerTimer(id){
     adminToast('✅ '+hours+'時間タイマーセット！ 終了: '+new Date(endsAt).toLocaleString('ja-JP'));
     loadBannerPanel();
   }catch(e){ adminToast('❌ '+e.message); }
+}
+
+// ================================================================
+// アップデートログ管理
+// ================================================================
+async function postUpdateLog(){
+  var version = document.getElementById('ul-version').value.trim();
+  var date    = document.getElementById('ul-date').value.trim();
+  var itemsRaw = document.getElementById('ul-items').value.trim();
+  var resultEl = document.getElementById('ul-result');
+
+  if(!version||!date||!itemsRaw){
+    resultEl.textContent='❌ バージョン・日付・内容をすべて入力してください';
+    resultEl.style.color='#e06060';
+    return;
+  }
+
+  var items = itemsRaw.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  var docId = 'v' + version.replace(/\./g,'_');
+
+  try{
+    await db.collection('updateLog').doc(docId).set({
+      version: version,
+      date: date,
+      items: items,
+      postedAt: new Date().toISOString(),
+    });
+    resultEl.textContent = '✅ v'+version+' のアップデートログを投稿しました！';
+    resultEl.style.color = '#60e080';
+    // フォームクリア
+    document.getElementById('ul-version').value = '';
+    document.getElementById('ul-date').value = '';
+    document.getElementById('ul-items').value = '';
+    loadUpdateLogs();
+  }catch(e){
+    resultEl.textContent = '❌ エラー: ' + e.message;
+    resultEl.style.color = '#e06060';
+  }
+}
+
+async function loadUpdateLogs(){
+  var listEl = document.getElementById('ul-list');
+  if(!listEl) return;
+  try{
+    var snap = await db.collection('updateLog').get();
+    var logs = snap.docs.map(function(d){return {...d.data(), _id:d.id};})
+      .sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+
+    if(logs.length===0){
+      listEl.innerHTML='<div style="font-size:11px;color:#6a8898;">まだログがありません</div>';
+      return;
+    }
+    listEl.innerHTML = logs.map(function(log){
+      var items = (log.items||[]).slice(0,3).join(' / ');
+      var more = log.items&&log.items.length>3?' 他'+( log.items.length-3)+'件':'';
+      return '<div style="background:rgba(0,15,30,.5);border:.5px solid #2a4a5e;border-radius:8px;'
+        +'padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:600;color:#60c0ff;">v'+log.version
+          +' <span style="font-size:10px;color:#6a8898;">'+log.date+'</span></div>'
+        +'<div style="font-size:10px;color:#8aabb8;margin-top:3px;">'+items+more+'</div>'
+        +'</div>'
+        +'<button class="btn-sm danger" style="padding:4px 10px;" '
+        +'onclick="deleteUpdateLog(\''+log._id+'\')" >🗑️</button>'
+        +'</div>';
+    }).join('');
+  }catch(e){
+    listEl.innerHTML='<div style="font-size:11px;color:#e06060;">❌ '+e.message+'</div>';
+  }
+}
+
+async function deleteUpdateLog(docId){
+  if(!confirm('このアップデートログを削除しますか？')) return;
+  try{
+    await db.collection('updateLog').doc(docId).delete();
+    adminToast('🗑️ 削除しました');
+    loadUpdateLogs();
+  }catch(e){
+    adminToast('❌ '+e.message);
+  }
 }
 </script>
 </body>

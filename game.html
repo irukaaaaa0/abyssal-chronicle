@@ -988,6 +988,53 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   margin-bottom:4px;letter-spacing:.05em;
 }
 
+
+/* アップデートログポップアップ */
+.update-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,5,20,.9);z-index:2000;
+  display:flex;align-items:center;justify-content:center;
+  display:none;
+}
+.update-modal-overlay.show{display:flex;}
+.update-modal-box{
+  background:var(--bg2);border:.5px solid rgba(30,160,220,.4);
+  border-radius:16px;padding:20px 18px;width:min(360px,92vw);
+  max-height:80vh;overflow-y:auto;
+}
+.update-modal-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  border-bottom:.5px solid var(--border2);padding-bottom:10px;
+}
+.update-modal-ver{
+  font-size:22px;font-weight:700;color:var(--teal);
+}
+.update-modal-title{
+  font-size:13px;font-weight:600;color:var(--text);
+}
+.update-modal-date{
+  font-size:9px;color:var(--text3);margin-top:2px;
+}
+.update-modal-items{margin-bottom:14px;}
+.update-modal-item{
+  display:flex;gap:8px;padding:7px 0;
+  border-bottom:.5px solid rgba(255,255,255,.05);
+  font-size:11px;color:var(--text2);line-height:1.5;
+}
+.update-modal-item:last-child{border-bottom:none;}
+.update-modal-tag{
+  flex-shrink:0;font-size:8px;font-weight:700;padding:2px 6px;
+  border-radius:4px;height:fit-content;margin-top:1px;
+}
+.tag-new{background:rgba(0,160,80,.25);color:#40e080;border:.5px solid rgba(0,160,80,.4);}
+.tag-fix{background:rgba(200,100,0,.25);color:#ffb060;border:.5px solid rgba(200,100,0,.4);}
+.tag-improve{background:rgba(60,80,200,.25);color:#8090ff;border:.5px solid rgba(60,80,200,.4);}
+.tag-event{background:rgba(180,0,80,.25);color:#ff80b0;border:.5px solid rgba(180,0,80,.4);}
+.update-close-btn{
+  width:100%;padding:11px;border-radius:10px;border:.5px solid rgba(20,160,120,.4);
+  background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:500;
+}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -2628,7 +2675,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[]};
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:''};
 
 function saveGame(){
   // lastSavedを更新してからローカルに保存
@@ -5346,7 +5393,7 @@ async function renderPvp(){
 // ================================================================
 let ONLINE_NOTICES = [];
 let UPDATE_LOG = [];
-let GAME_VERSION = '0.5.2';
+let GAME_VERSION = '0.5.3';
 
 // ================================================================
 //  オンラインデータ取得（notices.json）
@@ -5360,6 +5407,8 @@ async function loadOnlineData(){
     if(nd.notices)   ONLINE_NOTICES = nd.notices;
     if(nd.updateLog) UPDATE_LOG     = nd.updateLog;
     console.log('[ABYSSAL] Notices loaded. version:', GAME_VERSION);
+    // アップデートログポップアップチェック（ホーム画面遷移後に表示）
+    setTimeout(checkUpdateLogPopup, 800);
   }catch(e){
     console.log('[ABYSSAL] loadOnlineData failed:', e);
   }
@@ -5459,6 +5508,15 @@ function showModal(title,body,btns=[]){
 let readNoticeIds = JSON.parse(localStorage.getItem('read_notices')||'[]');
 
 function showOnlineNotices(){
+  // アップデートログが新しければポップアップ表示
+  if(UPDATE_LOG.length > 0){
+    var latest = UPDATE_LOG[0];
+    var latestKey = 'log_seen_v' + (latest.version||'unknown');
+    var alreadySeen = localStorage.getItem(latestKey);
+    if(!alreadySeen){
+      setTimeout(function(){ showUpdateLogModal(latest); }, 1500);
+    }
+  }
   if(!ONLINE_NOTICES.length) return;
   const bar = document.getElementById('notice-text-bar');
   if(bar){
@@ -8743,6 +8801,124 @@ function openPickupCardDetail(charId){
 }
 
 function closePickupDetail(){var m=document.getElementById('pickup-detail-modal');if(m)m.style.display='none';}
+
+// ================================================================
+//  アップデートログモーダル
+// ================================================================
+var TAG_MAP = {
+  'new':'NEW', 'fix':'FIX', 'improve':'改善', 'event':'イベント',
+  '新機能':'NEW', 'バグ修正':'FIX', '改善':'改善', '限定':'イベント'
+};
+var TAG_CLS = {'NEW':'tag-new','FIX':'tag-fix','改善':'tag-improve','イベント':'tag-event'};
+
+function showUpdateLogModal(log){
+  var modal = document.getElementById('update-log-modal');
+  var verEl = document.getElementById('ulm-ver');
+  var dateEl = document.getElementById('ulm-date');
+  var itemsEl = document.getElementById('ulm-items');
+  if(!modal||!itemsEl) return;
+
+  if(verEl) verEl.textContent = log.version ? 'v'+log.version : 'UPDATE';
+  if(dateEl) dateEl.textContent = log.date||'';
+
+  var items = log.items || log.content || [];
+  if(typeof items === 'string') items = items.split('\n').filter(Boolean);
+
+  itemsEl.innerHTML = items.map(function(item){
+    var text = typeof item === 'string' ? item : (item.text||item.content||String(item));
+    var tagKey = typeof item === 'object' ? (item.tag||'') : '';
+    // テキストから自動タグ判定
+    if(!tagKey){
+      if(text.includes('追加')||text.includes('新')||text.includes('NEW')) tagKey='new';
+      else if(text.includes('修正')||text.includes('FIX')||text.includes('バグ')) tagKey='fix';
+      else if(text.includes('改善')||text.includes('強化')||text.includes('調整')) tagKey='improve';
+      else if(text.includes('限定')||text.includes('イベント')||text.includes('ガチャ')) tagKey='event';
+      else tagKey='new';
+    }
+    var tagLabel = TAG_MAP[tagKey]||'NEW';
+    var tagCls = TAG_CLS[tagLabel]||'tag-new';
+    return '<div class="update-modal-item">'
+      +'<span class="update-modal-tag '+tagCls+'">'+tagLabel+'</span>'
+      +'<span>'+text+'</span>'
+      +'</div>';
+  }).join('');
+
+  if(items.length===0){
+    itemsEl.innerHTML='<div style="font-size:11px;color:var(--text3);padding:8px 0;">更新内容の詳細はお知らせをご確認ください。</div>';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeUpdateLogModal(){
+  var modal = document.getElementById('update-log-modal');
+  if(modal) modal.classList.remove('show');
+  // 既読として記録（バージョンごとに独立したキー）
+  if(UPDATE_LOG.length > 0){
+    var latest = UPDATE_LOG[0];
+    var latestKey = 'log_seen_v' + (latest.version||'unknown');
+    localStorage.setItem(latestKey, '1');
+  }
+}
+
+// ================================================================
+//  アップデートログポップアップ
+// ================================================================
+function checkUpdateLogPopup(){
+  if(!UPDATE_LOG || UPDATE_LOG.length===0) return;
+  // 最新のバージョンを取得
+  var latest = UPDATE_LOG.sort(function(a,b){
+    return (b.version||'').localeCompare(a.version||'');
+  })[0];
+  if(!latest) return;
+  // 前回見たバージョンと比較
+  var lastSeen = S.lastSeenVersion||'';
+  if(latest.version && latest.version !== lastSeen){
+    showUpdatePopup(latest);
+  }
+}
+
+function showUpdatePopup(log){
+  var popup = document.getElementById('update-log-popup');
+  if(!popup) return;
+  var verEl = document.getElementById('update-popup-version');
+  var contentEl = document.getElementById('update-popup-content');
+  if(verEl) verEl.textContent = 'v'+log.version + (log.date?' — '+log.date:'');
+  if(contentEl){
+    // items配列 or 改行テキスト両方に対応
+    var lines = [];
+    if(Array.isArray(log.items) && log.items.length>0){
+      lines = log.items.map(function(item){
+        return typeof item==='string' ? item : (item.text||String(item));
+      });
+    } else {
+      var raw = log.content||log.body||log.text||'';
+      lines = raw.split('\n').filter(function(l){return l.trim();});
+    }
+    contentEl.innerHTML = lines.map(function(l){
+      return '<div style="display:flex;gap:8px;margin-bottom:5px;">'
+        +'<span style="color:var(--teal);flex-shrink:0;">▶</span>'
+        +'<span>'+l.replace(/^[・▶\-\*]\s*/,'')+'</span>'
+        +'</div>';
+    }).join('');
+  }
+  popup.style.display = 'flex';
+}
+
+function closeUpdatePopup(){
+  var popup = document.getElementById('update-log-popup');
+  if(popup) popup.style.display = 'none';
+  // 見たバージョンを記録
+  if(UPDATE_LOG && UPDATE_LOG.length>0){
+    var latest = UPDATE_LOG.sort(function(a,b){
+      return (b.version||'').localeCompare(a.version||'');
+    })[0];
+    if(latest && latest.version){
+      S.lastSeenVersion = latest.version;
+      saveGame();
+    }
+  }
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -8813,6 +8989,42 @@ function closePickupDetail(){var m=document.getElementById('pickup-detail-modal'
       ロック解除後は通常通り遊べます。
     </div>
     <div id="macro-lock-countdown" style="font-size:13px;color:#ff6060;font-weight:700;margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- アップデートログモーダル -->
+<div class="update-modal-overlay" id="update-log-modal">
+  <div class="update-modal-box">
+    <div class="update-modal-header">
+      <div>⚓</div>
+      <div>
+        <div class="update-modal-title">アップデート情報</div>
+        <div class="update-modal-ver" id="ulm-ver">v0.5.2</div>
+      </div>
+      <div style="margin-left:auto;font-size:10px;color:var(--text3);" id="ulm-date"></div>
+    </div>
+    <div class="update-modal-items" id="ulm-items"></div>
+    <button class="update-close-btn" onclick="closeUpdateLogModal()">✅ 確認しました</button>
+  </div>
+</div>
+
+<!-- アップデートログポップアップ -->
+<div class="modal-overlay" id="update-log-popup" style="display:none;z-index:2000;">
+  <div class="modal" style="max-height:80vh;overflow-y:auto;width:min(360px,92vw);">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <div style="font-size:20px;">🆕</div>
+      <div style="flex:1;">
+        <div class="modal-ttl" style="margin-bottom:0;">アップデート情報</div>
+        <div id="update-popup-version" style="font-size:10px;color:var(--teal);"></div>
+      </div>
+      <div onclick="closeUpdatePopup()" style="font-size:20px;color:var(--text3);cursor:pointer;">✕</div>
+    </div>
+    <div id="update-popup-content" style="font-size:11px;color:var(--text2);line-height:1.8;"></div>
+    <button onclick="closeUpdatePopup()" style="width:100%;margin-top:14px;padding:11px;border-radius:10px;
+      border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);
+      cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;">
+      ✅ 確認しました
+    </button>
   </div>
 </div>
 </body>
