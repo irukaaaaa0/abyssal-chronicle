@@ -1786,7 +1786,10 @@ function onPvpEnd(won, quest){
     </div>
     <div class="grow-btns">
       <div class="grow-btn grow-btn-lv" onclick="levelUpChar()">⬆️ レベルアップ<br><span style="font-size:10px;color:var(--text2);" id="lvup-cost">💰 100</span></div>
-      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()" style="background:rgba(60,0,80,.4);border-color:rgba(140,40,180,.4);color:#c080ff;">🔓 上限解放<br><span style="font-size:10px;color:var(--text2);" id="break-cost">💎 100</span></div>
+      <div class="grow-btn grow-btn-max" onclick="breakthroughChar()" style="background:rgba(60,0,80,.4);border-color:rgba(140,40,180,.4);color:#c080ff;">💥 凸を進める<br><span style="font-size:10px;color:var(--text2);" id="break-cost">素材0個</span></div>
+    </div>
+    <div class="grow-btns" style="margin-top:6px;">
+      <div class="grow-btn grow-btn-max" onclick="limitBreakChar()" style="background:rgba(80,40,0,.4);border-color:rgba(180,100,20,.4);color:#e0a060;width:100%;">🔓 上限解放<br><span style="font-size:10px;color:var(--text2);" id="limit-break-cost">💎 300</span></div>
     </div>
     <div style="font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.7;" id="cdp-desc"></div>
     <button class="cdp-close" onclick="closeCharDetail()">閉じる</button>
@@ -3394,22 +3397,24 @@ function doGacha(count){
       // 初回入手
       S.owned.push(ch.id);
       cd.copies=1;
+      cd.stockCopies=0; // 凸素材ストック
     } else {
-      // 被り
       cd.copies=(cd.copies||1)+1;
-      if(cd.copies<=10){
-        // 2〜10体目：凸UP（breakthrough自動上昇）
-        const newBreak=Math.min(cd.copies-1,9);
-        cd.breakthrough=newBreak;
-        copiesGained=1;
-      } else {
-        // 11体目以降：ゴールドに変換
+      var maxCopies=10; // 最大凸9なので素材は9個まで有効
+      var currentStock=cd.stockCopies||0;
+      var currentBreak=cd.breakthrough||0;
+      if(currentBreak>=9 && currentStock>=9){
+        // 最大凸かつ素材フル：ゴールドに変換
         isMaxCopies=true;
         dupeGold={R:2000,SR:8000,SSR:30000,UR:100000}[ch.rarity]||2000;
         S.gold+=dupeGold;
+      } else {
+        // 凸素材としてストック
+        cd.stockCopies=Math.min((cd.stockCopies||0)+1, 9);
+        copiesGained=1;
       }
     }
-    res.push({...ch, isDupe, dupeGold, copiesGained, isMaxCopies, copies:cd.copies});
+    res.push({...ch, isDupe, dupeGold, copiesGained, isMaxCopies, copies:cd.copies, stockCopies:cd.stockCopies||0});
   }
   updateMissionProgress("gacha"); saveGameImmediate(); showResult(res); refreshGacha();
   document.getElementById('gem-val').textContent=S.gem.toLocaleString();
@@ -3426,7 +3431,7 @@ function showResult(res){
     const dupeTag = c.isDupe
       ? c.isMaxCopies
         ? `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#e0a040;padding:1px 0;">💰+${c.dupeGold?.toLocaleString()}</div>`
-        : `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#c080ff;padding:1px 0;">💥 ${c.copies-1}凸！</div>`
+        : `<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;background:rgba(0,0,0,.7);color:#c080ff;padding:1px 0;">💥 素材+1（残${c.stockCopies||0}個）</div>`
       : '';
     const newTag = !c.isDupe
       ? `<div style="position:absolute;top:4px;left:4px;font-size:8px;background:rgba(20,160,120,.8);color:#fff;border-radius:3px;padding:1px 4px;">NEW</div>`
@@ -5932,14 +5937,23 @@ function refreshCharDetail(){
   document.getElementById('lvup-cost').textContent=`💰 ${lvCost.toLocaleString()}`;
   // 上限解放コスト表示（凸とは完全独立・ジェムのみ）
   var limitStage=(charData.limitBreak||0); // 0=Lv50上限, 1=Lv70, 2=Lv90, 3=Lv100
-  var rarLimitCosts={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
-  var limitCosts=rarLimitCosts[base.rarity]||rarLimitCosts.R;
-  var limitCost=limitCosts[limitStage]||limitCosts[limitCosts.length-1];
-  var limitNext=[70,90,110,120][limitStage];
-  if(limitStage>=4){
-    document.getElementById('break-cost').textContent='上限MAX (Lv.120)';
-  } else {
-    document.getElementById('break-cost').textContent='💎 '+limitCost+' → Lv.'+limitNext+'上限';
+  // 凸ボタン：素材数表示
+  var stockNow=charData.stockCopies||0;
+  var breakNow2=charData.breakthrough||0;
+  var breakBtn=document.getElementById('break-cost');
+  if(breakBtn){
+    if(breakNow2>=9) breakBtn.textContent='最大9凸達成！';
+    else if(stockNow<=0) breakBtn.textContent='素材なし（ガチャで獲得）';
+    else breakBtn.textContent='素材'+stockNow+'個 → '+( breakNow2+1)+'凸へ';
+  }
+  // 上限解放ボタン
+  var lbBtn=document.getElementById('limit-break-cost');
+  if(lbBtn){
+    var rarLimitCosts2={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
+    var lbCosts2=rarLimitCosts2[base.rarity]||rarLimitCosts2.R;
+    var lbStageNow=charData.limitBreak||0;
+    if(lbStageNow>=4) lbBtn.textContent='上限MAX (Lv.120)';
+    else lbBtn.textContent='💎'+lbCosts2[lbStageNow]+' → Lv.'+[70,90,110,120][lbStageNow]+'上限';
   }
 }
 
@@ -5968,21 +5982,17 @@ function levelUpChar(){
 function breakthroughChar(){
   if(detailCharId===-1) return;
   if(!S.ownedData) S.ownedData={};
-  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0,copies:1,limitBreak:0};
+  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0,copies:1,stockCopies:0,limitBreak:0};
   const cd=S.ownedData[detailCharId];
   const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
-  const stage=cd.limitBreak||0;
-  if(stage>=4){ showToast('上限解放は最大です！（Lv.100）'); return; }
-  const rarCosts={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
-  const costs=rarCosts[base.rarity]||rarCosts.R;
-  const nextLvCaps=[70,90,110,120];
-  const cost=costs[stage];
-  if(S.gem<cost){ showToast('💎 深海結晶が足りません（必要: '+cost+'）'); return; }
-  S.gem-=cost;
-  cd.limitBreak=stage+1;
-  const newCap=nextLvCaps[stage];
+  const currentBreak=cd.breakthrough||0;
+  const stock=cd.stockCopies||0;
+  if(currentBreak>=9){ showToast('✨ 最大9凸達成済みです！'); return; }
+  if(stock<=0){ showToast('💥 凸素材が足りません！\nガチャで同じキャラを引くと素材が溜まります'); return; }
+  cd.stockCopies=stock-1;
+  cd.breakthrough=currentBreak+1;
   saveGameImmediate(); sfx('win');
-  showToast('🔓 上限解放！レベル上限がLv.'+newCap+'に拡張されました！');
+  showToast('💥 '+base.name+' '+(currentBreak+1)+'凸！\nHP・ATK +'+(currentBreak+1)*8+'%　残り素材: '+(stock-1)+'個');
   refreshCharDetail(); refreshHome();
 }
 
@@ -9560,6 +9570,26 @@ const DEBUFFER_PROB = {2:0.3,8:0.2,16:0.15,27:0.2,64:0.25,66:0.35,68:0.25,74:0.3
 const DEBUFF_TURNS = 3;
 // デバフのスタック数（キャラごと）
 const DEBUFFER_STACKS = {68:2, 202:2}; // 炎症系は2スタック、それ以外は1
+
+function limitBreakChar(){
+  if(detailCharId===-1) return;
+  if(!S.ownedData) S.ownedData={};
+  if(!S.ownedData[detailCharId]) S.ownedData[detailCharId]={level:1,exp:0,breakthrough:0,copies:1,stockCopies:0,limitBreak:0};
+  const cd=S.ownedData[detailCharId];
+  const base=CHARS.find(c=>c.id===detailCharId); if(!base) return;
+  const stage=cd.limitBreak||0;
+  if(stage>=4){ showToast('上限解放は最大です！（Lv.120）'); return; }
+  const rarCosts={R:[100,200,300,500],SR:[150,300,500,800],SSR:[200,400,700,1200],UR:[300,600,1000,1800]};
+  const costs=rarCosts[base.rarity]||rarCosts.R;
+  const cost=costs[stage];
+  if(S.gem<cost){ showToast('💎 深海結晶が足りません（必要: 💎'+cost+'）'); return; }
+  const nextCaps=[70,90,110,120];
+  S.gem-=cost;
+  cd.limitBreak=stage+1;
+  saveGameImmediate(); sfx('win');
+  showToast('🔓 上限解放'+( stage+1)+'段階！レベル上限がLv.'+nextCaps[stage]+'に拡張！');
+  refreshCharDetail(); refreshHome();
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
