@@ -6123,6 +6123,7 @@ async function startRtPvpBattle(roomRef, code, role, myCards, initData){
     hand:[], selectedOrder:[], combo:0,
     turnTimer:null, roomUnsub:null, done:false, lastOppActionTs:0,
     myStatuses:[], // 自分が受けている状態異常
+    myMaxSelect: 4, // カード選択上限（役割・状態異常で変化）
   };
 
   document.getElementById('pvp-battle-screen').classList.add('show');
@@ -6311,7 +6312,18 @@ function startPvpTurnTimer(){
     if(!pvpBattleState||pvpBattleState.done){clearInterval(st.turnTimer);return;}
     sec--;
     if(timerEl){timerEl.textContent=sec;if(sec<=10)timerEl.classList.add('warn');}
-    if(sec<=0){clearInterval(st.turnTimer);await endRtPvpBattle(false,'timeout');}
+    if(sec<=0){
+      clearInterval(st.turnTimer);
+      // 相手に「自分が時間切れ負け」を通知
+      if(pvpBattleState&&pvpBattleState.roomRef&&!pvpBattleState.done){
+        pvpBattleState.roomRef.update({
+          winner: pvpBattleState.role==='host'?'guest':'host',
+          timeoutLoser: pvpBattleState.role,
+          lastAction: Date.now()
+        }).catch(()=>{});
+      }
+      await endRtPvpBattle(false,'timeout');
+    }
   },1000);
 }
 
@@ -6380,15 +6392,41 @@ function pvpAttack(){
   const selCards=st.selectedOrder.map(i=>st.hand[i]).filter(c=>c&&c.selected&&!c.used);
   if(!selCards.length){st.myTurn=true;updatePvpPhaseUI();startPvpTurnTimer();return;}
 
-  // コンボ計算
+  // コンボ計算（2属性対応）
   const tc={};
   selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
-  const me=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
-  const tb=me?(COMBO_TYPE_BONUS[me[0]]||0)*me[1]:0;
+  // 全属性のコンボボーナスを合算
+  let tb=0;
+  Object.entries(tc).forEach(function(e){ tb+=(COMBO_TYPE_BONUS[e[0]]||0)*e[1]; });
+
+  // アタッカーボーナス（自分パーティ）
+  var atkBonus=1.0;
+  (st.myParty||[]).forEach(function(m){
+    var c=CHARS.find(function(ch){return ch.id===m.id;});
+    if(!c||c.role!=='attacker') return;
+    // 属性コンボ一致ボーナス
+    var attrMatch=selCards.some(function(sc){return sc.comboType===(c.attribute||'none');});
+    if(attrMatch) atkBonus+=0.08;
+  });
+
+  // サポート毎ターン回復
+  var healRate=0;
+  (st.myParty||[]).forEach(function(m){
+    var c=CHARS.find(function(ch){return ch.id===m.id;});
+    if(c&&c.role==='support'){
+      var rateMap={9:0.01,12:0.005,21:0.008,65:0.02,72:0.015,76:0.02,84:0.005,89:0.01,201:0.05};
+      healRate+=(rateMap[c.id]||0.005);
+    }
+  });
+  if(healRate>0){
+    var healAmt=Math.round(st.myMaxHp*healRate);
+    st.myHp=Math.min(st.myHp+healAmt, st.myMaxHp);
+    updatePvpMyHP();
+  }
 
   let total=0,cb=1.0;
   selCards.forEach(c=>{
-    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+tb));
+    const dmg=Math.round(c.charAtk*c.dmg*cb*(1+tb)*atkBonus);
     total+=dmg; st.combo++; cb=1+st.combo*0.1;
     c.used=true; c.selected=false;
   });
@@ -6450,7 +6488,8 @@ function onPvpRoomUpdate(data){
   // 勝者確定チェック
   if(data.winner){
     console.log('[PVP] winner受信:', data.winner, '自分:', st.role);
-    endRtPvpBattle(data.winner===st.role,'all_dead');
+    var reason = data.timeoutLoser ? 'timeout' : 'all_dead';
+    endRtPvpBattle(data.winner===st.role, reason);
     return;
   }
 
