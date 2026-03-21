@@ -1180,12 +1180,12 @@ function onPvpEnd(won, quest){
     <div class="gacha-content">
       <!-- カテゴリタブ -->
       <div style="display:flex;gap:6px;margin-bottom:10px;">
-        <button class="gacha-cat-btn active" id="cat-limited"  onclick="selectGachaCategory('limited')">
+        <button class="gacha-cat-btn active" id="cat-limited"  onclick="selectGachaCategory('limited')" style="display:none;">
           🩸 限定召喚
-          <span id="limited-new-badge" style="font-size:8px;background:#e03060;color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">NEW</span>
+          <span id="limited-new-badge" style="display:none;"></span>
         </button>
-        <button class="gacha-cat-btn" id="cat-permanent" onclick="selectGachaCategory('permanent')">
-          🌊 恒常召喚
+        <button class="gacha-cat-btn active" id="cat-permanent" onclick="selectGachaCategory('permanent')">
+          🌊 召喚
         </button>
       </div>
       <div class="banner-tabs" id="banner-tabs"></div>
@@ -3221,7 +3221,7 @@ let BANNERS=[
 var LIMITED_BANNER_STATUS = {};
 
 let currentBanner=0;
-let currentGachaCategory='limited'; // 'limited' or 'permanent'
+let currentGachaCategory='permanent'; // 限定非表示のため恒常固定
 
 function refreshGacha(){
   document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
@@ -8970,7 +8970,7 @@ function tickCountdown(){
     if(barEl) barEl.style.width='0%';
     if(labelEl) labelEl.textContent='このバナーは終了しました';
     // カテゴリをリロード
-    selectGachaCategory('limited');
+    selectGachaCategory('permanent');
     return;
   }
 
