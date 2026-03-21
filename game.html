@@ -103,9 +103,18 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .gacha-banner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(60deg,transparent,transparent 18px,rgba(255,255,255,.012) 18px,rgba(255,255,255,.012) 19px);}
 .gacha-ttl{font-size:18px;color:#80a0e0;font-weight:700;margin-bottom:4px;position:relative;}
 .gacha-sub{font-size:10px;color:var(--text2);position:relative;}
-.gacha-pickup-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;}
-.gacha-pickup-row::-webkit-scrollbar{height:2px;}
-.pickup-card{flex-shrink:0;width:76px;text-align:center;}
+.gacha-pickup-wrapper{position:relative;margin-bottom:14px;}
+.gacha-pickup-row{display:flex;gap:8px;overflow:hidden;scroll-behavior:smooth;padding-bottom:2px;}
+.gacha-pickup-row::-webkit-scrollbar{display:none;}
+.pickup-card{flex-shrink:0;width:76px;text-align:center;cursor:pointer;}
+.pickup-arrow{position:absolute;top:50%;transform:translateY(-50%);width:26px;height:26px;
+  border-radius:50%;background:rgba(0,20,50,.85);border:.5px solid rgba(30,120,200,.5);
+  color:#80c0ff;font-size:14px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:5;transition:background .15s;user-select:none;}
+.pickup-arrow:hover{background:rgba(10,60,120,.9);}
+.pickup-arrow.left{left:0;}
+.pickup-arrow.right{right:0;}
+.pickup-arrow.hidden{display:none;}
 .pickup-img{width:70px;height:86px;border-radius:9px;margin:0 auto 5px;border:1px solid;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden;}
 .pickup-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.6));}
 
@@ -926,6 +935,59 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .macro-box-body{font-size:11px;color:rgba(255,255,255,.85);line-height:1.6;margin-bottom:10px;}
 .macro-box-reason{font-size:9px;color:rgba(255,255,255,.5);margin-top:6px;}
 
+
+/* ===== ガチャカテゴリボタン ===== */
+.gacha-cat-btn{flex:1;padding:9px 6px;border-radius:10px;border:.5px solid var(--border2);
+  background:rgba(0,20,40,.4);color:var(--text2);cursor:pointer;font-family:inherit;
+  font-size:11px;font-weight:500;transition:all .2s;}
+.gacha-cat-btn.active{background:rgba(10,60,100,.5);border-color:rgba(30,160,220,.5);color:var(--teal);}
+/* 限定バナーの特別スタイル */
+.banner-limited-badge{
+  display:inline-block;font-size:8px;background:linear-gradient(90deg,#c02040,#e05080);
+  color:#fff;border-radius:4px;padding:1px 6px;margin-left:4px;letter-spacing:.05em;
+}
+.banner-tab.limited-tab{border-color:rgba(220,40,80,.5) !important;}
+.banner-tab.limited-tab.active{background:rgba(100,0,30,.4) !important;border-color:rgba(220,40,80,.8) !important;}
+.limited-period-badge{
+  font-size:9px;color:#ff8080;background:rgba(120,0,30,.3);border:.5px solid rgba(200,30,60,.4);
+  border-radius:6px;padding:3px 8px;margin-bottom:8px;display:inline-block;
+}
+
+
+/* ===== 図鑑 ===== */
+.lib-card{border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:transform .15s;position:relative;border:.5px solid;}
+.lib-card:active{transform:scale(.96);}
+.lib-card.owned{opacity:1;}
+.lib-card.notowned{opacity:.45;filter:grayscale(.6);}
+.lib-card-emoji{font-size:28px;margin-bottom:4px;}
+.lib-card-name{font-size:9px;font-weight:500;color:var(--text);margin-bottom:2px;line-height:1.2;}
+.lib-card-rar{font-size:8px;font-weight:700;margin-bottom:3px;}
+.lib-card-badges{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;}
+.lib-owned-check{position:absolute;top:4px;right:4px;font-size:10px;}
+.lib-limited-badge{position:absolute;top:4px;left:4px;font-size:7px;background:linear-gradient(90deg,#c02040,#e05080);color:#fff;border-radius:3px;padding:1px 4px;}
+/* 入手方法モーダル */
+.lib-detail-modal{position:fixed;inset:0;background:rgba(0,5,20,.85);z-index:1000;display:flex;align-items:flex-end;justify-content:center;display:none;}
+.lib-detail-modal.show{display:flex;}
+.lib-detail-box{background:var(--bg2);border:.5px solid var(--border2);border-radius:16px 16px 0 0;padding:20px 16px 40px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;}
+
+
+/* ピックアップスライドバー */
+.pickup-scrollbar-wrap{
+  width:100%;height:6px;background:rgba(255,255,255,.12);
+  border-radius:3px;margin-top:8px;margin-bottom:6px;
+  position:relative;overflow:hidden;cursor:pointer;
+}
+.pickup-scrollbar-thumb{
+  height:100%;background:linear-gradient(90deg,rgba(30,160,255,.8),rgba(80,220,200,.8));
+  border-radius:3px;position:absolute;top:0;left:0;
+  transition:left .15s;box-shadow:0 0 6px rgba(30,160,255,.5);
+}
+/* タッチヒント */
+.pickup-swipe-hint{
+  text-align:center;font-size:9px;color:rgba(255,255,255,.25);
+  margin-bottom:4px;letter-spacing:.05em;
+}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1022,6 +1084,7 @@ function onPvpEnd(won, quest){
       <div class="menu-btn" onclick="goTo('grow');sfx('click')"><div class="menu-icon-w mi-gr">🧬</div><div class="menu-lbl">育成</div></div>
       <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
       <div class="menu-btn" onclick="goTo('achieve');sfx('click')"><div class="menu-icon-w" style="background:rgba(200,160,0,.15);">🎖️</div><div class="menu-lbl">実績</div></div>
+      <div class="menu-btn" onclick="goTo('library');sfx('click')"><div class="menu-icon-w" style="background:rgba(0,100,160,.15);">📖</div><div class="menu-lbl">図鑑</div></div>
       <div class="menu-btn" onclick="goTo('grind');sfx('click')"><div class="menu-icon-w" style="background:rgba(160,110,0,.2);">💰</div><div class="menu-lbl">周回</div></div>
       <div class="menu-btn" onclick="goTo('friend');sfx('click')"><div class="menu-icon-w" style="background:rgba(40,120,200,.2);">👥</div><div class="menu-lbl">フレンド</div></div>
       <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
@@ -1068,20 +1131,49 @@ function onPvpEnd(won, quest){
   </div>
   <div class="content">
     <div class="gacha-content">
+      <!-- カテゴリタブ -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="gacha-cat-btn active" id="cat-limited"  onclick="selectGachaCategory('limited')">
+          🩸 限定召喚
+          <span id="limited-new-badge" style="font-size:8px;background:#e03060;color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">NEW</span>
+        </button>
+        <button class="gacha-cat-btn" id="cat-permanent" onclick="selectGachaCategory('permanent')">
+          🌊 恒常召喚
+        </button>
+      </div>
       <div class="banner-tabs" id="banner-tabs"></div>
+      <!-- 限定バナーカウントダウン -->
+      <div id="gacha-countdown-box" style="display:none;background:rgba(120,0,40,.25);border:.5px solid rgba(200,30,60,.5);border-radius:10px;padding:8px 12px;margin-bottom:8px;display:none;flex-direction:column;gap:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:10px;color:#ff8090;">⏰ 期間限定開催中</div>
+          <div id="gacha-countdown-timer" style="font-size:14px;font-weight:700;color:#ffb0c0;letter-spacing:.05em;">--:--:--</div>
+        </div>
+        <div style="background:rgba(180,30,60,.2);border-radius:4px;height:4px;overflow:hidden;">
+          <div id="gacha-countdown-bar" style="height:100%;background:linear-gradient(90deg,#c02040,#ff6090);width:100%;transition:width 1s;"></div>
+        </div>
+        <div id="gacha-countdown-label" style="font-size:9px;color:rgba(255,180,190,.6);"></div>
+      </div>
       <div class="gacha-banner" id="gacha-banner-box">
         <div class="gacha-ttl" id="gacha-banner-title">-</div>
         <div class="gacha-sub" id="gacha-banner-sub">-</div>
       </div>
-      <div class="rate-row" style="align-items:center;">
-        <div class="rate-pill ur">UR 0.1%</div>
-        <div class="rate-pill ssr">SSR 1.9%</div>
+      <div class="rate-row" style="align-items:center;" id="rate-row-display">
+        <div class="rate-pill ur" id="rate-ur">UR 0.1%</div>
+        <div class="rate-pill ssr" id="rate-ssr">SSR 1.9%</div>
         <div class="rate-pill sr">SR 13%</div>
         <div class="rate-pill r">R 85%</div>
-        <div class="rate-pill pity-pill">天井 100回</div>
+        <div class="rate-pill pity-pill" id="rate-pity">天井 100回</div>
         <div onclick="openGachaDetail();sfx('click')" style="margin-left:auto;font-size:9px;color:var(--teal);cursor:pointer;padding:3px 8px;border:.5px solid rgba(16,192,160,.3);border-radius:6px;flex-shrink:0;">詳細 ▶</div>
       </div>
-      <div class="gacha-pickup-row" id="gacha-pickup"></div>
+      <div class="gacha-pickup-wrapper">
+        <div class="pickup-arrow left hidden" id="pickup-arrow-left" onclick="slidePickup(-1)">◀</div>
+        <div class="gacha-pickup-row" id="gacha-pickup"></div>
+        <div class="pickup-arrow right hidden" id="pickup-arrow-right" onclick="slidePickup(1)">▶</div>
+        <div class="pickup-scrollbar-wrap" id="pickup-sb-wrap" onclick="onPickupSbClick(event)">
+          <div class="pickup-scrollbar-thumb" id="pickup-sb-thumb"></div>
+        </div>
+        <div class="pickup-swipe-hint" id="pickup-swipe-hint">← スワイプ →　長押しで詳細</div>
+      </div>
       <div class="gacha-btns">
         <div class="gacha-btn" onclick="doGacha(1)">
           <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>300</div></div>
@@ -1257,9 +1349,63 @@ function onPvpEnd(won, quest){
   <!-- アクションボタン（通常戦闘と同一） -->
   <div class="battle-actions">
     <button class="battle-btn btn-atk" id="pvp-atk-btn" onclick="pvpAttack()">⚔️ 選択して攻撃</button>
+    <button class="battle-info-btn" onclick="openPvpInfoPanel()">📋 詳細</button>
     <div class="battle-btn btn-flee" id="pvp-wait-txt" style="display:none;text-align:center;cursor:default;opacity:.5;">⏳ 相手のターン...</div>
   </div>
 </div>
+
+<!-- LIBRARY SCREEN -->
+<div class="screen" id="screen-library">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">CHARACTER LIBRARY</div>
+    <div id="library-count" style="font-size:10px;color:var(--text2);">0/0</div>
+  </div>
+  <div class="content">
+    <div style="padding:10px 12px 80px;">
+      <!-- 図鑑フィルター -->
+      <div class="filter-section" style="margin-bottom:10px;">
+        <input class="search-input" id="library-search" placeholder="🔍 キャラ名検索..." oninput="renderLibrary()" style="margin-bottom:6px;">
+        <div style="background:rgba(0,10,25,.5);border:.5px solid var(--border2);border-radius:10px;padding:8px;">
+          <div class="filter-row" style="margin-bottom:5px;">
+            <div class="filter-lbl">表示</div>
+            <div class="rfb rfb-all on" id="lf-status-all"   onclick="setLibFilter('status','all')">全て</div>
+            <div class="rfb rfb-ur off" id="lf-status-owned"  onclick="setLibFilter('status','owned')" style="color:#60e080;border-color:rgba(0,180,80,.4);background:rgba(0,60,20,.3);">✅ 所持</div>
+            <div class="rfb rfb-sr off" id="lf-status-notowned" onclick="setLibFilter('status','notowned')" style="color:#e08080;border-color:rgba(180,30,30,.4);background:rgba(60,0,0,.3);">❌ 未所持</div>
+          </div>
+          <div class="filter-row" style="margin-bottom:5px;">
+            <div class="filter-lbl">レア</div>
+            <div class="rfb rfb-all on"  id="lf-rar-all"  onclick="setLibFilter('rar','all')">全て</div>
+            <div class="rfb rfb-ur off"  id="lf-rar-ur"   onclick="setLibFilter('rar','UR')">UR</div>
+            <div class="rfb rfb-ssr off" id="lf-rar-ssr"  onclick="setLibFilter('rar','SSR')">SSR</div>
+            <div class="rfb rfb-sr off"  id="lf-rar-sr"   onclick="setLibFilter('rar','SR')">SR</div>
+            <div class="rfb rfb-r off"   id="lf-rar-r"    onclick="setLibFilter('rar','R')">R</div>
+          </div>
+          <div class="filter-row" style="margin-bottom:5px;">
+            <div class="filter-lbl">属性</div>
+            <div class="rfb-attr rfb-attr-fire    on" id="lf-attr-fire"    onclick="setLibFilter('attr','fire')">🔥</div>
+            <div class="rfb-attr rfb-attr-ice     on" id="lf-attr-ice"     onclick="setLibFilter('attr','ice')">❄️</div>
+            <div class="rfb-attr rfb-attr-thunder on" id="lf-attr-thunder" onclick="setLibFilter('attr','thunder')">⚡</div>
+            <div class="rfb-attr rfb-attr-water   on" id="lf-attr-water"   onclick="setLibFilter('attr','water')">🌊</div>
+            <div class="rfb-attr rfb-attr-dark    on" id="lf-attr-dark"    onclick="setLibFilter('attr','dark')">🌑</div>
+            <div class="rfb-attr rfb-attr-light   on" id="lf-attr-light"   onclick="setLibFilter('attr','light')">✨</div>
+            <div class="rfb-attr rfb-attr-none    on" id="lf-attr-none"    onclick="setLibFilter('attr','none')">⚪</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-lbl">役割</div>
+            <div class="rfb-role rfb-role-attacker on" id="lf-role-attacker" onclick="setLibFilter('role','attacker')">⚔️</div>
+            <div class="rfb-role rfb-role-tank     on" id="lf-role-tank"     onclick="setLibFilter('role','tank')">🛡️</div>
+            <div class="rfb-role rfb-role-support  on" id="lf-role-support"  onclick="setLibFilter('role','support')">💚</div>
+            <div class="rfb-role rfb-role-debuffer on" id="lf-role-debuffer" onclick="setLibFilter('role','debuffer')">☠️</div>
+            <span onclick="resetLibFilter()" style="font-size:9px;color:var(--teal);cursor:pointer;margin-left:6px;">🔄</span>
+          </div>
+        </div>
+      </div>
+      <div id="library-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- GRIND SCREEN -->
 <div class="screen" id="screen-grind">
   <div class="header">
@@ -2029,6 +2175,10 @@ const CHARS=[
   {id:98, name:'霧雨の少女',   emoji:'🌧️',rarity:'R', bg:'rgba(70,80,100,.2)', border:'rgba(120,140,170,.4)',hp:590,atk:93, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
   {id:99, name:'古代の守護石', emoji:'🗿',rarity:'R', bg:'rgba(70,60,40,.2)',  border:'rgba(120,100,70,.4)',hp:680,atk:82, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
   {id:100,name:'深淵の見習い', emoji:'🌑',rarity:'R', bg:'rgba(20,15,30,.2)',  border:'rgba(60,50,80,.4)',  hp:595,atk:94, level:1,attribute:'none',role:'attacker',skillName:'基本攻撃',skillDesc:'ノーマルコンボ+5%'},
+  // ===== 限定UR =====
+  {id:200,name:'深淵神イブリス',   emoji:'🩸',rarity:'UR',bg:'rgba(80,0,20,.3)',   border:'rgba(220,30,60,.6)',  hp:6200,atk:980,level:1,attribute:'dark', role:'attacker',skillName:'深淵崩壊撃', skillDesc:'闇属性コンボ時、全体ダメージ+55%。カード選択+1枚。',limited:true},
+  {id:201,name:'星海の巫女アルテア',emoji:'⭐',rarity:'UR',bg:'rgba(0,20,60,.3)',   border:'rgba(100,180,255,.6)', hp:5800,atk:890,level:1,attribute:'light',role:'support',  skillName:'星の祝福',      skillDesc:'毎ターンHP回復率+3%。光属性コンボ時、全員に追加回復。',limited:true},
+  {id:202,name:'業炎の覇王カルドス',emoji:'🔱',rarity:'UR',bg:'rgba(60,10,0,.3)',   border:'rgba(255,80,20,.6)',  hp:5600,atk:1050,level:1,attribute:'fire',role:'debuffer',  skillName:'業火滅却',     skillDesc:'炎属性コンボ時、相手に炎症×2スタック付与確率+40%。',limited:true},
 ];
 // comboType: 同じタイプを連続すると追加ボーナス
 // fire=炎 ice=氷 thunder=雷 water=水 dark=闇 light=光 none=無
@@ -2594,6 +2744,7 @@ function goTo(sc){
   if(sc==='home') setTimeout(checkPendingRequests,300);
   if(sc==='grind')renderGrind();
   if(sc==='achieve'){renderAchieve();}
+  if(sc==='library') renderLibrary();
   if(sc==='home') setTimeout(checkRankRewardBadge,400);
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
@@ -2863,85 +3014,144 @@ function endStory(){
 // ================================================================
 let BANNERS=[
   {
-    id:0,name:'深淵崩壊 召喚',icon:'🌑',
+    id:0,name:'深淵崩壊 -Abyss Break-',icon:'🌑',
     sub:'ピックアップ：旧破神アルカナ（UR）・深淵の番人（SSR）',
     color:'rgba(40,0,80,.4)',border:'rgba(160,80,255,.4)',
     pickup:['UR','SSR'],
     pickupIds:[1,4,5],
   },
   {
-    id:1,name:'炎獄の試練 召喚',icon:'🔥',
+    id:1,name:'炎獄試練 -Inferno Trial-',icon:'🔥',
     sub:'ピックアップ：崩壊の始原神（UR）・崩壊の炎神（SSR）',
     color:'rgba(80,20,0,.4)',border:'rgba(255,100,30,.4)',
     pickup:['UR','SSR'],
     pickupIds:[3,5,6],
   },
   {
-    id:2,name:'常設 深海召喚',icon:'🌊',
+    id:2,name:'深海標準 -Standard-',icon:'🌊',
     sub:'全キャラクター排出 — 常時開催',
     color:'rgba(0,30,80,.4)',border:'rgba(30,120,220,.4)',
     pickup:['SSR','SR'],
     pickupIds:[6,7,8,13,14],
   },
   {
-    id:3,name:'虚空の覇者 召喚',icon:'🌌',
+    id:3,name:'虚空覇者 -Void Ruler-',icon:'🌌',
     sub:'ピックアップ：虚空の支配者ヴォイド（UR）・紫炎の術師（SSR）',
     color:'rgba(0,0,40,.4)',border:'rgba(100,150,255,.4)',
     pickup:['UR','SSR'],
     pickupIds:[59,68,70],
   },
   {
-    id:4,name:'炎帝降臨 召喚',icon:'🌋',
+    id:4,name:'炎帝降臨 -Fire Emperor-',icon:'🌋',
     sub:'ピックアップ：炎獄神フレアノス（UR）・爆炎の将軍（SSR）',
     color:'rgba(60,10,0,.4)',border:'rgba(255,80,20,.4)',
     pickup:['UR','SSR'],
     pickupIds:[60,77,73],
   },
   {
-    id:5,name:'雷帝の裁き 召喚',icon:'⚡',
+    id:5,name:'雷帝裁き -Thunder Judgment-',icon:'⚡',
     sub:'ピックアップ：雷帝ザクライア（UR）・嵐の女帝（SSR）',
     color:'rgba(30,30,0,.4)',border:'rgba(255,240,50,.4)',
     pickup:['UR','SSR'],
     pickupIds:[61,70,74],
   },
   {
-    id:6,name:'氷獄解放 召喚',icon:'❄️',
+    id:6,name:'氷獄解放 -Ice Prison-',icon:'❄️',
     sub:'ピックアップ：氷結の神后アイギス（UR）・霜刃の剣聖（SSR）',
     color:'rgba(0,20,40,.4)',border:'rgba(150,230,255,.4)',
     pickup:['UR','SSR'],
     pickupIds:[62,78,75],
   },
   {
-    id:7,name:'星砕の覚醒 召喚',icon:'💫',
+    id:7,name:'星砕覚醒 -Star Crush-',icon:'💫',
     sub:'ピックアップ：星滅の魔神アステリア（UR）・深海の歌姫（SSR）',
     color:'rgba(20,10,40,.4)',border:'rgba(200,160,255,.4)',
     pickup:['UR','SSR'],
     pickupIds:[64,76,72],
   },
   {
-    id:8,name:'旧破終焉 召喚',icon:'⭕',
+    id:8,name:'旧破終焉 -Final Break-',icon:'⭕',
     sub:'ピックアップ：旧破の真神ゼロス（UR）・骸骨の覇王（SSR）',
     color:'rgba(10,0,10,.4)',border:'rgba(255,255,255,.4)',
     pickup:['UR','SSR'],
     pickupIds:[67,71,69],
   },
+  // ===== 限定バナー（管理画面でON/OFF） =====
+  {
+    id:9, name:'深淵神降臨 -Abyssal God-', icon:'🩸', limited:true, active:true,
+    sub:'★限定★ 深淵神イブリス（UR）・星海の巫女アルテア（UR）期間限定排出！',
+    color:'rgba(80,0,30,.5)', border:'rgba(220,30,60,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[200,201,68,70],
+    limitedIds:[200,201], // このバナー専用の限定キャラID
+    pity:80, // 限定バナーは天井80回
+    period:'期間限定開催中',
+  },
+  {
+    id:10, name:'業炎の覇王 -Blazing Tyrant-', icon:'🔱', limited:true, active:true,
+    sub:'★限定★ 業炎の覇王カルドス（UR）期間限定排出！',
+    color:'rgba(60,10,0,.5)', border:'rgba(255,80,20,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[202,60,73],
+    limitedIds:[202],
+    pity:80,
+    period:'期間限定開催中',
+  },
 ];
 
+// 限定バナーのアクティブ状態（管理画面から制御可能）
+// Firestoreから取得（なければデフォルトtrue）
+var LIMITED_BANNER_STATUS = {};
+
 let currentBanner=0;
+let currentGachaCategory='limited'; // 'limited' or 'permanent'
 
 function refreshGacha(){
   document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
   renderBannerTabs();
+  refreshGachaDisplay();
+}
+function refreshGachaDisplay(){
   renderBannerDetail();
 }
 
+function selectGachaCategory(cat){
+  currentGachaCategory=cat;
+  ['limited','permanent'].forEach(function(c){
+    var el=document.getElementById('cat-'+c);
+    if(el) el.className='gacha-cat-btn'+(c===cat?' active':'');
+  });
+  var filtered=getFilteredBanners();
+  if(filtered.length>0) currentBanner=BANNERS.indexOf(filtered[0]);
+  renderBannerTabs();
+  refreshGachaDisplay();
+}
+
+function getFilteredBanners(){
+  return currentGachaCategory==='limited'
+    ? BANNERS.filter(function(b){return b.limited===true;})
+    : BANNERS.filter(function(b){return !b.limited;});
+}
+
 function renderBannerTabs(){
-  document.getElementById('banner-tabs').innerHTML=BANNERS.map((b,i)=>`
-    <div class="banner-tab ${i===currentBanner?'active':''}" onclick="selectBanner(${i});sfx('click')">
-      <div class="banner-tab-ico">${b.icon}</div>
-      <div class="banner-tab-name">${b.name}</div>
-      <div class="banner-tab-sub">${b.pickup.join('・')}ピックアップ</div>
-    </div>`).join('');
+  var filtered=getFilteredBanners();
+  var el=document.getElementById('banner-tabs');
+  if(!el) return;
+  if(filtered.length===0){
+    el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:10px;">現在このカテゴリのバナーはありません</div>';
+    return;
+  }
+  el.innerHTML=filtered.map(function(b){
+    var i=BANNERS.indexOf(b);
+    var limitedBadge=b.limited?'<span class="banner-limited-badge">限定</span>':'';
+    var cls='banner-tab'+(i===currentBanner?' active':'')+(b.limited?' limited-tab':'');
+    // 名前からサブタイトル（-XXX-部分）を表示
+    var displayName=b.name;
+    return '<div class="'+cls+'" onclick="selectBanner('+i+');sfx(\'click\')">'
+      +'<div style="font-size:16px;">'+b.icon+'</div>'
+      +'<div class="banner-tab-name">'+displayName+limitedBadge+'</div>'
+      +'</div>';
+  }).join('');
 }
 
 function selectBanner(idx){
@@ -2952,24 +3162,48 @@ function selectBanner(idx){
 
 function renderBannerDetail(){
   const b=BANNERS[currentBanner];
+  if(!b) return;
   const box=document.getElementById('gacha-banner-box');
   box.style.background=`linear-gradient(135deg,${b.color},rgba(0,10,30,.6))`;
   box.style.borderColor=b.border;
   document.getElementById('gacha-banner-title').textContent=b.name;
   document.getElementById('gacha-banner-sub').textContent=b.sub;
 
+  const pityMax=b.pity||100;
   const pity=S.pityPerBanner[currentBanner]||0;
-  document.getElementById('pity-remain').textContent=(100-pity)+'回';
-  document.getElementById('pity-fill').style.width=pity+'%';
+  document.getElementById('pity-remain').textContent=(pityMax-pity)+'回';
+  document.getElementById('pity-fill').style.width=(pity/pityMax*100)+'%';
 
-  // ピックアップキャラ表示
-  const pickupChars=b.pickupIds.map(id=>CHARS.find(c=>c.id===id)).filter(Boolean);
+  // レート表示更新
+  var urRateEl=document.getElementById('rate-ur');
+  var pityEl=document.getElementById('rate-pity');
+  if(urRateEl) urRateEl.textContent=b.limited?'UR 1.5%':'UR 0.1%';
+  if(pityEl) pityEl.textContent='天井 '+pityMax+'回';
+
+  // カウントダウン表示
+  updateGachaCountdown(b);
+  // ピックアップ矢印リセット
+  setTimeout(initPickupSlider, 50);
+
+  // ピックアップキャラ表示（UR限定を先頭に）
+  const pickupChars=b.pickupIds.map(function(id){return CHARS.find(function(c){return c.id===id;});}).filter(Boolean);
+  pickupChars.sort(function(a,b){
+    if(a.limited&&!b.limited) return -1;
+    if(!a.limited&&b.limited) return 1;
+    var ro={UR:0,SSR:1,SR:2,R:3};
+    return (ro[a.rarity]||0)-(ro[b.rarity]||0);
+  });
   document.getElementById('gacha-pickup').innerHTML=pickupChars.map(function(c){
     var rcls=c.rarity==='UR'?'r-ur':c.rarity==='SSR'?'r-ssr':c.rarity==='SR'?'r-sr':'r-r';
     var rbcls=c.rarity==='UR'?'rb-ur':c.rarity==='SSR'?'rb-ssr':c.rarity==='SR'?'rb-sr':'rb-r';
     var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
     var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
-    return '<div class="pickup-card" oncontextmenu="event.preventDefault();openPartyCharDetail('+c.id+')" style="cursor:pointer;" title="右クリックで詳細">'
+    var limitedTag=c.limited?'<div style="position:absolute;top:2px;left:2px;font-size:7px;background:linear-gradient(90deg,#c02040,#e05080);color:#fff;border-radius:3px;padding:1px 4px;">限定</div>':'';
+    return '<div class="pickup-card" style="position:relative;cursor:pointer;"'
+      +' onclick="openPickupCardDetail('+c.id+')"'
+      +' oncontextmenu="event.preventDefault();openPartyCharDetail('+c.id+')"'
+      +' title="タップ/右クリックで詳細">'
+      +limitedTag
       +'<div class="pickup-img '+rcls+'">'+c.emoji
       +'<div class="rarity-badge '+rbcls+'">'+c.rarity+'</div></div>'
       +'<div class="pickup-name">'+c.name+'</div>'
@@ -2993,28 +3227,47 @@ function doGacha(count){
   const cost=count===1?300:3000;
   if(S.gem<cost){showToast('💎 深海結晶が足りません！');return;}
   sfx('gacha'); S.gem-=cost;
-  if(!S.pityPerBanner)S.pityPerBanner=BANNERS.map(()=>0);
+  if(!S.pityPerBanner||S.pityPerBanner.length<BANNERS.length)S.pityPerBanner=BANNERS.map((_,i)=>S.pityPerBanner&&S.pityPerBanner[i]||0);
 
   const b=BANNERS[currentBanner];
+  if(!b){ showToast('バナーが見つかりません'); return; }
+  const pityMax = b.pity || 100;
   const res=[];
   for(let i=0;i<count;i++){
     S.pityPerBanner[currentBanner]++;
     const pity=S.pityPerBanner[currentBanner];
     let rar,ch;
     const r=Math.random();
-    if(pity>=100){
-      // 天井: UR or SSR 50/50
-      rar=Math.random()<0.05?'UR':'SSR';
+    if(pity>=pityMax){
+      // 天井: 限定バナーはUR確定、恒常はUR/SSR 50/50
+      rar=b.limited?(Math.random()<0.5?'UR':'SSR'):'SSR';
+      if(b.limited) rar='UR'; // 限定天井はUR確定
       S.pityPerBanner[currentBanner]=0;
-    } else if(r<0.001){ rar='UR'; S.pityPerBanner[currentBanner]=0; }
-    else if(r<0.02){    rar='SSR'; }
+    } else if(r<(b.limited?0.015:0.001)){ // 限定はUR率1.5%
+      rar='UR'; S.pityPerBanner[currentBanner]=0;
+    } else if(r<0.02){  rar='SSR'; }
     else if(r<0.15){    rar='SR'; }
     else{               rar='R'; }
 
-    // ピックアップキャラを優先（50%でピックアップ）
-    const pickupPool=CHARS.filter(c=>c.rarity===rar&&b.pickupIds.includes(c.id));
-    const normalPool=CHARS.filter(c=>c.rarity===rar);
-    const pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
+    let pool;
+    if(b.limited){
+      // 限定バナー：URの場合は限定IDを優先（75%で限定）
+      const limitedPool = CHARS.filter(c=>c.rarity===rar&&(b.limitedIds||[]).includes(c.id));
+      const pickupPool  = CHARS.filter(c=>c.rarity===rar&&b.pickupIds.includes(c.id));
+      // 限定プールには恒常キャラを混入しない（URのみ限定専用プール）
+      if(rar==='UR' && limitedPool.length>0){
+        pool = Math.random()<0.75 ? limitedPool : pickupPool;
+      } else {
+        pool = pickupPool.length>0 && Math.random()<0.5 ? pickupPool
+             : CHARS.filter(c=>c.rarity===rar&&!c.limited); // 恒常プールのみ
+      }
+    } else {
+      // 恒常バナー：限定キャラは排出されない
+      const pickupPool=CHARS.filter(c=>c.rarity===rar&&b.pickupIds.includes(c.id)&&!c.limited);
+      const normalPool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
+      pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
+    }
+    if(!pool||!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
     ch=pool[Math.floor(Math.random()*pool.length)];
 
     const isDupe = S.owned.includes(ch.id);
@@ -5093,7 +5346,7 @@ async function renderPvp(){
 // ================================================================
 let ONLINE_NOTICES = [];
 let UPDATE_LOG = [];
-let GAME_VERSION = '0.4.0';
+let GAME_VERSION = '0.5.2';
 
 // ================================================================
 //  オンラインデータ取得（notices.json）
@@ -7862,6 +8115,634 @@ function pvpCheckDebufferSkill(action){
   });
   return statusToApply;
 }
+
+// ================================================================
+//  PvP 戦闘詳細パネル
+// ================================================================
+function openPvpInfoPanel(){
+  sfx('click');
+  // 既存のbattle-info-panelを流用
+  var box = document.getElementById('bip-box');
+  if(!box){
+    // なければ作成
+    var panel = document.createElement('div');
+    panel.id = 'battle-info-panel';
+    panel.className = 'battle-info-panel';
+    panel.onclick = function(e){ if(e.target===panel) panel.classList.remove('show'); };
+    panel.innerHTML = '<div class="bip-box" id="bip-box"></div>';
+    document.body.appendChild(panel);
+    box = panel.querySelector('#bip-box');
+  }
+
+  var st = pvpBattleState;
+  var myPartyChars = st ? st.myParty.map(function(m){return CHARS.find(function(c){return c.id===m.id;});}).filter(Boolean) : [];
+
+  // 状態異常説明（PvP用）
+  function makeRow(emoji,name,col,bg,bd,desc){
+    return '<div class="bip-status-row">'
+      +'<div class="bip-status-ico" style="background:'+bg+';border:.5px solid '+bd+';">'+emoji+'</div>'
+      +'<div class="bip-status-info">'
+      +'<div class="bip-status-name" style="color:'+col+';">'+name+'</div>'
+      +'<div class="bip-status-desc">'+desc+'</div>'
+      +'</div></div>';
+  }
+
+  var statusHtml =
+    makeRow('🔥','炎症','#ff9060','rgba(180,60,0,.3)','rgba(220,80,0,.5)',
+      'デバッファーが付与。毎ターン<strong>相手の最大HPの4%×スタック</strong>ダメージ。3ターン持続。')
+    +makeRow('☠️','毒','#80ff40','rgba(40,100,0,.3)','rgba(60,140,0,.5)',
+      'デバッファーが付与。毎ターン<strong>相手の最大HPの2.5%×スタック</strong>ダメージ。最大5スタック重複可能。')
+    +makeRow('❄️','凍結','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
+      'デバッファーが付与。<strong>相手の次のターンの行動をスキップ</strong>させる。3ターン持続。')
+    +makeRow('⚡','麻痺','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
+      'デバッファーが付与。<strong>相手のカード選択上限が-2枚</strong>になる（最低1枚）。3ターン持続。');
+
+  // 現在の自分の状態異常
+  var myStatuses = (st && st.myStatuses) ? st.myStatuses.filter(function(s){return s.turns>0;}) : [];
+  var myStatusHtml = myStatuses.length === 0
+    ? '<div style="font-size:10px;color:var(--text3);">現在の状態異常なし</div>'
+    : myStatuses.map(function(s){
+        var cfg = STATUS_CONFIG[s.type]||{emoji:'☠️',label:s.type,color:'#fff'};
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px;background:rgba(0,20,40,.4);border-radius:8px;margin-bottom:4px;">'
+          +'<span style="font-size:18px;">'+cfg.emoji+'</span>'
+          +'<div>'
+          +'<div style="font-size:11px;font-weight:500;color:'+cfg.color+';">'+cfg.label
+            +(s.stacks>1?' ×'+s.stacks:'')+'</div>'
+          +'<div style="font-size:9px;color:var(--text2);">残り'+s.turns+'ターン</div>'
+          +'</div></div>';
+      }).join('');
+
+  // 自分のパーティ効果
+  var partyRows = myPartyChars.length === 0
+    ? '<div style="font-size:10px;color:var(--text3);">パーティ情報なし</div>'
+    : myPartyChars.map(function(c){
+        var attr2 = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+        var role2 = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+        var brief = '';
+        if(c.role==='tank')     brief='🛡️ ヘイト集中・被ダメ軽減';
+        else if(c.role==='attacker') brief='⚔️ '+attr2.label+'コンボ強化';
+        else if(c.role==='support')  brief='💚 毎ターンHP回復';
+        else if(c.role==='debuffer') brief='☠️ 状態異常付与';
+        return '<div class="bip-party-row">'
+          +'<div class="bip-party-ico" style="background:'+c.bg+';border:.5px solid '+c.border+';">'+c.emoji+'</div>'
+          +'<div class="bip-party-info">'
+          +'<div class="bip-party-nm">'+c.name
+            +' <span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr2.emoji+attr2.label+'</span>'
+            +' <span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role2.emoji+'</span>'
+          +'</div>'
+          +'<div class="bip-party-effect">'+brief+'</div>'
+          +'</div></div>';
+      }).join('');
+
+  // コンボ説明
+  var comboHtml = '<div style="font-size:10px;color:var(--text2);line-height:1.8;">'
+    +'同属性カードを複数枚選ぶとコンボボーナス発動！<br>'
+    +'<span style="color:#ff9060;">🔥炎 +25%</span>　'
+    +'<span style="color:#80d8ff;">❄️氷 +20%</span>　'
+    +'<span style="color:#ffe860;">⚡雷 +30%</span><br>'
+    +'<span style="color:#40d0ff;">🌊水 +22%</span>　'
+    +'<span style="color:#c080ff;">🌑闇 +28%</span>　'
+    +'<span style="color:#fff080;">✨光 +25%</span>　'
+    +'<span style="color:#c0c0c0;">⚪無 +15%</span>'
+    +'</div>';
+
+  box.innerHTML =
+    '<div class="bip-title">'
+    +'<span>📋 PvP 戦闘詳細</span>'
+    +'<span onclick="closeBattleInfoPanel()" style="cursor:pointer;font-size:18px;color:var(--text3);">✕</span>'
+    +'</div>'
+    // 現在の自分の状態異常
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">⚠️ 現在の自分の状態異常</div>'
+    +myStatusHtml
+    +'</div>'
+    // 状態異常の効果説明
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">☠️ PvPデバフ効果（デバッファー持ちが付与）</div>'
+    +statusHtml
+    +'</div>'
+    // コンボ
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">🔥 コンボシステム</div>'
+    +comboHtml
+    +'</div>'
+    // パーティ効果
+    +'<div class="bip-section">'
+    +'<div class="bip-section-title">👥 自分のパーティ効果</div>'
+    +partyRows
+    +'</div>';
+
+  document.getElementById('battle-info-panel').classList.add('show');
+}
+
+// ================================================================
+//  キャラクター図鑑
+// ================================================================
+var libFilter = {status:'all', rar:'all', attr:'all', role:'all', name:''};
+
+function setLibFilter(type, val){
+  libFilter[type] = val;
+  if(type==='status'){
+    ['all','owned','notowned'].forEach(function(v){
+      var el=document.getElementById('lf-status-'+v);
+      if(el) el.classList.toggle('on',v===val);
+      if(el) el.classList.toggle('off',v!==val);
+    });
+  } else if(type==='rar'){
+    ['all','ur','ssr','sr','r'].forEach(function(r){
+      var el=document.getElementById('lf-rar-'+r);
+      if(el) el.className='rfb rfb-'+r+' '+(val===(r==='all'?'all':r.toUpperCase())?'on':'off');
+    });
+  } else if(type==='attr'){
+    libFilter.attr = libFilter.attr===val?'all':val;
+    ['fire','ice','thunder','water','dark','light','none'].forEach(function(a){
+      var el=document.getElementById('lf-attr-'+a);
+      if(!el) return;
+      var on=libFilter.attr==='all'||libFilter.attr===a;
+      el.classList.toggle('on',on); el.classList.toggle('off',!on);
+    });
+  } else if(type==='role'){
+    libFilter.role = libFilter.role===val?'all':val;
+    ['attacker','tank','support','debuffer'].forEach(function(r){
+      var el=document.getElementById('lf-role-'+r);
+      if(!el) return;
+      var on=libFilter.role==='all'||libFilter.role===r;
+      el.classList.toggle('on',on); el.classList.toggle('off',!on);
+    });
+  }
+  renderLibrary();
+}
+
+function resetLibFilter(){
+  libFilter={status:'all',rar:'all',attr:'all',role:'all',name:''};
+  var inp=document.getElementById('library-search');
+  if(inp) inp.value='';
+  ['all','owned','notowned'].forEach(function(v){
+    var el=document.getElementById('lf-status-'+v);
+    if(el){el.classList.toggle('on',v==='all');el.classList.toggle('off',v!=='all');}
+  });
+  ['all','ur','ssr','sr','r'].forEach(function(r){
+    var el=document.getElementById('lf-rar-'+r);
+    if(el) el.className='rfb rfb-'+r+' '+(r==='all'?'on':'off');
+  });
+  ['fire','ice','thunder','water','dark','light','none'].forEach(function(a){
+    var el=document.getElementById('lf-attr-'+a);
+    if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  ['attacker','tank','support','debuffer'].forEach(function(r){
+    var el=document.getElementById('lf-role-'+r);
+    if(el){el.classList.add('on');el.classList.remove('off');}
+  });
+  renderLibrary();
+}
+
+function renderLibrary(){
+  libFilter.name=(document.getElementById('library-search')||{value:''}).value.toLowerCase();
+  var rarOrder={UR:0,SSR:1,SR:2,R:3};
+  var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
+
+  // 通常キャラのみ（クエスト敵などを除外）
+  var allChars=CHARS.filter(function(c){return c.id<=202;});
+
+  // フィルター適用
+  var filtered=allChars.filter(function(c){
+    var isOwned=S.owned.includes(c.id);
+    if(libFilter.status==='owned'&&!isOwned) return false;
+    if(libFilter.status==='notowned'&&isOwned) return false;
+    if(libFilter.rar!=='all'&&c.rarity!==libFilter.rar) return false;
+    if(libFilter.attr!=='all'&&(c.attribute||'none')!==libFilter.attr) return false;
+    if(libFilter.role!=='all'&&(c.role||'attacker')!==libFilter.role) return false;
+    if(libFilter.name&&!c.name.toLowerCase().includes(libFilter.name)) return false;
+    return true;
+  });
+
+  // レア順でソート
+  filtered.sort(function(a,b){
+    var rd=(rarOrder[a.rarity]||3)-(rarOrder[b.rarity]||3);
+    if(rd!==0) return rd;
+    return a.id-b.id;
+  });
+
+  var totalOwned=allChars.filter(function(c){return S.owned.includes(c.id);}).length;
+  var countEl=document.getElementById('library-count');
+  if(countEl) countEl.textContent=totalOwned+'/'+allChars.length;
+
+  var grid=document.getElementById('library-grid');
+  if(!grid) return;
+
+  if(filtered.length===0){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;font-size:11px;color:var(--text3);">該当するキャラがいません</div>';
+    return;
+  }
+
+  grid.innerHTML=filtered.map(function(c){
+    var isOwned=S.owned.includes(c.id);
+    var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+    var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+    var rc=rarColor[c.rarity]||'#fff';
+    var limitedBadge=c.limited?'<div class="lib-limited-badge">限定</div>':'';
+    var ownedCheck=isOwned?'<div class="lib-owned-check">✅</div>':'';
+    return '<div class="lib-card '+(isOwned?'owned':'notowned')+'" '
+      +'style="background:'+c.bg+';border-color:'+c.border+';" '
+      +'onclick="openLibDetail('+c.id+')">'
+      +limitedBadge
+      +ownedCheck
+      +'<div class="lib-card-emoji">'+c.emoji+'</div>'
+      +'<div class="lib-card-name">'+c.name+'</div>'
+      +'<div class="lib-card-rar" style="color:'+rc+';">'+c.rarity+'</div>'
+      +'<div class="lib-card-badges">'
+      +'<span class="attr-badge attr-'+(c.attribute||'none')+'" style="font-size:7px;">'+attr.emoji+'</span>'
+      +'<span class="role-badge role-'+(c.role||'attacker')+'" style="font-size:7px;">'+role.emoji+'</span>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function openLibDetail(charId){
+  sfx('click');
+  var c=CHARS.find(function(ch){return ch.id===charId;}); if(!c) return;
+  var isOwned=S.owned.includes(c.id);
+  var attr=ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+  var role=ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+  var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
+  var rc=rarColor[c.rarity]||'#fff';
+
+  // 入手方法
+  var howToGet='';
+  if(c.limited){
+    howToGet='<div style="background:rgba(120,0,40,.3);border:.5px solid rgba(200,30,60,.4);border-radius:8px;padding:10px;margin-bottom:8px;">'
+      +'<div style="font-size:11px;color:#ff8090;font-weight:600;margin-bottom:4px;">🩸 限定キャラクター</div>'
+      +'<div style="font-size:10px;color:var(--text2);">このキャラクターは<strong style="color:#ff8090;">期間限定召喚</strong>でのみ入手可能です。<br>'
+      +'限定バナー開催中に「限定召喚」タブから引いてください。<br>'
+      +'期間終了後は入手不可能になります。</div>'
+      +'</div>';
+  } else {
+    // どのバナーに含まれているか
+    var bannerNames=BANNERS.filter(function(b){
+      return !b.limited&&(b.pickupIds||[]).includes(c.id);
+    }).map(function(b){return b.name;});
+    var inPermanent='恒常召喚（全バナー）';
+    howToGet='<div style="background:rgba(0,40,80,.3);border:.5px solid rgba(30,100,180,.4);border-radius:8px;padding:10px;margin-bottom:8px;">'
+      +'<div style="font-size:11px;color:#60a0e0;font-weight:600;margin-bottom:4px;">🌊 恒常キャラクター</div>'
+      +'<div style="font-size:10px;color:var(--text2);">このキャラクターは<strong style="color:#60a0e0;">恒常召喚</strong>でいつでも入手可能です。</div>'
+      +(bannerNames.length?'<div style="font-size:9px;color:var(--teal);margin-top:4px;">ピックアップ: '+bannerNames.join(' / ')+'</div>':'')
+      +'</div>';
+  }
+
+  // モーダルを作成・表示
+  var modal=document.getElementById('lib-detail-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='lib-detail-modal';
+    modal.className='lib-detail-modal';
+    modal.onclick=function(e){if(e.target===modal)modal.classList.remove('show');};
+    document.body.appendChild(modal);
+  }
+
+  var cd=S.ownedData&&S.ownedData[c.id]?S.ownedData[c.id]:{level:1,breakthrough:0};
+  var mult=1+(cd.level-1)*0.08+(cd.breakthrough||0)*0.15;
+
+  modal.innerHTML='<div class="lib-detail-box">'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">'
+    +'<div style="width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;background:'+c.bg+';border:.5px solid '+c.border+';">'+c.emoji+'</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:16px;font-weight:700;">'+c.name
+      +(c.limited?'<span style="font-size:9px;background:linear-gradient(90deg,#c02040,#e05080);color:#fff;border-radius:3px;padding:1px 6px;margin-left:6px;">限定</span>':'')
+      +'</div>'
+    +'<div style="font-size:11px;color:'+rc+';font-weight:700;">'+c.rarity
+      +' <span class="attr-badge attr-'+(c.attribute||'none')+'">'+attr.emoji+attr.label+'</span>'
+      +' <span class="role-badge role-'+(c.role||'attacker')+'">'+role.emoji+role.label+'</span>'
+      +'</div>'
+    +(isOwned?'<div style="font-size:10px;color:#60e080;margin-top:2px;">✅ 所持中 Lv.'+cd.level+'</div>'
+              :'<div style="font-size:10px;color:#e08080;margin-top:2px;">❌ 未所持</div>')
+    +'</div>'
+    +'<div onclick="closeLibDetail()" style="font-size:22px;color:var(--text3);cursor:pointer;align-self:flex-start;">✕</div>'
+    +'</div>'
+    // ステータス
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">HP</div>'
+    +'<div style="font-size:14px;font-weight:600;">'+(isOwned?Math.round(c.hp*mult):c.hp)+'</div>'
+    +'</div>'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">ATK</div>'
+    +'<div style="font-size:14px;font-weight:600;">'+(isOwned?Math.round(c.atk*mult):c.atk)+'</div>'
+    +'</div>'
+    +'</div>'
+    // スキル
+    +'<div style="background:rgba(20,60,100,.2);border:.5px solid rgba(30,100,180,.3);border-radius:8px;padding:10px;margin-bottom:12px;">'
+    +'<div style="font-size:10px;color:var(--teal);font-weight:600;margin-bottom:3px;">⚡ '+c.skillName+'</div>'
+    +'<div style="font-size:10px;color:var(--text2);">'+c.skillDesc+'</div>'
+    +'</div>'
+    // 入手方法
+    +howToGet
+    // 召喚ボタン（未所持の場合）
+    +(!isOwned?'<button onclick="closeLibDetail();goTo(\'gacha\')" '
+      +'style="width:100%;padding:12px;border-radius:10px;border:.5px solid rgba(20,160,120,.4);background:rgba(10,80,60,.3);color:var(--teal);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;">'
+      +(c.limited?'🩸 限定召喚へ':'🌊 召喚へ')+'</button>':'')
+    +'</div>';
+
+  modal.classList.add('show');
+}
+
+function closeLibDetail(){var m=document.getElementById('lib-detail-modal');if(m)m.classList.remove('show');}
+
+// ================================================================
+//  限定バナーカウントダウン
+// ================================================================
+var _countdownTimer = null;
+var _bannerEndsAt = null;
+var _bannerStartAt = null;
+
+function updateGachaCountdown(b){
+  // タイマーをリセット
+  if(_countdownTimer){ clearInterval(_countdownTimer); _countdownTimer=null; }
+  var cdBox = document.getElementById('gacha-countdown-box');
+  if(!cdBox) return;
+
+  if(!b.limited){
+    cdBox.style.display='none';
+    return;
+  }
+
+  // Firestoreからバナーの終了時間を取得
+  _bannerEndsAt = null;
+  cdBox.style.display='flex';
+  document.getElementById('gacha-countdown-timer').textContent='読込中...';
+
+  db.collection('notices').doc('banner_status').get().then(function(doc){
+    if(doc.exists){
+      var data=doc.data();
+      var key='banner_'+b.id;
+      if(data[key]&&data[key].endsAt){
+        _bannerEndsAt = new Date(data[key].endsAt).getTime();
+        _bannerStartAt = _bannerEndsAt - (data[key].durationMs||43200000); // デフォルト12時間
+        // アクティブチェック
+        if(!data[key].active){
+          cdBox.style.display='none';
+          return;
+        }
+        startCountdownTick();
+      } else {
+        document.getElementById('gacha-countdown-timer').textContent='期間未設定';
+        document.getElementById('gacha-countdown-label').textContent='管理画面でタイマーを設定してください';
+      }
+    } else {
+      document.getElementById('gacha-countdown-timer').textContent='期間未設定';
+    }
+  }).catch(function(){
+    document.getElementById('gacha-countdown-timer').textContent='--:--:--';
+  });
+}
+
+function startCountdownTick(){
+  tickCountdown();
+  _countdownTimer = setInterval(tickCountdown, 1000);
+}
+
+function tickCountdown(){
+  var cdBox=document.getElementById('gacha-countdown-box');
+  var timerEl=document.getElementById('gacha-countdown-timer');
+  var barEl=document.getElementById('gacha-countdown-bar');
+  var labelEl=document.getElementById('gacha-countdown-label');
+  if(!timerEl||!_bannerEndsAt) return;
+
+  var now=Date.now();
+  var remaining=_bannerEndsAt-now;
+
+  if(remaining<=0){
+    clearInterval(_countdownTimer);
+    timerEl.textContent='⏰ 終了';
+    timerEl.style.color='#ff4060';
+    if(barEl) barEl.style.width='0%';
+    if(labelEl) labelEl.textContent='このバナーは終了しました';
+    // カテゴリをリロード
+    selectGachaCategory('limited');
+    return;
+  }
+
+  // 時間フォーマット
+  var totalSec=Math.floor(remaining/1000);
+  var d=Math.floor(totalSec/86400);
+  var h=Math.floor((totalSec%86400)/3600);
+  var m=Math.floor((totalSec%3600)/60);
+  var s=totalSec%60;
+
+  var timeStr='';
+  if(d>0) timeStr=d+'日 '+pad2(h)+':'+pad2(m)+':'+pad2(s);
+  else     timeStr=pad2(h)+':'+pad2(m)+':'+pad2(s);
+
+  timerEl.textContent=timeStr;
+
+  // 残り時間が少ないほど赤く
+  if(remaining<3600000)      timerEl.style.color='#ff4060';
+  else if(remaining<21600000) timerEl.style.color='#ffb060';
+  else                        timerEl.style.color='#ffb0c0';
+
+  // プログレスバー
+  if(barEl&&_bannerStartAt){
+    var total=_bannerEndsAt-_bannerStartAt;
+    var pct=Math.max(0,remaining/total*100);
+    barEl.style.width=pct+'%';
+  }
+
+  // ラベル
+  if(labelEl){
+    if(remaining<3600000)       labelEl.textContent='⚠️ まもなく終了します！';
+    else if(remaining<86400000) labelEl.textContent='本日中に終了します';
+    else                        labelEl.textContent='期間終了後は入手不可になります';
+  }
+}
+
+function pad2(n){ return n<10?'0'+n:String(n); }
+
+// ================================================================
+//  ピックアップカードスライダー
+// ================================================================
+function initPickupSlider(){
+  var row = document.getElementById('gacha-pickup');
+  if(!row) return;
+  row.scrollLeft = 0;
+  updatePickupArrows();
+  row.onscroll = function(){ updatePickupArrows(); };
+
+  // タッチスワイプ対応
+  var touchStartX = 0;
+  var touchStartScroll = 0;
+  var touchStartTime = 0;
+  var isDragging = false;
+
+  function onTouchStart(e){
+    touchStartX = e.touches ? e.touches[0].clientX : e.clientX;
+    touchStartScroll = row.scrollLeft;
+    touchStartTime = Date.now();
+    isDragging = false;
+  }
+  function onTouchMove(e){
+    var x = e.touches ? e.touches[0].clientX : e.clientX;
+    var dx = touchStartX - x;
+    if(Math.abs(dx) > 5){
+      isDragging = true;
+      row.scrollLeft = touchStartScroll + dx;
+      e.preventDefault();
+    }
+  }
+  function onTouchEnd(e){
+    // スワイプなら詳細は開かない（クリックだけで開く）
+    isDragging = false;
+  }
+
+  row.addEventListener('touchstart', onTouchStart, {passive:true});
+  row.addEventListener('touchmove', onTouchMove, {passive:false});
+  row.addEventListener('touchend', onTouchEnd, {passive:true});
+  // マウスドラッグ対応
+  var mouseDown = false;
+  row.addEventListener('mousedown', function(e){
+    mouseDown = true;
+    touchStartX = e.clientX;
+    touchStartScroll = row.scrollLeft;
+    row.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!mouseDown) return;
+    var dx = touchStartX - e.clientX;
+    if(Math.abs(dx) > 3){ isDragging = true; row.scrollLeft = touchStartScroll + dx; }
+  });
+  window.addEventListener('mouseup', function(){
+    mouseDown = false; isDragging = false;
+    row.style.cursor = 'grab';
+  });
+  row.style.cursor = 'grab';
+}
+
+function updatePickupArrows(){
+  var row = document.getElementById('gacha-pickup');
+  var left = document.getElementById('pickup-arrow-left');
+  var right = document.getElementById('pickup-arrow-right');
+  if(!row||!left||!right) return;
+  var maxScroll = row.scrollWidth - row.clientWidth;
+  left.classList.toggle('hidden', row.scrollLeft <= 2);
+  right.classList.toggle('hidden', maxScroll <= 2 || row.scrollLeft >= maxScroll - 2);
+  // スライドバー更新
+  var wrap = document.getElementById('pickup-sb-wrap');
+  var thumb = document.getElementById('pickup-sb-thumb');
+  if(!wrap||!thumb) return;
+  if(maxScroll <= 2){
+    wrap.style.display='none'; // 全部見えてる時は非表示
+    return;
+  }
+  wrap.style.display='block';
+  var ratio = row.clientWidth / row.scrollWidth;
+  var thumbW = Math.max(ratio * 100, 15); // 最低15%
+  var thumbL = (row.scrollLeft / row.scrollWidth) * 100;
+  thumb.style.width = thumbW + '%';
+  thumb.style.left  = thumbL + '%';
+}
+
+function slidePickup(dir){
+  var row = document.getElementById('gacha-pickup');
+  if(!row) return;
+  row.scrollLeft += dir * 168;
+  setTimeout(updatePickupArrows, 300);
+}
+
+function onPickupSbClick(e){
+  var row = document.getElementById('gacha-pickup');
+  var wrap = document.getElementById('pickup-sb-wrap');
+  if(!row||!wrap) return;
+  var rect = wrap.getBoundingClientRect();
+  var pct = (e.clientX - rect.left) / rect.width;
+  var maxScroll = row.scrollWidth - row.clientWidth;
+  row.scrollLeft = pct * maxScroll;
+  setTimeout(updatePickupArrows, 100);
+}
+
+// ================================================================
+//  ピックアップカード詳細（スマホ対応タップ）
+// ================================================================
+var _pickupTapTimer = null;
+var _pickupDragged = false;
+
+function openPickupCardDetail(charId){
+  // ドラッグ中はスキップ
+  var row = document.getElementById('gacha-pickup');
+  if(row && row.style.cursor === 'grabbing') return;
+
+  sfx('click');
+  var c = CHARS.find(function(ch){ return ch.id===charId; });
+  if(!c) return;
+
+  var attr = ATTR_INFO[c.attribute||'none']||ATTR_INFO.none;
+  var role = ROLE_INFO[c.role||'attacker']||ROLE_INFO.attacker;
+  var rarColor = {UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'}[c.rarity]||'#fff';
+
+  // デスクトップではopenPartyCharDetailを使用
+  if(window.innerWidth > 600){
+    openPartyCharDetail(charId);
+    return;
+  }
+
+  // スマホ用シンプルモーダル
+  var modal = document.getElementById('pickup-detail-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'pickup-detail-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,5,20,.88);z-index:1000;'
+      +'display:flex;align-items:flex-end;justify-content:center;';
+    modal.onclick = function(e){ if(e.target===modal) modal.style.display='none'; };
+    document.body.appendChild(modal);
+  }
+
+  var isOwned = S.owned.includes(c.id);
+  var limitedTag = c.limited
+    ? '<span style="font-size:9px;background:linear-gradient(90deg,#c02040,#e05080);color:#fff;border-radius:4px;padding:1px 7px;margin-left:6px;">限定</span>'
+    : '';
+
+  modal.innerHTML = '<div style="background:var(--bg2);border:.5px solid var(--border2);border-radius:16px 16px 0 0;'
+    +'padding:20px 16px 40px;width:100%;max-width:480px;max-height:75vh;overflow-y:auto;">'
+    // ヘッダー
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">'
+    +'<div style="width:56px;height:56px;border-radius:14px;display:flex;align-items:center;'
+    +'justify-content:center;font-size:28px;background:'+c.bg+';border:.5px solid '+c.border+';">'+c.emoji+'</div>'
+    +'<div style="flex:1;">'
+    +'<div style="font-size:16px;font-weight:700;">'+c.name+limitedTag+'</div>'
+    +'<div style="font-size:11px;color:'+rarColor+';font-weight:700;margin-top:2px;">'+c.rarity
+      +' <span class="attr-badge attr-'+(c.attribute||'none')+'">'+attr.emoji+attr.label+'</span>'
+      +' <span class="role-badge role-'+(c.role||'attacker')+'">'+role.emoji+role.label+'</span>'
+    +'</div>'
+    +(isOwned?'<div style="font-size:10px;color:#60e080;margin-top:2px;">✅ 所持中</div>':'<div style="font-size:10px;color:#e08080;margin-top:2px;">❌ 未所持</div>')
+    +'</div>'
+    +'<div onclick="closePickupDetail()" style="font-size:22px;color:var(--text3);cursor:pointer;align-self:flex-start;">✕</div>'
+    +'</div>'
+    // ステータス
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">HP</div>'
+    +'<div style="font-size:16px;font-weight:700;">'+c.hp+'</div></div>'
+    +'<div style="background:rgba(0,20,40,.4);border-radius:8px;padding:8px;text-align:center;">'
+    +'<div style="font-size:9px;color:var(--text3);">ATK</div>'
+    +'<div style="font-size:16px;font-weight:700;">'+c.atk+'</div></div>'
+    +'</div>'
+    // スキル
+    +'<div style="background:rgba(20,60,100,.2);border:.5px solid rgba(30,100,180,.3);border-radius:8px;padding:10px;margin-bottom:12px;">'
+    +'<div style="font-size:10px;color:var(--teal);font-weight:600;margin-bottom:4px;">⚡ '+c.skillName+'</div>'
+    +'<div style="font-size:10px;color:var(--text2);">'+c.skillDesc+'</div>'
+    +'</div>'
+    // ピックアップ確率
+    +'<div style="background:rgba(180,120,0,.15);border:.5px solid rgba(220,160,0,.3);border-radius:8px;padding:10px;">'
+    +'<div style="font-size:10px;color:#ffd060;font-weight:600;margin-bottom:3px;">🎯 ピックアップ情報</div>'
+    +'<div style="font-size:10px;color:var(--text2);">'
+    +(c.limited
+      ? 'このキャラは<span style="color:#ff8090;font-weight:600;">限定ピックアップ</span>です。<br>天井80回でUR確定（75%でこのキャラ）'
+      : 'ピックアップ中はUR/SSR出現時に<span style="color:#ffd060;font-weight:600;">50%の確率</span>でこのキャラが出現します')
+    +'</div>'
+    +'</div>'
+    +'</div>';
+
+  modal.style.display = 'flex';
+}
+
+function closePickupDetail(){var m=document.getElementById('pickup-detail-modal');if(m)m.style.display='none';}
 </script>
 
 <!-- 戦闘詳細パネル -->
