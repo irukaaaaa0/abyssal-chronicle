@@ -2943,6 +2943,9 @@ function copyMyUid(){
 }
 
 function updatePlayerNameDisplay(){
+  // アイコン更新
+  var iconEl = document.getElementById('player-icon-display');
+  if(iconEl) iconEl.textContent = S.playerIcon||'🌊';
   const el = document.getElementById('pname-el') || document.querySelector('.pname');
   if(el){
     const base = S.playerName||'深海司令官';
@@ -4994,6 +4997,9 @@ function equipTitle(title){
 }
 
 function updatePlayerNameDisplay(){
+  // アイコン更新
+  var iconEl = document.getElementById('player-icon-display');
+  if(iconEl) iconEl.textContent = S.playerIcon||'🌊';
   const el = document.getElementById('pname-el') || document.querySelector('.pname');
   if(el){
     const base = S.playerName||'深海司令官';
@@ -5566,6 +5572,9 @@ function equipTitle(title){
 }
 
 function updatePlayerNameDisplay(){
+  // アイコン更新
+  var iconEl = document.getElementById('player-icon-display');
+  if(iconEl) iconEl.textContent = S.playerIcon||'🌊';
   const el = document.getElementById('pname-el') || document.querySelector('.pname');
   if(el){
     const base = S.playerName||'深海司令官';
@@ -10163,8 +10172,10 @@ function renderIconGrid(){
 function selectIcon(icon){
   if(!(S.ownedIcons||[]).includes(icon)){ showToast('このアイコンは未入手です'); return; }
   S.playerIcon = icon;
+  // 即時反映
+  var iconEl = document.getElementById('player-icon-display');
+  if(iconEl) iconEl.textContent = icon;
   saveGameImmediate();
-  updatePlayerNameDisplay();
   renderIconGrid();
   sfx('select');
   showToast('🎨 アイコンを「'+icon+'」に変更しました！');
