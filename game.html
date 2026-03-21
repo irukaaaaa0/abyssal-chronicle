@@ -6654,7 +6654,7 @@ function onPvpRoomUpdate(data){
     var isMyDebuff=(st.amHost&&myDebuffKey==='hostDebuff')||(!st.amHost&&myDebuffKey==='guestDebuff');
     if(!isMyDebuff){
       st.lastOppStatusTs=debuffData.ts;
-      pvpApplyStatusToMe(debuffData.type, debuffData.stacks||1);
+      pvpApplyStatusToMe(debuffData.type, debuffData.stacks||1, debuffData.targetId||null);
       const cfg=STATUS_CONFIG&&STATUS_CONFIG[debuffData.type];
       if(cfg){
         var targetMsg=debuffData.targetName?debuffData.targetName+'が':('あなたが');
@@ -6683,14 +6683,33 @@ function processOppAction(action){
   pvpProcessMyStatuses();
   if(st.done) return;
 
-  // 凍結中なら自分のターンをスキップ
-  if((st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;})){
+  // 全員凍結チェック（全員凍結→ターンスキップ）
+  var aliveM=st.myParty.filter(function(m){return m.hp>0;});
+  var allFrozenNow=aliveM.length>0&&aliveM.every(function(m){
+    return (m.statuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
+  });
+  if(allFrozenNow){
     const pvpActionEl=document.getElementById('pvp-action-txt');
-    if(pvpActionEl) pvpActionEl.textContent='❄️ 凍結中！次のターンはスキップされます';
-    st.myStatuses=st.myStatuses.map(function(s){
-      return s.type==='freeze'?{...s,turns:s.turns-1}:s;
-    }).filter(function(s){return s.turns>0;});
+    if(pvpActionEl) pvpActionEl.textContent='❄️ 全員凍結！ターンスキップ';
+    // 各キャラの凍結ターンを減らす
+    aliveM.forEach(function(m){
+      if(m.statuses) m.statuses=m.statuses.filter(function(s){
+        if(s.type==='freeze') s.turns--;
+        return s.turns>0;
+      });
+    });
+    // myStatusesの凍結も更新
+    st.myStatuses=st.myStatuses.filter(function(s){
+      if(s.type!=='freeze') return true;
+      var member=st.myParty.find(function(m){return (m.charId||m.id)===s.targetId;});
+      return member&&(member.statuses||[]).some(function(fs){return fs.type==='freeze'&&fs.turns>0;});
+    });
     renderPvpMyStatuses();
+    // スキップ後は自分のターンへ（相手は再ターンしない）
+    st.turn++; st.myTurn=true; st.combo=0; st.selectedOrder=[];
+    pvpDrawHand(); updatePvpHP(); updatePvpMyHP(); updatePvpPhaseUI();
+    startPvpTurnTimer();
+    return; // processOppActionの残り処理はスキップ
   }
 
   // 自分パーティにダメージ
@@ -8389,18 +8408,36 @@ setInterval(function(){ if(typeof S!=='undefined') MacroDetector.takeSnapshot();
 // PvP用状態異常（自分が受けているもの）
 // pvpBattleState.myStatuses = [{type, stacks, turns}]
 
-function pvpApplyStatusToMe(type, stacks){
+function pvpApplyStatusToMe(type, stacks, targetId){
   const st=pvpBattleState; if(!st) return;
   if(!st.myStatuses) st.myStatuses=[];
-  const ex=st.myStatuses.find(s=>s.type===type);
-  if(ex){
-    if(type==='poison') ex.stacks=Math.min(ex.stacks+stacks,5);
-    ex.turns=Math.max(ex.turns,3);
+
+  if(type==='freeze'){
+    // 凍結：特定キャラ1体に付与（targetIdで指定、なければランダム生存キャラ）
+    const alive=st.myParty.filter(function(m){return m.hp>0;});
+    if(!alive.length) return;
+    var target=null;
+    if(targetId) target=alive.find(function(m){return (m.charId||m.id)===targetId;});
+    if(!target) target=alive[Math.floor(Math.random()*alive.length)];
+    if(!target.statuses) target.statuses=[];
+    var ex=target.statuses.find(function(s){return s.type==='freeze';});
+    if(ex){ ex.turns=Math.max(ex.turns,3); }
+    else { target.statuses.push({type:'freeze',stacks:1,turns:3}); }
+    // 凍結チップ表示用にmyStatusesにも記録（全員凍結判定用）
+    var exG=st.myStatuses.find(function(s){return s.type==='freeze'&&s.targetId===(target.charId||target.id);});
+    if(!exG) st.myStatuses.push({type:'freeze',stacks:1,turns:3,targetId:(target.charId||target.id),targetName:target.name||(CHARS.find(function(c){return c.id===(target.charId||target.id);})||{}).name||'?'});
   } else {
-    st.myStatuses.push({type,stacks:stacks||1,turns:DEBUFF_TURNS||3});
+    // 炎症・毒・麻痺：全体に付与（従来通り）
+    var ex2=st.myStatuses.find(function(s){return s.type===type&&!s.targetId;});
+    if(ex2){
+      if(type==='poison') ex2.stacks=Math.min(ex2.stacks+stacks,5);
+      ex2.turns=Math.max(ex2.turns,DEBUFF_TURNS||3);
+    } else {
+      st.myStatuses.push({type,stacks:stacks||1,turns:DEBUFF_TURNS||3});
+    }
   }
   renderPvpMyStatuses();
-  showStatusFlash(type,'自分');
+  showStatusFlash&&showStatusFlash(type,'自分');
 }
 
 function pvpProcessMyStatuses(){
@@ -8413,23 +8450,35 @@ function pvpProcessMyStatuses(){
       },100)
     : 200;
   let totalDmg=0;
+  // パーティメンバーごとの凍結ターンを減らす
+  st.myParty.forEach(function(m){
+    if(!m.statuses) return;
+    m.statuses=m.statuses.filter(function(s){
+      s.turns--;
+      return s.turns>0;
+    });
+  });
+
   st.myStatuses=st.myStatuses.filter(function(s){
     if(s.type==='burn'){
-      // クエストと同じ：相手ATK×8%×スタック
       const dmg=Math.round(oppAtk*0.08*s.stacks);
       st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
       showEnemyActionDebuff&&showEnemyActionDebuff('burn');
       showStatusFlash&&showStatusFlash('burn','自分');
     }
     if(s.type==='poison'){
-      // クエストと同じ：相手ATK×5%×スタック
       const dmg=Math.round(oppAtk*0.05*s.stacks);
       st.myHp=Math.max(0,st.myHp-dmg); totalDmg+=dmg;
       showEnemyActionDebuff&&showEnemyActionDebuff('poison');
       if(s.stacks>=2) showStatusFlash&&showStatusFlash('poison','自分');
     }
-    // 凍結：次ターンスキップ（processOppActionで処理済み）
-    // 麻痺：カード選択-2（getPvpMaxSelectで処理済み）
+    // 凍結はキャラ個別管理なのでここではターン減算のみ
+    if(s.type==='freeze'){
+      // 対応するキャラの凍結が残っているか確認
+      var member=st.myParty.find(function(m){return (m.charId||m.id)===s.targetId;});
+      var stillFrozen=member&&(member.statuses||[]).some(function(fs){return fs.type==='freeze'&&fs.turns>0;});
+      if(!stillFrozen) return false; // 凍結切れたらmyStatusesからも削除
+    }
     s.turns--;
     return s.turns>0;
   });
@@ -8451,10 +8500,12 @@ function renderPvpMyStatuses(){
   const labels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺'};
   const cls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'};
   const statuses=st.myStatuses||[];
-  area.innerHTML=statuses.filter(s=>s.turns>0).map(function(s){
+  area.innerHTML=statuses.filter(function(s){return s.turns>0;}).map(function(s){
+    var nameTag=s.targetName?'<span style="font-size:8px;opacity:.7;">'+s.targetName+'</span>':'';
     return '<div class="status-chip chip-'+s.type+'">'
       +(labels[s.type]||s.type)
       +(s.stacks>1?'×'+s.stacks:'')
+      +nameTag
       +'<span class="chip-turns">'+s.turns+'T</span></div>';
   }).join('');
 }
@@ -9237,17 +9288,35 @@ function initBannerTabSlider(){
 
 function getPvpMaxSelect(){
   const st=pvpBattleState; if(!st) return 4;
-  let max=4;
-  // 死亡していないキャラのみスキル有効
-  (st.myParty||[]).forEach(function(m){
-    if(m.hp<=0) return; // 死亡は無効
-    if(m.id===1||m.id===59) max++;
+
+  // 生存メンバーを取得
+  var aliveMembers=st.myParty.filter(function(m){return m.hp>0;});
+  if(!aliveMembers.length) return 0;
+
+  // 全員凍結かチェック
+  var allFrozen=aliveMembers.every(function(m){
+    return (m.statuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
   });
-  // 凍結中は全行動不能（スキルも含む）
-  var frozen=(st.myStatuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
-  if(frozen) return 0; // 凍結→カード選択不可（ターンスキップ）
+  if(allFrozen) return 0; // 全員凍結→ターンスキップ
+
+  // 凍結していない生存キャラ数でカード上限を計算
+  var notFrozenMembers=aliveMembers.filter(function(m){
+    return !(m.statuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
+  });
+
+  // 基本は4枚、アルカナ/ヴォイドで+1（凍結していないキャラのみ）
+  var max=4;
+  notFrozenMembers.forEach(function(m){
+    var id=m.charId||m.id;
+    if(id===1||id===59) max++;
+  });
+
+  // 凍結キャラの分だけカード枚数を減らす（1キャラあたり-1枚）
+  var frozenCount=aliveMembers.length-notFrozenMembers.length;
+  max=Math.max(1, max-frozenCount);
+
   // 麻痺で-2
-  if((st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0;})){
+  if((st.myStatuses||[]).some(function(s){return s.type==='para'&&s.turns>0&&!s.targetId;})){
     max=Math.max(1,max-2);
   }
   return max;
