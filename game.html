@@ -6752,6 +6752,54 @@ function winBattle(){
       }
     }
   }
+  // ================================================================
+  // 塔：自動で次の階へ進む
+  // ================================================================
+  if(BT.quest.isTower){
+    checkAllAchievements();
+    const nextFloor = S.towerFloor;
+    const rw = BT.quest;
+    // 結果表示
+    document.getElementById('end-ttl').textContent = (nextFloor-1)+'F クリア！';
+    document.getElementById('end-ttl').className = 'end-ttl end-win';
+    document.getElementById('end-rw-val').textContent = `💰 +${rw.gold.toLocaleString()}  💎 +${rw.gem}  → ${nextFloor}Fへ`;
+    const expRow=document.getElementById('end-exp-row');
+    if(expRow) expRow.style.display='none';
+    saveGame();
+    document.getElementById('battle-end').classList.add('show');
+    // 1.5秒後に自動で次の階へ
+    setTimeout(()=>{
+      document.getElementById('battle-end').classList.remove('show');
+      // HPを全回復しない（塔は持続戦闘）→ そのまま次の階へ
+      const ap = S.party.filter(id=>id!==-1);
+      const enemy2 = getTowerEnemy(nextFloor);
+      const rw2 = getTowerRewards(nextFloor);
+      const nextQuest = {
+        id: `tower_${nextFloor}`,
+        name: `無限塔 ${nextFloor}F`,
+        enemy: enemy2,
+        gold: rw2.gold,
+        gem: rw2.gem,
+        boss: enemy2.boss,
+        bgColor:['#020010','#080020'],
+        story: [],
+        isTower: true,
+      };
+      bgmStartBattle(enemy2.boss);
+      BT.fromScreen = 'tower';
+      // HPを引き継いで次の戦闘へ
+      const prevHp = BT.partyHp.map(m=>({id:m.id, hp:m.hp, maxHp:m.maxHp, atk:m.atk}));
+      initBattle(nextQuest, ap);
+      // initBattle後にHPを前の戦闘の値に戻す
+      prevHp.forEach(prev=>{
+        const m = BT.partyHp.find(x=>x.id===prev.id);
+        if(m) m.hp = prev.hp;
+      });
+      updatePartyHP();
+      showToast(`🏆 ${nextFloor}Fへ進む！`);
+    }, 1500);
+    return;
+  }
   if(BT.quest.isPvp) onPvpEnd(true,BT.quest);
   checkAllAchievements();
   const gainExp=calcQuestExp(BT.quest);
