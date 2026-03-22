@@ -2522,7 +2522,7 @@ const CHARS=[
   {id:62, name:'氷結の神后アイギス',    emoji:'❄️',rarity:'UR',bg:'rgba(0,20,40,.7)',    border:'rgba(150,230,255,.9)',hp:1800,atk:280,level:1,attribute:'ice',role:'tank',skillName:'永久凍土',skillDesc:'被ダメージ-20%、凍結付与率+20%'},
   {id:63, name:'深淵竜王ヴォルガII',   emoji:'🐉',rarity:'UR',bg:'rgba(20,0,0,.7)',     border:'rgba(200,50,50,.9)',  hp:1650,atk:310,level:1,attribute:'fire',role:'tank',skillName:'竜王の鱗',skillDesc:'被ダメージ-15%、ヘイト最大'},
   {id:64, name:'星滅の魔神アステリア', emoji:'💫',rarity:'UR',bg:'rgba(20,10,40,.7)',   border:'rgba(200,150,255,.9)',hp:1500,atk:330,level:1,attribute:'light',role:'debuffer',skillName:'星滅の閃光',skillDesc:'攻撃時25%で麻痺を付与'},
-  {id:65, name:'海神の申し子トリトス', emoji:'🔱',rarity:'UR',bg:'rgba(0,30,60,.7)',    border:'rgba(30,180,255,.9)', hp:1900,atk:340,level:1,attribute:'water',role:'support',skillName:'海神の加護',skillDesc:'毎ターンHP7%回復。HP最低の味方に追加10%緊急回復。'},
+  {id:65, name:'海神の申し子トリトス', emoji:'🔱',rarity:'UR',bg:'rgba(0,30,60,.7)',    border:'rgba(30,180,255,.9)', hp:1900,atk:340,level:1,attribute:'water',role:'support',skillName:'海神の加護',skillDesc:'毎ターンHP5%回復。HP50%以下の味方に追加7%緊急回復。'},
   {id:66, name:'崩壊の終焉神エンドロス',emoji:'💀',rarity:'UR',bg:'rgba(20,0,20,.7)',   border:'rgba(180,0,180,.9)', hp:1750,atk:290,level:1,attribute:'dark',role:'debuffer',skillName:'終焉の毒霧',skillDesc:'攻撃時35%で毒スタック付与'},
   {id:67, name:'旧破の真神ゼロス',     emoji:'⭕',rarity:'UR',bg:'rgba(0,0,0,.8)',      border:'rgba(255,255,255,.9)',hp:2000,atk:350,level:1,attribute:'none',role:'attacker',skillName:'真神の一撃',skillDesc:'ノーマルコンボのボーナス+25%'},
   // ===== 追加SSR (id:68〜79) =====
@@ -4449,7 +4449,7 @@ function getPartyHealRate(){
   ap.forEach(function(c){
     if(c.role==='support'){
       var healMap = {
-        65:0.07,   // トリトス：7%（上方）
+        65:0.05,   // トリトス：5%
         201:0.08,  // アルテア：8%（上方）
         9:0.03,
         12:0.025,
@@ -4479,8 +4479,11 @@ function applyURHealerBonus(){
   var weakest = alive.reduce(function(a,b){
     return (a.hp/a.maxHp) < (b.hp/b.maxHp) ? a : b;
   });
+  var healer65 = BT.partyHp.find(function(m){return m.hp>0&&m.id===65;});
+  var healer201 = BT.partyHp.find(function(m){return m.hp>0&&m.id===201;});
+  var bonusRate = healer65 ? 0.07 : 0.10; // トリトス7%、アルテア10%
   if(weakest.hp/weakest.maxHp < 0.5){
-    var bonus = Math.round(weakest.maxHp * 0.10);
+    var bonus = Math.round(weakest.maxHp * bonusRate);
     weakest.hp = Math.min(weakest.maxHp, weakest.hp + bonus);
     var healer = BT.partyHp.find(function(m){return m.hp>0&&(m.id===65||m.id===201);});
     var healerCh = healer ? CHARS.find(function(c){return c.id===healer.id;}) : null;
