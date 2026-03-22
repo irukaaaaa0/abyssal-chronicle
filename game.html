@@ -5362,13 +5362,6 @@ function startGrind(qid, count){
 // ================================================================
 // 階層ごとの敵データ生成（階層が上がるほど強くなる）
 function getTowerEnemy(floor){
-  // 設計：
-  // 1〜30F:  UR常設パーティで勝てる
-  // 31〜60F: UR常設フルパーティ+デバフ・属性活用が必要
-  // 61〜90F: 限定キャラ1体あると楽になる
-  // 91〜120F: 限定キャラ2体推奨
-  // 121F+:   限定キャラ3体必須
-
   const bases=[
     {name:'深海スライム',  emoji:'🟢',hp:300,  atk:30},   // 1〜10F
     {name:'霧クラゲ',      emoji:'🪼',hp:600,  atk:55},   // 11〜20F
@@ -5376,32 +5369,92 @@ function getTowerEnemy(floor){
     {name:'深海鰻',        emoji:'🐍',hp:1800, atk:120},  // 31〜40F
     {name:'古代魚',        emoji:'🐡',hp:3000, atk:170},  // 41〜50F
     {name:'深海竜',        emoji:'🐉',hp:5500, atk:250},  // 51〜60F
-    {name:'崩壊体',        emoji:'👾',hp:9000, atk:350,   // 61〜70F ←限定1体欲しい
-      statusPatterns:[{"type":"burn","prob":0.2,"stacks":1}]},
-    {name:'旧破の使徒',    emoji:'💀',hp:15000,atk:480,   // 71〜80F
-      statusPatterns:[{"type":"poison","prob":0.25,"stacks":1}]},
-    {name:'深淵の神眷属',  emoji:'🌑',hp:17000,atk:520,   // 81〜90F
-      statusPatterns:[{"type":"poison","prob":0.3,"stacks":1},{"type":"para","prob":0.15,"stacks":1}]},
-    {name:'永遠の番人',    emoji:'⚫',hp:40000,atk:900,   // 91〜100F ←限定2体欲しい
-      statusPatterns:[{"type":"freeze","prob":0.2,"stacks":1}]},
-    {name:'深淵神の眷属',  emoji:'🩸',hp:65000,atk:1200, // 101〜110F
-      statusPatterns:[{"type":"burn","prob":0.3,"stacks":2},{"type":"para","prob":0.2,"stacks":1}]},
-    {name:'旧破の化身',    emoji:'🌌',hp:100000,atk:1600, // 111〜120F ←限定3体必須
-      statusPatterns:[{"type":"poison","prob":0.35,"stacks":2},{"type":"freeze","prob":0.25,"stacks":1}]},
+    {name:'崩壊体',        emoji:'👾',hp:9000, atk:350,
+      statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},  // 61〜70F
+    {name:'旧破の使徒',    emoji:'💀',hp:15000,atk:480,
+      statusPatterns:[{type:'poison',prob:0.25,stacks:1}]}, // 71〜80F
+    {name:'深淵の神眷属',  emoji:'🌑',hp:17000,atk:520,
+      statusPatterns:[{type:'poison',prob:0.3,stacks:1},{type:'para',prob:0.15,stacks:1}]}, // 81〜90F
+    {name:'永遠の番人',    emoji:'⚫',hp:40000,atk:900,
+      statusPatterns:[{type:'freeze',prob:0.2,stacks:1}]}, // 91〜100F
+    {name:'深淵神の眷属',  emoji:'🩸',hp:65000,atk:1200,
+      statusPatterns:[{type:'burn',prob:0.3,stacks:2},{type:'para',prob:0.2,stacks:1}]}, // 101〜110F
+    {name:'旧破の化身',    emoji:'🌌',hp:100000,atk:1600,
+      statusPatterns:[{type:'poison',prob:0.35,stacks:2},{type:'freeze',prob:0.25,stacks:1}]}, // 111〜120F
   ];
   const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
   const base = bases[tier];
-  // 成長係数を緩やか（特に低層）
   const floorInTier = ((floor-1) % 10);
   const mul = 1 + floorInTier * 0.08 + Math.floor((floor-1)/10) * 0.3;
   const isBoss = floor%10===0;
   const statusPatterns = base.statusPatterns || [];
+
+  // ================================================================
+  // 80F以降：複数敵システム
+  // ================================================================
+  if(floor >= 80){
+    const hp  = Math.round(base.hp  * mul * (isBoss?2.0:1));
+    const atk = Math.round(base.atk * mul * (isBoss?1.5:1));
+    const spd = floor>=121?5:floor>=101?4:3;
+
+    let enemies;
+    if(floor >= 150){
+      // 150F以降：3体 + 全員デバフ持ち
+      enemies = [
+        {name:'深淵の刃士', emoji:'⚔️', hp:Math.round(hp*0.7), atk:Math.round(atk*0.9), spd:spd, role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.25,stacks:2},{type:'poison',prob:0.2,stacks:2}]},
+        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+          statusPatterns:isBoss?[{type:'freeze',prob:0.25,stacks:1},{type:'para',prob:0.2,stacks:1},...statusPatterns]:statusPatterns,
+          syncAttack:isBoss},
+        {name:'深淵の術士', emoji:'🔮', hp:Math.round(hp*0.6), atk:Math.round(atk*0.7), spd:spd+1, role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.25,stacks:1},{type:'para',prob:0.2,stacks:1}]},
+      ];
+    } else if(floor >= 110){
+      // 110F以降：3体
+      enemies = [
+        {name:'深淵の番兵α', emoji:'💀', hp:Math.round(hp*0.6), atk:Math.round(atk*0.8), spd:spd, role:'attacker',
+          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
+        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+          statusPatterns:statusPatterns, syncAttack:isBoss},
+        {name:'深淵の番兵β', emoji:'🌑', hp:Math.round(hp*0.6), atk:Math.round(atk*0.8), spd:spd, role:'debuffer',
+          statusPatterns:[{type:'burn',prob:0.2,stacks:1},{type:'para',prob:0.15,stacks:1}]},
+      ];
+    } else if(floor >= 90){
+      // 90F以降：2体
+      enemies = [
+        {name:'深淵の護衛', emoji:'🛡️', hp:Math.round(hp*0.7), atk:Math.round(atk*0.75), spd:spd, role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
+        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+          statusPatterns:statusPatterns, syncAttack:isBoss},
+      ];
+    } else {
+      // 80〜89F：単体だが強化
+      enemies = [
+        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji,
+          hp:Math.round(hp*1.2), atk:atk, spd:spd, role:'attacker',
+          statusPatterns:[...statusPatterns,{type:'para',prob:0.18,stacks:1}]},
+      ];
+    }
+
+    return {
+      name: enemies.length>1 ? enemies[Math.floor(enemies.length/2)].name : enemies[0].name,
+      emoji: enemies[0].emoji,
+      hp: enemies.reduce((s,e)=>s+e.hp,0),
+      atk: atk,
+      spd: spd,
+      boss: isBoss,
+      statusPatterns: statusPatterns,
+      enemies: enemies, // 複数敵配列
+    };
+  }
+
+  // 79F以下：従来通り単体
   return {
     name: isBoss ? `【BOSS】${base.name}` : base.name,
     emoji: isBoss ? '👑' : base.emoji,
     hp:  Math.round(base.hp  * mul * (isBoss?2.5:1)),
     atk: Math.round(base.atk * mul * (isBoss?1.8:1)),
-    spd: floor>=91?4:floor>=61?3:floor>=31?2:1,
+    spd: floor>=61?3:floor>=31?2:1,
     boss: isBoss,
     statusPatterns: isBoss ? statusPatterns : [],
   };
