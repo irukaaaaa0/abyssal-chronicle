@@ -202,8 +202,12 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .enemy-hp-bar{width:200px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
 .enemy-hp-fill{height:100%;background:linear-gradient(90deg,#cc3030,#802020);border-radius:3px;transition:width .5s;}
 .enemy-hp-txt{font-size:10px;color:var(--text2);margin-top:3px;}
-.dmg-popup{position:absolute;font-size:26px;font-weight:700;pointer-events:none;animation:dmgAnim .9s forwards;}
-@keyframes dmgAnim{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-70px);}}
+.dmg-popup{position:absolute;font-weight:800;pointer-events:none;z-index:50;text-align:center;white-space:nowrap;}
+/* ダメージ種別アニメーション */
+@keyframes dmgAnim{0%{opacity:1;transform:translateY(0) scale(1);}20%{transform:translateY(-10px) scale(1.15);}100%{opacity:0;transform:translateY(-80px) scale(.9);}}
+@keyframes dmgAnimBig{0%{opacity:1;transform:translateY(0) scale(1.2);}15%{transform:translateY(-15px) scale(1.4);}100%{opacity:0;transform:translateY(-100px) scale(1);}}
+@keyframes dmgAnimCrit{0%{opacity:1;transform:translateY(0) scale(1.4) rotate(-5deg);}15%{transform:translateY(-20px) scale(1.6) rotate(3deg);}100%{opacity:0;transform:translateY(-110px) scale(1.1) rotate(0deg);}}
+@keyframes dmgAnimCard{0%{opacity:0;transform:translateY(10px) scale(.7);}10%{opacity:1;transform:translateY(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translateY(-50px) scale(.9);}}
 .party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.85);flex-shrink:0;position:relative;z-index:10;}
 .member-hp{flex:1;background:rgba(0,15,35,.6);border:.5px solid var(--border2);border-radius:7px;padding:5px 7px;}
 .member-nm{font-size:8px;color:var(--text2);margin-bottom:3px;}
@@ -1770,7 +1774,7 @@ function onPvpEnd(won, quest){
     <div class="turn-counter" id="battle-turn">ターン 1</div>
     <div class="combo-txt" id="combo-disp">コンボ: 0</div>
   </div>
-  <div class="enemy-area">
+  <div class="enemy-area" id="battle-enemy-area">
     <div class="phase-indicator" id="phase-indicator">
       <div class="phase-txt" id="phase-txt">YOUR TURN</div>
     </div>
@@ -4586,9 +4590,12 @@ function endLongPress(){
 function toggleCard(i){
   if(BT.hand[i].used) return;
   if(!BT.hand[i].selected){
-    // 麻痺チェック：麻痺中のキャラはカード1枚のみ選択可能
     const card = BT.hand[i];
     const owner = BT.partyHp.find(m=>m.id===card.charId);
+    // 凍結チェック：凍結中は選択不可
+    const isFrozenCard = owner && (owner.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0);
+    if(isFrozenCard){ showToast('❄️ '+card.charName+' は凍結中！カードを選択できません'); return; }
+    // 麻痺チェック：麻痺中のキャラはカード1枚のみ選択可能
     const isPara = owner && (owner.statuses||[]).some(s=>s.type==='para'&&s.turns>0);
     if(isPara){
       const alreadySel = BT.hand.filter(c=>c.selected&&c.charId===card.charId).length;
@@ -4740,10 +4747,22 @@ function executeAttack(){
   });
   BT.selectedOrder = [];
 
+  // カード別ダメージポップアップ（カードが複数の場合）
+  if(sel.length > 1){
+    let cb2=1.0, accDmg=0;
+    sel.forEach(function(c,idx){
+      var cardDmg = Math.round(c.charAtk * c.dmg * cb2 * (1+typeBonus));
+      var ch = CHARS.find(function(ch){return ch.id===c.charId;});
+      showCardDmg(cardDmg, ch?ch.emoji:'⚔️', idx, sel.length);
+      cb2 = 1 + (idx+1) * 0.1;
+    });
+    setTimeout(function(){showDmg(total, typeBonus>0);}, sel.length*80+100);
+  } else {
+    showDmg(total, typeBonus>0);
+  }
   // BT_ENEMIESにダメージを反映
   var tgtExec = getAttackTargetIndex();
   damageEnemy(tgtExec, total);
-  showDmg(total, typeBonus>0);
   updateEnemyHP();
   document.getElementById('combo-disp').textContent = 'コンボ: '+BT.combo;
   updateComboGauge();
@@ -4993,12 +5012,65 @@ function afterEnemyAttacks(){
 }
 
 function showDmg(dmg, comboBonus=false){
-  const el=document.createElement('div');el.className='dmg-popup';
-  el.textContent = comboBonus ? `🔥-${dmg}` : `-${dmg}`;
-  const col = comboBonus?'#e0c040':dmg>300?'#d4a020':dmg>150?'var(--teal)':'#fff';
-  el.style.cssText=`top:${20+Math.random()*30}%;left:${25+Math.random()*50}%;color:${col};text-shadow:0 0 10px currentColor;font-size:${comboBonus?'32':'26'}px;`;
-  document.querySelector('.enemy-area').appendChild(el);
-  setTimeout(()=>el.remove(),950);
+  const area = document.getElementById('battle-enemy-area');
+  if(!area) return;
+
+  // ダメージ規模に応じた演出
+  const maxHp = BT_ENEMIES&&BT_ENEMIES.length>0
+    ? BT_ENEMIES.reduce((s,e)=>s+e.maxHp,0)
+    : (BT.quest&&BT.quest.enemy&&BT.quest.enemy.hp)||1;
+  const ratio = dmg / maxHp; // 総HPに対する割合
+
+  let size, color, anim, prefix;
+  if(ratio >= 0.1){
+    // 10%以上：クリティカル演出
+    size='38px'; color='#ff4040';
+    anim='dmgAnimCrit 1.1s forwards';
+    prefix='💥';
+  } else if(ratio >= 0.05 || comboBonus){
+    // 5%以上 or コンボボーナス
+    size='32px'; color=comboBonus?'#ffe040':'#ff8040';
+    anim='dmgAnimBig 1.0s forwards';
+    prefix=comboBonus?'🔥':'⚔️';
+  } else if(dmg >= 5000){
+    size='28px'; color='#e0a030';
+    anim='dmgAnim .95s forwards';
+    prefix='';
+  } else {
+    size='22px'; color='#c0c0c0';
+    anim='dmgAnim .85s forwards';
+    prefix='';
+  }
+
+  const el = document.createElement('div');
+  el.className = 'dmg-popup';
+  el.textContent = prefix + dmg.toLocaleString();
+  el.style.cssText = 'position:absolute;top:'+(15+Math.random()*35)+'%;left:'+(20+Math.random()*55)+'%;color:'+color+';font-size:'+size+';text-shadow:0 2px 8px rgba(0,0,0,.8),0 0 16px '+color+'88;animation:'+anim+';';
+  area.appendChild(el);
+  setTimeout(()=>el.remove(), 1150);
+
+  // 10%超えの大ダメージ時は画面端に追加テキスト
+  if(ratio >= 0.1){
+    const big = document.createElement('div');
+    big.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:800;color:#ff6040;text-shadow:0 0 20px #ff4040;pointer-events:none;animation:dmgAnimBig .8s forwards;z-index:55;letter-spacing:.1em;';
+    big.textContent = '大ダメージ！';
+    area.appendChild(big);
+    setTimeout(()=>big.remove(), 850);
+  }
+}
+
+// カード1枚ごとのダメージをポップアップ表示
+function showCardDmg(dmg, charEmoji, idx, total){
+  const area = document.getElementById('battle-enemy-area');
+  if(!area) return;
+  // カードの順番に応じて位置をずらす
+  const col = dmg>8000?'#ffb040':dmg>4000?'#80e0a0':'#a0c0e0';
+  const el = document.createElement('div');
+  el.className = 'dmg-popup';
+  el.textContent = charEmoji+' '+dmg.toLocaleString();
+  el.style.cssText = 'position:absolute;top:'+(25+idx*12)+'%;left:'+(10+(idx%3)*30)+'%;color:'+col+';font-size:16px;text-shadow:0 1px 6px rgba(0,0,0,.8);animation:dmgAnimCard '+(.7+idx*.1)+'s forwards;animation-delay:'+(idx*80)+'ms;z-index:48;';
+  area.appendChild(el);
+  setTimeout(()=>el.remove(), 900+idx*80);
 }
 
 function updateEnemyHP(){
