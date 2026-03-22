@@ -4603,22 +4603,40 @@ function drawHand(ids){
 
 function renderHand(){
   const row = document.getElementById('cards-row');
-  const paraIds = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'&&s.turns>0)).map(m=>m.id));
+  const paraIds  = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'  &&s.turns>0)).map(m=>m.id));
+  const freezeIds= new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0)).map(m=>m.id));
   row.innerHTML = BT.hand.map((c,i)=>{
-    const isHealCard = c.isHeal;
-    const healAmt = isHealCard ? Math.round(c.charAtk * c.healRate) : 0;
-    const d = isHealCard ? healAmt : Math.round(c.charAtk * c.dmg);
+    const isHealCard  = c.isHeal;
+    const healAmt     = isHealCard ? Math.round(c.charAtk * c.healRate) : 0;
+    const d   = isHealCard ? healAmt : Math.round(c.charAtk * c.dmg);
     const col = isHealCard ? '#40e080' : (c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)');
-    const orderIdx = BT.selectedOrder.indexOf(i);
-    const orderBadge = c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
-    const comboCls = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
+    const orderIdx  = BT.selectedOrder.indexOf(i);
+    const orderBadge= c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
+    const comboCls  = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
     const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:''};
     const comboLabel = c.comboType !== 'none' ?
       `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>` : '';
-    const isParaCard = paraIds.has(c.charId);
-    const paraBadge = isParaCard ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.7);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;">⚡麻痺</div>' : '';
+
+    const isParaCard   = paraIds.has(c.charId);
+    const isFreezeCard = freezeIds.has(c.charId);
+
+    // カードスタイル
+    var cardStyle = 'position:relative;';
+    if(isFreezeCard){
+      cardStyle += 'border-color:rgba(80,180,255,.8);box-shadow:0 0 10px rgba(80,180,255,.5);background:rgba(0,30,80,.7);opacity:.7;';
+    } else if(isHealCard){
+      cardStyle += 'border-color:rgba(40,200,100,.6);box-shadow:0 0 6px rgba(40,200,100,.3);background:rgba(0,40,20,.5);';
+    } else if(isParaCard){
+      cardStyle += 'border-color:rgba(220,180,0,.6);box-shadow:0 0 6px rgba(220,180,0,.3);';
+    }
+
+    // バッジ
+    const paraBadge   = isParaCard   ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.8);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;z-index:2;">⚡麻痺</div>' : '';
+    // 凍結はカード全体を氷のオーバーレイで覆う
+    const freezeOverlay = isFreezeCard ? '<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>' : '';
+
     return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
-      style="position:relative;${isParaCard?'border-color:rgba(220,180,0,.6);box-shadow:0 0 6px rgba(220,180,0,.3);':''}"
+      style="${cardStyle}"
       onclick="toggleCard(${i})"
       onmousedown="startLongPress(${i})"
       onmouseup="endLongPress()"
@@ -4627,10 +4645,11 @@ function renderHand(){
       ontouchend="endLongPress()">
       ${orderBadge}
       ${paraBadge}
-      <div class="card-em">${c.emoji}</div>
+      ${freezeOverlay}
+      <div class="card-em" style="${isFreezeCard?'filter:grayscale(.5);':''}">${isHealCard?'💚':c.emoji}</div>
       <div class="card-nm">${c.name}</div>
-      <div class="card-dmg" style="color:${col}">${d}</div>
-      ${comboLabel}
+      <div class="card-dmg" style="color:${col}">${isHealCard?'💊+'+d:d}</div>
+      ${isHealCard?'':comboLabel}
       <div class="card-own">${c.charName}</div>
     </div>`;
   }).join('');
