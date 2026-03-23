@@ -1440,11 +1440,11 @@ function onPvpEnd(won, quest){
       </div>
       <div class="gacha-btns">
         <div class="gacha-btn" onclick="doGacha(1)">
-          <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>160</div></div>
+          <div><div class="gacha-btn-name">単発召喚</div><div class="gacha-btn-cost" id="gacha-cost-single"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>160</div></div>
           <div class="gacha-btn-ico">🎲</div>
         </div>
         <div class="gacha-btn" onclick="doGacha(10)">
-          <div><div class="gacha-btn-name">10連召喚</div><div class="gacha-btn-cost"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>1600（1回おまけ）</div></div>
+          <div><div class="gacha-btn-name">10連召喚</div><div class="gacha-btn-cost" id="gacha-cost-multi"><div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;"></div>1600（1回おまけ）</div></div>
           <div class="gacha-btn-ico">🌊</div>
         </div>
       </div>
@@ -2168,7 +2168,10 @@ function onPvpEnd(won, quest){
       <div class="end-exp-txt" id="end-exp-txt">Rank1</div>
     </div>
   </div>
-  <button class="end-btn" onclick="endBattle()">← 戻る</button>
+  <div id="end-btn-row" style="display:flex;gap:10px;margin-top:4px;">
+    <button class="end-btn" id="end-btn-back" onclick="endBattle()">← 戻る</button>
+    <button class="end-btn" id="end-btn-home" onclick="endBattleToHome()" style="display:none;background:rgba(10,60,120,.5);border-color:rgba(40,120,220,.5);">🏠 ホームへ</button>
+  </div>
 </div>
 
 <!-- RANK UP OVERLAY -->
@@ -2244,6 +2247,9 @@ async function initFirebaseUser(){
             const data = existing.data();
             // ローカルのplayerIdを優先、なければクラウドのを使う
             S = {...DEFAULT_S, ...data, playerId: S.playerId || data.playerId};
+          // デイリー状態もFirestoreから復元
+          if(data.lastLoginDate) S.lastLoginDate = data.lastLoginDate;
+          if(typeof data.dailyRewardClaimed !== 'undefined') S.dailyRewardClaimed = data.dailyRewardClaimed;
           } else {
             // 新規：今のSのplayerIdをそのままクラウドに保存
             const newData = {...S, createdAt: new Date().toISOString()};
@@ -2501,11 +2507,18 @@ async function checkGifts(){
     const received = S.receivedGifts || [];
     let totalGem=0, totalGold=0;
 
-    // ① 全員向けギフト
-    const globalGifts = await db.collection('gifts')
-      .where('type','==','global')
-      .where('active','==',true)
-      .get();
+    // ① 全員向けギフト（type:'global' または isIndividual:false の両方に対応）
+    const [globalGiftsTyped, globalGiftsLegacy] = await Promise.all([
+      db.collection('gifts').where('type','==','global').where('active','==',true).get(),
+      db.collection('gifts').where('isIndividual','==',false).where('active','==',true).get(),
+    ]);
+    // 重複を除去してマージ
+    const seenIds = new Set();
+    const allGlobalDocs = [...globalGiftsTyped.docs, ...globalGiftsLegacy.docs].filter(d=>{
+      if(seenIds.has(d.id)) return false;
+      seenIds.add(d.id); return true;
+    });
+    const globalGifts = {docs: allGlobalDocs};
     let totalTicket = 0;
     for(const gift of globalGifts.docs){
       const gd = gift.data();
@@ -2559,7 +2572,7 @@ async function checkGifts(){
           lastSaved: new Date().toISOString()
         });
       }catch(e){ console.log('[ABYSSAL] Gift save failed:', e); }
-      showToast(`🎁 プレゼント受取！ 💎+${totalGem} 💰+${totalGold}`);
+      var giftMsg='🎁 プレゼント受取！'; if(totalGem>0) giftMsg+=' 💎+'+totalGem; if(totalGold>0) giftMsg+=' 💰+'+totalGold; if(totalTicket>0) giftMsg+=' 🎫+'+totalTicket+'枚'; showToast(giftMsg);
       refreshHome();
     }
   }catch(e){
@@ -3808,8 +3821,29 @@ function refreshGacha(){
   document.getElementById('gacha-gem').textContent=S.gem.toLocaleString();
   var tkDisp=document.getElementById('gacha-ticket-disp');
   if(tkDisp) tkDisp.textContent='🎫 '+( S.gachaTickets||0);
+  updateGachaBtnCost();
   renderBannerTabs();
   refreshGachaDisplay();
+}
+
+function updateGachaBtnCost(){
+  var tickets = S.gachaTickets||0;
+  var single = document.getElementById('gacha-cost-single');
+  var multi  = document.getElementById('gacha-cost-multi');
+  if(single){
+    if(tickets >= 1){
+      single.innerHTML = '🎫 チケット×1 または 💎160';
+    } else {
+      single.innerHTML = '<div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;display:inline-block;"></div>160';
+    }
+  }
+  if(multi){
+    if(tickets >= 1){
+      multi.innerHTML = '🎫 チケット優先使用 💎1600（1回おまけ）';
+    } else {
+      multi.innerHTML = '<div class="curr-icon curr-gem" style="width:10px;height:10px;margin-right:2px;display:inline-block;"></div>1600（1回おまけ）';
+    }
+  }
 }
 function refreshGachaDisplay(){
   renderBannerDetail();
@@ -6298,9 +6332,10 @@ async function showTowerRanking(){
     var today = new Date().toDateString();
     var snap = await db.collection('tower_ranking')
       .where('date','==',today)
-      .orderBy('floor','desc')
-      .limit(20)
       .get();
+    // JS側でfloor降順ソート（Firestoreインデックス不要）
+    var sortedDocs = snap.docs.slice().sort(function(a,b){ return (b.data().floor||0)-(a.data().floor||0); }).slice(0,20);
+    snap = {empty: snap.empty, docs: sortedDocs};
     if(snap.empty){
       showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
       return;
@@ -6715,9 +6750,10 @@ async function showTowerRanking(){
     var today = new Date().toDateString();
     var snap = await db.collection('tower_ranking')
       .where('date','==',today)
-      .orderBy('floor','desc')
-      .limit(20)
       .get();
+    // JS側でfloor降順ソート（Firestoreインデックス不要）
+    var sortedDocs = snap.docs.slice().sort(function(a,b){ return (b.data().floor||0)-(a.data().floor||0); }).slice(0,20);
+    snap = {empty: snap.empty, docs: sortedDocs};
     if(snap.empty){
       showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
       return;
@@ -7534,26 +7570,30 @@ function winBattle(){
       const ap = S.party.filter(id=>id!==-1);
       const enemy2 = getTowerEnemy(nextFloor);
       const rw2 = getTowerRewards(nextFloor);
+      // 複数敵フロアのenemiesも含めてnextQuestを構築
       const nextQuest = {
         id: `tower_${nextFloor}`,
         name: `無限塔 ${nextFloor}F`,
         enemy: enemy2,
+        enemies: enemy2.enemies || null, // 複数敵対応
         gold: rw2.gold,
         gem: rw2.gem,
+        tickets: rw2.tickets||0,
         boss: enemy2.boss,
         bgColor:['#020010','#080020'],
         story: [],
         isTower: true,
+        chapterId: 0,
       };
       bgmStartBattle(enemy2.boss);
       BT.fromScreen = 'tower';
-      // HPを引き継いで次の戦闘へ
-      const prevHp = BT.partyHp.map(m=>({id:m.id, hp:m.hp, maxHp:m.maxHp, atk:m.atk}));
+      // HPとisSupport含む全情報を引き継ぎ
+      const prevHp = BT.partyHp.map(m=>({id:m.id, hp:m.hp, maxHp:m.maxHp, atk:m.atk, isSupport:m.isSupport||false}));
       initBattle(nextQuest, ap);
       // initBattle後にHPを前の戦闘の値に戻す
       prevHp.forEach(prev=>{
         const m = BT.partyHp.find(x=>x.id===prev.id);
-        if(m) m.hp = prev.hp;
+        if(m) m.hp = Math.max(1, prev.hp); // 最低1HP
       });
       updatePartyHP();
       showToast(`🏆 ${nextFloor}Fへ進む！`);
@@ -7573,6 +7613,23 @@ function winBattle(){
   const expTxt=document.getElementById('end-exp-txt');
   if(expRow){ expRow.style.display='flex'; if(expLbl) expLbl.textContent=`EXP +${gainExp}`; if(expTxt) expTxt.textContent=`Rank ${S.rank}`; if(expBar){ expBar.style.width='0%'; const need=rankExpNeeded(S.rank); const pct=Math.min(S.rankExp/need*100,100).toFixed(1); setTimeout(()=>{expBar.style.width=pct+'%';},400); }}
   saveGame();
+  // 戻り先に合わせてボタン表示を制御
+  var backBtn = document.getElementById('end-btn-back');
+  var homeBtn = document.getElementById('end-btn-home');
+  if(backBtn && homeBtn){
+    var from = BT.fromScreen||'home';
+    if(from === 'quest'){
+      // クエストから：「← クエストへ」+「🏠 ホームへ」の2ボタン
+      backBtn.textContent = '← クエストへ';
+      homeBtn.style.display = 'block';
+    } else if(from === 'home' || from === 'tower' || from === 'grind'){
+      backBtn.textContent = '← 戻る';
+      homeBtn.style.display = 'none';
+    } else {
+      backBtn.textContent = '← 戻る';
+      homeBtn.style.display = 'none';
+    }
+  }
   document.getElementById('battle-end').classList.add('show');
   if(rankups.length) setTimeout(()=>{ document.getElementById('battle-end').classList.remove('show'); showRankupSequence(rankups); },1800);
 }
@@ -7584,6 +7641,11 @@ function loseBattle(){
   document.getElementById('end-ttl').textContent='DEFEAT';
   document.getElementById('end-ttl').className='end-ttl end-lose';
   document.getElementById('end-rw-val').textContent='報酬なし';
+  // 敗北時は「← 戻る」のみ
+  var backBtn=document.getElementById('end-btn-back');
+  var homeBtn=document.getElementById('end-btn-home');
+  if(backBtn) backBtn.textContent='← 戻る';
+  if(homeBtn) homeBtn.style.display='none';
   document.getElementById('battle-end').classList.add('show');
 }
 
@@ -7591,6 +7653,11 @@ function endBattle(){
   document.getElementById('battle-end').classList.remove('show');
   goTo(BT.fromScreen||'home');
   refreshAfterBattle();
+}
+
+function endBattleToHome(){
+  document.getElementById('battle-end').classList.remove('show');
+  goTo('home');
 }
 
 function refreshAfterBattle(){
@@ -13347,6 +13414,14 @@ function tapHomeOrb(){
   S.lastLoginDate = today;
   S.dailyRewardClaimed = true;
   saveGame();
+  // Firestoreにも即時同期（リロードリセット防止）
+  if(playerDocRef){
+    playerDocRef.update({
+      lastLoginDate: today,
+      dailyRewardClaimed: true,
+      lastSaved: new Date().toISOString()
+    }).catch(function(e){ console.log('[ORB SYNC]', e); });
+  }
   document.getElementById('home-orb-badge').style.display = 'none';
   // 演出
   showModal('🌊 デイリーボーナス！',
@@ -13363,9 +13438,9 @@ async function distributeRankingBonus(prevBest, baseTickets){
     var ydate = yesterday.toDateString();
     var snap = await db.collection('tower_ranking')
       .where('date','==',ydate)
-      .orderBy('floor','desc')
-      .limit(3)
       .get();
+    var sortedDocs2 = snap.docs.slice().sort(function(a,b){ return (b.data().floor||0)-(a.data().floor||0); }).slice(0,3);
+    snap = {empty: snap.empty, docs: sortedDocs2};
     if(snap.empty) return;
     var myUid = auth.currentUser.uid;
     snap.docs.forEach(function(doc,i){
