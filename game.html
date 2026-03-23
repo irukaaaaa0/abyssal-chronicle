@@ -353,7 +353,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .combo-fire{background:rgba(200,80,20,.3);color:#e0a060;border:.5px solid rgba(200,80,20,.5);}
 .combo-ice{background:rgba(20,100,200,.3);color:#60c0ff;border:.5px solid rgba(20,100,200,.5);}
 .combo-thunder{background:rgba(180,160,0,.3);color:#e0d040;border:.5px solid rgba(180,160,0,.5);}
-.combo-none{display:none;}
+.combo-none{background:rgba(140,140,140,.3);color:#c8c8c8;border:.5px solid rgba(160,160,160,.4);}
 .selected-order{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--teal);color:#000;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 
 /* オートバトルボタン */
@@ -4262,7 +4262,7 @@ let MAX_SELECT = 4; // 最大選択枚数（ロールで変化）
 const CARDS_PER_MEMBER = 3; // キャラ1体あたりのカード枚数
 
 // コンボタイプボーナス倍率
-const COMBO_TYPE_BONUS = {fire:0.25, ice:0.2, thunder:0.3, water:0.22, dark:0.28, light:0.25, none:0.15};
+const COMBO_TYPE_BONUS = {fire:0.25, ice:0.2, thunder:0.3, water:0.22, dark:0.28, light:0.25, none:0.20};
 // ================================================================
 //  属性・ロール定数
 // ================================================================
@@ -4588,7 +4588,7 @@ function applyDebufferSkill(charId, targetType){
 //  ノーマルコンボ（none属性）
 // ================================================================
 // COMBO_TYPE_BONUSにnoneを追加
-COMBO_TYPE_BONUS['none'] = 0.15; // ノーマルコンボ+15%
+COMBO_TYPE_BONUS['none'] = 0.20; // ノーマルコンボ+20%
 
 // ================================================================
 //  編成画面キャラ詳細表示
@@ -4635,9 +4635,8 @@ function renderHand(){
     const orderIdx  = BT.selectedOrder.indexOf(i);
     const orderBadge= c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
     const comboCls  = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
-    const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:''};
-    const comboLabel = c.comboType !== 'none' ?
-      `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>` : '';
+    const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:'⚪無'};
+    const comboLabel = `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>`;
 
     const isParaCard   = paraIds.has(c.charId);
     const isFreezeCard = freezeIds.has(c.charId);
@@ -4754,7 +4753,7 @@ function updateComboGauge(){
 
 function updateComboGaugeFor(sel, fillId, txtId, fill2Id, txt2Id, row2Id){
   var typeCounts = {};
-  sel.forEach(function(c){ if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+  sel.forEach(function(c){ if(c.comboType) typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
 
   // 上位2属性を取得
   var sorted = Object.entries(typeCounts).sort(function(a,b){return b[1]-a[1];});
@@ -4850,7 +4849,7 @@ function executeAttack(){
 
   // コンボタイプボーナス計算
   const typeCounts = {};
-  sel.forEach(c=>{ if(c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+  sel.forEach(c=>{ if(c.comboType) typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
   const maxEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
   var typeBonus = maxEntry ? (COMBO_TYPE_BONUS[maxEntry[0]]||0)*maxEntry[1] : 0;
   // イブリス（id:200）の闇コンボ時+55%
@@ -4944,7 +4943,7 @@ function runAutoTurn(){
   const sorted = BT.hand
     .map((c,i)=>({...c,i}))
     .filter(c=>!c.used)
-    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0)+a.dmg));
+    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0.20)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0.20)+a.dmg));
 
   const available = [];
   for(const c of sorted){
@@ -5902,7 +5901,7 @@ function renderPvpCards(){
     const selIdx = selOrder.indexOf(i);
     const sel = selIdx>=0;
     const col = pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
-    const comboBadge = c.comboType&&c.comboType!=='none'
+    const comboBadge = c.comboType
       ? `<div style="font-size:7px;margin-top:1px;color:${c.comboType==='fire'?'#e0a060':c.comboType==='ice'?'#60c0ff':'#e0d040'}">${c.comboType==='fire'?'🔥':c.comboType==='ice'?'❄️':'⚡'}</div>` : '';
     const orderBadge = sel?`<div style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--teal);color:#000;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">${selIdx+1}</div>`:'';
     return`<div class="pvp-my-card ${dead?'dead':''} ${sel&&!dead?'selected':''}" id="pvp-my-card-${i}"
@@ -5943,7 +5942,7 @@ function updatePvpComboGauge(){
   if(!st) return;
   const sel = (st.pvpSelectedOrder||[]).map(i=>st.myCards[i]).filter(Boolean);
   const typeCounts={};
-  sel.forEach(c=>{ if(c.comboType&&c.comboType!=='none') typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
+  sel.forEach(c=>{ if(c.comboType) typeCounts[c.comboType]=(typeCounts[c.comboType]||0)+1; });
   const maxEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
   const comboLv = maxEntry?maxEntry[1]:0;
   const bonusPct = maxEntry?Math.round((PVP_COMBO_BONUS[maxEntry[0]]||0)*comboLv*100):0;
@@ -7202,7 +7201,7 @@ function renderPvpHand(){
     const badge=c.selected?`<div class="selected-order">${oi+1}</div>`:'';
     const comboCls=c.comboType!=='none'?`combo-${c.comboType}`:'combo-none';
     const PVPC_LABELS={fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:''};
-    const comboLbl=c.comboType!=='none'?`<div class="card-combo-badge ${comboCls}">${PVPC_LABELS[c.comboType]||c.comboType}</div>`:'';
+    const comboLbl=`<div class="card-combo-badge ${comboCls}">${PVPC_LABELS[c.comboType]||c.comboType}</div>`;
     return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''}"
       style="position:relative;" 
       onclick="pvpToggleCard(${i})"
@@ -7378,7 +7377,7 @@ function pvpAttack(){
 
   // コンボ計算（2属性対応）
   const tc={};
-  selCards.forEach(c=>{if(c.comboType&&c.comboType!=='none') tc[c.comboType]=(tc[c.comboType]||0)+1;});
+  selCards.forEach(c=>{if(c.comboType) tc[c.comboType]=(tc[c.comboType]||0)+1;});
   // 全属性のコンボボーナスを合算
   let tb=0;
   Object.entries(tc).forEach(function(e){ tb+=(COMBO_TYPE_BONUS[e[0]]||0)*e[1]; });
