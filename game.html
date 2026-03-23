@@ -6079,7 +6079,7 @@ function getTowerEnemy(floor){
       enemies = [
         {name:'深淵の刃士', emoji:'⚔️', hp:Math.round(hp*0.7), atk:Math.round(atk*0.9), spd:spd, role:'attacker',
           statusPatterns:[{type:'burn',prob:0.25,stacks:2},{type:'poison',prob:0.2,stacks:2}]},
-        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+        {name:isBoss?`【BOSS】${picked.name}`:picked.name, emoji:isBoss?'👑':picked.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
           statusPatterns:isBoss?[{type:'freeze',prob:0.25,stacks:1},{type:'para',prob:0.2,stacks:1},...statusPatterns]:statusPatterns,
           syncAttack:isBoss},
         {name:'深淵の術士', emoji:'🔮', hp:Math.round(hp*0.6), atk:Math.round(atk*0.7), spd:spd+1, role:'debuffer',
@@ -6090,7 +6090,7 @@ function getTowerEnemy(floor){
       enemies = [
         {name:'深淵の番兵α', emoji:'💀', hp:Math.round(hp*0.6), atk:Math.round(atk*0.8), spd:spd, role:'attacker',
           statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
-        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+        {name:isBoss?`【BOSS】${picked.name}`:picked.name, emoji:isBoss?'👑':picked.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
           statusPatterns:statusPatterns, syncAttack:isBoss},
         {name:'深淵の番兵β', emoji:'🌑', hp:Math.round(hp*0.6), atk:Math.round(atk*0.8), spd:spd, role:'debuffer',
           statusPatterns:[{type:'burn',prob:0.2,stacks:1},{type:'para',prob:0.15,stacks:1}]},
@@ -6100,13 +6100,13 @@ function getTowerEnemy(floor){
       enemies = [
         {name:'深淵の護衛', emoji:'🛡️', hp:Math.round(hp*0.7), atk:Math.round(atk*0.75), spd:spd, role:'attacker',
           statusPatterns:[{type:'burn',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
-        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
+        {name:isBoss?`【BOSS】${picked.name}`:picked.name, emoji:isBoss?'👑':picked.emoji, hp:hp, atk:atk, spd:spd, role:'boss',
           statusPatterns:statusPatterns, syncAttack:isBoss},
       ];
     } else {
       // 80〜89F：単体だが強化
       enemies = [
-        {name:isBoss?`【BOSS】${base.name}`:base.name, emoji:isBoss?'👑':base.emoji,
+        {name:isBoss?`【BOSS】${picked.name}`:picked.name, emoji:isBoss?'👑':picked.emoji,
           hp:Math.round(hp*1.2), atk:atk, spd:spd, role:'attacker',
           statusPatterns:[...statusPatterns,{type:'para',prob:0.18,stacks:1}]},
       ];
