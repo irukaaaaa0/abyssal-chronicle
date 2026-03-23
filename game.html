@@ -1167,62 +1167,6 @@ function onPvpEnd(won, quest){
     <div class="home-visual">
       <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
     </div>
-    <!-- 攻略ティアリスト -->
-    <div style="margin:6px 12px 0;background:rgba(0,10,25,.6);border:.5px solid rgba(30,80,160,.35);border-radius:10px;overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;background:rgba(0,15,40,.4);" onclick="var b=document.getElementById('tier-body');var a=document.getElementById('tier-arrow');b.style.display=b.style.display==='none'?'block':'none';a.textContent=b.style.display==='none'?'▶':'▼';">
-        <div style="font-size:9px;font-weight:700;color:var(--text2);letter-spacing:.08em;">🏆 URティアリスト（攻略参考）</div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <a href="https://irukaaaaa0.github.io/abyssal-chronicle/tierlist.html" target="_blank" onclick="event.stopPropagation();sfx('click');" style="font-size:8px;color:var(--teal);background:rgba(0,40,60,.5);border:.5px solid rgba(16,192,160,.4);border-radius:5px;padding:2px 7px;text-decoration:none;white-space:nowrap;">🔗 攻略ページ</a>
-          <div id="tier-arrow" style="font-size:9px;color:var(--text3);">▼</div>
-        </div>
-      </div>
-      <div id="tier-body" style="padding:8px 10px 6px;">
-        <!-- 注意書き -->
-        <div style="font-size:7px;color:var(--text3);margin-bottom:7px;line-height:1.5;padding:4px 6px;background:rgba(255,200,0,.05);border:.5px solid rgba(255,200,0,.15);border-radius:5px;">
-          ⚠️ AIが考えたティア表です。全キャラLv.120・0凸時のステータスを前提とした評価です。
-        </div>
-        <!-- S -->
-        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;">
-          <div style="font-size:9px;font-weight:800;color:#fff;background:linear-gradient(135deg,#cc2020,#ff5050);border-radius:4px;padding:2px 6px;min-width:18px;text-align:center;flex-shrink:0;">S</div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;">
-            <div class="tc" title="ATK3998・カード+1&amp;闇コンボ+55%&#10;限定最強格。闇PT必須。">🩸<span>イブリス★</span></div>
-            <div class="tc" title="ATK2946・カード選択+1枚&#10;どんな編成にも入る汎用最強">🌑<span>アルカナ</span></div>
-            <div class="tc" title="ATK3366・カード選択+1枚&#10;高ATKでアルカナと二枚看板">🌌<span>ヴォイド</span></div>
-          </div>
-        </div>
-        <!-- A -->
-        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;">
-          <div style="font-size:9px;font-weight:800;color:#fff;background:linear-gradient(135deg,#cc7010,#ffaa40);border-radius:4px;padding:2px 6px;min-width:18px;text-align:center;flex-shrink:0;">A</div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;">
-            <div class="tc" title="HP22092・HP回復+3%&amp;光追加回復&#10;限定最強サポート">⭐<span>アルテア★</span></div>
-            <div class="tc" title="ATK3787・雷コンボ+20%&#10;全UR最高ATK">⚡<span>ザクライア</span></div>
-            <div class="tc" title="ATK3682・無属性コンボ+25%&#10;HP21040で最高耐久">⭕<span>ゼロス</span></div>
-            <div class="tc" title="ATK3682・炎コンボ炎症+40%&#10;限定デバッファー最強">🔱<span>カルドス★</span></div>
-          </div>
-        </div>
-        <!-- B -->
-        <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;">
-          <div style="font-size:9px;font-weight:800;color:#fff;background:linear-gradient(135deg,#2060c0,#5090f0);border-radius:4px;padding:2px 6px;min-width:18px;text-align:center;flex-shrink:0;">B</div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;">
-            <div class="tc" title="ATK3577・炎コンボ+20%&#10;炎PT中核">🌋<span>フレアノス</span></div>
-            <div class="tc" title="HP18936・被ダメ-20%&amp;凍結率+20%&#10;最強タンク">❄️<span>アイギス</span></div>
-            <div class="tc" title="HP18410・攻撃時35%毒&#10;高確率デバフ">💀<span>エンドロス</span></div>
-            <div class="tc" title="ATK3156・攻撃時30%麻痺&#10;麻痺付与最速">🕳️<span>イグリス</span></div>
-            <div class="tc" title="ATK3156・毎ターンHP2%回復&#10;長期戦サポート">🔱<span>トリトス</span></div>
-          </div>
-        </div>
-        <!-- C -->
-        <div style="display:flex;align-items:flex-start;gap:6px;">
-          <div style="font-size:9px;font-weight:800;color:#fff;background:linear-gradient(135deg,#506070,#7090a0);border-radius:4px;padding:2px 6px;min-width:18px;text-align:center;flex-shrink:0;">C</div>
-          <div style="display:flex;gap:3px;flex-wrap:wrap;">
-            <div class="tc" title="ATK3472・攻撃時25%麻痺&#10;イグリスより確率低い">💫<span>アステリア</span></div>
-            <div class="tc" title="HP17358・被ダメ-15%&#10;アイギスより性能低い">🐉<span>ヴォルガⅡ</span></div>
-            <div class="tc" title="ATK2735・炎コンボ+15%&#10;フレアノスの下位互換">💀<span>始原神</span></div>
-          </div>
-        </div>
-        <div style="font-size:7px;color:var(--text3);margin-top:5px;text-align:right;">★=限定 / タップでキャラ詳細</div>
-      </div>
-    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 0;">
       <div style="font-size:10px;color:var(--text2);display:flex;align-items:center;gap:6px;">
       <span id="cloud-save-indicator" style="font-size:10px;" title="クラウド保存状態">☁️</span>
