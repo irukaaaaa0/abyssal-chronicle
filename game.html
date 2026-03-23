@@ -274,11 +274,70 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 
 /* BOOT */
-.boot-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-.boot-logo{font-size:26px;font-weight:700;color:#3a80c0;letter-spacing:.2em;text-align:center;line-height:1.4;}
-.boot-sub{font-size:10px;color:var(--text3);letter-spacing:.25em;}
-.boot-bar{width:180px;height:1px;background:var(--border2);border-radius:1px;overflow:hidden;margin-top:8px;}
-.boot-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));width:0;border-radius:1px;transition:width .05s;}
+/* ===== BOOT SCREEN ===== */
+#screen-boot{position:fixed;inset:0;z-index:1000;overflow:hidden;background:#000208;}
+.boot-ocean{position:absolute;inset:0;overflow:hidden;}
+/* 深海レイヤー */
+.boot-layer{position:absolute;inset:0;pointer-events:none;}
+.boot-layer1{animation:bootSink 3s ease-out forwards;}
+.boot-layer2{animation:bootDeep 6s ease-out forwards;}
+.boot-layer3{position:absolute;inset:0;animation:bootRays 5s ease-out 1s both;}
+@keyframes bootSink{
+  0%{background:radial-gradient(ellipse at 50% 0%,rgba(80,160,255,.6) 0%,rgba(20,80,180,.4) 30%,rgba(0,20,80,.8) 60%,#000208 100%);}
+  40%{background:radial-gradient(ellipse at 50% 30%,rgba(40,120,220,.4) 0%,rgba(10,50,140,.5) 40%,rgba(0,10,60,.9) 70%,#000208 100%);}
+  100%{background:radial-gradient(ellipse at 50% 80%,rgba(0,40,100,.2) 0%,rgba(0,10,40,.8) 40%,#000208 100%);}
+}
+@keyframes bootDeep{
+  0%{background:linear-gradient(180deg,rgba(100,200,255,.15) 0%,transparent 60%);}
+  50%{background:linear-gradient(180deg,rgba(20,80,160,.1) 0%,transparent 60%);}
+  100%{background:linear-gradient(180deg,rgba(0,10,40,.05) 0%,transparent 60%);}
+}
+@keyframes bootRays{
+  0%{opacity:0;}
+  30%{opacity:1;background:repeating-linear-gradient(175deg,transparent 0%,transparent 8%,rgba(40,120,255,.04) 8.5%,transparent 9%);}
+  100%{opacity:.3;background:repeating-linear-gradient(175deg,transparent 0%,transparent 8%,rgba(20,60,160,.02) 8.5%,transparent 9%);}
+}
+/* 気泡 */
+.boot-bubble{position:absolute;border-radius:50%;background:rgba(100,200,255,.15);border:.5px solid rgba(100,200,255,.3);animation:bootBubbleRise linear infinite;}
+@keyframes bootBubbleRise{0%{transform:translateY(0) scale(1);opacity:.6;}100%{transform:translateY(-110vh) scale(1.2);opacity:0;}}
+/* 光の筋 */
+.boot-ray{position:absolute;top:-20%;width:2px;background:linear-gradient(180deg,transparent,rgba(100,200,255,.12),transparent);animation:bootRay linear infinite;}
+@keyframes bootRay{0%{opacity:0;transform:translateX(-10px);}50%{opacity:1;}100%{opacity:0;transform:translateX(10px);}}
+/* メインコンテンツ */
+.boot-inner{
+  position:relative;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:0;
+  animation:bootFadeIn 1.5s ease-out .5s both;
+}
+@keyframes bootFadeIn{0%{opacity:0;transform:translateY(30px);}100%{opacity:1;transform:translateY(0);}}
+.boot-logo{
+  font-size:28px;font-weight:800;letter-spacing:.25em;text-align:center;line-height:1.5;
+  background:linear-gradient(180deg,#80d0ff,#3080c0,#1040a0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:none;
+  filter:drop-shadow(0 0 20px rgba(60,150,255,.5));
+  margin-bottom:6px;
+}
+.boot-sub{font-size:10px;color:rgba(100,180,255,.6);letter-spacing:.3em;margin-bottom:24px;}
+.boot-bar{width:200px;height:2px;background:rgba(30,80,160,.3);border-radius:2px;overflow:hidden;margin-bottom:20px;}
+.boot-fill{height:100%;background:linear-gradient(90deg,#1060c0,#40c0ff,#10c0a0);width:0;border-radius:2px;transition:width .05s;box-shadow:0 0 8px rgba(40,180,255,.6);}
+/* TIPS */
+.boot-tips-box{
+  max-width:280px;text-align:center;
+  background:rgba(0,20,60,.4);border:.5px solid rgba(30,80,160,.3);
+  border-radius:10px;padding:10px 16px;margin-bottom:20px;
+  animation:bootFadeIn .5s ease-out;
+}
+.boot-tips-label{font-size:8px;color:rgba(60,160,255,.6);letter-spacing:.15em;margin-bottom:5px;}
+.boot-tips-text{font-size:11px;color:rgba(180,220,255,.85);line-height:1.6;}
+/* クリックプロンプト */
+.boot-click-prompt{
+  font-size:11px;color:rgba(100,200,255,.7);letter-spacing:.1em;
+  animation:bootPulse 1.5s ease-in-out infinite;
+  display:none;margin-top:8px;
+}
+@keyframes bootPulse{0%,100%{opacity:.4;}50%{opacity:1;}}
 
 /* SEARCH & FILTER */
 .filter-bar{display:flex;gap:6px;padding:0 0 10px;flex-wrap:wrap;align-items:center;}
@@ -1111,6 +1170,28 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 @keyframes urRingPulse{0%,100%{box-shadow:0 0 30px 10px rgba(255,215,0,.4),0 0 60px 20px rgba(255,180,0,.2);}50%{box-shadow:0 0 50px 20px rgba(255,215,0,.7),0 0 100px 40px rgba(255,180,0,.4);}}
 @keyframes urStarSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 #ur-glow-ring{animation:urRingPulse 1.5s ease-in-out infinite;}
+
+/* ===== TITLE SCREEN ===== */
+#screen-title{position:fixed;inset:0;z-index:1100;overflow:hidden;background:#000208;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.title-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(0,30,100,.8) 0%,rgba(0,10,40,.95) 60%,#000208 100%);}
+.title-logo{
+  position:relative;z-index:2;
+  font-size:32px;font-weight:900;letter-spacing:.3em;text-align:center;line-height:1.6;
+  background:linear-gradient(180deg,#a0d8ff,#4090e0,#1040a0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 24px rgba(60,150,255,.6));
+  animation:titleFloat 3s ease-in-out infinite;
+  margin-bottom:10px;
+}
+@keyframes titleFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.title-sub{position:relative;z-index:2;font-size:10px;color:rgba(100,180,255,.5);letter-spacing:.35em;margin-bottom:50px;}
+.title-tap{
+  position:relative;z-index:2;
+  font-size:13px;color:rgba(160,220,255,.8);letter-spacing:.12em;
+  animation:titlePulse 1.6s ease-in-out infinite;
+}
+@keyframes titlePulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+.title-wave{position:absolute;bottom:0;left:0;right:0;height:120px;z-index:1;opacity:.3;}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1136,11 +1217,27 @@ function onPvpEnd(won, quest){
 <div class="sea-bg"><canvas id="seaCanvas"></canvas></div>
 
 <!-- BOOT -->
-<div class="screen active" id="screen-boot">
+<!-- TITLE -->
+<div id="screen-title" onclick="onTitleTap()">
+  <div class="title-bg"></div>
+  <canvas id="title-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <div class="title-logo">ABYSSAL<br>CHRONICLE</div>
+  <div class="title-sub">― DEEP SEA FRONTIER ―</div>
+  <div class="title-tap">🌊 タップして深海へ</div>
+</div>
+
+<div class="screen" id="screen-boot" onclick="onBootClick()">
+  <div class="boot-ocean" id="boot-ocean"></div>
+  <div class="boot-layer boot-layer3"></div>
   <div class="boot-inner">
     <div class="boot-logo">ABYSSAL<br>CHRONICLE</div>
     <div class="boot-sub">― DEEP SEA FRONTIER ―</div>
     <div class="boot-bar"><div class="boot-fill" id="boot-fill"></div></div>
+    <div class="boot-tips-box" id="boot-tips-box">
+      <div class="boot-tips-label">💡 TIPS</div>
+      <div class="boot-tips-text" id="boot-tips-text">読み込み中...</div>
+    </div>
+    <div class="boot-click-prompt" id="boot-click-prompt">✦ タップしてはじめる ✦</div>
   </div>
 </div>
 
@@ -3145,6 +3242,65 @@ function initSeaBg(){
   const cv=document.getElementById('seaCanvas'),ctx=cv.getContext('2d');
   cv.width=window.innerWidth; cv.height=window.innerHeight;
   const pts=Array.from({length:35},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:.8+Math.random()*2.5,vy:-.15-Math.random()*.35,op:.1+Math.random()*.25}));
+
+  // 黒い魚シルエット
+  const FISH_SHAPES = [
+    // [bodyW, bodyH, tailW, tailH] 小・中・大
+    {bw:18,bh:8,tw:8,th:10},
+    {bw:28,bh:11,tw:11,th:14},
+    {bw:40,bh:15,tw:14,th:18},
+  ];
+  const fishes = Array.from({length:6},()=>{
+    const sh = FISH_SHAPES[Math.floor(Math.random()*FISH_SHAPES.length)];
+    return {
+      x: Math.random()*cv.width,
+      y: 40+Math.random()*(cv.height-80),
+      vx: (.3+Math.random()*.5)*(Math.random()<.5?1:-1),
+      vy: (Math.random()-.5)*.1,
+      shape: sh,
+      op: .12+Math.random()*.2,  // 薄い影
+      waveOffset: Math.random()*Math.PI*2,
+    };
+  });
+
+  function drawFish(x, y, shape, op, dir, wave){
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.translate(x, y + Math.sin(wave)*.8);
+    // dir=1:右向き dir=-1:左向き　そのままscaleで反転
+    ctx.scale(dir, 1);
+    // 頭は右側(+x)、尾ひれは左側(-x)で統一
+    // 胴体（楕円）
+    ctx.beginPath();
+    ctx.ellipse(0, 0, shape.bw, shape.bh, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    ctx.fill();
+    // 尾ひれ（左側・三角）
+    ctx.beginPath();
+    ctx.moveTo(-shape.bw+2, 0);
+    ctx.lineTo(-shape.bw-shape.tw, -shape.th/2);
+    ctx.lineTo(-shape.bw-shape.tw,  shape.th/2);
+    ctx.closePath();
+    ctx.fill();
+    // 背びれ（上側）
+    ctx.beginPath();
+    ctx.moveTo(-shape.bw*.2, -shape.bh);
+    ctx.lineTo(shape.bw*.1, -shape.bh-shape.bh*.7);
+    ctx.lineTo(shape.bw*.4, -shape.bh);
+    ctx.closePath();
+    ctx.fill();
+    // 胸ひれ（下側）
+    ctx.beginPath();
+    ctx.ellipse(-shape.bw*.1, shape.bh*.55, shape.bw*.18, shape.bh*.35, .5, 0, Math.PI*2);
+    ctx.fill();
+    // 目（黒背景に白い点）
+    ctx.beginPath();
+    ctx.arc(shape.bw*.55, -shape.bh*.15, shape.bh*.2, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fill();
+    ctx.restore();
+  }
+
   (function draw(){
     ctx.clearRect(0,0,cv.width,cv.height);
     const g=ctx.createLinearGradient(0,0,0,cv.height);
@@ -3162,6 +3318,22 @@ function initSeaBg(){
       if(p.y<-8){p.y=cv.height+8;p.x=Math.random()*cv.width;}
       ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.strokeStyle=`rgba(20,90,180,${p.op})`; ctx.lineWidth=.5; ctx.stroke();
+    });
+    // 黒い魚シルエットを描画
+    const now = Date.now()*.001;
+    fishes.forEach(f=>{
+      f.x += f.vx;
+      f.y += Math.sin(now*.5+f.waveOffset)*.15;
+      // 画面外に出たら反対側から
+      if(f.vx>0 && f.x > cv.width + f.shape.bw + f.shape.tw){
+        f.x = -(f.shape.bw + f.shape.tw);
+        f.y = 40+Math.random()*(cv.height-80);
+      } else if(f.vx<0 && f.x < -(f.shape.bw + f.shape.tw)){
+        f.x = cv.width + f.shape.bw + f.shape.tw;
+        f.y = 40+Math.random()*(cv.height-80);
+      }
+      const dir = f.vx > 0 ? 1 : -1;
+      drawFish(f.x, f.y, f.shape, f.op, dir, now+f.waveOffset);
     });
     requestAnimationFrame(draw);
   })();
@@ -6529,6 +6701,7 @@ async function loadOnlineData(){
 //  BOOT
 // ================================================================
 window.addEventListener('load', async ()=>{
+  var _loadStartTime = Date.now();
   initSeaBg();
   // SE設定をロード済みSに合わせてUIを更新
   const seSlider=document.getElementById('se-vol');
@@ -6541,8 +6714,51 @@ window.addEventListener('load', async ()=>{
   if(bubbleToggle){ bubbleToggle.classList.toggle('on',S.bubbleOn); }
 
   const fill = document.getElementById('boot-fill');
-  let w = 0;
-  const iv = setInterval(()=>{ w+=2; fill.style.width=w+'%'; if(w>=40) clearInterval(iv); }, 30);
+
+  // ロードバーを15秒かけてゆっくり進める
+  // 実際のロード完了フラグ
+  var _dataLoaded = false;
+  var _barProgress = 0;
+  var _barTarget = 0; // 実ロード進捗に合わせたターゲット
+
+  // バーをなめらかに進めるループ（60fps）
+  var _barTimer = setInterval(function(){
+    // ターゲットに向かってゆっくり近づく
+    if(_barProgress < _barTarget){
+      _barProgress = Math.min(_barProgress + 0.3, _barTarget);
+    }
+    // データロード完了後は100%まで進む（ただし15秒は待つ）
+    if(_dataLoaded && _barProgress < 100){
+      _barProgress = Math.min(_barProgress + 0.5, 100);
+    }
+    fill.style.width = _barProgress + '%';
+
+    // 100%になったらクリック可能に
+    if(_barProgress >= 100){
+      clearInterval(_barTimer);
+      fill.style.width = '100%';
+      var prompt = document.getElementById('boot-click-prompt');
+      if(prompt) prompt.style.display = 'block';
+      window._bootReady = true;
+      setTimeout(()=>{ initAudio(); updatePlayerIdDisplay(); }, 100);
+    }
+  }, 16); // ~60fps
+
+  // 15秒かけて自然にバーを進める（0→85%まで）
+  // 序盤はゆっくり、後半もゆっくり
+  var _naturalTimer = setInterval(function(){
+    if(_barTarget < 85){
+      // 0.1%ずつ増やす → 85% / 0.1 = 850ステップ × 間隔ms = 15秒
+      _barTarget += 0.1;
+    }
+  }, 1000 / (85 / 15)); // 15秒で85%
+
+  // 深海パーティクル演出を起動
+  startBootOcean();
+  // ロード中もTIPS・BGMはtitle tap後に開始済み
+  // TIPSローテーション開始
+  startBootTips();
+  // BGMはタイトル画面タップ時に再生
 
   // Firebase初期化
   // console.errorをインターセプトしてFirestoreクォータエラーを検知
@@ -6570,22 +6786,21 @@ window.addEventListener('load', async ()=>{
   // 起動時接続チェック
   checkFirestoreConnection();
 
-  let w2 = 40;
-  const iv2 = setInterval(()=>{ w2+=2; fill.style.width=w2+'%'; if(w2>=70) clearInterval(iv2); }, 30);
+  // Firebase完了 → ターゲットを70%に引き上げ
+  _barTarget = Math.max(_barTarget, 70);
 
   // お知らせ・プレゼント取得
   await loadServerNotices().catch(e=>console.log('[ABYSSAL] Server notices error:', e));
   await loadOnlineData().catch(()=>{});
 
-  // ロードバー完了
-  let w3 = 70;
-  const iv3 = setInterval(()=>{
-    w3+=3; fill.style.width=w3+'%';
-    if(w3>=100){
-      clearInterval(iv3);
-      setTimeout(()=>{ initAudio(); goTo('home'); updatePlayerIdDisplay(); }, 300);
-    }
-  }, 25);
+  // 全データロード完了 → ターゲットを90%に、dataLoadedフラグON
+  _barTarget = Math.max(_barTarget, 90);
+  clearInterval(_naturalTimer);
+  // 15秒経過後に100%へ（自然なタイミングで完了）
+  setTimeout(function(){
+    _dataLoaded = true;
+    _barTarget = 100;
+  }, Math.max(0, 15000 - (Date.now() - _loadStartTime)));
 });
 
 document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();},{once:true});
@@ -10811,22 +11026,46 @@ var bgmAudio = null;        // 現在再生中のAudioオブジェクト
 var bgmCurrentKey = null;   // 現在のBGMキー
 var bgmEnabled = true;      // BGM ON/OFF
 var bgmVolume = 0.4;        // BGM音量（0.0〜1.0）
+var _bgmFadeTimer = null;   // フェードタイマー
 
-function playBgm(key){
+function playBgm(key, fadeDuration){
   if(!bgmEnabled) return;
   if(!key || !BGM_FILES[key] || BGM_FILES[key]==='') return;
-  if(bgmCurrentKey === key && bgmAudio && !bgmAudio.paused) return; // 同じ曲再生中
+  if(bgmCurrentKey === key && bgmAudio && !bgmAudio.paused) return;
+  var dur = (fadeDuration !== undefined) ? fadeDuration : 0; // デフォルトは即時切り替え
   bgmCurrentKey = key;
-  // 現在の曲をフェードアウトして切り替え
-  if(bgmAudio){
-    bgmAudio.pause();
-    bgmAudio = null;
+  if(bgmAudio && dur > 0){
+    // クロスフェード：旧曲をフェードアウトしながら新曲をフェードイン
+    var oldAudio = bgmAudio;
+    var newAudio = new Audio(BGM_FILES[key]);
+    newAudio.loop = true;
+    newAudio.volume = 0;
+    newAudio.play().catch(function(){});
+    bgmAudio = newAudio;
+    var steps = 30;
+    var interval = dur / steps;
+    var step = 0;
+    if(_bgmFadeTimer) clearInterval(_bgmFadeTimer);
+    _bgmFadeTimer = setInterval(function(){
+      step++;
+      var t = step / steps;
+      oldAudio.volume = Math.max(0, bgmVolume * (1 - t));
+      newAudio.volume = Math.min(bgmVolume, bgmVolume * t);
+      if(step >= steps){
+        clearInterval(_bgmFadeTimer);
+        _bgmFadeTimer = null;
+        oldAudio.pause();
+        newAudio.volume = bgmVolume;
+      }
+    }, interval);
+  } else {
+    if(bgmAudio){ bgmAudio.pause(); bgmAudio = null; }
+    var audio = new Audio(BGM_FILES[key]);
+    audio.loop = true;
+    audio.volume = bgmVolume;
+    audio.play().catch(function(){});
+    bgmAudio = audio;
   }
-  var audio = new Audio(BGM_FILES[key]);
-  audio.loop = true;
-  audio.volume = bgmVolume;
-  audio.play().catch(function(){ /* 自動再生ブロック時は無視 */ });
-  bgmAudio = audio;
 }
 
 function stopBgm(){
@@ -12431,6 +12670,297 @@ function bsToggleAutoSpecial(){
   if(btn) btn.className='toggle-btn '+(S.battleSettings.autoSpecial?'on':'off');
   saveGame();
   showToast(S.battleSettings.autoSpecial?'🟢 オートで特殊カードを選択します':'🔴 オートで特殊カードをスキップします');
+}
+
+// ================================================================
+//  BOOT 深海演出
+// ================================================================
+const BOOT_TIPS = [
+  '深海属性の組み合わせで特殊カードが発動！コンボLv.4を目指そう。',
+  'アルカナやヴォイドはカード選択+1。どんな編成にも必ず役に立つ。',
+  '凍結した敵は行動がスキップされる。氷パーティで完全封殺を狙え！',
+  '麻痺はランダムな1体に付与される。複数デバッファーで確率を上げよう。',
+  'オートバトル中も⚙️ボタンで設定を変更できる。ヒール優先も設定可能。',
+  '無限塔はHPを引き継いで連続挑戦。トリトスやアルテアで回復を維持しよう。',
+  '天井は100回でUR確定。天井前にURが出ることも！',
+  'タンクがいると70%の確率で攻撃を引き受けてくれる。長期戦の守りの鍵。',
+  'デバッファーのデバフはターン経過でダメージを与え続ける。毒は5スタックまで！',
+  '特殊カードは1枚60%・2枚30%・3枚10%の確率で出現。枚数の多い日もある。',
+  '8章・9章は試験的クエスト。複数敵との戦闘を練習できる。報酬なし。',
+  'ガチャチケットは1枚でジェム160相当。10連ではチケットとジェムを合算できる。',
+  'PvPでランク1500以上を目指すと特別な実績が解除される。',
+  '図鑑に全キャラが登録されている。未所持キャラもシルエットで確認できる。',
+  '同属性3体パーティで強力な特殊カードが出やすくなる。属性を揃えてみよう。',
+  'SSRキャラも凸すれば十分戦力になる。素材を集めて限界突破しよう。',
+  '炎症・毒は毎ターン持続ダメージ。デバッファーを編成して長期戦を有利に。',
+  '凍結はターン完全スキップ。強敵との戦いで凍結を狙えば大きなアドバンテージ！',
+  'ガチャのピックアップはUR×2・SSR×2。狙いのキャラが入ったバナーを選ぼう。',
+  '実績を解除すると称号やアイコンが入手できる。図鑑完成も目指してみよう。',
+  'フレンドを追加するとサポートキャラとして編成に加えられる。',
+  'コンボゲージが満タンになると特殊カードが出現！強力な効果を持つ。',
+  'ヒーラーのアルテアはカードがすべてヒールに変化する。HP55%以下で緊急回復も！',
+  'イブリスとアルカナを同時編成すると深淵崩壊撃が出現。×5倍の大ダメージ！',
+  'ランクを上げるとスタミナや報酬が強化される。クエストを重ねてランクアップ！',
+];
+
+var _bootTipsTimer = null;
+var _bootTipsIdx = 0;
+
+function startBootTips(){
+  var el = document.getElementById('boot-tips-text');
+  if(!el) return;
+  // シャッフル
+  for(var i=BOOT_TIPS.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var tmp=BOOT_TIPS[i]; BOOT_TIPS[i]=BOOT_TIPS[j]; BOOT_TIPS[j]=tmp;
+  }
+  el.textContent = BOOT_TIPS[0];
+  _bootTipsIdx = 1;
+  _bootTipsTimer = setInterval(function(){
+    var box = document.getElementById('boot-tips-box');
+    if(!box) return;
+    box.style.opacity='0';
+    box.style.transition='opacity .4s';
+    setTimeout(function(){
+      var e2 = document.getElementById('boot-tips-text');
+      if(e2) e2.textContent = BOOT_TIPS[_bootTipsIdx % BOOT_TIPS.length];
+      _bootTipsIdx++;
+      if(box){ box.style.opacity='1'; }
+    }, 400);
+  }, 9000);
+}
+
+function startBootOcean(){
+  var ocean = document.getElementById('boot-ocean');
+  if(!ocean) return;
+  ocean.innerHTML = '';
+
+  // canvasを生成してホーム画面と同じ描画方式に
+  var cv = document.createElement('canvas');
+  cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  ocean.appendChild(cv);
+  var ctx = cv.getContext('2d');
+
+  // 気泡パーティクル
+  var pts = Array.from({length:30},function(){return{
+    x:Math.random()*cv.width,
+    y:Math.random()*cv.height,
+    r:.6+Math.random()*2,
+    vy:-.12-Math.random()*.3,
+    op:.08+Math.random()*.2
+  };});
+
+  // 光の筋
+  var rays = Array.from({length:5},function(_, i){return{
+    x: cv.width*(0.1+i*0.2),
+    w: 20+Math.random()*30,
+    speed: 0.3+Math.random()*0.3,
+    op: 0.03+Math.random()*0.04,
+  };});
+
+  // 魚シルエット（目なし・深海に潜る途中イメージ）
+  // ロード画面は「潜っている途中」なので大きめ・薄め・ゆっくり
+  var FISH_SHAPES = [
+    {bw:22,bh:9,tw:9,th:11},
+    {bw:35,bh:13,tw:13,th:16},
+    {bw:55,bh:20,tw:18,th:24},  // 大型
+    {bw:70,bh:24,tw:22,th:28},  // 超大型（深海の大物）
+  ];
+  var fishes = Array.from({length:7},function(){
+    var sh = FISH_SHAPES[Math.floor(Math.random()*FISH_SHAPES.length)];
+    var goRight = Math.random()<0.5;
+    return {
+      x: goRight ? -(sh.bw+sh.tw+10) : cv.width+(sh.bw+sh.tw+10),
+      y: 30+Math.random()*(cv.height-60),
+      vx: (goRight?1:-1)*(0.2+Math.random()*0.5),
+      vy: (Math.random()-0.5)*0.08,
+      shape: sh,
+      op: 0.08+Math.random()*0.18,
+      waveOffset: Math.random()*Math.PI*2,
+    };
+  });
+
+  function drawBootFish(x, y, shape, op, dir, wave){
+    ctx.save();
+    ctx.globalAlpha = op;
+    ctx.translate(x, y + Math.sin(wave)*0.6);
+    ctx.scale(dir, 1);
+    // 胴体
+    ctx.beginPath();
+    ctx.ellipse(0,0,shape.bw,shape.bh,0,0,Math.PI*2);
+    ctx.fillStyle='#000'; ctx.fill();
+    // 尾ひれ
+    ctx.beginPath();
+    ctx.moveTo(-shape.bw+2,0);
+    ctx.lineTo(-shape.bw-shape.tw,-shape.th/2);
+    ctx.lineTo(-shape.bw-shape.tw, shape.th/2);
+    ctx.closePath(); ctx.fill();
+    // 背びれ
+    ctx.beginPath();
+    ctx.moveTo(-shape.bw*.2,-shape.bh);
+    ctx.lineTo(shape.bw*.1,-shape.bh-shape.bh*.6);
+    ctx.lineTo(shape.bw*.4,-shape.bh);
+    ctx.closePath(); ctx.fill();
+    // 胸ひれ
+    ctx.beginPath();
+    ctx.ellipse(-shape.bw*.1,shape.bh*.5,shape.bw*.18,shape.bh*.32,0.5,0,Math.PI*2);
+    ctx.fill();
+    // 目なし（ホームと違いシルエットのみ）
+    ctx.restore();
+  }
+
+  var startTime = Date.now();
+  (function draw(){
+    var now = Date.now()*.001;
+    var elapsed = (Date.now()-startTime)/1000;
+
+    ctx.clearRect(0,0,cv.width,cv.height);
+
+    // 深海に沈む背景（時間経過で暗く）
+    var depth = Math.min(elapsed/8, 1); // 0→1（8秒で深海）
+    var g = ctx.createLinearGradient(0,0,0,cv.height);
+    var topR = Math.round(0+10*(1-depth));
+    var topG = Math.round(20+60*(1-depth));
+    var topB = Math.round(60+120*(1-depth));
+    g.addColorStop(0,'rgb('+topR+','+topG+','+topB+')');
+    g.addColorStop(0.4,'rgba(0,'+(10+20*(1-depth))+','+(30+60*(1-depth))+',.95)');
+    g.addColorStop(1,'#000208');
+    ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+
+    // 光の筋（深くなるほど薄く）
+    rays.forEach(function(ray){
+      var rayOp = ray.op * (1-depth*0.7);
+      var lg = ctx.createLinearGradient(ray.x,0,ray.x,cv.height*.8);
+      lg.addColorStop(0,'rgba(80,160,255,'+rayOp+')');
+      lg.addColorStop(1,'transparent');
+      ctx.beginPath();
+      ctx.moveTo(ray.x-ray.w*.3,0); ctx.lineTo(ray.x+ray.w*.3,0);
+      ctx.lineTo(ray.x+ray.w,cv.height*.8); ctx.lineTo(ray.x-ray.w,cv.height*.8);
+      ctx.fillStyle=lg; ctx.fill();
+    });
+
+    // 気泡
+    pts.forEach(function(p){
+      p.y+=p.vy; p.x+=Math.sin(p.y*.018)*.2;
+      if(p.y<-8){p.y=cv.height+8;p.x=Math.random()*cv.width;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(20,90,180,'+p.op+')'; ctx.lineWidth=.5; ctx.stroke();
+    });
+
+    // 魚シルエット
+    fishes.forEach(function(f){
+      f.x+=f.vx;
+      f.y+=Math.sin(now*.4+f.waveOffset)*.12;
+      if(f.vx>0 && f.x>cv.width+f.shape.bw+f.shape.tw+10){
+        f.x=-(f.shape.bw+f.shape.tw+10);
+        f.y=30+Math.random()*(cv.height-60);
+      } else if(f.vx<0 && f.x<-(f.shape.bw+f.shape.tw+10)){
+        f.x=cv.width+(f.shape.bw+f.shape.tw+10);
+        f.y=30+Math.random()*(cv.height-60);
+      }
+      drawBootFish(f.x,f.y,f.shape,f.op,f.vx>0?1:-1,now+f.waveOffset);
+    });
+
+    requestAnimationFrame(draw);
+  })();
+}
+
+function onBootClick(){
+  if(!window._bootReady) return;
+  if(_bootTipsTimer){ clearInterval(_bootTipsTimer); }
+  var screen = document.getElementById('screen-boot');
+  if(screen){
+    screen.style.transition='opacity .8s';
+    screen.style.opacity='0';
+    // クエストBGM→ホームBGMへ2秒クロスフェード
+    playBgm('home', 2000);
+    setTimeout(function(){
+      goTo('home');
+    }, 800);
+  }
+}
+
+// ================================================================
+//  TITLE SCREEN
+// ================================================================
+function initTitleScreen(){
+  var cv = document.getElementById('title-canvas');
+  if(!cv) return;
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  var ctx = cv.getContext('2d');
+
+  // 気泡
+  var pts = Array.from({length:25},function(){return{
+    x:Math.random()*cv.width, y:cv.height+Math.random()*cv.height,
+    r:.5+Math.random()*2, vy:-.1-Math.random()*.25, op:.06+Math.random()*.15
+  };});
+
+  // 魚シルエット（タイトル用・少し大きめ・薄め）
+  var SHAPES=[{bw:30,bh:11,tw:11,th:14},{bw:50,bh:18,tw:16,th:20},{bw:22,bh:8,tw:8,th:10}];
+  var fishes = Array.from({length:5},function(){
+    var sh=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+    var goRight=Math.random()<.5;
+    return{x:goRight?-(sh.bw+sh.tw):cv.width+(sh.bw+sh.tw),y:30+Math.random()*(cv.height-60),
+      vx:(goRight?1:-1)*(.15+Math.random()*.35),shape:sh,op:.07+Math.random()*.13,wo:Math.random()*Math.PI*2};
+  });
+
+  function drawTitleFish(x,y,sh,op,dir,wave){
+    ctx.save(); ctx.globalAlpha=op;
+    ctx.translate(x,y+Math.sin(wave)*.6); ctx.scale(dir,1);
+    ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.ellipse(0,0,sh.bw,sh.bh,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-sh.bw+2,0); ctx.lineTo(-sh.bw-sh.tw,-sh.th/2); ctx.lineTo(-sh.bw-sh.tw,sh.th/2); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-sh.bw*.2,-sh.bh); ctx.lineTo(sh.bw*.1,-sh.bh-sh.bh*.6); ctx.lineTo(sh.bw*.4,-sh.bh); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  (function draw(){
+    var now=Date.now()*.001;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    // 光の筋
+    for(var i=0;i<4;i++){
+      var lx=cv.width*(.1+i*.25);
+      var lg=ctx.createLinearGradient(lx,0,lx,cv.height*.7);
+      lg.addColorStop(0,'rgba(60,140,255,.06)'); lg.addColorStop(1,'transparent');
+      ctx.beginPath(); ctx.moveTo(lx-20,0); ctx.lineTo(lx+20,0); ctx.lineTo(lx+80,cv.height*.7); ctx.lineTo(lx-80,cv.height*.7);
+      ctx.fillStyle=lg; ctx.fill();
+    }
+    pts.forEach(function(p){
+      p.y+=p.vy; p.x+=Math.sin(p.y*.018)*.2;
+      if(p.y<-8){p.y=cv.height+8;p.x=Math.random()*cv.width;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(20,80,160,'+p.op+')'; ctx.lineWidth=.5; ctx.stroke();
+    });
+    fishes.forEach(function(f){
+      f.x+=f.vx; f.y+=Math.sin(now*.4+f.wo)*.1;
+      if(f.vx>0&&f.x>cv.width+f.shape.bw+f.shape.tw+10){f.x=-(f.shape.bw+f.shape.tw+10);f.y=30+Math.random()*(cv.height-60);}
+      else if(f.vx<0&&f.x<-(f.shape.bw+f.shape.tw+10)){f.x=cv.width+(f.shape.bw+f.shape.tw+10);f.y=30+Math.random()*(cv.height-60);}
+      drawTitleFish(f.x,f.y,f.shape,f.op,f.vx>0?1:-1,now+f.wo);
+    });
+    if(document.getElementById('screen-title')&&document.getElementById('screen-title').style.display!=='none'){
+      requestAnimationFrame(draw);
+    }
+  })();
+}
+
+function onTitleTap(){
+  // タップ→BGM再生→ロード画面へ
+  initAudio();
+  playBgm('quest');
+  var title = document.getElementById('screen-title');
+  var boot = document.getElementById('screen-boot');
+  if(title){
+    // 先にboot画面をactiveにしてからタイトルをフェードアウト
+    if(boot) boot.classList.add('active');
+    title.style.transition = 'opacity .8s';
+    title.style.opacity = '0';
+    setTimeout(function(){
+      title.style.display = 'none';
+    }, 800);
+  }
 }
 </script>
 
