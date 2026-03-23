@@ -1192,6 +1192,10 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 }
 @keyframes titlePulse{0%,100%{opacity:.3;}50%{opacity:1;}}
 .title-wave{position:absolute;bottom:0;left:0;right:0;height:120px;z-index:1;opacity:.3;}
+
+.speed-btn{padding:6px 10px;border-radius:8px;border:.5px solid rgba(60,120,200,.3);background:rgba(0,20,50,.4);font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;color:var(--text2);transition:background .15s,color .15s;}
+.speed-btn.active{background:rgba(20,80,180,.5);color:#80c8ff;border-color:rgba(60,160,255,.5);}
+.speed-btn:hover{background:rgba(10,50,120,.4);}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1920,9 +1924,14 @@ function onPvpEnd(won, quest){
   <div class="battle-actions">
     <button class="battle-btn btn-atk" id="atk-btn" onclick="executeAttack()">⚡ 選択して攻撃</button>
     <button class="auto-btn" id="auto-btn" onclick="toggleAuto()">🤖 オート</button>
-    <button class="battle-info-btn" onclick="openBattleInfoPanel()">📋 詳細</button>
+    <div style="display:flex;gap:3px;">
+      <button class="speed-btn active" id="speed-btn-1" onclick="setBattleSpeed(1)">1×</button>
+      <button class="speed-btn" id="speed-btn-2" onclick="setBattleSpeed(2)">2×</button>
+      <button class="speed-btn" id="speed-btn-3" onclick="setBattleSpeed(3)">3×</button>
+    </div>
+    <button class="battle-info-btn" onclick="openBattleInfoPanel()">📋</button>
     <button class="battle-info-btn" onclick="openBattleSettings()" style="background:rgba(40,40,80,.5);border-color:rgba(100,100,200,.4);">⚙️</button>
-    <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪 撤退</button>
+    <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪</button>
   </div>
   <!-- 状態異常フルスクリーン演出 -->
   <div class="status-flash" id="status-flash">
@@ -5117,13 +5126,13 @@ function executeAttack(){
   updateComboGauge();
   renderHand();
 
-  if(areAllEnemiesDead()){ setTimeout(winBattle,700); return; }
+  if(areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
   // デバッファースキル発動チェック
   BT.partyHp.filter(m=>m.hp>0).forEach(m=>applyDebufferSkill(m.id,'enemy'));
   renderEnemyStatuses();
 
   // ★ターン制: カードを使い切っても使い切らなくても、攻撃したら即敵ターン
-  setTimeout(()=>enemyTurn(), 600);
+  setTimeout(()=>enemyTurn(), btDelay(600));
 }
 
 // ================================================================
@@ -5223,7 +5232,7 @@ function runAutoTurn(){
   BT.autoTimer = setTimeout(()=>{
     if(!BT.auto||!BT.active||BT_PHASE!=='player') return;
     executeAttack();
-  }, 700);
+  }, btDelay(700));
 }
 
 function enemyTurn(){
@@ -5260,7 +5269,7 @@ function enemyTurn(){
     if(statusResult.isFrozen){
       if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;font-weight:700;">❄️ 凍結！敵の行動がスキップされた！</span>';
       sfx('hit');
-      setTimeout(()=>afterEnemyAttacks(), 1200);
+      setTimeout(()=>afterEnemyAttacks(), btDelay(1200));
       return;
     }
 
@@ -5279,7 +5288,7 @@ function enemyTurn(){
         if(!aliveNow.length){ loseBattle(); return; }
         if(enemyParalyzed && Math.random()<0.5){
           if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ 麻痺で連携攻撃がはずれた！</span>';
-          setTimeout(()=>afterEnemyAttacks(), 1000);
+          setTimeout(()=>afterEnemyAttacks(), btDelay(1000));
           return;
         }
         const reduction = getPartyDamageReduction();
@@ -5322,14 +5331,14 @@ function enemyTurn(){
         // 麻痺ミス
         if(atk.paralyzed && Math.random()<0.5){
           if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ '+atk.enemy.name+' 麻痺で攻撃がはずれた！</span>';
-          setTimeout(doMultiAttack, 500);
+          setTimeout(doMultiAttack, btDelay(500));
           return;
         }
         // 凍結スキップ
         var eFrozen = (atk.enemy.statuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
         if(eFrozen){
           if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;">❄️ '+atk.enemy.name+' 凍結中！</span>';
-          setTimeout(doMultiAttack, 400);
+          setTimeout(doMultiAttack, btDelay(400));
           return;
         }
 
@@ -5363,7 +5372,7 @@ function enemyTurn(){
         }
 
         if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,600); return; }
-        setTimeout(doMultiAttack, 500);
+        setTimeout(doMultiAttack, btDelay(500));
       }
       doMultiAttack();
       return;
@@ -5384,7 +5393,7 @@ function enemyTurn(){
       if(enemyParalyzed && Math.random()<0.5){
         if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ 麻痺で攻撃がはずれた！</span>';
         attackCount++;
-        setTimeout(doNextAttack, 700);
+        setTimeout(doNextAttack, btDelay(700));
         return;
       }
 
@@ -5423,7 +5432,7 @@ function enemyTurn(){
       }
       attackCount++;
       if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,600); return; }
-      setTimeout(doNextAttack, 500);
+      setTimeout(doNextAttack, btDelay(500));
     }
     doNextAttack();
   }, 600);
@@ -11870,6 +11879,7 @@ function convertAllMats(rar){
 // ================================================================
 var BT_ENEMIES = []; // [{name,emoji,hp,maxHp,atk,spd,statuses,role,syncAttack}]
 var BT_FOCUS_TARGET = -1; // 集中狙いの敵インデックス（-1=ランダム）
+var BT_SPEED = 1; // 倍速設定（1/2/3）
 
 // クエスト開始時に複数敵を初期化
 function initMultiEnemies(quest){
@@ -11911,6 +11921,8 @@ function initMultiEnemies(quest){
     renderMultiEnemies();
   }
   BT_FOCUS_TARGET = -1;
+  // 倍速ボタンUIを現在の設定に同期
+  if(document.getElementById('speed-btn-'+BT_SPEED)) setBattleSpeed(BT_SPEED);
   _alteaEmergencyUsed = false; // アルテア緊急回復リセット
   _tritosEmergencyUsed = false; // トリトス緊急回復リセット
   document.getElementById('focus-target-disp').style.display='none';
@@ -12972,6 +12984,23 @@ function onTitleTap(){
       title.style.display = 'none';
     }, 800);
   }
+}
+
+// ================================================================
+//  倍速設定
+// ================================================================
+function setBattleSpeed(speed){
+  BT_SPEED = speed;
+  [1,2,3].forEach(function(s){
+    var btn = document.getElementById('speed-btn-'+s);
+    if(btn) btn.classList.toggle('active', s===speed);
+  });
+  sfx('click');
+}
+
+// 倍速対応のsetTimeout（オートバトル中のみ短縮）
+function btDelay(ms){
+  return BT.auto ? Math.max(50, Math.round(ms / BT_SPEED)) : ms;
 }
 </script>
 
