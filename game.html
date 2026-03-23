@@ -5151,7 +5151,8 @@ function runAutoTurn(){
 
   const bs = S.battleSettings||{autoHeal:true,autoSpecial:true};
   // HP80%以下の味方がいるか判定
-  const needsHeal = BT.partyHp.some(function(m){return m.hp>0 && m.hp/m.maxHp<0.8;});
+  // サポート含む全員のHPをチェック（閾値90%で早めにヒール）
+  const needsHeal = BT.partyHp.some(function(m){return m.hp>0 && m.hp/m.maxHp<0.9;});
 
   // ヒールが必要な時はヒールカードを優先（先頭に）、それ以外はダメージ順
   const sorted = BT.hand
@@ -12287,7 +12288,17 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
     // キャラ組み合わせ条件
     if(sc.requiredChars){
       var hasAll = sc.requiredChars.every(function(rid){return partyIds.includes(rid);});
-      if(hasAll) matched.push(sc);
+      if(!hasAll) return;
+      // 必要キャラのいずれかが行動阻害（凍結・麻痺）を受けていたら出現しない
+      var anyDebuffed = sc.requiredChars.some(function(rid){
+        var member = BT.partyHp.find(function(m){return m.id===rid;});
+        if(!member) return false;
+        return (member.statuses||[]).some(function(s){
+          return (s.type==='freeze'||s.type==='para') && s.turns>0;
+        });
+      });
+      if(anyDebuffed) return; // デバフ中は出現しない
+      matched.push(sc);
       return;
     }
     // 属性揃え条件（コンボ中の属性と一致）
