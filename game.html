@@ -1802,6 +1802,7 @@ function onPvpEnd(won, quest){
     <button class="battle-btn btn-atk" id="atk-btn" onclick="executeAttack()">⚡ 選択して攻撃</button>
     <button class="auto-btn" id="auto-btn" onclick="toggleAuto()">🤖 オート</button>
     <button class="battle-info-btn" onclick="openBattleInfoPanel()">📋 詳細</button>
+    <button class="battle-info-btn" onclick="openBattleSettings()" style="background:rgba(40,40,80,.5);border-color:rgba(100,100,200,.4);">⚙️</button>
     <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪 撤退</button>
   </div>
   <!-- 状態異常フルスクリーン演出 -->
@@ -4984,6 +4985,12 @@ function runAutoTurn(){
     const alreadySel = charSelectCount[c.charId]||0;
     if(isPara && alreadySel >= 1) continue;
 
+    // ヒールカード：設定がOFFならスキップ
+    const bs = S.battleSettings||{autoHeal:true,autoSpecial:true};
+    if(c.isHeal && !bs.autoHeal) continue;
+    // 特殊カード：設定がOFFならスキップ（特殊カードはMAX_SELECT制限外なので別途処理）
+    if(c.isSpecial && !bs.autoSpecial) continue;
+
     charSelectCount[c.charId] = alreadySel + 1;
     available.push(c);
   }
@@ -4998,6 +5005,19 @@ function runAutoTurn(){
   });
   renderHand();
   updateComboGauge();
+
+  // 特殊カードをオートで追加選択（設定がONの場合・MAX_SELECT制限外）
+  const bsAuto = S.battleSettings||{autoHeal:true,autoSpecial:true};
+  if(bsAuto.autoSpecial){
+    BT.hand.forEach(function(c,i){
+      if(c.isSpecial && !c.used && !c.selected){
+        c.selected=true;
+        BT.selectedOrder.push(i);
+      }
+    });
+    renderHand();
+    updateComboGauge();
+  }
 
   BT.autoTimer = setTimeout(()=>{
     if(!BT.auto||!BT.active||BT_PHASE!=='player') return;
@@ -11887,12 +11907,14 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
 
   if(!matched.length) return;
 
-  // 特殊カードを手札に追加
+  // 特殊カードを手札に追加（1〜3枚ランダム）
   var avgAtk = BT.partyHp.reduce(function(s,m){return s+m.atk;},0)/Math.max(BT.partyHp.length,1);
   var added = [];
   matched.forEach(function(sc){
     _specialCardShown[sc.id] = true;
-    for(var i=0;i<(sc.count||1);i++){
+    // 1〜3枚ランダム
+    var count = Math.floor(Math.random()*3)+1;
+    for(var i=0;i<count;i++){
       BT.hand.push({
         name: sc.name, emoji: sc.emoji, dmg: sc.power||2.0,
         comboType:'special', charId: partyIds[0], charName:'特殊',
@@ -11901,7 +11923,7 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
         used:false, selected:false,
       });
     }
-    added.push(sc.emoji+sc.name);
+    added.push(sc.emoji+sc.name+' ×'+count);
   });
   renderHand();
   // 出現演出
@@ -12160,6 +12182,61 @@ function stopURParticles(){
   if(_urAnimId) cancelAnimationFrame(_urAnimId);
   _urAnimId = null;
 }
+
+// ================================================================
+//  戦闘設定モーダル
+// ================================================================
+function openBattleSettings(){
+  sfx('click');
+  if(!S.battleSettings) S.battleSettings={autoHeal:true,autoSpecial:true};
+  var ov = document.getElementById('battle-settings-overlay');
+  ov.style.display = 'flex';
+  // 現在値を反映
+  var bgmBtn = document.getElementById('bs-bgm-toggle');
+  var seBtn  = document.getElementById('bs-se-toggle');
+  var healBtn= document.getElementById('bs-auto-heal');
+  var spBtn  = document.getElementById('bs-auto-special');
+  var bgmVol = document.getElementById('bs-bgm-vol');
+  var bgmVolVal = document.getElementById('bs-bgm-vol-val');
+  if(bgmBtn) bgmBtn.className='toggle-btn '+(S.bgmOn!==false?'on':'off');
+  if(seBtn)  seBtn.className ='toggle-btn '+(S.seOn?'on':'off');
+  if(healBtn)healBtn.className='toggle-btn '+(S.battleSettings.autoHeal?'on':'off');
+  if(spBtn)  spBtn.className  ='toggle-btn '+(S.battleSettings.autoSpecial?'on':'off');
+  if(bgmVol){
+    var v=Math.round((S.bgmVol||0.4)*100);
+    bgmVol.value=v;
+    if(bgmVolVal) bgmVolVal.textContent=v;
+  }
+}
+function closeBattleSettings(){
+  document.getElementById('battle-settings-overlay').style.display='none';
+}
+function bsToggleBgm(){
+  toggleBgm();
+  var btn=document.getElementById('bs-bgm-toggle');
+  if(btn) btn.className='toggle-btn '+(S.bgmOn!==false?'on':'off');
+}
+function bsToggleSe(){
+  toggleSe();
+  var btn=document.getElementById('bs-se-toggle');
+  if(btn) btn.className='toggle-btn '+(S.seOn?'on':'off');
+}
+function bsToggleAutoHeal(){
+  if(!S.battleSettings) S.battleSettings={autoHeal:true,autoSpecial:true};
+  S.battleSettings.autoHeal=!S.battleSettings.autoHeal;
+  var btn=document.getElementById('bs-auto-heal');
+  if(btn) btn.className='toggle-btn '+(S.battleSettings.autoHeal?'on':'off');
+  saveGame();
+  showToast(S.battleSettings.autoHeal?'🟢 オートでヒールカードを選択します':'🔴 オートでヒールカードをスキップします');
+}
+function bsToggleAutoSpecial(){
+  if(!S.battleSettings) S.battleSettings={autoHeal:true,autoSpecial:true};
+  S.battleSettings.autoSpecial=!S.battleSettings.autoSpecial;
+  var btn=document.getElementById('bs-auto-special');
+  if(btn) btn.className='toggle-btn '+(S.battleSettings.autoSpecial?'on':'off');
+  saveGame();
+  showToast(S.battleSettings.autoSpecial?'🟢 オートで特殊カードを選択します':'🔴 オートで特殊カードをスキップします');
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -12338,6 +12415,49 @@ function stopURParticles(){
   </div>
   <div style="position:relative;z-index:2;margin-top:30px;">
     <button onclick="closeURReveal()" style="background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.4);border-radius:20px;padding:10px 32px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit;animation:urTextIn .5s 1s both;">タップして続ける</button>
+  </div>
+</div>
+
+<!-- 戦闘設定モーダル -->
+<div id="battle-settings-overlay" onclick="if(event.target===this)closeBattleSettings()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:rgba(4,10,25,.97);border:.5px solid rgba(60,100,180,.4);border-radius:16px;padding:20px;width:300px;max-width:90vw;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;color:var(--text);">⚙️ 戦闘設定</div>
+      <div onclick="closeBattleSettings()" style="font-size:16px;color:var(--text3);cursor:pointer;padding:2px 6px;">✕</div>
+    </div>
+    <!-- BGM -->
+    <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px;">🎵 サウンド</div>
+    <div class="setting-row" style="margin-bottom:10px;">
+      <div><div class="setting-label">BGM</div><div class="setting-sub">バトルBGM</div></div>
+      <button class="toggle-btn on" id="bs-bgm-toggle" onclick="bsToggleBgm()"></button>
+    </div>
+    <div class="setting-row" style="margin-bottom:6px;">
+      <div><div class="setting-label">BGM音量</div></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="range" class="vol-slider" id="bs-bgm-vol" min="0" max="100" value="40" oninput="onBgmVol(this.value);document.getElementById('bs-bgm-vol-val').textContent=this.value">
+        <div class="vol-val" id="bs-bgm-vol-val">40</div>
+      </div>
+    </div>
+    <div class="setting-row" style="margin-bottom:16px;">
+      <div><div class="setting-label">SE ON/OFF</div><div class="setting-sub">効果音</div></div>
+      <button class="toggle-btn on" id="bs-se-toggle" onclick="bsToggleSe()"></button>
+    </div>
+    <!-- オートバトル設定 -->
+    <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px;">🤖 オートバトル</div>
+    <div class="setting-row" style="margin-bottom:10px;">
+      <div>
+        <div class="setting-label">ヒールカード選択</div>
+        <div class="setting-sub">オート時にヒールカードを選択する</div>
+      </div>
+      <button class="toggle-btn on" id="bs-auto-heal" onclick="bsToggleAutoHeal()"></button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">特殊カード選択</div>
+        <div class="setting-sub">オート時に特殊カードを選択する</div>
+      </div>
+      <button class="toggle-btn on" id="bs-auto-special" onclick="bsToggleAutoSpecial()"></button>
+    </div>
   </div>
 </div>
 </body>
