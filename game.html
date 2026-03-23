@@ -1082,6 +1082,13 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
   font-size:7px;background:linear-gradient(90deg,#c040ff,#ff40c0);
   color:#fff;border-radius:3px;padding:1px 4px;font-weight:700;
 }
+
+/* UR演出 */
+@keyframes urFloat{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-12px) scale(1.05);}}
+@keyframes urTextIn{0%{opacity:0;transform:translateY(20px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes urRingPulse{0%,100%{box-shadow:0 0 30px 10px rgba(255,215,0,.4),0 0 60px 20px rgba(255,180,0,.2);}50%{box-shadow:0 0 50px 20px rgba(255,215,0,.7),0 0 100px 40px rgba(255,180,0,.4);}}
+@keyframes urStarSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+#ur-glow-ring{animation:urRingPulse 1.5s ease-in-out infinite;}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -3482,19 +3489,20 @@ function endStory(){
 //  GACHA BANNERS
 // ================================================================
 let BANNERS=[
+  // 恒常バナー：UR×2・SSR×2ピックアップ
   {
     id:0,name:'深淵崩壊 -Abyss Break-',icon:'🌑',
-    sub:'ピックアップ：旧破神アルカナ（UR）・深淵の番人（SSR）',
+    sub:'PU：旧破神アルカナ・深淵の使徒イグリス（UR）/ 深淵の番人・虚無の祭司（SSR）',
     color:'rgba(40,0,80,.4)',border:'rgba(160,80,255,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[1,4,5],
+    pickupIds:[1,2,4,8],
   },
   {
     id:1,name:'炎獄試練 -Inferno Trial-',icon:'🔥',
-    sub:'ピックアップ：崩壊の始原神（UR）・崩壊の炎神（SSR）',
+    sub:'PU：崩壊の始原神・炎獄神フレアノス（UR）/ 崩壊の炎神・爆炎の将軍（SSR）',
     color:'rgba(80,20,0,.4)',border:'rgba(255,100,30,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[3,5,6],
+    pickupIds:[3,60,5,77],
   },
   {
     id:2,name:'深海標準 -Standard-',icon:'🌊',
@@ -3505,82 +3513,82 @@ let BANNERS=[
   },
   {
     id:3,name:'虚空覇者 -Void Ruler-',icon:'🌌',
-    sub:'ピックアップ：虚空の支配者ヴォイド（UR）・紫炎の術師（SSR）',
+    sub:'PU：虚空の支配者ヴォイド・崩壊の終焉神エンドロス（UR）/ 紫炎の術師・骸骨の覇王（SSR）',
     color:'rgba(0,0,40,.4)',border:'rgba(100,150,255,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[59,68,70],
+    pickupIds:[59,66,68,71],
   },
   {
     id:4,name:'炎帝降臨 -Fire Emperor-',icon:'🌋',
-    sub:'ピックアップ：炎獄神フレアノス（UR）・爆炎の将軍（SSR）',
+    sub:'PU：炎獄神フレアノス・崩壊の始原神（UR）/ 爆炎の将軍・砂漠の王者（SSR）',
     color:'rgba(60,10,0,.4)',border:'rgba(255,80,20,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[60,77,73],
+    pickupIds:[60,3,77,73],
   },
   {
     id:5,name:'雷帝裁き -Thunder Judgment-',icon:'⚡',
-    sub:'ピックアップ：雷帝ザクライア（UR）・嵐の女帝（SSR）',
+    sub:'PU：雷帝ザクライア・星滅の魔神アステリア（UR）/ 嵐の女帝・天崩の雷竜（SSR）',
     color:'rgba(30,30,0,.4)',border:'rgba(255,240,50,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[61,70,74],
+    pickupIds:[61,64,70,7],
   },
   {
     id:6,name:'氷獄解放 -Ice Prison-',icon:'❄️',
-    sub:'ピックアップ：氷結の神后アイギス（UR）・霜刃の剣聖（SSR）',
+    sub:'PU：氷結の神后アイギス・深淵竜王ヴォルガII（UR）/ 霜刃の剣聖・氷獄の女神（SSR）',
     color:'rgba(0,20,40,.4)',border:'rgba(150,230,255,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[62,78,75],
+    pickupIds:[62,63,78,9],
   },
   {
     id:7,name:'星砕覚醒 -Star Crush-',icon:'💫',
-    sub:'ピックアップ：星滅の魔神アステリア（UR）・深海の歌姫（SSR）',
+    sub:'PU：星滅の魔神アステリア・海神の申し子トリトス（UR）/ 深海の歌姫・翠玉の守護竜（SSR）',
     color:'rgba(20,10,40,.4)',border:'rgba(200,160,255,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[64,76,72],
+    pickupIds:[64,65,76,72],
   },
   {
     id:8,name:'旧破終焉 -Final Break-',icon:'⭕',
-    sub:'ピックアップ：旧破の真神ゼロス（UR）・骸骨の覇王（SSR）',
+    sub:'PU：旧破の真神ゼロス・深淵の使徒イグリス（UR）/ 骸骨の覇王・月影の暗殺者（SSR）',
     color:'rgba(10,0,10,.4)',border:'rgba(255,255,255,.4)',
     pickup:['UR','SSR'],
-    pickupIds:[67,71,69],
+    pickupIds:[67,2,71,74],
   },
   // ===== 限定バナー =====
   {
     id:9, name:'深淵神降臨 -Abyssal God-', icon:'🩸', limited:true, active:false,
-    sub:'★復刻★ 深淵神イブリス（UR）・星海の巫女アルテア（UR）復刻排出！',
+    sub:'★復刻★ 深淵神イブリス・星海の巫女アルテア（UR）/ 氷結の神后アイギス・崩壊の終焉神エンドロス（UR）',
     color:'rgba(80,0,30,.5)', border:'rgba(220,30,60,.6)',
     pickup:['UR','SSR'],
-    pickupIds:[200,201,62,66],
+    pickupIds:[200,201,8,68],
     limitedIds:[200,201],
     pity:100, period:'復刻開催',
     revival:true,
   },
   {
     id:10, name:'業炎の覇王 -Blazing Tyrant-', icon:'🔱', limited:true, active:false,
-    sub:'★復刻★ 業炎の覇王カルドス（UR）復刻排出！',
+    sub:'★復刻★ 業炎の覇王カルドス・炎獄神フレアノス（UR）/ 爆炎の将軍・砂漠の王者（SSR）',
     color:'rgba(60,10,0,.5)', border:'rgba(255,80,20,.6)',
     pickup:['UR','SSR'],
-    pickupIds:[202,60,73],
+    pickupIds:[202,60,77,73],
     limitedIds:[202],
     pity:100, period:'復刻開催',
     revival:true,
   },
   {
     id:11, name:'白霧氷葬 -Frost Burial-', icon:'🌨️', limited:true, active:true,
-    sub:'★限定★ 氷獄の白妖ヴァルシア（UR）・雷神の申し子ライカ（UR）期間限定排出！',
+    sub:'★限定★ 氷獄の白妖ヴァルシア・雷神の申し子ライカ（UR）/ 霜刃の剣聖・氷獄の女神（SSR）',
     color:'rgba(0,20,60,.5)', border:'rgba(150,220,255,.6)',
     pickup:['UR','SSR'],
-    pickupIds:[203,204,62,75],
+    pickupIds:[203,204,78,9],
     limitedIds:[203,204],
     pity:100, period:'期間限定開催中',
   },
   {
     id:12, name:'深海の守護神 -Abyss Guardian-', icon:'🌊', limited:true, active:true,
-    sub:'★限定★ 深淵の水姫ネレイス（UR）・旧破の剣神エルドス（UR）期間限定排出！',
+    sub:'★限定★ 深淵の水姫ネレイス・旧破の剣神エルドス（UR）/ 深海の歌姫・翠玉の守護竜（SSR）',
     color:'rgba(0,30,80,.5)', border:'rgba(80,200,255,.6)',
     pickup:['UR','SSR'],
-    pickupIds:[205,206,65,72],
+    pickupIds:[205,206,76,72],
     limitedIds:[205,206],
     pity:100, period:'期間限定開催中',
   },
@@ -3830,6 +3838,19 @@ function doGacha(count){
 }
 
 function showResult(res){
+  // UR新規取得をチェック（被りは除外）
+  var urNewChars = res.filter(function(c){ return c.rarity==='UR' && !c.isDupe; });
+  if(urNewChars.length > 0){
+    // UR演出を先に表示→終わったら通常結果を表示
+    showURReveal(urNewChars.map(function(c){ return CHARS.find(function(ch){return ch.id===c.id;})||c; }), function(){
+      showResultCards(res);
+    });
+    return;
+  }
+  showResultCards(res);
+}
+
+function showResultCards(res){
   // 重複まとめ表示
   const totalDupeGold = res.reduce((s,c)=>s+(c.dupeGold||0),0);
   document.getElementById('result-cards').innerHTML=res.map((c,i)=>{
@@ -12041,6 +12062,134 @@ function executeSpecialCard(sc, totalAtk){
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'！敵のデバフを逆付与！', sc.color);
   }
 }
+
+// ================================================================
+//  UR演出システム
+// ================================================================
+var _urRevealQueue = []; // UR新規取得キュー
+var _urRevealCallback = null;
+var _urCanvas = null;
+var _urCtx = null;
+var _urParticles = [];
+var _urAnimId = null;
+
+function showURReveal(urChars, callback){
+  if(!urChars||!urChars.length){ if(callback) callback(); return; }
+  _urRevealQueue = urChars.slice();
+  _urRevealCallback = callback;
+  showNextURChar();
+}
+
+function showNextURChar(){
+  if(!_urRevealQueue.length){
+    closeURRevealFinal();
+    return;
+  }
+  var c = _urRevealQueue.shift();
+  var overlay = document.getElementById('ur-reveal-overlay');
+  overlay.style.display = 'flex';
+
+  // キャラ情報設定
+  document.getElementById('ur-emoji').textContent = c.emoji;
+  document.getElementById('ur-char-name').textContent = c.name;
+  document.getElementById('ur-rarity-txt').textContent = 'U  R';
+  document.getElementById('ur-skill-name').textContent = c.skillName ? '【' + c.skillName + '】' : '';
+  document.getElementById('ur-skill-desc').textContent = c.skillDesc || '';
+
+  // 限定バッジ
+  var badge = document.getElementById('ur-limited-badge');
+  badge.style.display = c.limited ? 'block' : 'none';
+
+  // 背景色をキャラカラーに
+  overlay.style.background = 'radial-gradient(ellipse at center, ' +
+    (c.bg||'rgba(20,0,40,.95)').replace(/rgba?\([^)]+\)/g, function(m){
+      return m.replace(/[\d.]+\)$/, '0.95)');
+    }) + ' 0%, #000 70%)';
+
+  // パーティクル初期化
+  startURParticles(c.border||'rgba(255,215,0,.9)');
+
+  // グローリング色
+  var ring = document.getElementById('ur-glow-ring');
+  ring.style.background = c.bg || 'rgba(20,0,40,.8)';
+  ring.style.border = '3px solid ' + (c.border||'rgba(255,215,0,.9)');
+
+  // テキスト色
+  document.getElementById('ur-rarity-txt').style.color = '#ffe040';
+  document.getElementById('ur-char-name').style.color = '#fff';
+
+  // SE
+  sfx && sfx('win');
+}
+
+function closeURReveal(){
+  // 次のURキャラがいれば続けて表示
+  if(_urRevealQueue.length > 0){
+    // アニメーションリセット
+    var display = document.getElementById('ur-char-display');
+    if(display){
+      display.style.animation = 'none';
+      setTimeout(function(){
+        display.style.animation = '';
+        showNextURChar();
+      }, 50);
+    }
+  } else {
+    closeURRevealFinal();
+  }
+}
+
+function closeURRevealFinal(){
+  stopURParticles();
+  document.getElementById('ur-reveal-overlay').style.display = 'none';
+  if(_urRevealCallback) _urRevealCallback();
+}
+
+function startURParticles(borderColor){
+  _urCanvas = document.getElementById('ur-canvas');
+  if(!_urCanvas) return;
+  _urCtx = _urCanvas.getContext('2d');
+  _urCanvas.width = window.innerWidth;
+  _urCanvas.height = window.innerHeight;
+  _urParticles = [];
+  // パーティクル生成
+  for(var i=0;i<80;i++){
+    _urParticles.push({
+      x: Math.random()*_urCanvas.width,
+      y: Math.random()*_urCanvas.height,
+      r: Math.random()*3+1,
+      vx: (Math.random()-0.5)*1.5,
+      vy: (Math.random()-0.5)*1.5-1,
+      alpha: Math.random(),
+      color: Math.random()<0.6 ? '#ffe040' : borderColor,
+    });
+  }
+  animateURParticles();
+}
+
+function animateURParticles(){
+  if(!_urCtx||!_urCanvas) return;
+  _urCtx.clearRect(0,0,_urCanvas.width,_urCanvas.height);
+  _urParticles.forEach(function(p){
+    p.x += p.vx; p.y += p.vy;
+    p.alpha -= 0.005;
+    if(p.alpha<=0||p.y<-10){
+      p.x=Math.random()*_urCanvas.width;
+      p.y=_urCanvas.height+10;
+      p.alpha=Math.random()*0.8+0.2;
+    }
+    _urCtx.beginPath();
+    _urCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    _urCtx.fillStyle = p.color.replace(/[\d.]+\)$/,p.alpha+')').replace(/rgb\(/,'rgba(');
+    _urCtx.fill();
+  });
+  _urAnimId = requestAnimationFrame(animateURParticles);
+}
+
+function stopURParticles(){
+  if(_urAnimId) cancelAnimationFrame(_urAnimId);
+  _urAnimId = null;
+}
 </script>
 
 <!-- 戦闘詳細パネル -->
@@ -12199,6 +12348,26 @@ function executeSpecialCard(sc, totalAtk){
     <div style="font-size:10px;color:var(--text3);margin-bottom:12px;">実績を解除するとアイコンを入手できます</div>
     <div id="icon-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;"></div>
     <button onclick="closeIconModal()" style="width:100%;padding:10px;border-radius:10px;border:.5px solid var(--border2);background:rgba(0,20,40,.4);color:var(--text2);cursor:pointer;font-family:inherit;">閉じる</button>
+  </div>
+</div>
+
+<!-- UR演出オーバーレイ -->
+<div id="ur-reveal-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:#000;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+  <!-- 背景エフェクト -->
+  <canvas id="ur-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+  <!-- キャラ表示 -->
+  <div id="ur-char-display" style="position:relative;z-index:2;text-align:center;">
+    <div id="ur-glow-ring" style="width:160px;height:160px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:80px;position:relative;">
+      <div id="ur-emoji" style="font-size:80px;animation:urFloat 2s ease-in-out infinite;position:relative;z-index:2;">🌟</div>
+    </div>
+    <div id="ur-rarity-txt" style="font-size:28px;font-weight:900;letter-spacing:.3em;margin-bottom:8px;animation:urTextIn .5s .3s both;">U R</div>
+    <div id="ur-char-name" style="font-size:18px;font-weight:700;margin-bottom:6px;animation:urTextIn .5s .5s both;">---</div>
+    <div id="ur-limited-badge" style="display:none;font-size:11px;background:linear-gradient(90deg,#cc2040,#ff5080);color:#fff;border-radius:20px;padding:3px 14px;margin:0 auto 8px;width:fit-content;animation:urTextIn .5s .6s both;">★ LIMITED</div>
+    <div id="ur-skill-name" style="font-size:11px;color:rgba(255,220,100,.8);margin-bottom:4px;animation:urTextIn .5s .7s both;"></div>
+    <div id="ur-skill-desc" style="font-size:10px;color:rgba(255,255,255,.6);max-width:260px;margin:0 auto;animation:urTextIn .5s .8s both;"></div>
+  </div>
+  <div style="position:relative;z-index:2;margin-top:30px;">
+    <button onclick="closeURReveal()" style="background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.4);border-radius:20px;padding:10px 32px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit;animation:urTextIn .5s 1s both;">タップして続ける</button>
   </div>
 </div>
 </body>
