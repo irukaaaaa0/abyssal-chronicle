@@ -2965,93 +2965,85 @@ const CHAPTERS=[
     ]
   },
   // ============================================================
-  // 第8章: 深淵の彼方 (推奨Lv:100+ / 複数敵登場)
+  // 第8章: 試験的クエスト（複数敵テスト）
   // ============================================================
   {
-    id:8, name:'深淵の彼方', emoji:'🌊',
-    sub:'エンドコンテンツ。複数の強敵が立ちはだかる。',
+    id:8, name:'試験的クエスト', unlocked:true, emoji:'⚗️',
+    sub:'【テスト】複数敵バトルを体験できる実験的なクエスト。報酬なし。',
     bgColor:['#000408','#001020'],
     layers:[
-      {id:801,name:'8-1 彼方の序章',   emoji:'🌊',boss:false,
-       // 2体同時出現
+      {id:801,name:'8-1 複数敵テストA', emoji:'🦑',boss:false,
        enemies:[
-         {name:'深淵の先兵A', emoji:'🦑',hp:1500000,atk:6000,spd:3,role:'attacker'},
-         {name:'深淵の先兵B', emoji:'🦠',hp:1200000,atk:5000,spd:4,role:'debuffer',
-          statusPatterns:[{type:'poison',prob:0.3,stacks:2}]},
+         {name:'深淵の先兵A', emoji:'🦑',hp:1500000,atk:1800,spd:3,role:'attacker'},
+         {name:'深淵の先兵B', emoji:'🦠',hp:1200000,atk:1500,spd:3,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
        ],
-       enemy:{name:'深淵の先兵群', emoji:'🦑',hp:2700000,atk:6000,spd:4}, // 後方互換
-       gold:200000,gem:2000,
-       story:[{char:'謎の声',icon:'👁️',text:'旅人よ、ゼロスを倒した後もまだ先がある。深淵の彼方——本当の深海の最果てだ。'}]},
-      {id:802,name:'8-2 彼方の試練',   emoji:'⚡',boss:false,
-       // 3体同時出現
+       enemy:{name:'深淵の先兵群', emoji:'🦑',hp:2700000,atk:1800,spd:3},
+       gold:0,gem:0,
+       story:[{char:'謎の声',icon:'👁️',text:'試験的なクエストだ。複数の敵と戦う練習をしよう。'}]},
+      {id:802,name:'8-2 複数敵テストB', emoji:'⚔️',boss:false,
        enemies:[
-         {name:'試練の剣士',  emoji:'⚔️',hp:1800000,atk:7000,spd:3,role:'attacker'},
-         {name:'試練の術士',  emoji:'🔮',hp:1200000,atk:5000,spd:5,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.25,stacks:1},{type:'para',prob:0.2,stacks:1}]},
-         {name:'試練の盾兵',  emoji:'🛡️',hp:2500000,atk:3000,spd:2,role:'tank'},
+         {name:'試練の剣士',  emoji:'⚔️',hp:1800000,atk:2000,spd:3,role:'attacker'},
+         {name:'試練の術士',  emoji:'🔮',hp:1200000,atk:1600,spd:4,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'para',prob:0.15,stacks:1}]},
+         {name:'試練の盾兵',  emoji:'🛡️',hp:2500000,atk:1000,spd:2,role:'tank'},
        ],
-       enemy:{name:'彼方の試練者群', emoji:'⚡',hp:5500000,atk:7000,spd:4},
-       gold:350000,gem:3000,
+       enemy:{name:'試練者群', emoji:'⚔️',hp:5500000,atk:2000,spd:3},
+       gold:0,gem:0,
        story:[{char:'司令官',icon:'🌊',text:'3体同時！デバフを駆使して倒せ！'}]},
-      {id:803,name:'8-3 BOSS 深淵将軍',emoji:'🌊',boss:true,
-       // ボス+護衛2体
+      {id:803,name:'8-3 BOSS テスト将軍',emoji:'🌊',boss:true,
        enemies:[
-         {name:'深淵護衛α',   emoji:'🦑',hp:1000000,atk:5000,spd:4,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.3,stacks:2}]},
-         {name:'深淵の彼方将', emoji:'🌊',hp:8000000,atk:15000,spd:3,role:'boss',
-          statusPatterns:[{type:'para',prob:0.2,stacks:1},{type:'burn',prob:0.25,stacks:2}],
-          syncAttack:true}, // 全員揃っている時に強力な連携技
-         {name:'深淵護衛β',   emoji:'🦠',hp:1000000,atk:5000,spd:4,role:'debuffer',
-          statusPatterns:[{type:'poison',prob:0.35,stacks:2}]},
+         {name:'深淵護衛α',   emoji:'🦑',hp:1000000,atk:1500,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
+         {name:'深淵の将',    emoji:'🌊',hp:8000000,atk:3500,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.18,stacks:1}],
+          syncAttack:true},
+         {name:'深淵護衛β',   emoji:'🦠',hp:1000000,atk:1500,spd:3,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
        ],
-       enemy:{name:'深淵の彼方将', emoji:'🌊',hp:10000000,atk:15000,spd:4},
-       gold:1000000,gem:10000,
+       enemy:{name:'深淵の将', emoji:'🌊',hp:10000000,atk:3500,spd:3},
+       gold:0,gem:0,
        story:[
-        {char:'深淵の彼方将',icon:'🌊',text:'我が護衛を倒してから来い！一人では相手しない！'},
-        {char:'司令官',icon:'🌊',text:'護衛を先に倒してからボスを狙え！'},
+        {char:'深淵の将',icon:'🌊',text:'テストボスだ。護衛を先に倒してから挑め。'},
        ]},
     ]
   },
   // ============================================================
-  // 第9章: 永劫循環 (隠し章 / 真のエンドゲーム)
+  // 第9章: 試験的クエスト上級
   // ============================================================
   {
-    id:9, name:'永劫循環', emoji:'♾️',
-    sub:'【隠し章】深淵の彼方を超えた先。3体の神が立ちふさがる。',
+    id:9, name:'試験的クエスト上級', unlocked:true, emoji:'⚗️',
+    sub:'【テスト上級】3体同時の高難度テスト。報酬なし。',
     bgColor:['#000000','#000000'],
     layers:[
-      {id:901,name:'9-1 三神の試練',   emoji:'♾️',boss:false,
-       // 3体の神同時出現
+      {id:901,name:'9-1 三体テストA',  emoji:'♾️',boss:false,
        enemies:[
-         {name:'炎の神格',  emoji:'🔥',hp:5000000,atk:12000,spd:4,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.4,stacks:2}]},
-         {name:'氷の神格',  emoji:'❄️',hp:5000000,atk:10000,spd:3,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.3,stacks:1},{type:'para',prob:0.2,stacks:1}]},
-         {name:'雷の神格',  emoji:'⚡',hp:5000000,atk:11000,spd:5,role:'attacker',
-          statusPatterns:[{type:'para',prob:0.4,stacks:1}]},
+         {name:'炎の神格',  emoji:'🔥',hp:5000000,atk:2500,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
+         {name:'氷の神格',  emoji:'❄️',hp:5000000,atk:2200,spd:3,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1}]},
+         {name:'雷の神格',  emoji:'⚡',hp:5000000,atk:2300,spd:4,role:'attacker',
+          statusPatterns:[{type:'para',prob:0.18,stacks:1}]},
        ],
-       enemy:{name:'三神格', emoji:'♾️',hp:15000000,atk:12000,spd:5},
-       gold:5000000,gem:50000,
+       enemy:{name:'三神格', emoji:'♾️',hp:15000000,atk:2500,spd:4},
+       gold:0,gem:0,
        story:[
-        {char:'謎の声',icon:'👁️',text:'三神が行く手を阻む。全員を倒さなければ前には進めない。'},
-        {char:'司令官',icon:'🌊',text:'3体同時……属性デバフを全力で使え！'},
+        {char:'謎の声',icon:'👁️',text:'上級テスト。三体の神格に挑め。'},
        ]},
-      {id:902,name:'9-2 BOSS 永劫の神',emoji:'♾️',boss:true,
-       // 分裂して3体になるボス
+      {id:902,name:'9-2 BOSS テスト最終',emoji:'♾️',boss:true,
        enemies:[
-         {name:'永劫の右腕',  emoji:'🌀',hp:8000000,atk:18000,spd:4,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.3,stacks:2},{type:'poison',prob:0.3,stacks:2}]},
-         {name:'永劫の神',    emoji:'♾️',hp:30000000,atk:25000,spd:3,role:'boss',
-          statusPatterns:[{type:'para',prob:0.3,stacks:1},{type:'freeze',prob:0.25,stacks:1}],
+         {name:'永劫の右腕',  emoji:'🌀',hp:8000000,atk:3000,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
+         {name:'永劫の神',    emoji:'♾️',hp:30000000,atk:4500,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'freeze',prob:0.15,stacks:1}],
           syncAttack:true},
-         {name:'永劫の左腕',  emoji:'🌀',hp:8000000,atk:18000,spd:4,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.35,stacks:1},{type:'poison',prob:0.35,stacks:2}]},
+         {name:'永劫の左腕',  emoji:'🌀',hp:8000000,atk:3000,spd:3,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
        ],
-       enemy:{name:'永劫の神', emoji:'♾️',hp:46000000,atk:25000,spd:5},
-       gold:99999999,gem:99999,
+       enemy:{name:'永劫の神', emoji:'♾️',hp:46000000,atk:4500,spd:4},
+       gold:0,gem:0,
        story:[
-        {char:'永劫の神',icon:'♾️',text:'……この力、受け取れるか？我が右腕と左腕も合わせて相手にしよう。'},
-        {char:'司令官',icon:'🌊',text:'腕を先に倒せ！本体への道を開く！'},
+        {char:'永劫の神',icon:'♾️',text:'最終テストボス。全力で挑め。'},
        ]},
     ]
   },
@@ -3276,9 +3268,9 @@ function renderMap(){
     const layerIds = ch.layers.map(l=>l.id);
     const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
     const allCleared = clearedCount === layerIds.length;
-    // 章のロック: 前の章の全層クリアが必要
+    // 章のロック: 前の章の全層クリアが必要（unlocked:trueは常に解放）
     const chIdx = CHAPTERS.indexOf(ch);
-    const chLocked = chIdx > 0 && !CHAPTERS[chIdx-1].layers.every(l=>S.cleared.includes(l.id));
+    const chLocked = !ch.unlocked && chIdx > 0 && !CHAPTERS[chIdx-1].layers.every(l=>S.cleared.includes(l.id));
     const isExpanded = expandedChapter === ch.id;
     const pct = layerIds.length > 0 ? Math.round(clearedCount/layerIds.length*100) : 0;
 
@@ -7793,13 +7785,28 @@ function updateBattleStatusPanel(){
   });
 
   // 敵の状態異常もパネルに（右寄せ）
-  const enemyChips = enemyStatuses.filter(s=>s.turns>0).map(s=>{
-    const cfg=STATUS_CONFIG[s.type]; if(!cfg) return '';
-    const eStack = s.stacks>1 ? '<div class="chip-stack">'+s.stacks+'</div>' : '';
-    return '<div class="status-chip chip-'+s.type+'" title="敵に'+cfg.label+'">'
-      +'敵 '+cfg.emoji+eStack
-      +'<span class="chip-turns">'+s.turns+'T</span></div>';
-  });
+  // 複数敵の場合は個別に表示
+  var enemyChips = [];
+  if(BT_ENEMIES && BT_ENEMIES.length>1){
+    BT_ENEMIES.forEach(function(e,i){
+      if(e.hp<=0) return;
+      (e.statuses||[]).filter(function(s){return s.turns>0;}).forEach(function(s){
+        var cfg=STATUS_CONFIG[s.type]; if(!cfg) return;
+        var eStack = s.stacks>1?'<div class="chip-stack">'+s.stacks+'</div>':'';
+        enemyChips.push('<div class="status-chip chip-'+s.type+'" title="'+e.name+'に'+cfg.label+'">'
+          +e.emoji+cfg.emoji+eStack
+          +'<span class="chip-turns">'+s.turns+'T</span></div>');
+      });
+    });
+  } else {
+    enemyChips = enemyStatuses.filter(function(s){return s.turns>0;}).map(function(s){
+      var cfg=STATUS_CONFIG[s.type]; if(!cfg) return '';
+      var eStack = s.stacks>1?'<div class="chip-stack">'+s.stacks+'</div>':'';
+      return '<div class="status-chip chip-'+s.type+'" title="敵に'+cfg.label+'">'
+        +'敵 '+cfg.emoji+eStack
+        +'<span class="chip-turns">'+s.turns+'T</span></div>';
+    });
+  }
 
   if(chips.length===0&&enemyChips.length===0){
     panel.innerHTML='<div style="font-size:9px;color:var(--text3);padding:2px 0;">状態異常なし</div>';
@@ -11573,9 +11580,11 @@ function initMultiEnemies(quest){
 function renderMultiEnemies(){
   var el = document.getElementById('enemy-multi'); if(!el) return;
   var aliveCount = BT_ENEMIES.filter(function(e){return e.hp>0;}).length;
-  // 全員揃っている場合の連携技警告
   var hasSyncReady = aliveCount===BT_ENEMIES.length &&
     BT_ENEMIES.some(function(e){return e.syncAttack;});
+  // ステータス設定
+  var statusLabels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺'};
+  var statusCls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'};
 
   el.innerHTML = '<div class="multi-enemy-area">'
     + BT_ENEMIES.map(function(e,i){
@@ -11583,25 +11592,41 @@ function renderMultiEnemies(){
       var hpColor = pct>50?'linear-gradient(90deg,#20cc60,#108040)':pct>20?'linear-gradient(90deg,#cc8020,#804010)':'linear-gradient(90deg,#cc3030,#802020)';
       var isFocused = BT_FOCUS_TARGET===i;
       var isDead = e.hp<=0;
-      var statusStr = e.statuses&&e.statuses.length
-        ? e.statuses.filter(function(s){return s.turns>0;}).map(function(s){
-            return {burn:'🔥',poison:'☠️',freeze:'❄️',para:'⚡'}[s.type]||'';
-          }).join('')
-        : '';
+      // デバフを単体敵と同じstatus-badgeで表示
+      var activeStatuses = (e.statuses||[]).filter(function(s){return s.turns>0;});
+      var statusBadges = activeStatuses.map(function(s){
+        return '<span class="status-badge '+(statusCls[s.type]||'')+'" style="font-size:8px;padding:1px 4px;">'
+          +(statusLabels[s.type]||s.type)
+          +(s.stacks>1?'×'+s.stacks:'')
+          +'('+s.turns+'T)</span>';
+      }).join('');
       var syncWarn = e.syncAttack && aliveCount===BT_ENEMIES.length
         ? '<div class="sync-attack-warn">⚡連携</div>' : '';
       return '<div class="enemy-card'+(isFocused?' focused':'')+(isDead?' dead':'')+'" '
         +'onclick="toggleFocusTarget('+i+')" title="クリックで集中狙い">'
         +syncWarn
+        // デバフを名前の上に表示
+        +'<div style="min-height:18px;margin-bottom:2px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px;">'+statusBadges+'</div>'
         +'<div class="enemy-card-ico">'+e.emoji+'</div>'
         +'<div class="enemy-card-nm">'+e.name+'</div>'
         +'<div class="enemy-card-hp-bar"><div class="enemy-card-hp-fill" style="width:'+pct+'%;background:'+hpColor+';"></div></div>'
         +'<div class="enemy-card-hp-txt">'+(isDead?'💀 DEAD':Math.max(0,e.hp).toLocaleString())+'</div>'
-        +'<div class="enemy-card-status">'+statusStr+'</div>'
         +(isFocused?'<div style="font-size:8px;color:#ffd060;margin-top:2px;">🎯 狙い中</div>':'')
         +'</div>';
     }).join('')
     +'</div>';
+
+  // 右隅のデバフ状況パネルを更新（どの敵がデバフを受けているか）
+  updateMultiEnemyDebuffPanel();
+}
+
+// 右隅：どの敵がデバフを受けているか表示
+function updateMultiEnemyDebuffPanel(){
+  // battle-status-panelの敵側チップを更新
+  var panel = document.getElementById('battle-status-panel');
+  if(!panel) return;
+  // 既存の敵チップを一旦クリア（updateBattleStatusPanelで再描画されるため呼び出しのみ）
+  updateBattleStatusPanel();
 }
 
 // 集中狙いのトグル
