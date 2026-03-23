@@ -232,7 +232,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .btn-atk{background:rgba(10,40,100,.4);border-color:rgba(20,100,200,.4);color:var(--text);}
 .btn-atk:hover{background:rgba(10,60,140,.5);}
 .btn-flee{background:rgba(0,10,25,.4);border-color:var(--border2);color:var(--text2);}
-.battle-end{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.battle-end{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
 .battle-end.show{display:flex;}
 .end-ttl{font-size:32px;font-weight:700;letter-spacing:.15em;}
 .end-win{color:#c8a020;text-shadow:0 0 20px rgba(180,140,0,.5);}
@@ -3188,7 +3188,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 const SAVE_KEY = 'abyssal_save_v1';
 const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
   lastLoginDate:'',dailyRewardClaimed:false,
-  towerResetDate:'',towerRandomSeed:0,
+  towerResetDate:'',towerRandomSeed:0,towerDayBest:0,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
 
@@ -6137,13 +6137,16 @@ function getTowerEnemy(floor){
 }
 
 function getTowerRewards(floor){
-  // ジェム・ゴールド報酬は廃止、ガチャチケットのみ
-  // 1〜9F: 0枚, 10F毎に1枚ベース + 高層ほど増加
-  var tickets = 0;
-  if(floor >= 10)  tickets = Math.floor(floor/10);         // 10F→1枚, 50F→5枚
-  if(floor >= 50)  tickets += Math.floor((floor-50)/20);   // 50F以降追加
-  if(floor >= 100) tickets += Math.floor((floor-100)/10);  // 100F以降さらに追加
-  return {gem:0, gold:0, tickets: Math.max(0, tickets)};
+  // BOSSフロア（10の倍数）のみガチャチケット付与
+  var isBossFloor = floor % 10 === 0;
+  if(!isBossFloor) return {gem:0, gold:0, tickets:0};
+  // ボス階層ごとのチケット枚数
+  var tickets = 1;                                     // 10F〜: 1枚
+  if(floor >= 50)  tickets = 2;                        // 50F〜: 2枚
+  if(floor >= 100) tickets = 3;                        // 100F〜: 3枚
+  if(floor >= 150) tickets = 5;                        // 150F〜: 5枚
+  if(floor >= 200) tickets = 8;                        // 200F〜: 8枚
+  return {gem:0, gold:0, tickets};
 }
 
 function getTowerResetTickets(best){
@@ -6170,10 +6173,11 @@ function checkTowerReset(){
   var lastReset = S.towerResetDate || '';
   if(lastReset !== today){
     // リセット前の最高到達階層でチケット配布
-    var prevBest = S.towerBest || 0;
+    var prevBest = S.towerDayBest || 0; // 当日の最高到達階層で判定
     var bonusTickets = getTowerResetTickets(prevBest);
     S.towerResetDate = today;
     S.towerFloor = 1;
+    S.towerDayBest = 0; // 当日ベストをリセット
     S.towerRandomSeed = Math.floor(Math.random()*10000);
     if(bonusTickets > 0){
       S.gachaTickets = (S.gachaTickets||0) + bonusTickets;
@@ -6297,12 +6301,15 @@ function startTowerBattle(){
     id: `tower_${floor}`,
     name: `無限塔 ${floor}F`,
     enemy,
-    gold: rw.gold,
-    gem:  rw.gem,
+    enemies: enemy.enemies || null,
+    gold: 0,
+    gem: 0,
+    tickets: rw.tickets||0,
     boss: enemy.boss,
     bgColor:['#020010','#080020'],
     story: [],
     isTower: true,
+    chapterId: 0,
   };
   sfx('click');
   BT.fromScreen='tower';
@@ -6314,6 +6321,7 @@ function onTowerClear(quest){
   const floor = S.towerFloor||1;
   S.towerFloor = floor+1;
   S.towerBest  = Math.max(S.towerBest||0, floor);
+  S.towerDayBest = Math.max(S.towerDayBest||0, floor); // 当日の最高到達
   // ガチャチケット付与（クリア報酬）
   const rw = getTowerRewards(floor);
   if(rw.tickets > 0){
@@ -6339,7 +6347,7 @@ async function saveTowerRanking(floor){
       uid: uid,
       name: S.playerName||'深海司令官',
       icon: S.playerIcon||'🌊',
-      floor: S.towerBest||0,
+      floor: S.towerDayBest||0, // 当日の最高到達階層のみ
       rank: S.rank||1,
       updatedAt: new Date().toISOString(),
       date: today,
@@ -6653,13 +6661,16 @@ function addPvpLog(txt, type='sys'){
 
 
 function getTowerRewards(floor){
-  // ジェム・ゴールド報酬は廃止、ガチャチケットのみ
-  // 1〜9F: 0枚, 10F毎に1枚ベース + 高層ほど増加
-  var tickets = 0;
-  if(floor >= 10)  tickets = Math.floor(floor/10);         // 10F→1枚, 50F→5枚
-  if(floor >= 50)  tickets += Math.floor((floor-50)/20);   // 50F以降追加
-  if(floor >= 100) tickets += Math.floor((floor-100)/10);  // 100F以降さらに追加
-  return {gem:0, gold:0, tickets: Math.max(0, tickets)};
+  // BOSSフロア（10の倍数）のみガチャチケット付与
+  var isBossFloor = floor % 10 === 0;
+  if(!isBossFloor) return {gem:0, gold:0, tickets:0};
+  // ボス階層ごとのチケット枚数
+  var tickets = 1;                                     // 10F〜: 1枚
+  if(floor >= 50)  tickets = 2;                        // 50F〜: 2枚
+  if(floor >= 100) tickets = 3;                        // 100F〜: 3枚
+  if(floor >= 150) tickets = 5;                        // 150F〜: 5枚
+  if(floor >= 200) tickets = 8;                        // 200F〜: 8枚
+  return {gem:0, gold:0, tickets};
 }
 
 
@@ -6680,12 +6691,15 @@ function startTowerBattle(){
     id: `tower_${floor}`,
     name: `無限塔 ${floor}F`,
     enemy,
-    gold: rw.gold,
-    gem:  rw.gem,
+    enemies: enemy.enemies || null,
+    gold: 0,
+    gem: 0,
+    tickets: rw.tickets||0,
     boss: enemy.boss,
     bgColor:['#020010','#080020'],
     story: [],
     isTower: true,
+    chapterId: 0,
   };
   sfx('click');
   BT.fromScreen='tower';
@@ -6697,6 +6711,7 @@ function onTowerClear(quest){
   const floor = S.towerFloor||1;
   S.towerFloor = floor+1;
   S.towerBest  = Math.max(S.towerBest||0, floor);
+  S.towerDayBest = Math.max(S.towerDayBest||0, floor); // 当日の最高到達
   // ガチャチケット付与（クリア報酬）
   const rw = getTowerRewards(floor);
   if(rw.tickets > 0){
@@ -6722,7 +6737,7 @@ async function saveTowerRanking(floor){
       uid: uid,
       name: S.playerName||'深海司令官',
       icon: S.playerIcon||'🌊',
-      floor: S.towerBest||0,
+      floor: S.towerDayBest||0, // 当日の最高到達階層のみ
       rank: S.rank||1,
       updatedAt: new Date().toISOString(),
       date: today,
@@ -6732,7 +6747,7 @@ async function saveTowerRanking(floor){
 
 async function showTowerRanking(){
   if(!db){
-    showModal('🏆 ランキング', '通信エラー：ランキングを取得できません', [{label:'閉じる',action:()=>{}}]);
+    showTowerRankingModal(null, null);
     return;
   }
   try{
@@ -6740,33 +6755,68 @@ async function showTowerRanking(){
     var snap = await db.collection('tower_ranking')
       .where('date','==',today)
       .get();
-    // JS側でfloor降順ソート（Firestoreインデックス不要）
-    var sortedDocs = snap.docs.slice().sort(function(a,b){ return (b.data().floor||0)-(a.data().floor||0); }).slice(0,20);
-    snap = {empty: snap.empty, docs: sortedDocs};
-    if(snap.empty){
-      showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
-      return;
-    }
-    var rows = [];
+    var sortedDocs = snap.docs.slice().sort(function(a,b){
+      return (b.data().floor||0)-(a.data().floor||0);
+    }).slice(0,5); // TOP5のみ
+    var myUid = auth.currentUser ? auth.currentUser.uid : '';
     var myRank = -1;
-    snap.docs.forEach(function(doc,i){
+    var entries = sortedDocs.map(function(doc,i){
       var d = doc.data();
-      var isMe = auth.currentUser && d.uid===auth.currentUser.uid;
+      var isMe = d.uid === myUid;
       if(isMe) myRank = i+1;
-      var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
-      var bonus = i===0?'🎫×15':i===1?'🎫×10':i===2?'🎫×5':'';
-      rows.push((isMe?'▶':'')+medal+' '+(d.icon||'🌊')+' '+(d.name||'司令官')+' '+(d.floor||0)+'F'+' Rank'+d.rank+(bonus?' '+bonus:'')+(isMe?' ←あなた':''));
+      return {rank:i+1, icon:d.icon||'🌊', name:d.name||'司令官', floor:d.floor||0, isMe:isMe};
     });
-    var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
-    var msg = rows.join('\n')+'\nあなたの順位: '+(myRank>0?myRank+'位':'圏外')+'\nリセット時ボーナス: '+myBonusStr;
-    showModal('🏆 本日のランキング TOP20', msg, [{label:'閉じる',action:()=>{},primary:true}]);
+    showTowerRankingModal(entries, myRank);
   }catch(e){
     console.error('[TOWER RANKING ERROR]', e.code, e.message);
-    // 権限エラーの場合は専用メッセージ
-    var errMsg = e.code === 'permission-denied'
-      ? 'ランキングの読み取り権限がありません。（Firestoreルール要確認）'
-      : 'ランキングの取得に失敗しました。エラー: ' + (e.message||e.code||'不明');
+    var errMsg = e.code==='permission-denied'
+      ? 'Firestoreのルール設定が必要です。'
+      : 'エラー: '+(e.message||e.code||'不明');
     showModal('🏆 ランキング', errMsg,[{label:'閉じる',action:()=>{}}]);
+  }
+}
+
+function showTowerRankingModal(entries, myRank){
+  var medals = ['🥇','🥈','🥉','4位','5位'];
+  var bonuses = ['🎫×15','🎫×10','🎫×5','',''];
+  var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
+
+  var html = '<div style="width:100%;max-width:320px;">';
+  html += '<div style="text-align:center;font-size:12px;font-weight:700;color:#ffe040;margin-bottom:12px;letter-spacing:.1em;">🏆 本日のランキング TOP5</div>';
+
+  if(!entries || entries.length===0){
+    html += '<div style="text-align:center;padding:20px;font-size:11px;color:var(--text3);">まだ誰も挑戦していません！<br>あなたが1位になろう！</div>';
+  } else {
+    entries.forEach(function(e,i){
+      var bg = e.isMe ? 'rgba(40,120,20,.25)' : 'rgba(0,15,35,.5)';
+      var border = e.isMe ? 'rgba(60,200,60,.4)' : 'rgba(30,60,120,.3)';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;'
+        +'background:'+bg+';border:.5px solid '+border+';border-radius:8px;">'
+        +'<div style="font-size:16px;width:28px;text-align:center;">'+medals[i]+'</div>'
+        +'<div style="font-size:18px;">'+e.icon+'</div>'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:11px;font-weight:600;color:var(--text);">'+e.name+(e.isMe?' 👈':'')+'</div>'
+          +'<div style="font-size:10px;color:var(--text2);">'+e.floor+'F到達</div>'
+        +'</div>'
+        +(bonuses[i]?'<div style="font-size:10px;color:#ffe040;font-weight:700;">'+bonuses[i]+'</div>':'')
+        +'</div>';
+    });
+  }
+
+  html += '<div style="margin-top:10px;padding:8px;background:rgba(0,10,30,.5);border-radius:6px;font-size:10px;color:var(--text2);text-align:center;">'
+    +'あなたの順位: <span style="color:#ffe040;font-weight:700;">'+(myRank>0?myRank+'位':'圏外')+'</span>　'
+    +'リセット時ボーナス: <span style="color:#ffa040;font-weight:700;">'+myBonusStr+'</span>'
+    +'</div>';
+  html += '<div style="font-size:8px;color:var(--text3);text-align:center;margin-top:6px;">ランキングは本日の最高到達階層で競います</div>';
+  html += '</div>';
+
+  // HTMLをモーダルに表示
+  var overlay = document.getElementById('modal-overlay');
+  if(!overlay){ showModal('🏆 ランキング','取得完了',[{label:'閉じる',action:()=>{},primary:true}]); return; }
+  var msgEl = overlay.querySelector('.modal-msg');
+  if(msgEl){
+    msgEl.innerHTML = html;
+    overlay.style.display='flex';
   }
 }
 
@@ -6847,6 +6897,14 @@ function checkAchievement(id, condition){
   showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0));
   sfx('win');
   return true;
+}
+
+// 全実績を一括チェック（クエストクリア・塔クリア後などに呼ぶ）
+function checkAllAchievements(){
+  if(!ACHIEVEMENT_LIST) return;
+  ACHIEVEMENT_LIST.forEach(function(a){
+    if(a.cond) checkAchievement(a.id, a.cond(S));
+  });
 }
 
 
@@ -7552,7 +7610,9 @@ function winBattle(){
     // 結果表示
     document.getElementById('end-ttl').textContent = (nextFloor-1)+'F クリア！';
     document.getElementById('end-ttl').className = 'end-ttl end-win';
-    document.getElementById('end-rw-val').textContent = `💰 +${rw.gold.toLocaleString()}  💎 +${rw.gem}  → ${nextFloor}Fへ`;
+    const rwDisp = getTowerRewards(nextFloor-1);
+    const rwTxt = rwDisp.tickets>0 ? '🎫 ×'+rwDisp.tickets+' 獲得！' : 'クリア！';
+    document.getElementById('end-rw-val').textContent = rwTxt + '  → ' + nextFloor + 'Fへ';
     const expRow=document.getElementById('end-exp-row');
     if(expRow) expRow.style.display='none';
     saveGame();
@@ -7600,7 +7660,11 @@ function winBattle(){
   const rankups=addRankExp(gainExp);
   document.getElementById('end-ttl').textContent='VICTORY';
   document.getElementById('end-ttl').className='end-ttl end-win';
-  document.getElementById('end-rw-val').textContent=`💰 +${BT.quest.gold.toLocaleString()}  💎 +${BT.quest.gem}`;
+  var rwParts = [];
+  if(BT.quest.gold>0) rwParts.push('💰 +'+BT.quest.gold.toLocaleString());
+  if(BT.quest.gem>0)  rwParts.push('💎 +'+BT.quest.gem);
+  if(BT.quest.tickets>0) rwParts.push('🎫 ×'+BT.quest.tickets);
+  document.getElementById('end-rw-val').textContent = rwParts.join('  ')||'クリア！';
   const expRow=document.getElementById('end-exp-row');
   const expBar=document.getElementById('end-exp-bar');
   const expLbl=document.getElementById('end-exp-label');
