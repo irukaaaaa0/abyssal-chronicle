@@ -1196,6 +1196,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .speed-btn{padding:6px 10px;border-radius:8px;border:.5px solid rgba(60,120,200,.3);background:rgba(0,20,50,.4);font-size:10px;cursor:pointer;font-family:inherit;font-weight:600;color:var(--text2);transition:background .15s,color .15s;}
 .speed-btn.active{background:rgba(20,80,180,.5);color:#80c8ff;border-color:rgba(60,160,255,.5);}
 .speed-btn:hover{background:rgba(10,50,120,.4);}
+@keyframes orbBadgePulse{0%{transform:scale(1);opacity:.8;}100%{transform:scale(1.1);opacity:1;}}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1288,7 +1289,11 @@ function onPvpEnd(won, quest){
   </div>
   <div class="content">
     <div class="home-visual">
-      <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
+      <div class="home-char" onclick="tapHomeOrb()" style="cursor:pointer;" title="タップしてデイリーボーナスを受け取る">
+        <div class="home-char-body"><div class="home-char-inner"></div></div>
+        <div class="home-char-glow"></div>
+        <div id="home-orb-badge" style="position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#ff4060,#ff8040);color:#fff;font-size:8px;font-weight:700;border-radius:10px;padding:2px 6px;display:none;animation:orbBadgePulse 1s ease-in-out infinite alternate;box-shadow:0 0 8px rgba(255,60,80,.5);">BONUS!</div>
+      </div>
     </div>
     <!-- 攻略ページリンク -->
     <div style="margin:6px 12px 0;">
@@ -1372,12 +1377,13 @@ function onPvpEnd(won, quest){
 
 <!-- QUEST MAP -->
 <div class="screen" id="screen-quest">
-  <div class="header">
+  <canvas id="quest-bg-canvas" style="position:fixed;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;"></canvas>
+  <div class="header" style="position:relative;z-index:1;">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
     <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">ABYSS MAP</div>
     <div style="width:50px;"></div>
   </div>
-  <div class="content"><div class="map-content"><div class="map-title">― CHAPTER SELECT ―</div><div id="quest-map"></div></div></div>
+  <div class="content" style="position:relative;z-index:1;"><div class="map-content"><div class="map-title">― CHAPTER SELECT ―</div><div id="quest-map"></div></div></div>
 </div>
 
 <!-- GACHA -->
@@ -3169,6 +3175,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 const SAVE_KEY = 'abyssal_save_v1';
 const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
   lastLoginDate:'',dailyRewardClaimed:false,
+  towerResetDate:'',towerRandomSeed:0,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
 
@@ -3392,6 +3399,7 @@ function refreshHome(){
   updatePlayerIdDisplay();
   updateRankBar();
   updatePlayerNameDisplay(); // 名前・アイコンを毎回更新
+  checkHomeOrbBonus(); // デイリーボーナスバッジ
 }
 
 function updatePlayerIdDisplay(){
@@ -3455,7 +3463,25 @@ function renderMap(){
     const isExpanded = expandedChapter === ch.id;
     const pct = layerIds.length > 0 ? Math.round(clearedCount/layerIds.length*100) : 0;
 
-    html += `<div class="chapter-card ${chLocked?'locked':''} ${allCleared?'cleared':''}" >
+    // 章テーマの背景スタイル
+    const CH_MAP_THEMES = {
+      1:{bg:'rgba(0,20,50,.6)',  border:'rgba(20,100,180,.4)',  glow:'rgba(20,100,200,.15)'},
+      2:{bg:'rgba(0,25,10,.6)',  border:'rgba(20,120,60,.4)',   glow:'rgba(20,140,60,.12)'},
+      3:{bg:'rgba(10,0,30,.6)',  border:'rgba(100,20,180,.4)',  glow:'rgba(120,20,200,.15)'},
+      4:{bg:'rgba(30,5,0,.6)',   border:'rgba(200,60,20,.4)',   glow:'rgba(220,80,20,.15)'},
+      5:{bg:'rgba(0,15,30,.6)',  border:'rgba(80,180,255,.4)',  glow:'rgba(80,200,255,.12)'},
+      6:{bg:'rgba(15,0,30,.6)',  border:'rgba(180,60,255,.4)',  glow:'rgba(200,60,255,.15)'},
+      7:{bg:'rgba(5,0,5,.7)',    border:'rgba(80,0,100,.5)',    glow:'rgba(100,0,120,.15)'},
+      8:{bg:'rgba(0,15,30,.6)',  border:'rgba(0,100,160,.4)',   glow:'rgba(0,80,160,.1)'},
+      9:{bg:'rgba(0,0,0,.8)',    border:'rgba(60,0,80,.5)',     glow:'rgba(60,0,80,.1)'},
+    };
+    const cmt = CH_MAP_THEMES[ch.id]||CH_MAP_THEMES[1];
+    const chBorder = allCleared ? 'rgba(20,160,100,.6)' : chLocked ? 'rgba(40,40,40,.3)' : cmt.border;
+    const chBg = chLocked ? 'rgba(0,10,20,.4)' : cmt.bg;
+    const chGlow = chLocked ? 'none' : `0 0 16px ${cmt.glow}`;
+
+    html += `<div class="chapter-card ${chLocked?'locked':''} ${allCleared?'cleared':''}"
+      style="background:${chBg};border-color:${chBorder};box-shadow:${chGlow};">
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
@@ -3493,6 +3519,27 @@ function renderMap(){
   });
 
   container.innerHTML = html;
+  initQuestBg();
+}
+
+function initQuestBg(){
+  var cv = document.getElementById('quest-bg-canvas');
+  if(!cv) return;
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  var ctx = cv.getContext('2d');
+  // 深海ベースの背景（マップ画面共通）
+  var g = ctx.createLinearGradient(0,0,0,cv.height);
+  g.addColorStop(0,'#010810'); g.addColorStop(1,'#020c1a');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+  // 光の筋を3本
+  [.2,.5,.8].forEach(function(rx){
+    var lg=ctx.createLinearGradient(cv.width*rx,0,cv.width*rx,cv.height*.6);
+    lg.addColorStop(0,'rgba(20,80,160,.05)'); lg.addColorStop(1,'transparent');
+    ctx.beginPath();
+    ctx.moveTo(cv.width*rx-15,0); ctx.lineTo(cv.width*rx+15,0);
+    ctx.lineTo(cv.width*rx+60,cv.height*.6); ctx.lineTo(cv.width*rx-60,cv.height*.6);
+    ctx.fillStyle=lg; ctx.fill();
+  });
 }
 
 function toggleChapter(id){
@@ -4441,16 +4488,229 @@ function startBattleFrom(screen, quest, pids){
 function initBattleBg(){
   const cv=document.getElementById('battleCanvas'),ctx=cv.getContext('2d');
   cv.width=window.innerWidth;cv.height=window.innerHeight;
-  const pts=Array.from({length:20},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:.8+Math.random()*2,vy:-.12-Math.random()*.25}));
   if(BT.btAnim)cancelAnimationFrame(BT.btAnim);
+
+  // 章IDからテーマを決定
+  var chId = BT.quest ? BT.quest.chapterId : 0;
+  var isBoss = BT.quest && BT.quest.boss;
+  var isTower = BT.quest && BT.quest.isTower;
+
+  // テーマ定義
+  var THEMES = {
+    1: { // 深海の入口：青緑
+      top:'#010d18', btm:'#021a2e',
+      ptColor:'rgba(20,120,180,.25)', rayColor:'rgba(30,150,220,.06)',
+      fishColor:'rgba(0,0,0,.12)', bubbleColor:'rgba(40,160,220,.18)',
+    },
+    2: { // 岩礁：深緑
+      top:'#020c08', btm:'#041808',
+      ptColor:'rgba(20,120,60,.2)', rayColor:'rgba(40,160,80,.05)',
+      fishColor:'rgba(0,0,0,.12)', bubbleColor:'rgba(40,180,100,.15)',
+    },
+    3: { // 深淵：紫
+      top:'#050008', btm:'#0a0018',
+      ptColor:'rgba(100,20,180,.2)', rayColor:'rgba(120,40,220,.05)',
+      fishColor:'rgba(0,0,0,.15)', bubbleColor:'rgba(140,60,255,.15)',
+    },
+    4: { // 炎獄：赤橙
+      top:'#120200', btm:'#200800',
+      ptColor:'rgba(220,80,20,.2)', rayColor:'rgba(255,100,20,.07)',
+      fishColor:'rgba(0,0,0,.18)', bubbleColor:'rgba(255,120,40,.18)',
+      spark:true,
+    },
+    5: { // 氷獄：水色
+      top:'#000c18', btm:'#001428',
+      ptColor:'rgba(100,200,255,.22)', rayColor:'rgba(120,220,255,.07)',
+      fishColor:'rgba(0,0,0,.12)', bubbleColor:'rgba(140,230,255,.2)',
+      crystal:true,
+    },
+    6: { // 星滅：深紫
+      top:'#080010', btm:'#100020',
+      ptColor:'rgba(180,60,255,.2)', rayColor:'rgba(200,80,255,.06)',
+      fishColor:'rgba(0,0,0,.15)', bubbleColor:'rgba(200,80,255,.18)',
+      star:true,
+    },
+    7: { // 旧破：漆黒
+      top:'#000000', btm:'#050005',
+      ptColor:'rgba(80,0,100,.2)', rayColor:'rgba(100,0,120,.04)',
+      fishColor:'rgba(0,0,0,.2)', bubbleColor:'rgba(120,0,160,.15)',
+      dark:true,
+    },
+    8: { // 試験的：深海
+      top:'#000408', btm:'#001020',
+      ptColor:'rgba(20,80,160,.2)', rayColor:'rgba(30,100,200,.05)',
+      fishColor:'rgba(0,0,0,.12)', bubbleColor:'rgba(40,120,200,.18)',
+    },
+    9: { // 試験的上級：漆黒
+      top:'#000000', btm:'#000000',
+      ptColor:'rgba(60,0,80,.15)', rayColor:'rgba(80,0,100,.04)',
+      fishColor:'rgba(0,0,0,.2)', bubbleColor:'rgba(100,0,140,.12)',
+      dark:true,
+    },
+  };
+  var theme = THEMES[chId] || THEMES[1];
+  // ボス戦は暗め・赤みがかる
+  if(isBoss){
+    theme = Object.assign({}, theme, {
+      top: '#0a0000', btm: '#180000',
+      rayColor: 'rgba(220,30,30,.07)',
+      boss: true,
+    });
+  }
+  if(isTower){
+    theme = Object.assign({}, theme, {
+      top:'#000010', btm:'#000020',
+      rayColor:'rgba(80,80,255,.06)',
+    });
+  }
+
+  // 気泡パーティクル
+  var pts = Array.from({length:22},()=>({
+    x:Math.random()*cv.width, y:Math.random()*cv.height,
+    r:.6+Math.random()*2.2, vy:-.1-Math.random()*.28,
+    op:.08+Math.random()*.18,
+  }));
+
+  // 光の筋
+  var rays = [.18,.38,.58,.78,.92].map(rx=>({
+    x:cv.width*rx, w:15+Math.random()*25,
+    op:(.03+Math.random()*.04), speed:.2+Math.random()*.3,
+  }));
+
+  // 魚シルエット（テーマに合わせた数・サイズ）
+  var FSHAPES=[{bw:18,bh:7,tw:7,th:9},{bw:28,bh:11,tw:10,th:13},{bw:42,bh:15,tw:14,th:18}];
+  var fishes = Array.from({length:4},()=>{
+    var sh=FSHAPES[Math.floor(Math.random()*FSHAPES.length)];
+    var gr=Math.random()<.5;
+    return{x:gr?-(sh.bw+sh.tw):cv.width+(sh.bw+sh.tw),
+      y:30+Math.random()*(cv.height-60),
+      vx:(gr?1:-1)*(.2+Math.random()*.4),
+      shape:sh, wo:Math.random()*Math.PI*2,
+      op: parseFloat((theme.fishColor||'rgba(0,0,0,.12)').split(',')[3])||.12,
+    };
+  });
+
+  // 特殊エフェクト用パーティクル（炎・氷・星・闇）
+  var specials = [];
+  if(theme.spark){ // 炎エフェクト
+    specials = Array.from({length:15},()=>({
+      x:Math.random()*cv.width, y:cv.height+Math.random()*50,
+      vx:(Math.random()-.5)*1.2, vy:-(.8+Math.random()*1.5),
+      life:1, decay:.008+Math.random()*.012, r:1+Math.random()*2,
+    }));
+  } else if(theme.crystal){ // 氷の結晶
+    specials = Array.from({length:12},()=>({
+      x:Math.random()*cv.width, y:Math.random()*cv.height,
+      size:3+Math.random()*8, rot:Math.random()*Math.PI,
+      vrot:.002+Math.random()*.005, op:.1+Math.random()*.15,
+    }));
+  } else if(theme.star){ // 星
+    specials = Array.from({length:20},()=>({
+      x:Math.random()*cv.width, y:Math.random()*cv.height,
+      r:.5+Math.random()*1.5, twinkle:Math.random()*Math.PI*2, speed:.02+Math.random()*.04,
+    }));
+  } else if(theme.dark){ // 闇の粒子
+    specials = Array.from({length:18},()=>({
+      x:Math.random()*cv.width, y:Math.random()*cv.height,
+      r:1+Math.random()*3, vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+      op:.05+Math.random()*.12,
+    }));
+  }
+
+  function drawBattleFish(x,y,sh,op,dir,wave){
+    ctx.save(); ctx.globalAlpha=op;
+    ctx.translate(x,y+Math.sin(wave)*.7); ctx.scale(dir,1);
+    ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.ellipse(0,0,sh.bw,sh.bh,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-sh.bw+2,0); ctx.lineTo(-sh.bw-sh.tw,-sh.th/2); ctx.lineTo(-sh.bw-sh.tw,sh.th/2); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-sh.bw*.2,-sh.bh); ctx.lineTo(sh.bw*.1,-sh.bh-sh.bh*.6); ctx.lineTo(sh.bw*.4,-sh.bh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-sh.bw*.1,sh.bh*.5,sh.bw*.17,sh.bh*.32,.5,0,Math.PI*2); ctx.fill();
+    // 目
+    ctx.beginPath(); ctx.arc(sh.bw*.55,-sh.bh*.15,sh.bh*.18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fill();
+    ctx.restore();
+  }
+
   (function draw(){
     if(!BT.active)return;
+    var now=Date.now()*.001;
     ctx.clearRect(0,0,cv.width,cv.height);
-    const g=ctx.createLinearGradient(0,0,0,cv.height);
-    g.addColorStop(0,'#010510');g.addColorStop(1,'#030a1e');
-    ctx.fillStyle=g;ctx.fillRect(0,0,cv.width,cv.height);
-    pts.forEach(p=>{p.y+=p.vy;p.x+=Math.sin(p.y*.02)*.2;if(p.y<-5)p.y=cv.height+5;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.strokeStyle='rgba(15,70,160,.2)';ctx.lineWidth=.5;ctx.stroke();});
+
+    // 背景グラデーション
+    var g=ctx.createLinearGradient(0,0,0,cv.height);
+    g.addColorStop(0,theme.top); g.addColorStop(1,theme.btm);
+    ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+
+    // ボス戦：血のような赤いにじみ
+    if(theme.boss){
+      var rg=ctx.createRadialGradient(cv.width*.5,cv.height*.8,0,cv.width*.5,cv.height*.8,cv.width*.6);
+      rg.addColorStop(0,'rgba(160,0,0,.08)'); rg.addColorStop(1,'transparent');
+      ctx.fillStyle=rg; ctx.fillRect(0,0,cv.width,cv.height);
+    }
+
+    // 光の筋
+    rays.forEach(ray=>{
+      var lg=ctx.createLinearGradient(ray.x,0,ray.x,cv.height*.75);
+      lg.addColorStop(0,theme.rayColor||'rgba(30,100,200,.05)'); lg.addColorStop(1,'transparent');
+      ctx.beginPath(); ctx.moveTo(ray.x-ray.w*.4,0); ctx.lineTo(ray.x+ray.w*.4,0);
+      ctx.lineTo(ray.x+ray.w,cv.height*.75); ctx.lineTo(ray.x-ray.w,cv.height*.75);
+      ctx.fillStyle=lg; ctx.fill();
+    });
+
+    // 気泡
+    pts.forEach(p=>{
+      p.y+=p.vy; p.x+=Math.sin(p.y*.02)*.18;
+      if(p.y<-8){p.y=cv.height+8;p.x=Math.random()*cv.width;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.strokeStyle=(theme.ptColor||'rgba(20,100,180,.2)'); ctx.lineWidth=.5; ctx.stroke();
+    });
+
+    // 特殊エフェクト
+    if(theme.spark){ // 炎の粒子
+      specials.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy; p.life-=p.decay;
+        if(p.life<=0){p.x=Math.random()*cv.width;p.y=cv.height+10;p.life=1;}
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r*(p.life),0,Math.PI*2);
+        var r=Math.round(255); var g2=Math.round(80*p.life); var b=0;
+        ctx.fillStyle='rgba('+r+','+g2+','+b+','+(.4*p.life)+')'; ctx.fill();
+      });
+    } else if(theme.crystal){ // 氷結晶
+      specials.forEach(p=>{
+        p.rot+=p.vrot;
+        ctx.save(); ctx.globalAlpha=p.op*(0.7+0.3*Math.sin(now+p.rot));
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.strokeStyle='rgba(160,230,255,.6)'; ctx.lineWidth=.8;
+        for(var a=0;a<6;a++){
+          ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,p.size);
+          ctx.rotate(Math.PI/3);
+        }
+        ctx.stroke(); ctx.restore();
+      });
+    } else if(theme.star){ // 星
+      specials.forEach(p=>{
+        p.twinkle+=p.speed;
+        var op=.05+.15*((Math.sin(p.twinkle)+1)/2);
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(220,180,255,'+op+')'; ctx.fill();
+      });
+    } else if(theme.dark){ // 闇の粒子
+      specials.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0||p.x>cv.width)p.vx*=-1;
+        if(p.y<0||p.y>cv.height)p.vy*=-1;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(120,0,160,'+p.op+')'; ctx.fill();
+      });
+    }
+
+    // 魚シルエット
+    fishes.forEach(f=>{
+      f.x+=f.vx; f.y+=Math.sin(now*.4+f.wo)*.1;
+      if(f.vx>0&&f.x>cv.width+f.shape.bw+f.shape.tw+10){f.x=-(f.shape.bw+f.shape.tw+10);f.y=30+Math.random()*(cv.height-60);}
+      else if(f.vx<0&&f.x<-(f.shape.bw+f.shape.tw+10)){f.x=cv.width+(f.shape.bw+f.shape.tw+10);f.y=30+Math.random()*(cv.height-60);}
+      drawBattleFish(f.x,f.y,f.shape,f.op,f.vx>0?1:-1,now+f.wo);
+    });
+
     BT.btAnim=requestAnimationFrame(draw);
   })();
 }
@@ -5730,30 +5990,44 @@ function startGrind(qid, count){
 // ================================================================
 // 階層ごとの敵データ生成（階層が上がるほど強くなる）
 function getTowerEnemy(floor){
+  // 各ティアの敵プール（ランダムで選択）
+  const ENEMY_POOLS = [
+    [{name:'深海スライム',emoji:'🟢'},{name:'霧クラゲ',emoji:'🪼'},{name:'深海エビ',emoji:'🦐'}], // 1〜10F
+    [{name:'岩石ガニ',emoji:'🦀'},{name:'砂底魚',emoji:'🐟'},{name:'深海ミミズ',emoji:'🪱'}],   // 11〜20F
+    [{name:'深海鰻',emoji:'🐍'},{name:'古代ガニ',emoji:'🦞'},{name:'岩礁竜',emoji:'🦎'}],       // 21〜30F
+    [{name:'古代魚',emoji:'🐡'},{name:'深海サメ',emoji:'🦈'},{name:'海底竜',emoji:'🐊'}],       // 31〜40F
+    [{name:'深海竜',emoji:'🐉'},{name:'深海鯨',emoji:'🐋'},{name:'海底巨人',emoji:'🦑'}],       // 41〜50F
+    [{name:'崩壊体',emoji:'👾'},{name:'虚無の亡者',emoji:'💀'},{name:'深淵の眼',emoji:'👁️'}],   // 51〜60F
+    [{name:'旧破の使徒',emoji:'💀'},{name:'虚無騎士',emoji:'⚫'},{name:'崩壊の先触れ',emoji:'🌑'}], // 61〜70F
+    [{name:'深淵の神眷属',emoji:'🌑'},{name:'永劫の影',emoji:'🕳️'},{name:'深淵の番犬',emoji:'🐺'}], // 71〜80F
+    [{name:'永遠の番人',emoji:'⚫'},{name:'深淵守護者',emoji:'🛡️'},{name:'虚空の騎士',emoji:'🗡️'}], // 81〜90F
+    [{name:'深淵神の眷属',emoji:'🩸'},{name:'神格の残滓',emoji:'✨'},{name:'永劫の使者',emoji:'♾️'}], // 91〜100F
+    [{name:'旧破の化身',emoji:'🌌'},{name:'深淵の神格',emoji:'💫'},{name:'虚無の覇王',emoji:'🌀'}],  // 101F+
+  ];
   const bases=[
-    {name:'深海スライム',  emoji:'🟢',hp:300,  atk:30},   // 1〜10F
-    {name:'霧クラゲ',      emoji:'🪼',hp:600,  atk:55},   // 11〜20F
-    {name:'岩石ガニ',      emoji:'🦀',hp:1000, atk:80},   // 21〜30F
-    {name:'深海鰻',        emoji:'🐍',hp:1800, atk:120},  // 31〜40F
-    {name:'古代魚',        emoji:'🐡',hp:3000, atk:170},  // 41〜50F
-    {name:'深海竜',        emoji:'🐉',hp:5500, atk:250},  // 51〜60F
-    {name:'崩壊体',        emoji:'👾',hp:9000, atk:350,
-      statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},  // 61〜70F
-    {name:'旧破の使徒',    emoji:'💀',hp:15000,atk:480,
-      statusPatterns:[{type:'poison',prob:0.25,stacks:1}]}, // 71〜80F
-    {name:'深淵の神眷属',  emoji:'🌑',hp:17000,atk:520,
-      statusPatterns:[{type:'poison',prob:0.3,stacks:1},{type:'para',prob:0.15,stacks:1}]}, // 81〜90F
-    {name:'永遠の番人',    emoji:'⚫',hp:40000,atk:900,
-      statusPatterns:[{type:'freeze',prob:0.2,stacks:1}]}, // 91〜100F
-    {name:'深淵神の眷属',  emoji:'🩸',hp:65000,atk:1200,
-      statusPatterns:[{type:'burn',prob:0.3,stacks:2},{type:'para',prob:0.2,stacks:1}]}, // 101〜110F
-    {name:'旧破の化身',    emoji:'🌌',hp:100000,atk:1600,
-      statusPatterns:[{type:'poison',prob:0.35,stacks:2},{type:'freeze',prob:0.25,stacks:1}]}, // 111〜120F
+    {hp:300,  atk:30},   // 1〜10F
+    {hp:600,  atk:55},   // 11〜20F
+    {hp:1000, atk:80},   // 21〜30F
+    {hp:1800, atk:120},  // 31〜40F
+    {hp:3000, atk:170},  // 41〜50F
+    {hp:5500, atk:250},  // 51〜60F
+    {hp:9000, atk:350,   statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
+    {hp:15000,atk:480,   statusPatterns:[{type:'poison',prob:0.25,stacks:1}]},
+    {hp:17000,atk:520,   statusPatterns:[{type:'poison',prob:0.3,stacks:1},{type:'para',prob:0.15,stacks:1}]},
+    {hp:40000,atk:900,   statusPatterns:[{type:'freeze',prob:0.2,stacks:1}]},
+    {hp:65000,atk:1200,  statusPatterns:[{type:'burn',prob:0.3,stacks:2},{type:'para',prob:0.2,stacks:1}]},
+    {hp:100000,atk:1600, statusPatterns:[{type:'poison',prob:0.35,stacks:2},{type:'freeze',prob:0.25,stacks:1}]},
   ];
   const tier = Math.min(Math.floor((floor-1)/10), bases.length-1);
   const base = bases[tier];
+  // ランダムで敵を選択（シードベース：同じ日・同じ階は同じ敵）
+  const seed = (S.towerRandomSeed||0) + floor;
+  const pool = ENEMY_POOLS[Math.min(tier, ENEMY_POOLS.length-1)];
+  const picked = pool[seed % pool.length];
+
   const floorInTier = ((floor-1) % 10);
-  const mul = 1 + floorInTier * 0.08 + Math.floor((floor-1)/10) * 0.3;
+  // ATK成長を大幅に緩やかに（floorInTier係数を0.08→0.04、tier係数を0.3→0.18）
+  const mul = 1 + floorInTier * 0.04 + Math.floor((floor-1)/10) * 0.18;
   const isBoss = floor%10===0;
   const statusPatterns = base.statusPatterns || [];
 
@@ -5818,8 +6092,8 @@ function getTowerEnemy(floor){
 
   // 79F以下：従来通り単体
   return {
-    name: isBoss ? `【BOSS】${base.name}` : base.name,
-    emoji: isBoss ? '👑' : base.emoji,
+    name: isBoss ? `【BOSS】${picked.name}` : picked.name,
+    emoji: isBoss ? '👑' : picked.emoji,
     hp:  Math.round(base.hp  * mul * (isBoss?2.5:1)),
     atk: Math.round(base.atk * mul * (isBoss?1.8:1)),
     spd: floor>=61?3:floor>=31?2:1,
@@ -5829,23 +6103,93 @@ function getTowerEnemy(floor){
 }
 
 function getTowerRewards(floor){
-  const gem  = 5 + Math.floor(floor/5)*3;
-  const gold = 200 + floor*50;
-  return {gem, gold};
+  // ジェム・ゴールド報酬は廃止、ガチャチケットのみ
+  // 1〜9F: 0枚, 10F毎に1枚ベース + 高層ほど増加
+  var tickets = 0;
+  if(floor >= 10)  tickets = Math.floor(floor/10);         // 10F→1枚, 50F→5枚
+  if(floor >= 50)  tickets += Math.floor((floor-50)/20);   // 50F以降追加
+  if(floor >= 100) tickets += Math.floor((floor-100)/10);  // 100F以降さらに追加
+  return {gem:0, gold:0, tickets: Math.max(0, tickets)};
+}
+
+function getTowerResetTickets(best){
+  // 最高到達階層に応じたリセットボーナスチケット
+  if(best >= 200) return 20;
+  if(best >= 150) return 15;
+  if(best >= 100) return 10;
+  if(best >= 50)  return 6;
+  if(best >= 30)  return 4;
+  if(best >= 20)  return 3;
+  if(best >= 10)  return 2;
+  if(best >= 1)   return 1;
+  return 0;
+}
+
+function checkTowerReset(){
+  var now = new Date();
+  var today = now.toDateString();
+  var lastReset = S.towerResetDate || '';
+  if(lastReset !== today){
+    // リセット前の最高到達階層でチケット配布
+    var prevBest = S.towerBest || 0;
+    var bonusTickets = getTowerResetTickets(prevBest);
+    S.towerResetDate = today;
+    S.towerFloor = 1;
+    S.towerRandomSeed = Math.floor(Math.random()*10000);
+    if(bonusTickets > 0){
+      S.gachaTickets = (S.gachaTickets||0) + bonusTickets;
+      // ランキングボーナスも確認・付与
+      distributeRankingBonus(prevBest, bonusTickets);
+      saveGame();
+      setTimeout(function(){
+        showModal('🏰 無限塔リセット！',
+          '昨日の最高到達階層: '+prevBest+'F\n\n🎫 ガチャチケット ×'+bonusTickets+' 獲得！\n\n今日も塔に挑もう！',
+          [{label:'受け取る！', action:function(){}, primary:true}]
+        );
+      }, 1000);
+    } else {
+      saveGame();
+      showToast('🏰 無限塔がリセットされました！今日の塔に挑もう！');
+    }
+  }
+}
+
+// 次のリセットまでの残り時間（翌日0時まで）
+function getTowerResetRemaining(){
+  var now = new Date();
+  var tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate()+1);
+  tomorrow.setHours(0,0,0,0);
+  return tomorrow - now;
+}
+
+function formatTowerResetTime(){
+  var ms = getTowerResetRemaining();
+  var h = Math.floor(ms/3600000);
+  var m = Math.floor((ms%3600000)/60000);
+  var s = Math.floor((ms%60000)/1000);
+  return h+'時間'+('0'+m).slice(-2)+'分'+('0'+s).slice(-2)+'秒';
 }
 
 function renderTower(){
+  checkTowerReset();
   const floor = S.towerFloor || 1;
   const best  = S.towerBest  || 0;
   const enemy = getTowerEnemy(floor);
   const rw    = getTowerRewards(floor);
   const isBoss= floor%10===0;
 
+  var resetTimeStr = formatTowerResetTime();
   document.getElementById('tower-content').innerHTML=`
     <div class="tower-floor-header">
       <div class="tower-floor-num">${floor}F</div>
       <div class="tower-floor-lbl">${isBoss?'⚠️ BOSS FLOOR':'ABYSS TOWER'}</div>
       <div class="tower-best">最高到達: ${best}F</div>
+    </div>
+    <!-- リセットカウントダウン -->
+    <div style="text-align:center;margin-bottom:10px;padding:6px 12px;background:rgba(0,15,40,.4);border:.5px solid rgba(30,80,160,.3);border-radius:8px;">
+      <div style="font-size:8px;color:var(--text3);margin-bottom:2px;">⏰ リセットまで</div>
+      <div id="tower-reset-countdown" style="font-size:13px;font-weight:700;color:var(--teal);letter-spacing:.05em;">${resetTimeStr}</div>
     </div>
     <div class="tower-enemy-card">
       <div class="tower-enemy-ico">${enemy.emoji}</div>
@@ -5856,19 +6200,27 @@ function renderTower(){
         <span>SPD: ${enemy.spd}</span>
       </div>
     </div>
-    <div class="tower-rewards">
+    <!-- チケット報酬 -->
+    ${rw.tickets > 0 ? `<div class="tower-rewards">
       <div class="tower-rw-title">クリア報酬</div>
-      <div class="tower-rw-row">
-        <span>💰 ${rw.gold.toLocaleString()}</span>
-        <span>💎 ${rw.gem}</span>
-        ${isBoss?'<span style="color:var(--teal)">+ 実績解除</span>':''}
-      </div>
+      <div class="tower-rw-row"><span>🎫 ガチャチケット ×${rw.tickets}</span></div>
+    </div>` : ''}
+    <!-- リセットボーナス予告 -->
+    <div style="padding:8px 12px;background:rgba(0,20,50,.4);border:.5px solid rgba(20,100,180,.3);border-radius:8px;margin-bottom:10px;font-size:9px;color:var(--text2);">
+      🎫 リセット時ボーナス（現在${best}F達成）: <span style="color:#ffe040;font-weight:700;">🎫 ×${getTowerResetTickets(best)}枚</span>
     </div>
     <button class="tower-btn" onclick="startTowerBattle()">⚔️ ${floor}Fに挑む</button>
-    <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--text3);">
-      パーティを編成してから挑戦しましょう
-    </div>
+    <!-- ランキングボタン -->
+    <button onclick="showTowerRanking()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:.5px solid rgba(200,160,0,.4);background:rgba(80,60,0,.3);color:#e0c040;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;">🏆 本日のランキングを見る</button>
+    <div style="text-align:center;margin-top:8px;font-size:9px;color:var(--text3);">パーティを編成してから挑戦しましょう</div>
   `;
+  // カウントダウン更新タイマー
+  if(window._towerCountdownTimer) clearInterval(window._towerCountdownTimer);
+  window._towerCountdownTimer = setInterval(function(){
+    var el = document.getElementById('tower-reset-countdown');
+    if(!el){ clearInterval(window._towerCountdownTimer); return; }
+    el.textContent = formatTowerResetTime();
+  }, 1000);
 }
 
 function startTowerBattle(){
@@ -5904,190 +6256,71 @@ function onTowerClear(quest){
   const floor = S.towerFloor||1;
   S.towerFloor = floor+1;
   S.towerBest  = Math.max(S.towerBest||0, floor);
+  // ガチャチケット付与（クリア報酬）
+  const rw = getTowerRewards(floor);
+  if(rw.tickets > 0){
+    S.gachaTickets = (S.gachaTickets||0) + rw.tickets;
+  }
   // 実績チェック
   checkAchievement('tower10',  S.towerBest>=10);
   checkAchievement('tower30',  S.towerBest>=30);
   checkAchievement('tower50',  S.towerBest>=50);
   checkAchievement('tower100', S.towerBest>=100);
   saveGame();
+  // Firestoreにランキングデータを保存
+  saveTowerRanking(floor);
 }
 
+async function saveTowerRanking(floor){
+  if(!db || !auth.currentUser) return;
+  try{
+    var uid = auth.currentUser.uid;
+    var today = new Date().toDateString();
+    var rankRef = db.collection('tower_ranking').doc(today+'_'+uid);
+    await rankRef.set({
+      uid: uid,
+      name: S.playerName||'深海司令官',
+      icon: S.playerIcon||'🌊',
+      floor: S.towerBest||0,
+      rank: S.rank||1,
+      updatedAt: new Date().toISOString(),
+      date: today,
+    });
+  }catch(e){ console.log('[TOWER RANK]', e); }
+}
 
-function checkAchievement(id, condition){
-  if(!condition) return false;
-  if(S.achievements&&S.achievements[id]) return false; // 既に解除済み
-  const def = ACHIEVEMENT_LIST.find(a=>a.id===id);
-  if(!def) return false;
-  if(!S.achievements) S.achievements={};
-  S.achievements[id] = Date.now();
-  if(!S.receivedAchievementRewards) S.receivedAchievementRewards={};
-  S.receivedAchievementRewards[id] = true;
-  // 報酬付与
-  if(def.reward.gem)  S.gem  += def.reward.gem;
-  if(def.reward.gold) S.gold += def.reward.gold;
-  // アイコン報酬
-  if(def.reward.icon){
-    if(!S.ownedIcons) S.ownedIcons=['🌊'];
-    if(!S.ownedIcons.includes(def.reward.icon)){
-      S.ownedIcons.push(def.reward.icon);
-      showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0)+' 🎨 アイコン「'+def.reward.icon+'」入手！');
-      sfx('win');
-      saveGame();
-      return true;
+async function showTowerRanking(){
+  if(!db){
+    showModal('🏆 ランキング', '通信エラー：ランキングを取得できません', [{label:'閉じる',action:()=>{}}]);
+    return;
+  }
+  try{
+    var today = new Date().toDateString();
+    var snap = await db.collection('tower_ranking')
+      .where('date','==',today)
+      .orderBy('floor','desc')
+      .limit(20)
+      .get();
+    if(snap.empty){
+      showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
+      return;
     }
+    var rows = [];
+    var myRank = -1;
+    snap.docs.forEach(function(doc,i){
+      var d = doc.data();
+      var isMe = auth.currentUser && d.uid===auth.currentUser.uid;
+      if(isMe) myRank = i+1;
+      var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
+      var bonus = i===0?'🎫×15':i===1?'🎫×10':i===2?'🎫×5':'';
+      rows.push((isMe?'▶':'')+medal+' '+(d.icon||'🌊')+' '+(d.name||'司令官')+' '+(d.floor||0)+'F Rank'+(d.rank||1)+(bonus?' '+bonus:'')+(isMe?' ←あなた':''));
+    });
+    var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
+    var msg = rows.join('\n')+'\nあなたの順位: '+(myRank>0?myRank+'位':'圏外')+'\nリセット時ボーナス: '+myBonusStr;
+    showModal('🏆 本日のランキング TOP20', msg, [{label:'閉じる',action:()=>{},primary:true}]);
+  }catch(e){
+    showModal('🏆 ランキング', 'ランキングの取得に失敗しました（接続を確認してください）',[{label:'閉じる',action:()=>{}}]);
   }
-  saveGame();
-  showToast('🎖️ 実績解除「'+def.name+'」！ 💎+'+(def.reward.gem||0));
-  sfx('win');
-  return true;
-}
-
-function checkAllAchievements(){
-  ACHIEVEMENT_LIST.forEach(a=>{
-    if(!(S.achievements&&S.achievements[a.id])){
-      checkAchievement(a.id, a.cond(S));
-    }
-  });
-}
-
-function renderAchieve(){
-  const unlocked = ACHIEVEMENT_LIST.filter(a=>S.achievements&&S.achievements[a.id]);
-  const locked   = ACHIEVEMENT_LIST.filter(a=>!(S.achievements&&S.achievements[a.id]));
-  const countEl  = document.getElementById('achieve-count');
-  if(countEl) countEl.textContent=`${unlocked.length}/${ACHIEVEMENT_LIST.length}`;
-  checkRankRewardBadge();
-
-  // ランクマイルストーン報酬
-  const claimable = getClaimableRankRewards();
-  let html = renderRankMilestoneRewards();
-
-  // 称号一覧（解除済みで称号があるもの）
-  const titles = unlocked.filter(a=>a.title);
-  html+=`<div class="achieve-section-title">装備中の称号</div>
-    <div style="margin-bottom:12px;">
-      ${S.equippedTitle
-        ?`<span style="font-size:13px;font-weight:500;">「${S.equippedTitle}」</span>
-           <span onclick="equipTitle('')" style="font-size:9px;color:var(--text3);cursor:pointer;margin-left:8px;">はずす</span>`
-        :`<span style="font-size:11px;color:var(--text3);">称号未装備</span>`}
-    </div>`;
-
-  if(titles.length){
-    html+=`<div class="achieve-section-title">取得済み称号</div>`;
-    html+=titles.map(a=>`
-      <div class="achieve-card unlocked">
-        <div class="achieve-ico">${a.emoji}</div>
-        <div class="achieve-info">
-          <div class="achieve-name">「${a.title}」</div>
-          <div class="achieve-desc">${a.desc}で獲得</div>
-        </div>
-        <div onclick="equipTitle('${a.title}')" class="title-equip-btn">装備</div>
-      </div>`).join('');
-  }
-
-  html+=`<div class="achieve-section-title">実績一覧（${unlocked.length}/${ACHIEVEMENT_LIST.length}）</div>`;
-  html+=unlocked.map(a=>`
-    <div class="achieve-card unlocked">
-      <div class="achieve-ico">${a.emoji}</div>
-      <div class="achieve-info">
-        <div class="achieve-name">${a.name}</div>
-        <div class="achieve-desc">${a.desc}</div>
-      </div>
-      <div class="achieve-rw">💎${a.reward.gem||0}</div>
-    </div>`).join('');
-
-  html+=locked.map(a=>`
-    <div class="achieve-card">
-      <div class="achieve-ico locked">${a.emoji}</div>
-      <div class="achieve-info">
-        <div class="achieve-name" style="color:var(--text3);">${a.name}</div>
-        <div class="achieve-desc">${a.desc}</div>
-      </div>
-      <div class="achieve-rw" style="color:var(--text3);">💎${a.reward.gem||0}</div>
-    </div>`).join('');
-
-  document.getElementById('achieve-content').innerHTML=html;
-}
-
-function equipTitle(title){
-  S.equippedTitle = title;
-  saveGame();
-  renderAchieve();
-  updatePlayerNameDisplay();
-}
-
-function updatePlayerNameDisplay(){
-  // アイコン更新
-  var iconEl = document.getElementById('player-icon-display');
-  if(iconEl) iconEl.textContent = S.playerIcon||'🌊';
-  const el = document.getElementById('pname-el') || document.querySelector('.pname');
-  if(el){
-    const base = S.playerName||'深海司令官';
-    el.textContent = base + (S.equippedTitle?' 「'+S.equippedTitle+'」':'');
-  }
-}
-
-// ================================================================
-//  👥 FRIEND（フレンド・助っ人）
-// ================================================================
-
-
-
-
-
-
-// ================================================================
-//  ⚔️ PVP（闘技場）
-// ================================================================
-// 模擬対戦相手（Firebase未対応の場合はダミー）
-
-async function renderPvp(){
-  const rank     = S.pvpRank  || 1200;
-  const wins     = S.pvpWin   || 0;
-  const losses   = S.pvpLose  || 0;
-  const rankName = rank>=2000?'旧破神':rank>=1800?'深淵王':rank>=1600?'覇者':rank>=1400?'上級戦士':rank>=1200?'戦士':'見習い';
-  const opponents = [...PVP_DUMMY_OPPONENTS].sort((a,b)=>Math.abs(a.rank-rank)-Math.abs(b.rank-rank));
-
-  document.getElementById('pvp-content').innerHTML=`
-    <div class="pvp-rank-box">
-      <div class="pvp-rank-lbl">ARENA RANK</div>
-      <div class="pvp-rank-val">${rankName}</div>
-      <div class="pvp-rank-pts">${rank} pts</div>
-      <div class="pvp-record">
-        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--teal)">${wins}</div><div class="pvp-rec-lbl">勝利</div></div>
-        <div class="pvp-rec-item"><div class="pvp-rec-val" style="color:var(--red)">${losses}</div><div class="pvp-rec-lbl">敗北</div></div>
-        <div class="pvp-rec-item"><div class="pvp-rec-val">${wins+losses>0?Math.round(wins/(wins+losses)*100):0}%</div><div class="pvp-rec-lbl">勝率</div></div>
-      </div>
-    </div>
-
-    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">⚔️ プレイヤー対戦</div>
-    <div style="background:rgba(60,10,120,.2);border:.5px solid rgba(120,60,220,.3);border-radius:12px;padding:12px;margin-bottom:12px;">
-      <div style="font-size:10px;color:rgba(180,120,255,.8);margin-bottom:8px;">合言葉マッチング — 同じ合言葉のプレイヤーと対戦</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="pvp-code-input" class="search-input" placeholder="合言葉を入力（例: abyssal）" style="flex:1;">
-        <button onclick="joinPvpRoom()" style="padding:8px 12px;border-radius:8px;border:.5px solid rgba(120,60,220,.4);background:rgba(60,10,120,.3);color:#c080ff;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;">参加</button>
-      </div>
-      <div id="pvp-match-status" style="font-size:10px;color:var(--text3);text-align:center;"></div>
-    </div>
-
-    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">🤖 NPCと対戦</div>
-    <button class="pvp-battle-btn" onclick="startPvpBattle()" style="margin-bottom:14px;">⚔️ NPC対戦開始</button>
-
-    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:8px;">🏆 オンラインランキング</div>
-    <div id="pvp-ranking-list"><div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0;">読み込み中...</div></div>
-
-    <div style="font-size:10px;color:var(--text2);margin-top:10px;margin-bottom:6px;">NPC対戦相手候補</div>
-    ${opponents.slice(0,3).map(opp=>{
-      const diff=opp.rank-rank;
-      const diffCol=diff>0?'#e06060':diff<0?'#40c080':'var(--text2)';
-      return`<div class="pvp-opponent-card">
-        <div class="pvp-opp-ico">🤖</div>
-        <div style="flex:1;"><div style="font-size:12px;font-weight:500;">${opp.name}</div><div style="font-size:9px;color:var(--text2);">${opp.wins}勝 ${opp.losses}敗</div></div>
-        <div style="text-align:right;"><div style="font-size:11px;">${opp.rank}pts</div><div style="font-size:9px;color:${diffCol};">${diff>0?'+':''}${diff}</div></div>
-      </div>`;
-    }).join('')}
-  `;
-  // ランキング非同期取得
-  loadPvpRanking();
 }
 
 async function loadPvpRanking(){
@@ -6396,9 +6629,13 @@ function addPvpLog(txt, type='sys'){
 
 
 function getTowerRewards(floor){
-  const gem  = 5 + Math.floor(floor/5)*3;
-  const gold = 200 + floor*50;
-  return {gem, gold};
+  // ジェム・ゴールド報酬は廃止、ガチャチケットのみ
+  // 1〜9F: 0枚, 10F毎に1枚ベース + 高層ほど増加
+  var tickets = 0;
+  if(floor >= 10)  tickets = Math.floor(floor/10);         // 10F→1枚, 50F→5枚
+  if(floor >= 50)  tickets += Math.floor((floor-50)/20);   // 50F以降追加
+  if(floor >= 100) tickets += Math.floor((floor-100)/10);  // 100F以降さらに追加
+  return {gem:0, gold:0, tickets: Math.max(0, tickets)};
 }
 
 
@@ -6436,12 +6673,71 @@ function onTowerClear(quest){
   const floor = S.towerFloor||1;
   S.towerFloor = floor+1;
   S.towerBest  = Math.max(S.towerBest||0, floor);
+  // ガチャチケット付与（クリア報酬）
+  const rw = getTowerRewards(floor);
+  if(rw.tickets > 0){
+    S.gachaTickets = (S.gachaTickets||0) + rw.tickets;
+  }
   // 実績チェック
   checkAchievement('tower10',  S.towerBest>=10);
   checkAchievement('tower30',  S.towerBest>=30);
   checkAchievement('tower50',  S.towerBest>=50);
   checkAchievement('tower100', S.towerBest>=100);
   saveGame();
+  // Firestoreにランキングデータを保存
+  saveTowerRanking(floor);
+}
+
+async function saveTowerRanking(floor){
+  if(!db || !auth.currentUser) return;
+  try{
+    var uid = auth.currentUser.uid;
+    var today = new Date().toDateString();
+    var rankRef = db.collection('tower_ranking').doc(today+'_'+uid);
+    await rankRef.set({
+      uid: uid,
+      name: S.playerName||'深海司令官',
+      icon: S.playerIcon||'🌊',
+      floor: S.towerBest||0,
+      rank: S.rank||1,
+      updatedAt: new Date().toISOString(),
+      date: today,
+    });
+  }catch(e){ console.log('[TOWER RANK]', e); }
+}
+
+async function showTowerRanking(){
+  if(!db){
+    showModal('🏆 ランキング', '通信エラー：ランキングを取得できません', [{label:'閉じる',action:()=>{}}]);
+    return;
+  }
+  try{
+    var today = new Date().toDateString();
+    var snap = await db.collection('tower_ranking')
+      .where('date','==',today)
+      .orderBy('floor','desc')
+      .limit(20)
+      .get();
+    if(snap.empty){
+      showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
+      return;
+    }
+    var rows = [];
+    var myRank = -1;
+    snap.docs.forEach(function(doc,i){
+      var d = doc.data();
+      var isMe = auth.currentUser && d.uid===auth.currentUser.uid;
+      if(isMe) myRank = i+1;
+      var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
+      var bonus = i===0?'🎫×15':i===1?'🎫×10':i===2?'🎫×5':'';
+      rows.push((isMe?'▶':'')+medal+' '+(d.icon||'🌊')+' '+(d.name||'司令官')+' '+(d.floor||0)+'F'+' Rank'+d.rank+(bonus?' '+bonus:'')+(isMe?' ←あなた':''));
+    });
+    var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
+    var msg = rows.join('\n')+'\nあなたの順位: '+(myRank>0?myRank+'位':'圏外')+'\nリセット時ボーナス: '+myBonusStr;
+    showModal('🏆 本日のランキング TOP20', msg, [{label:'閉じる',action:()=>{},primary:true}]);
+  }catch(e){
+    showModal('🏆 ランキング', 'ランキングの取得に失敗しました（インターネット接続を確認してください）',[{label:'閉じる',action:()=>{}}]);
+  }
 }
 
 // ================================================================
@@ -8501,6 +8797,7 @@ async function renderFriend(){
             helperChar:d.helperChar||null,
             cleared:(d.cleared||[]).length,
             towerBest:d.towerBest||0,
+            lastLoginDate:d.lastLoginDate||'',
           };
         }catch(e){}
         return null;
@@ -8561,11 +8858,13 @@ async function renderFriend(){
     +(friends.length===0
       ?'<div style="text-align:center;padding:30px 0;font-size:11px;color:var(--text3);">フレンドがいません</div>'
       :friends.map(function(f){
+        var loginStr = formatLastLogin(f.lastLoginDate||'');
         return '<div class="friend-card">'
           +'<div class="friend-card-ico">'+(f.icon||'🌊')+'</div>'
           +'<div style="flex:1;">'
           +'<div class="friend-card-name">'+(f.name||'司令官')+'</div>'
           +'<div class="friend-card-rank">ID: '+f.id+' | Rank '+(f.rank||1)+'</div>'
+          +'<div style="font-size:8px;color:var(--text3);margin-top:2px;">最終ログイン: '+loginStr+'</div>'
           +'</div>'
           +'<div style="display:flex;gap:6px;">'
           +'<button onclick="openFriendProfile(\''+( f.uid||'')+'\',\''+f.id+'\')" style="padding:5px 10px;border-radius:6px;border:.5px solid rgba(30,120,200,.4);background:rgba(10,50,100,.3);color:#60a0e0;cursor:pointer;font-size:10px;font-family:inherit;">👤 詳細</button>'
@@ -13001,6 +13300,85 @@ function setBattleSpeed(speed){
 // 倍速対応のsetTimeout（オートバトル中のみ短縮）
 function btDelay(ms){
   return BT.auto ? Math.max(50, Math.round(ms / BT_SPEED)) : ms;
+}
+
+function formatLastLogin(dateStr){
+  if(!dateStr) return 'ログイン履歴なし';
+  var d = new Date(dateStr);
+  if(isNaN(d.getTime())) return '不明';
+  var now = new Date();
+  var diff = now - d;
+  var mins = Math.floor(diff/60000);
+  var hours = Math.floor(diff/3600000);
+  var days = Math.floor(diff/86400000);
+  if(mins < 1) return '🟢 たった今';
+  if(mins < 60) return '🟢 '+mins+'分前';
+  if(hours < 24) return '🟡 '+hours+'時間前';
+  if(days < 7) return '🟠 '+days+'日前';
+  return '⚫ '+days+'日前';
+}
+
+// ================================================================
+//  ホームオブジェクト：デイリーボーナス
+// ================================================================
+function checkHomeOrbBonus(){
+  var today = new Date().toDateString();
+  var badge = document.getElementById('home-orb-badge');
+  if(!badge) return;
+  if(!S.dailyRewardClaimed || S.lastLoginDate !== today){
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function tapHomeOrb(){
+  sfx('click');
+  var today = new Date().toDateString();
+  if(S.lastLoginDate === today && S.dailyRewardClaimed){
+    showToast('✨ デイリーボーナスは本日受け取り済みです。また明日！');
+    return;
+  }
+  // デイリーボーナス付与
+  var gemBonus = 30 + Math.floor(Math.random()*20); // 30〜50ジェム
+  var goldBonus = 5000 + Math.floor(Math.random()*5000); // 5000〜10000ゴールド
+  S.gem += gemBonus;
+  S.gold += goldBonus;
+  S.lastLoginDate = today;
+  S.dailyRewardClaimed = true;
+  saveGame();
+  document.getElementById('home-orb-badge').style.display = 'none';
+  // 演出
+  showModal('🌊 デイリーボーナス！',
+    '深海オーブが輝いた！\n\n💎 ジェム +'+gemBonus+'\n💰 ゴールド +'+goldBonus.toLocaleString()+'\n\n明日もまた輝きます。',
+    [{label:'受け取る！',action:function(){refreshHome();},primary:true}]
+  );
+}
+
+async function distributeRankingBonus(prevBest, baseTickets){
+  if(!db||!auth.currentUser) return;
+  try{
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate()-1);
+    var ydate = yesterday.toDateString();
+    var snap = await db.collection('tower_ranking')
+      .where('date','==',ydate)
+      .orderBy('floor','desc')
+      .limit(3)
+      .get();
+    if(snap.empty) return;
+    var myUid = auth.currentUser.uid;
+    snap.docs.forEach(function(doc,i){
+      var d = doc.data();
+      if(d.uid===myUid){
+        var rankBonus = i===0?15:i===1?10:5;
+        S.gachaTickets = (S.gachaTickets||0) + rankBonus;
+        saveGame();
+        var medal = i===0?'🥇1位':i===1?'🥈2位':'🥉3位';
+        showToast('🏆 昨日の塔ランキング '+medal+'！ボーナス🎫×'+rankBonus+'獲得！');
+      }
+    });
+  }catch(e){}
 }
 </script>
 
