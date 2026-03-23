@@ -5070,7 +5070,7 @@ function enemyTurn(){
 
     const actionEl = document.getElementById('enemy-action-txt');
 
-    // 敵の状態異常ターン処理（ダメージ・凍結・麻痺チェック）
+    // 敵の状態異常ターン処理
     const statusResult = processEnemyStatuses();
     if(!statusResult.proceed) return;
 
@@ -5082,19 +5082,116 @@ function enemyTurn(){
       return;
     }
 
-    // 麻痺フラグを保持（各攻撃でミス判定に使用）
     const enemyParalyzed = statusResult.isParalyzed;
 
-    // 敵の攻撃（速度により複数回攻撃）
-    // 複数敵攻撃
-    var multiAtk = getMultiEnemyAttack();
-    var spd = multiAtk.isSync ? 3 : (BT.quest.enemy.spd||1);
-    if(multiAtk.actions.length>0){
-      var actEl=document.getElementById('enemy-action-txt');
-      if(actEl) actEl.textContent=multiAtk.actions[0];
-    }
-    const attacks = Math.min(spd, 3);
+    // ================================================================
+    // 複数敵：各敵が個別に攻撃（各自のspd回数分）
+    // ================================================================
+    if(BT_ENEMIES && BT_ENEMIES.length > 1){
+      var multiAtk = getMultiEnemyAttack();
 
+      // 連携技
+      if(multiAtk.isSync){
+        if(actionEl) actionEl.innerHTML='<span style="color:#ff8040;font-weight:700;">⚡ 全員連携攻撃！</span>';
+        const aliveNow = BT.partyHp.filter(m=>m.hp>0);
+        if(!aliveNow.length){ loseBattle(); return; }
+        if(enemyParalyzed && Math.random()<0.5){
+          if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ 麻痺で連携攻撃がはずれた！</span>';
+          setTimeout(()=>afterEnemyAttacks(), 1000);
+          return;
+        }
+        const reduction = getPartyDamageReduction();
+        const hateTgt = applyTankHate();
+        const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
+        const rawDmg = Math.round(multiAtk.totalAtk*(.8+Math.random()*.4));
+        const dmg = Math.round(rawDmg*(1-reduction));
+        tgt.hp = Math.max(0, tgt.hp-dmg);
+        sfx('hit'); updatePartyHP();
+        const tgtChar=CHARS.find(c=>c.id===tgt.id);
+        setTimeout(()=>{
+          if(BT.partyHp.every(m=>m.hp<=0)){ loseBattle(); return; }
+          afterEnemyAttacks();
+        }, 800);
+        return;
+      }
+
+      // 各敵が個別にspd回数分攻撃
+      // 攻撃アクションリストを生成（敵×spd回数）
+      var attackQueue = [];
+      BT_ENEMIES.forEach(function(e){
+        if(e.hp<=0) return;
+        // 麻痺チェック
+        var ePara = (e.statuses||[]).some(function(s){return s.type==='para'&&s.turns>0;});
+        var atkCount = Math.min(e.spd||1, 3);
+        for(var i=0;i<atkCount;i++){
+          attackQueue.push({enemy:e, paralyzed:ePara});
+        }
+      });
+
+      var qIdx = 0;
+      function doMultiAttack(){
+        if(!BT.active || qIdx >= attackQueue.length){ afterEnemyAttacks(); return; }
+        const aliveNow = BT.partyHp.filter(m=>m.hp>0);
+        if(!aliveNow.length){ loseBattle(); return; }
+
+        var atk = attackQueue[qIdx];
+        qIdx++;
+
+        // 麻痺ミス
+        if(atk.paralyzed && Math.random()<0.5){
+          if(actionEl) actionEl.innerHTML='<span style="color:#ffe860;font-weight:700;">⚡ '+atk.enemy.name+' 麻痺で攻撃がはずれた！</span>';
+          setTimeout(doMultiAttack, 500);
+          return;
+        }
+        // 凍結スキップ
+        var eFrozen = (atk.enemy.statuses||[]).some(function(s){return s.type==='freeze'&&s.turns>0;});
+        if(eFrozen){
+          if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;">❄️ '+atk.enemy.name+' 凍結中！</span>';
+          setTimeout(doMultiAttack, 400);
+          return;
+        }
+
+        const reduction = getPartyDamageReduction();
+        const hateTgt = applyTankHate();
+        const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
+        const rawDmg = Math.round(atk.enemy.atk*(.8+Math.random()*.4));
+        const dmg = Math.round(rawDmg*(1-reduction));
+        tgt.hp = Math.max(0, tgt.hp-dmg);
+        sfx('hit'); updatePartyHP(); renderPartyStatuses();
+        const reductionTxt = reduction>0?' (軽減'+Math.round(reduction*100)+'%)':'';
+        const tgtChar=CHARS.find(c=>c.id===tgt.id);
+        const tgtName=tgtChar?tgtChar.name:'味方';
+        if(actionEl) actionEl.textContent=atk.enemy.emoji+' '+atk.enemy.name+'の攻撃！ '+tgtName+' -'+dmg+reductionTxt;
+
+        // 状態異常付与
+        if(atk.enemy.statusPatterns){
+          atk.enemy.statusPatterns.forEach(function(p){
+            if(Math.random()<(p.prob||0.2)){
+              if(p.type==='para'){
+                var aliveForPara=BT.partyHp.filter(function(m){return m.hp>0;});
+                if(aliveForPara.length>0){
+                  var paraTgt=aliveForPara[Math.floor(Math.random()*aliveForPara.length)];
+                  applyStatus(paraTgt.id,'para',p.stacks||1);
+                }
+              } else {
+                applyStatus(tgt.id,p.type,p.stacks||1);
+              }
+            }
+          });
+        }
+
+        if(BT.partyHp.every(m=>m.hp<=0)){ setTimeout(loseBattle,600); return; }
+        setTimeout(doMultiAttack, 500);
+      }
+      doMultiAttack();
+      return;
+    }
+
+    // ================================================================
+    // 単体敵：従来通り
+    // ================================================================
+    var spd = BT.quest.enemy.spd||1;
+    const attacks = Math.min(spd, 3);
     let attackCount = 0;
     function doNextAttack(){
       if(!BT.active || attackCount >= attacks){ afterEnemyAttacks(); return; }
@@ -5112,10 +5209,8 @@ function enemyTurn(){
       // タンクヘイト補正
       const hateTgt = applyTankHate();
       const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
-      // ダメージ軽減（タンク・スキル）
       const reduction = getPartyDamageReduction();
-      // 複数敵の場合はmultiAtkのATKを使う
-      var baseAtk = multiAtk&&multiAtk.totalAtk>0 ? multiAtk.totalAtk : ((BT.quest&&BT.quest.enemy&&BT.quest.enemy.atk)||100);
+      var baseAtk = (BT.quest&&BT.quest.enemy&&BT.quest.enemy.atk)||100;
       let rawDmg = Math.round(baseAtk*(.8+Math.random()*.4));
       const dmg = Math.round(rawDmg*(1-reduction));
       tgt.hp = Math.max(0, tgt.hp-dmg);
@@ -5123,7 +5218,6 @@ function enemyTurn(){
       updatePartyHP();
       renderPartyStatuses();
       const reductionTxt = reduction>0?' (軽減'+Math.round(reduction*100)+'%)':'';
-      // キャラ名を取得
       const tgtChar=CHARS.find(c=>c.id===tgt.id);
       const tgtName=tgtChar?tgtChar.name:'味方';
       if(actionEl) actionEl.textContent=BT.quest.enemy.name+'の攻撃！ '+tgtName+' -'+dmg+reductionTxt;
@@ -5134,7 +5228,6 @@ function enemyTurn(){
         enemy.statusPatterns.forEach(p=>{
           if(Math.random()<(p.prob||0.2)){
             if(p.type==='para'){
-              // 麻痺：生存キャラからランダムに1体を対象
               var aliveForPara = BT.partyHp.filter(function(m){return m.hp>0;});
               if(aliveForPara.length>0){
                 var paraTgt = aliveForPara[Math.floor(Math.random()*aliveForPara.length)];
@@ -11959,13 +12052,14 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
 
   if(!matched.length) return;
 
-  // 特殊カードを手札に追加（1〜3枚ランダム）
+  // 特殊カードを手札に追加（確率：1枚60% / 2枚30% / 3枚10%）
   var avgAtk = BT.partyHp.reduce(function(s,m){return s+m.atk;},0)/Math.max(BT.partyHp.length,1);
   var added = [];
   matched.forEach(function(sc){
     _specialCardShown[sc.id] = true;
-    // 1〜3枚ランダム
-    var count = Math.floor(Math.random()*3)+1;
+    // 確率で枚数決定：1枚60%・2枚30%・3枚10%
+    var r = Math.random();
+    var count = r < 0.60 ? 1 : r < 0.90 ? 2 : 3;
     for(var i=0;i<count;i++){
       BT.hand.push({
         name: sc.name, emoji: sc.emoji, dmg: sc.power||2.0,
@@ -12043,17 +12137,24 @@ function executeSpecialCard(sc, totalAtk){
   var effect = sc.effect;
   var alive = BT.partyHp.filter(function(m){return m.hp>0;});
 
-  // 確実に全敵にデバフを付与するヘルパー
-  // BT_ENEMIESが1体でも複数でも・enemyStatusesにも両方書き込む
+  // デバフ付与ヘルパー
+  // 複数敵：生存敵からランダム1体に付与
+  // 単体敵：そのまま付与
   function applyDebuffAll(type, stacks){
-    // BT_ENEMIESベース（複数敵・単体共通）
-    if(BT_ENEMIES && BT_ENEMIES.length>0){
-      BT_ENEMIES.forEach(function(e,idx){
-        if(e.hp>0) applyEnemyStatusMulti(idx, type, stacks);
-      });
+    if(BT_ENEMIES && BT_ENEMIES.length > 1){
+      // 複数敵はランダム1体に付与
+      var aliveEnemies = BT_ENEMIES.map(function(e,i){return {e:e,i:i};}).filter(function(x){return x.e.hp>0;});
+      if(aliveEnemies.length > 0){
+        var target = aliveEnemies[Math.floor(Math.random()*aliveEnemies.length)];
+        applyEnemyStatusMulti(target.i, type, stacks);
+      }
+    } else {
+      // 単体敵
+      if(BT_ENEMIES && BT_ENEMIES.length===1 && BT_ENEMIES[0].hp>0){
+        applyEnemyStatusMulti(0, type, stacks);
+      }
+      applyEnemyStatus(type, stacks);
     }
-    // 単体敵のenemyStatusesにも書き込み（UIと処理ループに反映）
-    applyEnemyStatus(type, stacks);
   }
 
   // 全敵にダメージを与えるヘルパー
@@ -12124,11 +12225,12 @@ function executeSpecialCard(sc, totalAtk){
       capturedStatuses.forEach(function(s){
         applyDebuffAll(s.type, (s.stacks||1)*2);
       });
-      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！デバフ'+capturedStatuses.length+'種を逆付与！', sc.color);
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！デバフ逆付与！', sc.color);
     } else {
-      // デバフがなくても全状態異常を付与
-      ['burn','poison','freeze','para'].forEach(function(t){ applyDebuffAll(t,1); });
-      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全状態異常を付与！', sc.color);
+      // デバフがなくても状態異常を付与（1種ランダム）
+      var t=['burn','poison','freeze','para'][Math.floor(Math.random()*4)];
+      applyDebuffAll(t, 2);
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！状態異常を付与！', sc.color);
     }
   }
 
