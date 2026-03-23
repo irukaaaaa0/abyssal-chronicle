@@ -12724,14 +12724,17 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
           return (s.type==='freeze'||s.type==='para') && s.turns>0;
         });
       });
-      if(anyDebuffed) return; // デバフ中は出現しない
+      if(anyDebuffed) return;
+      // キャラ組み合わせ系：50%の確率で出現
+      if(Math.random() >= 0.50) return;
       matched.push(sc);
       return;
     }
     // 属性揃え条件（コンボ中の属性と一致）
     if(sc.requiredAttr){
       if(sc.requiredAttr===comboAttr && comboLv>=sc.requiredAttrCount){
-        matched.push(sc);
+        // 属性揃え系：70%の確率で出現
+        if(Math.random() < 0.70) matched.push(sc);
       }
     }
   });
@@ -12824,18 +12827,19 @@ function executeSpecialCard(sc, totalAtk){
   var alive = BT.partyHp.filter(function(m){return m.hp>0;});
 
   // デバフ付与ヘルパー
-  // 複数敵：生存敵からランダム1体に付与
+  // 複数敵：ローテーションで各敵に振り分け（同じ敵への重複付与を防ぐ）
   // 単体敵：そのまま付与
+  var _debuffRoundIdx = 0;
   function applyDebuffAll(type, stacks){
     if(BT_ENEMIES && BT_ENEMIES.length > 1){
-      // 複数敵はランダム1体に付与
       var aliveEnemies = BT_ENEMIES.map(function(e,i){return {e:e,i:i};}).filter(function(x){return x.e.hp>0;});
       if(aliveEnemies.length > 0){
-        var target = aliveEnemies[Math.floor(Math.random()*aliveEnemies.length)];
+        // ローテーションで異なる敵に付与
+        var target = aliveEnemies[_debuffRoundIdx % aliveEnemies.length];
+        _debuffRoundIdx++;
         applyEnemyStatusMulti(target.i, type, stacks);
       }
     } else {
-      // 単体敵
       if(BT_ENEMIES && BT_ENEMIES.length===1 && BT_ENEMIES[0].hp>0){
         applyEnemyStatusMulti(0, type, stacks);
       }
