@@ -2565,6 +2565,11 @@ const CHARS=[
   {id:200,name:'深淵神イブリス',    emoji:'🩸',rarity:'UR',bg:'rgba(80,0,20,.3)',  border:'rgba(220,30,60,.6)',  hp:1900,atk:380,level:1,attribute:'dark', role:'attacker',skillName:'深淵崩壊撃',skillDesc:'闇属性コンボ時、全体ダメージ+55%。カード選択+1枚。',limited:true},
   {id:201,name:'星海の巫女アルテア',emoji:'⭐', rarity:'UR',bg:'rgba(0,20,60,.3)',  border:'rgba(100,180,255,.6)',hp:2100,atk:180,level:1,attribute:'light',role:'support',  skillName:'星の祝福',     skillDesc:'カードが全てヒールに変化（ATKの30%回復）。HP55%以下の味方に1回限り緊急回復。',limited:true},
   {id:202,name:'業炎の覇王カルドス',emoji:'🔱', rarity:'UR',bg:'rgba(60,10,0,.3)', border:'rgba(255,80,20,.6)',  hp:1850,atk:350,level:1,attribute:'fire', role:'debuffer', skillName:'業火滅却',     skillDesc:'炎属性コンボ時、相手に炎症×2スタック付与確率+40%。',limited:true},
+  // ===== 新限定キャラ =====
+  {id:203,name:'氷獄の白妖ヴァルシア',emoji:'🌨️',rarity:'UR',bg:'rgba(0,30,60,.3)',  border:'rgba(150,220,255,.7)',hp:2000,atk:290,level:1,attribute:'ice',  role:'debuffer', skillName:'白霧氷葬',   skillDesc:'氷属性コンボ時、凍結付与確率+50%。凍結中の敵へのダメージ+20%。',limited:true},
+  {id:204,name:'雷神の申し子ライカ',  emoji:'⚡',rarity:'UR',bg:'rgba(40,40,0,.3)',  border:'rgba(255,240,80,.7)', hp:1750,atk:420,level:1,attribute:'thunder',role:'attacker', skillName:'雷帝解放',   skillDesc:'雷属性コンボ時、全体ダメージ+45%。麻痺中の敵へのダメージ+25%。',limited:true},
+  {id:205,name:'深淵の水姫ネレイス',  emoji:'🌊',rarity:'UR',bg:'rgba(0,20,50,.3)',  border:'rgba(80,200,255,.7)', hp:2200,atk:260,level:1,attribute:'water', role:'support',  skillName:'深海の加護', skillDesc:'毎ターン全体HP6%回復。水属性コンボ時、全員の受けるダメージを1ターン-30%。',limited:true},
+  {id:206,name:'旧破の剣神エルドス',  emoji:'🗡️', rarity:'UR',bg:'rgba(30,0,40,.3)',  border:'rgba(200,100,255,.7)',hp:1800,atk:400,level:1,attribute:'dark',  role:'attacker', skillName:'旧破一刀',   skillDesc:'闇属性コンボ時、全体ダメージ+50%。カード選択+1枚。敵全体に毒スタック付与率+30%。',limited:true},
 ];
 // comboType: 同じタイプを連続すると追加ボーナス
 // fire=炎 ice=氷 thunder=雷 water=水 dark=闇 light=光 none=無
@@ -3057,7 +3062,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
   lastLoginDate:'',dailyRewardClaimed:false,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
 };
@@ -3525,24 +3530,42 @@ let BANNERS=[
   },
   // ===== 限定バナー =====
   {
-    id:9, name:'深淵神降臨 -Abyssal God-', icon:'🩸', limited:true, active:true,
-    sub:'★限定★ 深淵神イブリス（UR）・星海の巫女アルテア（UR）期間限定排出！',
+    id:9, name:'深淵神降臨 -Abyssal God-', icon:'🩸', limited:true, active:false,
+    sub:'★復刻★ 深淵神イブリス（UR）・星海の巫女アルテア（UR）復刻排出！',
     color:'rgba(80,0,30,.5)', border:'rgba(220,30,60,.6)',
     pickup:['UR','SSR'],
-    pickupIds:[200,201,68,70],
+    pickupIds:[200,201,62,66],
     limitedIds:[200,201],
-    pity:100,
-    period:'期間限定開催中',
+    pity:100, period:'復刻開催',
+    revival:true,
   },
   {
-    id:10, name:'業炎の覇王 -Blazing Tyrant-', icon:'🔱', limited:true, active:true,
-    sub:'★限定★ 業炎の覇王カルドス（UR）期間限定排出！',
+    id:10, name:'業炎の覇王 -Blazing Tyrant-', icon:'🔱', limited:true, active:false,
+    sub:'★復刻★ 業炎の覇王カルドス（UR）復刻排出！',
     color:'rgba(60,10,0,.5)', border:'rgba(255,80,20,.6)',
     pickup:['UR','SSR'],
     pickupIds:[202,60,73],
     limitedIds:[202],
-    pity:100,
-    period:'期間限定開催中',
+    pity:100, period:'復刻開催',
+    revival:true,
+  },
+  {
+    id:11, name:'白霧氷葬 -Frost Burial-', icon:'🌨️', limited:true, active:true,
+    sub:'★限定★ 氷獄の白妖ヴァルシア（UR）・雷神の申し子ライカ（UR）期間限定排出！',
+    color:'rgba(0,20,60,.5)', border:'rgba(150,220,255,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[203,204,62,75],
+    limitedIds:[203,204],
+    pity:100, period:'期間限定開催中',
+  },
+  {
+    id:12, name:'深海の守護神 -Abyss Guardian-', icon:'🌊', limited:true, active:true,
+    sub:'★限定★ 深淵の水姫ネレイス（UR）・旧破の剣神エルドス（UR）期間限定排出！',
+    color:'rgba(0,30,80,.5)', border:'rgba(80,200,255,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[205,206,65,72],
+    limitedIds:[205,206],
+    pity:100, period:'期間限定開催中',
   },
 ];
 
@@ -3628,7 +3651,7 @@ function renderBannerDetail(){
   // レート表示更新
   var urRateEl=document.getElementById('rate-ur');
   var pityEl=document.getElementById('rate-pity');
-  if(urRateEl) urRateEl.textContent=b.limited?'UR 1.5%':'UR 0.1%';
+  if(urRateEl) urRateEl.textContent='UR 0.1%';
   if(pityEl) pityEl.textContent='天井 '+pityMax+'回';
 
   // カウントダウン表示
@@ -3715,10 +3738,9 @@ function doGacha(count){
     const r=Math.random();
     if(pity>=pityMax){
       // 天井: 限定バナーはUR確定、恒常はUR/SSR 50/50
-      rar=b.limited?(Math.random()<0.5?'UR':'SSR'):'SSR';
-      if(b.limited) rar='UR'; // 限定天井はUR確定
+      rar='UR'; // 天井はUR確定
       S.pityPerBanner[currentBanner]=0;
-    } else if(r<(b.limited?0.015:0.001)){ // 限定はUR率1.5%
+    } else if(r<0.001){ // UR率0.1%（限定・恒常共通）
       rar='UR'; S.pityPerBanner[currentBanner]=0;
     } else if(r<0.02){  rar='SSR'; }
     else if(r<0.15){    rar='SR'; }
