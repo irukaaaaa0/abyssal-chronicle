@@ -9593,8 +9593,18 @@ function renderLibrary(){
   var rarOrder={UR:0,SSR:1,SR:2,R:3};
   var rarColor={UR:'#ffe040',SSR:'#d4a020',SR:'#a060e0',R:'#4080c0'};
 
-  // 通常キャラのみ（クエスト敵などを除外）
-  var allChars=CHARS.filter(function(c){return c.id<=202;});
+  // プレイアブルキャラのみ（敵・システムキャラを除外）
+  // limited:trueまたはid<=999の通常キャラを対象
+  var allChars=CHARS.filter(function(c){
+    // 明示的なlimitedフラグがあれば含む
+    if(c.limited) return true;
+    // idが200未満は恒常キャラ
+    if(c.id<200) return true;
+    // 200以降でlimitedフラグがついていれば含む（上で処理済み）
+    // 200以降でlimitedフラグがなく、rarity定義があれば含む
+    if(c.rarity&&['UR','SSR','SR','R'].includes(c.rarity)) return true;
+    return false;
+  });
 
   // フィルター適用
   var filtered=allChars.filter(function(c){
@@ -10479,7 +10489,8 @@ async function loadLimitedBannerStatus(){
           if(Date.now() > endsAt) b.active = false;
         }
       } else {
-        b.active = false;
+        // Firestoreに未登録 → BANNERSの初期値をそのまま使う
+        // （新バナーはデフォルトactiveを維持）
       }
     });
     // 限定タブの表示を更新
