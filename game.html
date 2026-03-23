@@ -6781,14 +6781,13 @@ function showTowerRankingModal(entries, myRank){
   var bonuses = ['🎫×15','🎫×10','🎫×5','',''];
   var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
 
-  var html = '<div style="width:100%;max-width:320px;">';
-  html += '<div style="text-align:center;font-size:12px;font-weight:700;color:#ffe040;margin-bottom:12px;letter-spacing:.1em;">🏆 本日のランキング TOP5</div>';
+  var html = '';
 
   if(!entries || entries.length===0){
-    html += '<div style="text-align:center;padding:20px;font-size:11px;color:var(--text3);">まだ誰も挑戦していません！<br>あなたが1位になろう！</div>';
+    html += '<div style="text-align:center;padding:16px 0;font-size:11px;color:var(--text3);">まだ誰も挑戦していません！<br>あなたが1位になろう！</div>';
   } else {
     entries.forEach(function(e,i){
-      var bg = e.isMe ? 'rgba(40,120,20,.25)' : 'rgba(0,15,35,.5)';
+      var bg = e.isMe ? 'rgba(20,80,20,.35)' : 'rgba(0,15,35,.5)';
       var border = e.isMe ? 'rgba(60,200,60,.4)' : 'rgba(30,60,120,.3)';
       html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;'
         +'background:'+bg+';border:.5px solid '+border+';border-radius:8px;">'
@@ -6803,21 +6802,13 @@ function showTowerRankingModal(entries, myRank){
     });
   }
 
-  html += '<div style="margin-top:10px;padding:8px;background:rgba(0,10,30,.5);border-radius:6px;font-size:10px;color:var(--text2);text-align:center;">'
+  html += '<div style="margin-top:8px;padding:8px;background:rgba(0,10,30,.5);border-radius:6px;font-size:10px;color:var(--text2);text-align:center;">'
     +'あなたの順位: <span style="color:#ffe040;font-weight:700;">'+(myRank>0?myRank+'位':'圏外')+'</span>　'
     +'リセット時ボーナス: <span style="color:#ffa040;font-weight:700;">'+myBonusStr+'</span>'
-    +'</div>';
-  html += '<div style="font-size:8px;color:var(--text3);text-align:center;margin-top:6px;">ランキングは本日の最高到達階層で競います</div>';
-  html += '</div>';
+    +'</div>'
+    +'<div style="font-size:8px;color:var(--text3);text-align:center;margin-top:4px;">本日の最高到達階層で競います</div>';
 
-  // HTMLをモーダルに表示
-  var overlay = document.getElementById('modal-overlay');
-  if(!overlay){ showModal('🏆 ランキング','取得完了',[{label:'閉じる',action:()=>{},primary:true}]); return; }
-  var msgEl = overlay.querySelector('.modal-msg');
-  if(msgEl){
-    msgEl.innerHTML = html;
-    overlay.style.display='flex';
-  }
+  showModal('🏆 本日のランキング TOP5', html, [{label:'閉じる',action:function(){},primary:true}]);
 }
 
 // ================================================================
