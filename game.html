@@ -1167,6 +1167,19 @@ function onPvpEnd(won, quest){
     <div class="home-visual">
       <div class="home-char"><div class="home-char-body"><div class="home-char-inner"></div></div><div class="home-char-glow"></div></div>
     </div>
+    <!-- 攻略ページリンク -->
+    <div style="margin:6px 12px 0;">
+      <a href="https://irukaaaaa0.github.io/abyssal-chronicle/tierlist.html" target="_blank" onclick="sfx('click')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(0,10,30,.6);border:.5px solid rgba(30,80,160,.35);border-radius:10px;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">🏆</span>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text2);">URキャラ ティアリスト</div>
+            <div style="font-size:8px;color:var(--text3);margin-top:1px;">攻略サイトで確認する</div>
+          </div>
+        </div>
+        <span style="font-size:10px;color:var(--teal);">→</span>
+      </a>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px 0;">
       <div style="font-size:10px;color:var(--text2);display:flex;align-items:center;gap:6px;">
       <span id="cloud-save-indicator" style="font-size:10px;" title="クラウド保存状態">☁️</span>
@@ -3736,11 +3749,17 @@ function doGacha(count){
       const normalPool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
       pool=(pickupPool.length>0&&Math.random()<0.5)?pickupPool:normalPool;
     }
-    // フォールバック：限定キャラを確実に除外
-    if(!pool||!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
-    // 最終安全チェック：限定キャラが混入していたら除外
-    pool=pool.filter(c=>!c.limited);
-    if(!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
+    // フォールバック
+    if(!pool||!pool.length){
+      pool = b.limited
+        ? CHARS.filter(c=>c.rarity===rar&&(b.limitedIds||[]).includes(c.id))
+        : CHARS.filter(c=>c.rarity===rar&&!c.limited);
+    }
+    // 恒常バナーのみ限定キャラを除外（限定バナーは限定キャラを排出）
+    if(!b.limited){
+      pool=pool.filter(c=>!c.limited);
+      if(!pool.length) pool=CHARS.filter(c=>c.rarity===rar&&!c.limited);
+    }
     ch=pool[Math.floor(Math.random()*pool.length)];
 
     const isDupe = S.owned.includes(ch.id);
@@ -4718,9 +4737,9 @@ function toggleCard(i){
         return;
       }
     }
-    // 選択: 最大枚数まで
+    // 選択: 特殊カードはコストなしで選択可能（MAX_SELECT制限を超えてもOK）
     const n = BT.hand.filter(c=>c.selected).length;
-    if(n >= MAX_SELECT){ showToast('最大'+MAX_SELECT+'枚まで選択できます'); return; }
+    if(!BT.hand[i].isSpecial && n >= MAX_SELECT){ showToast('最大'+MAX_SELECT+'枚まで選択できます'); return; }
     BT.hand[i].selected = true;
     BT.selectedOrder.push(i);
   } else {
@@ -11949,36 +11968,44 @@ function addSpecialCardsToHand(partyIds){
 function executeSpecialCard(sc, totalAtk){
   var effect = sc.effect;
   var alive = BT.partyHp.filter(function(m){return m.hp>0;});
+  var isMulti = BT_ENEMIES && BT_ENEMIES.length > 0;
+
+  // 単体・複数敵どちらでも対応するデバフ付与ヘルパー
+  function applyDebuffAll(type, stacks){
+    if(isMulti){
+      BT_ENEMIES.forEach(function(e,i){ if(e.hp>0) applyEnemyStatusMulti(i, type, stacks); });
+    } else {
+      applyEnemyStatus(type, stacks);
+    }
+  }
+  function damageAll(dmg){
+    if(isMulti){
+      BT_ENEMIES.forEach(function(e,i){ if(e.hp>0) damageEnemy(i, dmg); });
+    } else {
+      BT.enemyHp = Math.max(0, (BT.enemyHp||0) - dmg);
+      updateEnemyHP();
+    }
+    showDmg(dmg, true);
+  }
 
   if(effect==='all_damage'){
-    // 全敵大ダメージ
     var dmg = Math.round(totalAtk * (sc.power||3.0));
-    BT_ENEMIES.forEach(function(e,i){
-      if(e.hp>0) damageEnemy(i, dmg);
-    });
-    showDmg(dmg * BT_ENEMIES.filter(function(e){return e.hp>0;}).length, true);
+    damageAll(dmg);
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'発動！全敵に'+dmg.toLocaleString()+'ダメージ！', sc.color);
 
   } else if(effect==='all_damage_debuff'){
     var dmg2 = Math.round(totalAtk * (sc.power||2.5));
-    BT_ENEMIES.forEach(function(e,i){
-      if(e.hp>0){
-        damageEnemy(i, dmg2);
-        applyEnemyStatusMulti(i, sc.debuffType, 2);
-      }
-    });
+    damageAll(dmg2);
+    applyDebuffAll(sc.debuffType, 2);
     var cfg=STATUS_CONFIG[sc.debuffType];
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵に'+dmg2.toLocaleString()+'+'+(cfg?cfg.emoji:'')+'付与！', sc.color);
 
   } else if(effect==='all_debuff'){
-    BT_ENEMIES.forEach(function(e,i){
-      if(e.hp>0) applyEnemyStatusMulti(i, sc.debuffType, 2);
-    });
+    applyDebuffAll(sc.debuffType, 2);
     var cfg2=STATUS_CONFIG[sc.debuffType];
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵に'+(cfg2?cfg2.label:'デバフ')+'付与！', sc.color);
 
   } else if(effect==='all_heal' || effect==='all_heal_shield'){
-    var healAmt = Math.round(alive[0]?alive[0].maxHp*(sc.power||0.3):0);
     alive.forEach(function(m){
       var h = Math.round(m.maxHp*(sc.power||0.3));
       m.hp = Math.min(m.maxHp, m.hp+h);
@@ -11988,26 +12015,22 @@ function executeSpecialCard(sc, totalAtk){
 
   } else if(effect==='all_damage_multi_debuff'){
     var dmg3 = Math.round(totalAtk * (sc.power||3.0));
-    BT_ENEMIES.forEach(function(e,i){
-      if(e.hp>0){
-        damageEnemy(i, dmg3);
-        applyEnemyStatusMulti(i, 'poison', 2);
-        applyEnemyStatusMulti(i, 'para', 1);
-      }
-    });
+    damageAll(dmg3);
+    applyDebuffAll('poison', 2);
+    applyDebuffAll('para', 1);
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵大ダメージ＋毒＋麻痺！', sc.color);
 
   } else if(effect==='reverse_debuff'){
-    // 敵の状態異常を消して逆付与
-    var types = ['burn','poison','freeze','para'];
     enemyStatuses.forEach(function(s){
-      BT_ENEMIES.forEach(function(e,i){
-        if(e.hp>0) applyEnemyStatusMulti(i, s.type, s.stacks);
-      });
+      applyDebuffAll(s.type, s.stacks);
     });
     enemyStatuses = [];
     showSpecialAtkBanner(sc.emoji+' '+sc.name+'！敵のデバフを逆付与！', sc.color);
   }
+  // ダメージ後に全滅チェック
+  if(areAllEnemiesDead()){ setTimeout(winBattle, 700); }
+  updateEnemyHP();
+  renderEnemyStatuses();
 }
 
 // ================================================================
