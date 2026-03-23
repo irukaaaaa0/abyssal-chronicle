@@ -1171,7 +1171,10 @@ function onPvpEnd(won, quest){
     <div style="margin:6px 12px 0;background:rgba(0,10,25,.6);border:.5px solid rgba(30,80,160,.35);border-radius:10px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;background:rgba(0,15,40,.4);" onclick="var b=document.getElementById('tier-body');var a=document.getElementById('tier-arrow');b.style.display=b.style.display==='none'?'block':'none';a.textContent=b.style.display==='none'?'▶':'▼';">
         <div style="font-size:9px;font-weight:700;color:var(--text2);letter-spacing:.08em;">🏆 URティアリスト（攻略参考）</div>
-        <div id="tier-arrow" style="font-size:9px;color:var(--text3);">▼</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <a href="https://irukaaaaa0.github.io/abyssal-chronicle/tierlist.html" target="_blank" onclick="event.stopPropagation();sfx('click');" style="font-size:8px;color:var(--teal);background:rgba(0,40,60,.5);border:.5px solid rgba(16,192,160,.4);border-radius:5px;padding:2px 7px;text-decoration:none;white-space:nowrap;">🔗 攻略ページ</a>
+          <div id="tier-arrow" style="font-size:9px;color:var(--text3);">▼</div>
+        </div>
       </div>
       <div id="tier-body" style="padding:8px 10px 6px;">
         <!-- 注意書き -->

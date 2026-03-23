@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABYSSAL CHRONICLE — URキャラ ティアリスト</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg:#020810;
+    --card:#060f1e;
+    --border:rgba(30,80,160,.3);
+    --text:#c8dff0;
+    --text2:#7090a8;
+    --teal:#10c0a0;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',system-ui,sans-serif;
+    min-height:100vh;
+    padding:20px 16px 40px;
+  }
+  /* 背景グラデーション */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-1;
+    background:radial-gradient(ellipse at 20% 20%,rgba(20,0,60,.4) 0%,transparent 60%),
+               radial-gradient(ellipse at 80% 80%,rgba(0,20,60,.4) 0%,transparent 60%);
+  }
+
+  /* ヘッダー */
+  .header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .header-logo{
+    font-size:11px;letter-spacing:.3em;color:var(--teal);
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .header-title{
+    font-size:26px;font-weight:800;letter-spacing:.05em;
+    background:linear-gradient(135deg,#fff,#c8dff0,#60c0ff);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:4px;
+  }
+  .header-sub{
+    font-size:11px;color:var(--text2);margin-bottom:12px;
+  }
+  .notice{
+    display:inline-block;
+    font-size:10px;color:#c8a030;
+    background:rgba(255,200,0,.06);
+    border:.5px solid rgba(255,200,0,.2);
+    border-radius:20px;padding:4px 14px;
+    line-height:1.5;
+  }
+
+  /* ティアテーブル */
+  .tier-table{
+    max-width:680px;margin:0 auto;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .tier-row{
+    display:flex;align-items:stretch;gap:0;
+    border-radius:12px;overflow:hidden;
+    border:.5px solid var(--border);
+  }
+  /* ティアラベル */
+  .tier-label{
+    width:56px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:900;color:#fff;
+    letter-spacing:.05em;
+  }
+  .tier-s .tier-label{background:linear-gradient(160deg,#cc1010,#ff4040);}
+  .tier-a .tier-label{background:linear-gradient(160deg,#cc6000,#ff9020);}
+  .tier-b .tier-label{background:linear-gradient(160deg,#1050b0,#4080e0);}
+  .tier-c .tier-label{background:linear-gradient(160deg,#405060,#607080);}
+
+  /* キャラグリッド */
+  .tier-chars{
+    flex:1;
+    display:flex;flex-wrap:wrap;gap:8px;
+    padding:12px;
+    background:rgba(0,10,25,.5);
+  }
+
+  /* キャラカード */
+  .char-card{
+    width:88px;
+    background:rgba(0,15,35,.6);
+    border:.5px solid rgba(40,80,140,.4);
+    border-radius:10px;
+    padding:8px 6px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .15s,border-color .15s,box-shadow .15s;
+    position:relative;
+  }
+  .char-card:hover{
+    transform:translateY(-3px);
+    border-color:rgba(60,140,240,.6);
+    box-shadow:0 4px 16px rgba(30,100,200,.3);
+  }
+  .char-emoji{font-size:30px;margin-bottom:4px;display:block;}
+  .char-name{font-size:9px;color:var(--text);font-weight:600;margin-bottom:3px;line-height:1.3;}
+  .char-meta{font-size:8px;color:var(--text2);line-height:1.4;}
+  .char-skill{font-size:7.5px;color:rgba(150,200,255,.7);margin-top:3px;line-height:1.3;}
+  .limited-badge{
+    position:absolute;top:4px;right:4px;
+    font-size:6.5px;background:linear-gradient(90deg,#cc2040,#ff5080);
+    color:#fff;border-radius:3px;padding:1px 3px;font-weight:700;
+  }
+  /* ティア別ボーダー色 */
+  .tier-s .char-card{border-color:rgba(220,50,50,.3);}
+  .tier-s .char-card:hover{border-color:rgba(255,80,80,.7);box-shadow:0 4px 16px rgba(200,30,30,.3);}
+  .tier-a .char-card{border-color:rgba(200,100,20,.3);}
+  .tier-a .char-card:hover{border-color:rgba(255,150,40,.7);box-shadow:0 4px 16px rgba(200,100,0,.3);}
+
+  /* ツールチップ */
+  .char-card[data-tip]:hover::after{
+    content:attr(data-tip);
+    position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+    background:rgba(4,12,28,.97);border:.5px solid rgba(60,100,180,.5);
+    border-radius:8px;padding:8px 10px;
+    font-size:9px;color:var(--text);
+    white-space:pre;line-height:1.6;
+    z-index:100;pointer-events:none;
+    box-shadow:0 4px 16px rgba(0,0,0,.6);
+    min-width:160px;max-width:220px;
+    white-space:pre-wrap;
+  }
+
+  /* 凡例 */
+  .legend{
+    max-width:680px;margin:20px auto 0;
+    background:rgba(0,10,25,.5);border:.5px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+  }
+  .legend-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px;letter-spacing:.08em;}
+  .legend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+  .legend-item{font-size:9px;color:var(--text2);line-height:1.5;padding:4px 8px;background:rgba(0,15,35,.4);border-radius:6px;}
+  .legend-item strong{color:var(--text);}
+
+  /* フッター */
+  .footer{
+    text-align:center;margin-top:28px;
+    font-size:9px;color:var(--text2);line-height:2;
+  }
+  .footer a{color:var(--teal);text-decoration:none;}
+  .footer a:hover{text-decoration:underline;}
+
+  /* レスポンシブ */
+  @media(max-width:400px){
+    .char-card{width:76px;}
+    .tier-label{width:44px;font-size:18px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div class="header-logo">ABYSSAL CHRONICLE</div>
+  <div class="header-title">URキャラ ティアリスト</div>
+  <div class="header-sub">全15体 完全評価 — 随時更新</div>
+  <div class="notice">⚠️ AIが考えたティア表です。全キャラLv.120・0凸時のステータスを前提とした評価です。</div>
+</div>
+
+<!-- ティアテーブル -->
+<div class="tier-table">
+
+  <!-- S ティア -->
+  <div class="tier-row tier-s">
+    <div class="tier-label">S</div>
+    <div class="tier-chars">
+      <div class="char-card" data-tip="ATK 3998&#10;闇属性コンボ時ダメージ+55%&#10;カード選択+1枚&#10;闇パーティ最強核。全UR最高火力。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">🩸</span>
+        <div class="char-name">深淵神イブリス</div>
+        <div class="char-meta">闇 / アタッカー</div>
+        <div class="char-skill">闇コンボ+55%・カード+1</div>
+      </div>
+      <div class="char-card" data-tip="ATK 2946&#10;カード選択+1枚（全キャラ共通）&#10;汎用性最高。どんな編成でも機能する。&#10;恒常URの中で最も使いやすい。">
+        <span class="char-emoji">🌑</span>
+        <div class="char-name">旧破神アルカナ</div>
+        <div class="char-meta">闇 / アタッカー</div>
+        <div class="char-skill">カード選択+1枚</div>
+      </div>
+      <div class="char-card" data-tip="ATK 3366&#10;カード選択+1枚（全キャラ共通）&#10;アルカナより高ATK。闇PT二枚看板。&#10;カード+1持ちは希少でS必須。">
+        <span class="char-emoji">🌌</span>
+        <div class="char-name">虚空の支配者ヴォイド</div>
+        <div class="char-meta">闇 / アタッカー</div>
+        <div class="char-skill">カード選択+1枚</div>
+      </div>
+      <div class="char-card" data-tip="ATK 3472・闇コンボ+50%&#10;カード選択+1枚&#10;毒スタック付与率+30%&#10;攻撃・デバフ・カード増加を1体で担う新限定">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">🗡️</span>
+        <div class="char-name">旧破の剣神エルドス</div>
+        <div class="char-meta">闇 / アタッカー</div>
+        <div class="char-skill">闇コンボ+50%・カード+1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A ティア -->
+  <div class="tier-row tier-a">
+    <div class="tier-label">A</div>
+    <div class="tier-chars">
+      <div class="char-card" data-tip="HP 22092（全UR最高）&#10;毎ターン全体HP8%回復&#10;HP55%以下の味方に緊急回復（1回）&#10;カードが全てヒールに変化。限定最強サポート。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">⭐</span>
+        <div class="char-name">星海の巫女アルテア</div>
+        <div class="char-meta">光 / サポート</div>
+        <div class="char-skill">全体回復8%・緊急回復</div>
+      </div>
+      <div class="char-card" data-tip="ATK 3787（恒常UR最高ATK）&#10;雷コンボボーナス+20%&#10;麻痺中の敵へのダメージ+25%（新限定ライカと組み合わせ最強）">
+        <span class="char-emoji">⚡</span>
+        <div class="char-name">雷帝ザクライア</div>
+        <div class="char-meta">雷 / アタッカー</div>
+        <div class="char-skill">雷コンボ+20%・対麻痺+25%</div>
+      </div>
+      <div class="char-card" data-tip="HP 21040・ATK 3682&#10;無属性コンボ+25%&#10;HP・ATKともに恒常UR最高水準。&#10;属性縛りなく使える万能アタッカー。">
+        <span class="char-emoji">⭕</span>
+        <div class="char-name">旧破の真神ゼロス</div>
+        <div class="char-meta">無属性 / アタッカー</div>
+        <div class="char-skill">無属性コンボ+25%</div>
+      </div>
+      <div class="char-card" data-tip="ATK 3682&#10;炎属性コンボ時、炎症×2スタック付与確率+40%&#10;炎パーティのデバフ核。限定ならではの高確率炎症。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">🔱</span>
+        <div class="char-name">業炎の覇王カルドス</div>
+        <div class="char-meta">炎 / デバッファー</div>
+        <div class="char-skill">炎コンボ炎症+40%</div>
+      </div>
+      <div class="char-card" data-tip="ATK 4421&#10;雷コンボ+45%・麻痺中の敵へ+25%&#10;ザクライアと組むと麻痺連携が強力。&#10;新限定の中でも最高火力。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">⚡</span>
+        <div class="char-name">雷神の申し子ライカ</div>
+        <div class="char-meta">雷 / アタッカー</div>
+        <div class="char-skill">雷コンボ+45%・対麻痺+25%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B ティア -->
+  <div class="tier-row tier-b">
+    <div class="tier-label">B</div>
+    <div class="tier-chars">
+      <div class="char-card" data-tip="ATK 3577&#10;炎コンボボーナス+20%&#10;炎パーティの中核アタッカー。恒常最高の炎火力。">
+        <span class="char-emoji">🌋</span>
+        <div class="char-name">炎獄神フレアノス</div>
+        <div class="char-meta">炎 / アタッカー</div>
+        <div class="char-skill">炎コンボ+20%</div>
+      </div>
+      <div class="char-card" data-tip="HP 18936（恒常UR最高HP）&#10;被ダメージ-20%・凍結付与率+20%&#10;恒常最強タンク。長期戦で真価を発揮。">
+        <span class="char-emoji">❄️</span>
+        <div class="char-name">氷結の神后アイギス</div>
+        <div class="char-meta">氷 / タンク</div>
+        <div class="char-skill">被ダメ-20%・凍結率+20%</div>
+      </div>
+      <div class="char-card" data-tip="HP 18410&#10;攻撃時35%で毒スタック付与（全UR最高確率）&#10;毒デバフの最高峰。長期戦で真価を発揮。">
+        <span class="char-emoji">💀</span>
+        <div class="char-name">崩壊の終焉神エンドロス</div>
+        <div class="char-meta">闇 / デバッファー</div>
+        <div class="char-skill">攻撃時35%毒スタック</div>
+      </div>
+      <div class="char-card" data-tip="ATK 3156&#10;攻撃時30%で麻痺付与&#10;麻痺付与が最速。雷PTとシナジーあり。">
+        <span class="char-emoji">🕳️</span>
+        <div class="char-name">深淵の使徒イグリス</div>
+        <div class="char-meta">闇 / デバッファー</div>
+        <div class="char-skill">攻撃時30%麻痺付与</div>
+      </div>
+      <div class="char-card" data-tip="HP 19988・毎ターンHP5%回復&#10;HP50%以下の味方に追加7%緊急回復（1回）&#10;恒常唯一の回復特化UR。アルテアには劣る。">
+        <span class="char-emoji">🔱</span>
+        <div class="char-name">海神の申し子トリトス</div>
+        <div class="char-meta">水 / サポート</div>
+        <div class="char-skill">毎ターン5%回復・緊急回復</div>
+      </div>
+      <div class="char-card" data-tip="HP 21076・ATK 2735&#10;水属性コンボ時、全体被ダメ-30%（1ターン）&#10;毎ターン全体6%回復。水PTで真価を発揮。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">🌊</span>
+        <div class="char-name">深淵の水姫ネレイス</div>
+        <div class="char-meta">水 / サポート</div>
+        <div class="char-skill">全体回復6%・水コンボ被ダメ-30%</div>
+      </div>
+      <div class="char-card" data-tip="HP 21044&#10;氷コンボ時凍結付与確率+50%&#10;凍結中の敵へダメージ+20%&#10;アイギスと組むと凍結確率が爆上がり。">
+        <span class="limited-badge">限定</span>
+        <span class="char-emoji">🌨️</span>
+        <div class="char-name">氷獄の白妖ヴァルシア</div>
+        <div class="char-meta">氷 / デバッファー</div>
+        <div class="char-skill">氷コンボ凍結+50%・対凍結+20%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C ティア -->
+  <div class="tier-row tier-c">
+    <div class="tier-label">C</div>
+    <div class="tier-chars">
+      <div class="char-card" data-tip="ATK 3472&#10;攻撃時25%で麻痺付与&#10;イグリス（30%）より確率が低い。&#10;麻痺デバッファーが欲しければイグリス優先。">
+        <span class="char-emoji">💫</span>
+        <div class="char-name">星滅の魔神アステリア</div>
+        <div class="char-meta">光 / デバッファー</div>
+        <div class="char-skill">攻撃時25%麻痺付与</div>
+      </div>
+      <div class="char-card" data-tip="HP 17358&#10;被ダメージ-15%・ヘイト最大&#10;アイギス（-20%）の下位互換。&#10;アイギスが入手できるまでの繋ぎ。">
+        <span class="char-emoji">🐉</span>
+        <div class="char-name">深淵竜王ヴォルガII</div>
+        <div class="char-meta">炎 / タンク</div>
+        <div class="char-skill">被ダメ-15%・ヘイト最大</div>
+      </div>
+      <div class="char-card" data-tip="ATK 2735&#10;炎コンボボーナス+15%&#10;フレアノス（+20%）の下位互換。&#10;炎アタッカーが欲しければフレアノス優先。">
+        <span class="char-emoji">💀</span>
+        <div class="char-name">崩壊の始原神</div>
+        <div class="char-meta">炎 / アタッカー</div>
+        <div class="char-skill">炎コンボ+15%</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.tier-table -->
+
+<!-- 凡例 -->
+<div class="legend">
+  <div class="legend-title">📖 評価基準と凡例</div>
+  <div class="legend-grid">
+    <div class="legend-item"><strong>S</strong>：どんな編成でも最前線で活躍。編成必須級。</div>
+    <div class="legend-item"><strong>A</strong>：強力で専用パーティで真価を発揮する。</div>
+    <div class="legend-item"><strong>B</strong>：有用だが上位互換が存在する場合あり。</div>
+    <div class="legend-item"><strong>C</strong>：限定的な場面のみ有効。優先度低め。</div>
+    <div class="legend-item"><strong>★限定</strong>：限定ガチャでのみ入手可能なキャラ。</div>
+    <div class="legend-item"><strong>前提</strong>：Lv.120・0凸時のステータスで評価。凸すると順位が変動する場合あります。</div>
+  </div>
+</div>
+
+<!-- フッター -->
+<div class="footer">
+  <div>ABYSSAL CHRONICLE — URキャラ ティアリスト</div>
+  <div>⚠️ このティア表はAIによる評価です。プレイスタイルにより異なる場合があります。</div>
+  <div style="margin-top:6px;">
+    <a href="https://irukaaaaa0.github.io/abyssal-chronicle/game.html">🎮 ゲームをプレイする</a>
+  </div>
+</div>
+
+</body>
+</html>
