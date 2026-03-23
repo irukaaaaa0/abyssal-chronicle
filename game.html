@@ -4977,11 +4977,23 @@ function runAutoTurn(){
   // キャラごとの選択可能枚数を管理
   const charSelectCount = {}; // charId → 選択済み枚数
 
-  // 強いカードをダメージ順にソート（未使用のみ）
+  const bs = S.battleSettings||{autoHeal:true,autoSpecial:true};
+  // HP80%以下の味方がいるか判定
+  const needsHeal = BT.partyHp.some(function(m){return m.hp>0 && m.hp/m.maxHp<0.8;});
+
+  // ヒールが必要な時はヒールカードを優先（先頭に）、それ以外はダメージ順
   const sorted = BT.hand
     .map((c,i)=>({...c,i}))
     .filter(c=>!c.used)
-    .sort((a,b)=>(b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0.20)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0.20)+a.dmg));
+    .sort((a,b)=>{
+      // ヒール優先：needsHeal&&autoHealがONの時ヒールカードを先頭に
+      if(bs.autoHeal && needsHeal){
+        if(a.isHeal && !b.isHeal) return -1;
+        if(!a.isHeal && b.isHeal) return 1;
+      }
+      // 通常はダメージ順
+      return (b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0.20)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0.20)+a.dmg);
+    });
 
   const available = [];
   for(const c of sorted){
@@ -4999,12 +5011,9 @@ function runAutoTurn(){
     const alreadySel = charSelectCount[c.charId]||0;
     if(isPara && alreadySel >= 1) continue;
 
-    const bs = S.battleSettings||{autoHeal:true,autoSpecial:true};
-    // ヒールカード：設定OFFまたは全員HP80%以上ならスキップ
+    // ヒールカード：設定OFFまたはHP80%以上全員ならスキップ
     if(c.isHeal){
       if(!bs.autoHeal) continue;
-      // 味方に80%以下のHPのキャラがいる場合のみ選択
-      var needsHeal = BT.partyHp.some(function(m){return m.hp>0 && m.hp/m.maxHp<0.8;});
       if(!needsHeal) continue;
     }
     // 特殊カード：設定がOFFならスキップ
