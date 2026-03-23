@@ -6160,6 +6160,11 @@ function getTowerResetTickets(best){
 }
 
 function checkTowerReset(){
+  // Firebase未初期化時（towerResetDateが空）はスキップ
+  // ローカルに保存済みのtowerResetDateがある場合のみ処理
+  if(!S.towerResetDate && !localStorage.getItem('abyssal_save_v1')){
+    return; // 初回起動時はスキップ
+  }
   var now = new Date();
   var today = now.toDateString();
   var lastReset = S.towerResetDate || '';
@@ -6175,6 +6180,16 @@ function checkTowerReset(){
       // ランキングボーナスも確認・付与
       distributeRankingBonus(prevBest, bonusTickets);
       saveGame();
+      // Firestoreにも即時同期（リロードリセット防止）
+      if(playerDocRef){
+        playerDocRef.update({
+          towerResetDate: today,
+          towerFloor: 1,
+          towerRandomSeed: S.towerRandomSeed,
+          gachaTickets: S.gachaTickets,
+          lastSaved: new Date().toISOString()
+        }).catch(function(e){ console.log('[TOWER RESET SYNC]', e); });
+      }
       setTimeout(function(){
         showModal('🏰 無限塔リセット！',
           '昨日の最高到達階層: '+prevBest+'F\n\n🎫 ガチャチケット ×'+bonusTickets+' 獲得！\n\n今日も塔に挑もう！',
@@ -6183,6 +6198,15 @@ function checkTowerReset(){
       }, 1000);
     } else {
       saveGame();
+      // Firestoreにも即時同期
+      if(playerDocRef){
+        playerDocRef.update({
+          towerResetDate: today,
+          towerFloor: 1,
+          towerRandomSeed: S.towerRandomSeed,
+          lastSaved: new Date().toISOString()
+        }).catch(function(e){ console.log('[TOWER RESET SYNC]', e); });
+      }
       showToast('🏰 無限塔がリセットされました！今日の塔に挑もう！');
     }
   }
@@ -6321,41 +6345,6 @@ async function saveTowerRanking(floor){
       date: today,
     });
   }catch(e){ console.log('[TOWER RANK]', e); }
-}
-
-async function showTowerRanking(){
-  if(!db){
-    showModal('🏆 ランキング', '通信エラー：ランキングを取得できません', [{label:'閉じる',action:()=>{}}]);
-    return;
-  }
-  try{
-    var today = new Date().toDateString();
-    var snap = await db.collection('tower_ranking')
-      .where('date','==',today)
-      .get();
-    // JS側でfloor降順ソート（Firestoreインデックス不要）
-    var sortedDocs = snap.docs.slice().sort(function(a,b){ return (b.data().floor||0)-(a.data().floor||0); }).slice(0,20);
-    snap = {empty: snap.empty, docs: sortedDocs};
-    if(snap.empty){
-      showModal('🏆 本日のランキング','まだ誰も挑戦していません！あなたが1位になろう！',[{label:'閉じる',action:()=>{},primary:true}]);
-      return;
-    }
-    var rows = [];
-    var myRank = -1;
-    snap.docs.forEach(function(doc,i){
-      var d = doc.data();
-      var isMe = auth.currentUser && d.uid===auth.currentUser.uid;
-      if(isMe) myRank = i+1;
-      var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
-      var bonus = i===0?'🎫×15':i===1?'🎫×10':i===2?'🎫×5':'';
-      rows.push((isMe?'▶':'')+medal+' '+(d.icon||'🌊')+' '+(d.name||'司令官')+' '+(d.floor||0)+'F Rank'+(d.rank||1)+(bonus?' '+bonus:'')+(isMe?' ←あなた':''));
-    });
-    var myBonusStr = myRank===1?'🎫×15':myRank===2?'🎫×10':myRank===3?'🎫×5':'なし';
-    var msg = rows.join('\n')+'\nあなたの順位: '+(myRank>0?myRank+'位':'圏外')+'\nリセット時ボーナス: '+myBonusStr;
-    showModal('🏆 本日のランキング TOP20', msg, [{label:'閉じる',action:()=>{},primary:true}]);
-  }catch(e){
-    showModal('🏆 ランキング', 'ランキングの取得に失敗しました（接続を確認してください）',[{label:'閉じる',action:()=>{}}]);
-  }
 }
 
 async function loadPvpRanking(){
@@ -6772,7 +6761,12 @@ async function showTowerRanking(){
     var msg = rows.join('\n')+'\nあなたの順位: '+(myRank>0?myRank+'位':'圏外')+'\nリセット時ボーナス: '+myBonusStr;
     showModal('🏆 本日のランキング TOP20', msg, [{label:'閉じる',action:()=>{},primary:true}]);
   }catch(e){
-    showModal('🏆 ランキング', 'ランキングの取得に失敗しました（インターネット接続を確認してください）',[{label:'閉じる',action:()=>{}}]);
+    console.error('[TOWER RANKING ERROR]', e.code, e.message);
+    // 権限エラーの場合は専用メッセージ
+    var errMsg = e.code === 'permission-denied'
+      ? 'ランキングの読み取り権限がありません。（Firestoreルール要確認）'
+      : 'ランキングの取得に失敗しました。エラー: ' + (e.message||e.code||'不明');
+    showModal('🏆 ランキング', errMsg,[{label:'閉じる',action:()=>{}}]);
   }
 }
 
