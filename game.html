@@ -4985,10 +4985,15 @@ function runAutoTurn(){
     const alreadySel = charSelectCount[c.charId]||0;
     if(isPara && alreadySel >= 1) continue;
 
-    // ヒールカード：設定がOFFならスキップ
     const bs = S.battleSettings||{autoHeal:true,autoSpecial:true};
-    if(c.isHeal && !bs.autoHeal) continue;
-    // 特殊カード：設定がOFFならスキップ（特殊カードはMAX_SELECT制限外なので別途処理）
+    // ヒールカード：設定OFFまたは全員HP80%以上ならスキップ
+    if(c.isHeal){
+      if(!bs.autoHeal) continue;
+      // 味方に80%以下のHPのキャラがいる場合のみ選択
+      var needsHeal = BT.partyHp.some(function(m){return m.hp>0 && m.hp/m.maxHp<0.8;});
+      if(!needsHeal) continue;
+    }
+    // 特殊カード：設定がOFFならスキップ
     if(c.isSpecial && !bs.autoSpecial) continue;
 
     charSelectCount[c.charId] = alreadySel + 1;
@@ -11990,24 +11995,29 @@ function addSpecialCardsToHand(partyIds){
 function executeSpecialCard(sc, totalAtk){
   var effect = sc.effect;
   var alive = BT.partyHp.filter(function(m){return m.hp>0;});
-  var isMulti = BT_ENEMIES && BT_ENEMIES.length > 0;
 
-  // 単体・複数敵どちらでも対応するデバフ付与ヘルパー
+  // 確実に全敵にデバフを付与するヘルパー
+  // BT_ENEMIESが1体でも複数でも・enemyStatusesにも両方書き込む
   function applyDebuffAll(type, stacks){
-    if(isMulti){
-      BT_ENEMIES.forEach(function(e,i){ if(e.hp>0) applyEnemyStatusMulti(i, type, stacks); });
-    } else {
-      applyEnemyStatus(type, stacks);
+    // BT_ENEMIESベース（複数敵・単体共通）
+    if(BT_ENEMIES && BT_ENEMIES.length>0){
+      BT_ENEMIES.forEach(function(e,idx){
+        if(e.hp>0) applyEnemyStatusMulti(idx, type, stacks);
+      });
     }
+    // 単体敵のenemyStatusesにも書き込み（UIと処理ループに反映）
+    applyEnemyStatus(type, stacks);
   }
+
+  // 全敵にダメージを与えるヘルパー
   function damageAll(dmg){
-    if(isMulti){
-      BT_ENEMIES.forEach(function(e,i){ if(e.hp>0) damageEnemy(i, dmg); });
+    if(BT_ENEMIES && BT_ENEMIES.length>0){
+      BT_ENEMIES.forEach(function(e,idx){ if(e.hp>0) damageEnemy(idx, dmg); });
     } else {
       BT.enemyHp = Math.max(0, (BT.enemyHp||0) - dmg);
-      updateEnemyHP();
     }
     showDmg(dmg, true);
+    updateEnemyHP();
   }
 
   if(effect==='all_damage'){
@@ -12018,14 +12028,18 @@ function executeSpecialCard(sc, totalAtk){
   } else if(effect==='all_damage_debuff'){
     var dmg2 = Math.round(totalAtk * (sc.power||2.5));
     damageAll(dmg2);
-    applyDebuffAll(sc.debuffType, 2);
-    var cfg=STATUS_CONFIG[sc.debuffType];
-    showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵に'+dmg2.toLocaleString()+'+'+(cfg?cfg.emoji:'')+'付与！', sc.color);
+    setTimeout(function(){
+      applyDebuffAll(sc.debuffType, 2);
+      var cfg=STATUS_CONFIG[sc.debuffType];
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！'+dmg2.toLocaleString()+'ダメージ＋'+(cfg?cfg.emoji+cfg.label:'デバフ')+'付与！', sc.color);
+      renderEnemyStatuses();
+    }, 200);
+    return; // バナーはsetTimeout内で表示
 
   } else if(effect==='all_debuff'){
     applyDebuffAll(sc.debuffType, 2);
     var cfg2=STATUS_CONFIG[sc.debuffType];
-    showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵に'+(cfg2?cfg2.label:'デバフ')+'付与！', sc.color);
+    showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵に'+(cfg2?cfg2.emoji+cfg2.label:'デバフ')+'付与！', sc.color);
 
   } else if(effect==='all_heal' || effect==='all_heal_shield'){
     alive.forEach(function(m){
@@ -12038,21 +12052,44 @@ function executeSpecialCard(sc, totalAtk){
   } else if(effect==='all_damage_multi_debuff'){
     var dmg3 = Math.round(totalAtk * (sc.power||3.0));
     damageAll(dmg3);
-    applyDebuffAll('poison', 2);
-    applyDebuffAll('para', 1);
-    showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵大ダメージ＋毒＋麻痺！', sc.color);
+    setTimeout(function(){
+      applyDebuffAll('poison', 2);
+      applyDebuffAll('para', 1);
+      applyDebuffAll('burn', 1);
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全敵大ダメージ＋毒＋麻痺＋炎症！', sc.color);
+      renderEnemyStatuses();
+    }, 200);
+    return;
 
   } else if(effect==='reverse_debuff'){
-    enemyStatuses.forEach(function(s){
-      applyDebuffAll(s.type, s.stacks);
-    });
+    // 敵のデバフを全解除して逆に付与
+    var capturedStatuses = enemyStatuses.slice();
+    // BT_ENEMIESのstatusesも取得
+    if(BT_ENEMIES && BT_ENEMIES.length>0){
+      BT_ENEMIES.forEach(function(e){
+        (e.statuses||[]).forEach(function(s){ capturedStatuses.push(s); });
+        e.statuses = [];
+      });
+    }
     enemyStatuses = [];
-    showSpecialAtkBanner(sc.emoji+' '+sc.name+'！敵のデバフを逆付与！', sc.color);
+    // 捕捉したデバフを敵に逆付与（2倍スタック）
+    if(capturedStatuses.length>0){
+      capturedStatuses.forEach(function(s){
+        applyDebuffAll(s.type, (s.stacks||1)*2);
+      });
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！デバフ'+capturedStatuses.length+'種を逆付与！', sc.color);
+    } else {
+      // デバフがなくても全状態異常を付与
+      ['burn','poison','freeze','para'].forEach(function(t){ applyDebuffAll(t,1); });
+      showSpecialAtkBanner(sc.emoji+' '+sc.name+'！全状態異常を付与！', sc.color);
+    }
   }
+
   // ダメージ後に全滅チェック
-  if(areAllEnemiesDead()){ setTimeout(winBattle, 700); }
+  if(areAllEnemiesDead()){ setTimeout(winBattle, 700); return; }
   updateEnemyHP();
   renderEnemyStatuses();
+  updateBattleStatusPanel();
 }
 
 // ================================================================
