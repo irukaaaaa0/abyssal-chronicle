@@ -1329,7 +1329,7 @@ function onPvpEnd(won, quest){
       <div class="menu-btn" onclick="goTo('quest');sfx('click')"><div class="menu-icon-w mi-q">⚓</div><div class="menu-lbl">クエスト</div></div>
       <div class="menu-btn" onclick="goTo('grind');sfx('click')"><div class="menu-icon-w" style="background:rgba(160,110,0,.2);">💰</div><div class="menu-lbl">周回</div></div>
       <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
-      <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
+      <div class="menu-btn" onclick="showToast('⚔️ 闘技場は現在閉鎖中です');sfx('click')" style="opacity:.45;cursor:not-allowed;position:relative;"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);filter:grayscale(1);">⚔️</div><div class="menu-lbl">闘技場</div><div class="menu-new" style="background:rgba(60,60,60,.9);color:#aaa;top:5px;right:5px;">閉鎖中</div></div>
     </div>
     <div style="padding:0 12px 6px;">
       <div class="menu-btn" onclick="goTo('rogue');sfx('click')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 12px;border-radius:14px;background:linear-gradient(135deg,rgba(0,30,70,.55),rgba(0,10,30,.35));border:.5px solid rgba(120,220,255,.35);">
@@ -3116,93 +3116,10 @@ const CHAPTERS=[
     ]
   },
   // ============================================================
-  // 第8章: 試験的クエスト（複数敵テスト）
+  // 第10章 → 第8章として表示: 深界の観測域 (推奨Lv:110〜 / UR推奨)
   // ============================================================
   {
-    id:8, name:'試験的クエスト', unlocked:true, emoji:'⚗️',
-    sub:'【テスト】複数敵バトルを体験できる実験的なクエスト。報酬なし。',
-    bgColor:['#000408','#001020'],
-    layers:[
-      {id:801,name:'8-1 複数敵テストA', emoji:'🦑',boss:false,
-       enemies:[
-         {name:'深淵の先兵A', emoji:'🦑',hp:1500000,atk:1800,spd:3,role:'attacker'},
-         {name:'深淵の先兵B', emoji:'🦠',hp:1200000,atk:1500,spd:3,role:'debuffer',
-          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
-       ],
-       enemy:{name:'深淵の先兵群', emoji:'🦑',hp:2700000,atk:1800,spd:3},
-       gold:0,gem:0,
-       story:[{char:'謎の声',icon:'👁️',text:'試験的なクエストだ。複数の敵と戦う練習をしよう。'}]},
-      {id:802,name:'8-2 複数敵テストB', emoji:'⚔️',boss:false,
-       enemies:[
-         {name:'試練の剣士',  emoji:'⚔️',hp:1800000,atk:2000,spd:3,role:'attacker'},
-         {name:'試練の術士',  emoji:'🔮',hp:1200000,atk:1600,spd:4,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'para',prob:0.15,stacks:1}]},
-         {name:'試練の盾兵',  emoji:'🛡️',hp:2500000,atk:1000,spd:2,role:'tank'},
-       ],
-       enemy:{name:'試練者群', emoji:'⚔️',hp:5500000,atk:2000,spd:3},
-       gold:0,gem:0,
-       story:[{char:'司令官',icon:'🌊',text:'3体同時！デバフを駆使して倒せ！'}]},
-      {id:803,name:'8-3 BOSS テスト将軍',emoji:'🌊',boss:true,
-       enemies:[
-         {name:'深淵護衛α',   emoji:'🦑',hp:1000000,atk:1500,spd:3,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
-         {name:'深淵の将',    emoji:'🌊',hp:8000000,atk:3500,spd:3,role:'boss',
-          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.18,stacks:1}],
-          syncAttack:true},
-         {name:'深淵護衛β',   emoji:'🦠',hp:1000000,atk:1500,spd:3,role:'debuffer',
-          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
-       ],
-       enemy:{name:'深淵の将', emoji:'🌊',hp:10000000,atk:3500,spd:3},
-       gold:0,gem:0,
-       story:[
-        {char:'深淵の将',icon:'🌊',text:'テストボスだ。護衛を先に倒してから挑め。'},
-       ]},
-    ]
-  },
-  // ============================================================
-  // 第9章: 試験的クエスト上級
-  // ============================================================
-  {
-    id:9, name:'試験的クエスト上級', unlocked:true, emoji:'⚗️',
-    sub:'【テスト上級】3体同時の高難度テスト。報酬なし。',
-    bgColor:['#000000','#000000'],
-    layers:[
-      {id:901,name:'9-1 三体テストA',  emoji:'♾️',boss:false,
-       enemies:[
-         {name:'炎の神格',  emoji:'🔥',hp:5000000,atk:2500,spd:3,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
-         {name:'氷の神格',  emoji:'❄️',hp:5000000,atk:2200,spd:3,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.18,stacks:1}]},
-         {name:'雷の神格',  emoji:'⚡',hp:5000000,atk:2300,spd:4,role:'attacker',
-          statusPatterns:[{type:'para',prob:0.18,stacks:1}]},
-       ],
-       enemy:{name:'三神格', emoji:'♾️',hp:15000000,atk:2500,spd:4},
-       gold:0,gem:0,
-       story:[
-        {char:'謎の声',icon:'👁️',text:'上級テスト。三体の神格に挑め。'},
-       ]},
-      {id:902,name:'9-2 BOSS テスト最終',emoji:'♾️',boss:true,
-       enemies:[
-         {name:'永劫の右腕',  emoji:'🌀',hp:8000000,atk:3000,spd:3,role:'attacker',
-          statusPatterns:[{type:'burn',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
-         {name:'永劫の神',    emoji:'♾️',hp:30000000,atk:4500,spd:3,role:'boss',
-          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'freeze',prob:0.15,stacks:1}],
-          syncAttack:true},
-         {name:'永劫の左腕',  emoji:'🌀',hp:8000000,atk:3000,spd:3,role:'debuffer',
-          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
-       ],
-       enemy:{name:'永劫の神', emoji:'♾️',hp:46000000,atk:4500,spd:4},
-       gold:0,gem:0,
-       story:[
-        {char:'永劫の神',icon:'♾️',text:'最終テストボス。全力で挑め。'},
-       ]},
-    ]
-  },
-  // ============================================================
-  // 第10章: 深界の観測域 (推奨Lv:110〜 / UR推奨)
-  // ============================================================
-  {
-    id:10, name:'深界の観測域', emoji:'🔭',
+    id:10, displayNum:8, name:'深界の観測域', emoji:'🔭',
     sub:'旧破のさらに外側——「深界」を観測するための境界域。状態異常が多発する。',
     bgColor:['#00060f','#001a2a'],
     layers:[
@@ -3241,6 +3158,89 @@ const CHAPTERS=[
        story:[
         {char:'深界観測者',icon:'🔭',text:'観測完了。——あなたの存在は規格外。これ以上の侵入は許可されません。'},
         {char:'司令官',icon:'🌊',text:'許可が必要なら、力ずくで取るだけだ！'},
+       ]},
+    ]
+  },
+  // ============================================================
+  // 試験的クエストⅠ (旧第8章)
+  // ============================================================
+  {
+    id:8, name:'試験的クエストⅠ', unlocked:true, isTrial:true, emoji:'⚗️',
+    sub:'【試験的】複数敵バトルを体験できる実験的なクエスト。報酬なし。全層常時解放。',
+    bgColor:['#000408','#001020'],
+    layers:[
+      {id:801,name:'試験Ⅰ-1 複数敵テストA', emoji:'🦑',boss:false,
+       enemies:[
+         {name:'深淵の先兵A', emoji:'🦑',hp:1500000,atk:800,spd:3,role:'attacker'},
+         {name:'深淵の先兵B', emoji:'🦠',hp:1200000,atk:650,spd:3,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
+       ],
+       enemy:{name:'深淵の先兵群', emoji:'🦑',hp:2700000,atk:800,spd:3},
+       gold:0,gem:0,
+       story:[{char:'謎の声',icon:'👁️',text:'試験的なクエストだ。複数の敵と戦う練習をしよう。'}]},
+      {id:802,name:'試験Ⅰ-2 複数敵テストB', emoji:'⚔️',boss:false,
+       enemies:[
+         {name:'試練の剣士',  emoji:'⚔️',hp:1800000,atk:900,spd:3,role:'attacker'},
+         {name:'試練の術士',  emoji:'🔮',hp:1200000,atk:700,spd:4,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'para',prob:0.15,stacks:1}]},
+         {name:'試練の盾兵',  emoji:'🛡️',hp:2500000,atk:400,spd:2,role:'tank'},
+       ],
+       enemy:{name:'試練者群', emoji:'⚔️',hp:5500000,atk:900,spd:3},
+       gold:0,gem:0,
+       story:[{char:'司令官',icon:'🌊',text:'3体同時！デバフを駆使して倒せ！'}]},
+      {id:803,name:'試験Ⅰ-3 BOSS テスト将軍',emoji:'🌊',boss:true,
+       enemies:[
+         {name:'深淵護衛α',   emoji:'🦑',hp:1000000,atk:650,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
+         {name:'深淵の将',    emoji:'🌊',hp:8000000,atk:1400,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.18,stacks:1}],
+          syncAttack:true},
+         {name:'深淵護衛β',   emoji:'🦠',hp:1000000,atk:650,spd:3,role:'debuffer',
+          statusPatterns:[{type:'poison',prob:0.2,stacks:1}]},
+       ],
+       enemy:{name:'深淵の将', emoji:'🌊',hp:10000000,atk:1400,spd:3},
+       gold:0,gem:0,
+       story:[
+        {char:'深淵の将',icon:'🌊',text:'テストボスだ。護衛を先に倒してから挑め。'},
+       ]},
+    ]
+  },
+  // ============================================================
+  // 試験的クエストⅡ (旧第9章)
+  // ============================================================
+  {
+    id:9, name:'試験的クエストⅡ', unlocked:true, isTrial:true, emoji:'⚗️',
+    sub:'【試験的・上級】3体同時の高難度テスト。報酬なし。全層常時解放。',
+    bgColor:['#000000','#000000'],
+    layers:[
+      {id:901,name:'試験Ⅱ-1 三体テストA',  emoji:'♾️',boss:false,
+       enemies:[
+         {name:'炎の神格',  emoji:'🔥',hp:5000000,atk:1000,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.2,stacks:1}]},
+         {name:'氷の神格',  emoji:'❄️',hp:5000000,atk:900,spd:3,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1}]},
+         {name:'雷の神格',  emoji:'⚡',hp:5000000,atk:950,spd:4,role:'attacker',
+          statusPatterns:[{type:'para',prob:0.18,stacks:1}]},
+       ],
+       enemy:{name:'三神格', emoji:'♾️',hp:15000000,atk:1000,spd:4},
+       gold:0,gem:0,
+       story:[
+        {char:'謎の声',icon:'👁️',text:'上級テスト。三体の神格に挑め。'},
+       ]},
+      {id:902,name:'試験Ⅱ-2 BOSS テスト最終',emoji:'♾️',boss:true,
+       enemies:[
+         {name:'永劫の右腕',  emoji:'🌀',hp:8000000,atk:1200,spd:3,role:'attacker',
+          statusPatterns:[{type:'burn',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
+         {name:'永劫の神',    emoji:'♾️',hp:30000000,atk:1800,spd:3,role:'boss',
+          statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'freeze',prob:0.15,stacks:1}],
+          syncAttack:true},
+         {name:'永劫の左腕',  emoji:'🌀',hp:8000000,atk:1200,spd:3,role:'debuffer',
+          statusPatterns:[{type:'freeze',prob:0.18,stacks:1},{type:'poison',prob:0.18,stacks:1}]},
+       ],
+       enemy:{name:'永劫の神', emoji:'♾️',hp:46000000,atk:1800,spd:4},
+       gold:0,gem:0,
+       story:[
+        {char:'永劫の神',icon:'♾️',text:'最終テストボス。全力で挑め。'},
        ]},
     ]
   },
@@ -3572,7 +3572,7 @@ function renderMap(){
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
-          <div class="chapter-num">第${ch.id}章${allCleared?' ✓':''}</div>
+          <div class="chapter-num">${ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
           <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
           <div class="chapter-sub">${ch.sub}</div>
           <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
@@ -3585,9 +3585,9 @@ function renderMap(){
 
     ch.layers.forEach((q,li)=>{
       const cleared = S.cleared.includes(q.id);
-      // 層のロック: 同章内の前の層クリアが必要
+      // 層のロック: 試験的クエストは全層常時解放。通常は前の層クリアが必要
       const prevId = li > 0 ? ch.layers[li-1].id : null;
-      const locked = chLocked || (prevId !== null && !S.cleared.includes(prevId));
+      const locked = chLocked || (!ch.isTrial && prevId !== null && !S.cleared.includes(prevId));
       const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
       const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
       html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
@@ -7623,6 +7623,16 @@ const PVP_DUMMY_OPPONENTS=[
 ];
 
 async function renderPvp(){
+  document.getElementById('pvp-content').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;gap:18px;text-align:center;">
+      <div style="font-size:56px;filter:grayscale(1);opacity:.4;">⚔️</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text2);letter-spacing:.12em;">ARENA — 閉鎖中</div>
+      <div style="font-size:12px;color:var(--text3);line-height:1.8;max-width:260px;">闘技場は現在メンテナンスのため一時閉鎖中です。<br>再開までしばらくお待ちください。</div>
+      <div style="margin-top:8px;background:rgba(0,20,40,.5);border:.5px solid var(--border3);border-radius:10px;padding:12px 20px;font-size:11px;color:var(--text3);">🔧 メンテナンス中</div>
+    </div>
+  `;
+  return;
+
   const rank     = S.pvpRank  || 1200;
   const wins     = S.pvpWin   || 0;
   const losses   = S.pvpLose  || 0;
@@ -13822,7 +13832,7 @@ const BOOT_TIPS = [
   'タンクがいると70%の確率で攻撃を引き受けてくれる。長期戦の守りの鍵。',
   'デバッファーのデバフはターン経過でダメージを与え続ける。毒は5スタックまで！',
   '特殊カードは1枚60%・2枚30%・3枚10%の確率で出現。枚数の多い日もある。',
-  '8章・9章は試験的クエスト。複数敵との戦闘を練習できる。報酬なし。',
+  '試験的クエストⅠ・Ⅱは全層常時解放。複数敵との戦闘を練習できる。報酬なし。敵は弱め。',
   'ガチャチケットは1枚でジェム160相当。10連ではチケットとジェムを合算できる。',
   'PvPでランク1500以上を目指すと特別な実績が解除される。',
   '図鑑に全キャラが登録されている。未所持キャラもシルエットで確認できる。',
