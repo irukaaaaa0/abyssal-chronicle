@@ -1331,6 +1331,18 @@ function onPvpEnd(won, quest){
       <div class="menu-btn" onclick="goTo('tower');sfx('click')"><div class="menu-icon-w" style="background:rgba(20,160,120,.2);">🏆</div><div class="menu-lbl">無限塔</div></div>
       <div class="menu-btn" onclick="goTo('pvp');sfx('click')"><div class="menu-icon-w" style="background:rgba(120,40,200,.2);">⚔️</div><div class="menu-lbl">闘技場</div></div>
     </div>
+    <div style="padding:0 12px 6px;">
+      <div class="menu-btn" onclick="goTo('rogue');sfx('click')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 12px;border-radius:14px;background:linear-gradient(135deg,rgba(0,30,70,.55),rgba(0,10,30,.35));border:.5px solid rgba(120,220,255,.35);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="menu-icon-w" style="background:rgba(120,220,255,.16);width:38px;height:38px;border-radius:12px;">🧭</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#bfe9ff;letter-spacing:.08em;">ローグライク</div>
+            <div style="font-size:9px;color:rgba(160,210,240,.65);margin-top:2px;">分岐ルート / バフ・デバフ / ボス撃破でポイント獲得</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:rgba(160,220,255,.9);">▶</div>
+      </div>
+    </div>
     <!-- 🔮 召喚・育成 -->
     <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;padding:8px 12px 4px;">🔮 召喚・育成</div>
     <div class="menu-grid" style="grid-template-columns:repeat(4,1fr);">
@@ -1520,6 +1532,18 @@ function onPvpEnd(won, quest){
   </div>
   <div class="content">
     <div class="tower-content" id="tower-content"></div>
+  </div>
+</div>
+
+<!-- ROGUELIKE -->
+<div class="screen" id="screen-rogue">
+  <div class="header" style="position:relative;z-index:1;">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goTo('home');sfx('click')"><span>←</span><span style="font-size:13px;">戻る</span></div>
+    <div style="font-size:13px;letter-spacing:.1em;color:var(--text2);">DEEP ROGUE</div>
+    <div style="width:60px;text-align:right;font-size:10px;color:rgba(160,220,255,.65);" id="rogue-point-disp">RP 0</div>
+  </div>
+  <div class="content" style="padding:14px 14px 80px;">
+    <div id="rogue-content"></div>
   </div>
 </div>
 
@@ -2702,6 +2726,8 @@ const CHARS=[
   {id:204,name:'雷神の申し子ライカ',  emoji:'⚡',rarity:'UR',bg:'rgba(40,40,0,.3)',  border:'rgba(255,240,80,.7)', hp:1750,atk:420,level:1,attribute:'thunder',role:'attacker', skillName:'雷帝解放',   skillDesc:'雷属性コンボ時、全体ダメージ+45%。麻痺中の敵へのダメージ+25%。',limited:true},
   {id:205,name:'深淵の水姫ネレイス',  emoji:'🌊',rarity:'UR',bg:'rgba(0,20,50,.3)',  border:'rgba(80,200,255,.7)', hp:2200,atk:260,level:1,attribute:'water', role:'support',  skillName:'深海の加護', skillDesc:'毎ターン全体HP6%回復。水属性コンボ時、全員の受けるダメージを1ターン-30%。',limited:true},
   {id:206,name:'旧破の剣神エルドス',  emoji:'🗡️', rarity:'UR',bg:'rgba(30,0,40,.3)',  border:'rgba(200,100,255,.7)',hp:1800,atk:400,level:1,attribute:'dark',  role:'attacker', skillName:'旧破一刀',   skillDesc:'闇属性コンボ時、全体ダメージ+50%。カード選択+1枚。敵全体に毒スタック付与率+30%。',limited:true},
+  {id:207,name:'深界の観測者ミラ',    emoji:'🔭', rarity:'UR',bg:'rgba(0,20,45,.35)', border:'rgba(120,220,255,.75)',hp:1950,atk:320,level:1,attribute:'light', role:'debuffer', skillName:'深界観測',   skillDesc:'光属性コンボ時、敵全体に「弱体解析」(被ダメ+12%)を2ターン付与。',limited:true},
+  {id:208,name:'奈落の鍛冶神グラン',  emoji:'⚒️', rarity:'UR',bg:'rgba(40,20,0,.35)',  border:'rgba(255,190,90,.75)', hp:2400,atk:240,level:1,attribute:'fire',  role:'support',  skillName:'深海鍛造',   skillDesc:'戦闘開始時に味方全体へ「鍛造バリア」(最大HPの10%)を付与。炎コンボ時さらに5%追加（1戦3回）。',limited:true},
 ];
 // comboType: 同じタイプを連続すると追加ボーナス
 // fire=炎 ice=氷 thunder=雷 water=水 dark=闇 light=光 none=無
@@ -3172,6 +3198,52 @@ const CHAPTERS=[
        ]},
     ]
   },
+  // ============================================================
+  // 第10章: 深界の観測域 (推奨Lv:110〜 / UR推奨)
+  // ============================================================
+  {
+    id:10, name:'深界の観測域', emoji:'🔭',
+    sub:'旧破のさらに外側——「深界」を観測するための境界域。状態異常が多発する。',
+    bgColor:['#00060f','#001a2a'],
+    layers:[
+      {id:1001,name:'10-1 観測点A', emoji:'🔭',boss:false,
+       enemy:{name:'深界の観測体', emoji:'👁️',hp:220000,atk:2400,spd:3,statusPatterns:[{type:'para',prob:0.18,stacks:1}]},
+       gold:12000,gem:220,
+       story:[
+        {char:'ナレーター',icon:'📖',text:'深海のさらに外側。視界の端で、無数の「目」が明滅していた。'},
+        {char:'司令官',icon:'🌊',text:'ここは…空間が“観測”されている？気味が悪い。'},
+       ]},
+      {id:1002,name:'10-2 解析の渦', emoji:'🌀',boss:false,
+       enemy:{name:'解析渦コア', emoji:'🌀',hp:260000,atk:2600,spd:3,statusPatterns:[{type:'poison',prob:0.20,stacks:1}]},
+       gold:14000,gem:240,
+       story:[{char:'謎の声',icon:'👁️',text:'その渦は情報を喰らう。記憶まで削られたくなければ、短期決戦で片付けろ。'}]},
+      {id:1003,name:'10-3 観測兵装', emoji:'🤖',boss:false,
+       enemy:{name:'観測兵装ユニット', emoji:'🤖',hp:320000,atk:2800,spd:2,statusPatterns:[{type:'burn',prob:0.18,stacks:1}]},
+       gold:16000,gem:260,
+       story:[{char:'司令官',icon:'🌊',text:'機械…？深海にこんな兵装が。旧破とは別系統の力だ…！'}]},
+      {id:1004,name:'10-4 境界の三相', emoji:'♾️',boss:false,
+       enemies:[
+         {name:'境界相-灼', emoji:'🔥',hp:170000,atk:2200,spd:3,role:'attacker',statusPatterns:[{type:'burn',prob:0.22,stacks:1}]},
+         {name:'境界相-凍', emoji:'❄️',hp:170000,atk:2000,spd:3,role:'debuffer',statusPatterns:[{type:'freeze',prob:0.18,stacks:1}]},
+         {name:'境界相-雷', emoji:'⚡',hp:170000,atk:2100,spd:4,role:'attacker',statusPatterns:[{type:'para',prob:0.18,stacks:1}]},
+       ],
+       enemy:{name:'境界の三相', emoji:'♾️',hp:510000,atk:2200,spd:4},
+       gold:19000,gem:290,
+       story:[{char:'ナレーター',icon:'📖',text:'境界は三つの相に分解され、同時に襲いかかる。編成と回復の判断が生死を分ける。'}]},
+      {id:1005,name:'10-5 BOSS 深界観測者',emoji:'🔭',boss:true,
+       enemies:[
+         {name:'観測補助機', emoji:'📡',hp:140000,atk:1900,spd:3,role:'debuffer',statusPatterns:[{type:'para',prob:0.20,stacks:1}]},
+         {name:'深界観測者「ミラ」',emoji:'🔭',hp:720000,atk:3200,spd:3,role:'boss',statusPatterns:[{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}],syncAttack:true},
+         {name:'鍛造補助機', emoji:'⚒️',hp:140000,atk:1900,spd:2,role:'tank'},
+       ],
+       enemy:{name:'深界観測者',emoji:'🔭',hp:1000000,atk:3200,spd:4},
+       gold:30000,gem:450,
+       story:[
+        {char:'深界観測者',icon:'🔭',text:'観測完了。——あなたの存在は規格外。これ以上の侵入は許可されません。'},
+        {char:'司令官',icon:'🌊',text:'許可が必要なら、力ずくで取るだけだ！'},
+       ]},
+    ]
+  },
 ];
 
 // QUESTS: CHAPTERSを平坦化（後方互換）
@@ -3186,7 +3258,8 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 //  SAVE / LOAD (localStorage)
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
-const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
+const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
+  roguePoints:0, roguePassPoints:0, roguePassClaimed:[], rogueRun:null,
   lastLoginDate:'',dailyRewardClaimed:false,
   towerResetDate:'',towerRandomSeed:0,towerDayBest:0,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
@@ -3397,6 +3470,7 @@ function goTo(sc){
   if(sc==='friend'){renderFriend().then(function(){renderSupportSlot();});}
   if(sc==='friend'||sc==='home') checkPendingRequests();
   if(sc==='pvp')renderPvp();
+  if(sc==='rogue')renderRogue();
   const vd=document.getElementById('ver-display');if(vd)vd.textContent='v'+GAME_VERSION;
   const hvd=document.getElementById('home-version-display');if(hvd)hvd.textContent='v'+GAME_VERSION;
 }
@@ -3806,6 +3880,15 @@ let BANNERS=[
     pickup:['UR','SSR'],
     pickupIds:[205,206,76,72],
     limitedIds:[205,206],
+    pity:100, period:'期間限定開催中',
+  },
+  {
+    id:13, name:'深界の観測 -Deep Survey-', icon:'🔭', limited:true, active:true,
+    sub:'★限定★ 深界の観測者ミラ・奈落の鍛冶神グラン（UR）/ 虚無の祭司・鋼鉄の要塞（SSR）',
+    color:'rgba(0,25,55,.55)', border:'rgba(120,220,255,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[207,208,8,69],
+    limitedIds:[207,208],
     pity:100, period:'期間限定開催中',
   },
 ];
@@ -4487,6 +4570,40 @@ function initBattle(quest,pids){
       });
     }
   }
+
+  // ================================================================
+  //  グラン(208): 鉄像バリア（3回無効）
+  // ================================================================
+  var hasGran = BT.partyHp.some(function(m){ return m.id===208 && m.hp>0; });
+  if(hasGran){
+    BT.partyHp.forEach(function(m){
+      m.ironBarrierMax = 3;
+      m.ironBarrier = 3; // 残り無効回数
+    });
+  } else {
+    BT.partyHp.forEach(function(m){
+      m.ironBarrierMax = 0;
+      m.ironBarrier = 0;
+    });
+  }
+
+  // ================================================================
+  //  ROGUE: ラン中のHP持ち越し＆バフ/デバフ補正
+  // ================================================================
+  if(quest && quest.isRogue && S.rogueRun){
+    applyRogueModifiersToParty();
+    // HP持ち越し（塔と同様に initBattle 後に上書きする）
+    if(S.rogueRun.partyState && Array.isArray(S.rogueRun.partyState)){
+      S.rogueRun.partyState.forEach(prev=>{
+        const m = BT.partyHp.find(x=>x.id===prev.id);
+        if(m){
+          m.maxHp = Math.max(1, Math.round(m.maxHp * (prev.maxHpMul||1)));
+          m.atk   = Math.max(1, Math.round(m.atk   * (prev.atkMul||1)));
+          m.hp    = Math.max(1, Math.min(m.maxHp, prev.hp||m.hp));
+        }
+      });
+    }
+  }
   BT.turn=1;BT.combo=0;BT.active=true;
   initStatuses();
   setTimeout(()=>updateBattleStatusPanel(),200);
@@ -4781,7 +4898,7 @@ const ROLE_INFO = {
 // ================================================================
 // BT.partyHpの各メンバーにstatuses配列を追加
 // BT.enemyStatusesで敵の状態異常を管理
-let enemyStatuses = []; // {type:'burn'|'poison'|'freeze'|'para', stacks:1, turns:3}
+let enemyStatuses = []; // {type:'burn'|'poison'|'freeze'|'para'|'analyze', stacks:1, turns:3}
 
 function initStatuses(){
   BT.partyHp.forEach(m=>{ if(!m.statuses) m.statuses=[]; });
@@ -4813,18 +4930,18 @@ function applyStatus(memberId, type, stacks=1){
 }
 
 // 敵に状態異常付与
-function applyEnemyStatus(type, stacks=1){
+function applyEnemyStatus(type, stacks=1, turns=3){
   var tgtIdx = getAttackTargetIndex();
   if(BT_ENEMIES.length>1){
-    applyEnemyStatusMulti(tgtIdx, type, stacks);
+    applyEnemyStatusMulti(tgtIdx, type, stacks, turns);
     return;
   }
   const existing = enemyStatuses.find(s=>s.type===type);
   if(existing){
     if(type==='poison') existing.stacks=Math.min(existing.stacks+stacks,5);
-    existing.turns=Math.max(existing.turns,3);
+    existing.turns=Math.max(existing.turns,turns||3);
   } else {
-    enemyStatuses.push({type,stacks,turns:3});
+    enemyStatuses.push({type,stacks,turns:turns||3});
   }
   renderEnemyStatuses();
 }
@@ -4914,8 +5031,8 @@ function renderEnemyStatuses(){
     const eNm=document.getElementById('enemy-nm');
     if(eNm) eNm.parentNode.insertBefore(area,eNm.nextSibling);
   }
-  const labels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺'};
-  const cls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para'};
+  const labels={burn:'🔥炎症',poison:'☠️毒',freeze:'❄️凍結',para:'⚡麻痺',analyze:'📉弱体解析'};
+  const cls={burn:'sb-burn',poison:'sb-poison',freeze:'sb-freeze',para:'sb-para',analyze:'sb-para'};
   area.innerHTML=enemyStatuses.map(s=>`
     <div class="status-badge ${cls[s.type]||''}">
       ${labels[s.type]||s.type}${s.stacks>1?'×'+s.stacks:''}(${s.turns}T)
@@ -4951,7 +5068,9 @@ function getPartyMaxSelect(){
     if(m.id===1||m.id===59||m.id===200) bonus+=1; // アルカナ/ヴォイド/イブリス
   });
   // 麻痺はキャラ個別管理（カード選択時に制限）
-  return Math.max(1, 4+bonus);
+  // ローグの「追加判断」（+1まで）
+  const rogueBonus = (BT && BT.rogueExtraPick) ? BT.rogueExtraPick : 0;
+  return Math.max(1, 4+bonus+rogueBonus);
 }
 
 function getPartyHealRate(){
@@ -5050,7 +5169,11 @@ function getPartyDamageReduction(){
   ap.forEach(c=>{
     if(c.role==='tank') reduce+=({4:0.15,6:0.10,14:0.08,20:0.15,23:0.10,62:0.20,63:0.15,69:0.25,75:0.12,79:0.20,87:0.18}[c.id]||0.05);
   });
-  return Math.min(reduce,0.5);
+  // ローグの「被ダメ増減」
+  const mul = (BT && BT.rogueEff && typeof BT.rogueEff.dmgTakenMul==='number') ? BT.rogueEff.dmgTakenMul : 1;
+  // dmgTakenMul>1 は被ダメ増 → 実質軽減を減らす。<1 は軽減を増やす。
+  const adj = mul>0 ? (1/mul) : 1;
+  return Math.min(reduce * adj, 0.5);
 }
 
 function applyTankHate(){
@@ -5063,6 +5186,21 @@ function applyTankHate(){
   // 70%確率でタンクが攻撃を引き受ける
   if(Math.random()<0.7) return tanks[Math.floor(Math.random()*tanks.length)];
   return null;
+}
+
+function applyDamageToMember(tgt, dmg, actionEl){
+  if(!tgt) return 0;
+  // グラン(208) 鉄像バリア：攻撃を無効化（3回）
+  if((tgt.ironBarrier||0) > 0 && dmg>0){
+    tgt.ironBarrier = Math.max(0, (tgt.ironBarrier||0) - 1);
+    if(actionEl) actionEl.innerHTML = '<span style="color:#ffe0a0;font-weight:800;">🗿 鉄像バリア！攻撃を無効化</span>';
+    sfx('hit');
+    updatePartyHP();
+    return 0;
+  }
+  // 通常ダメージ
+  tgt.hp = Math.max(0, tgt.hp - dmg);
+  return dmg;
 }
 
 function applyDebufferSkill(charId, targetType){
@@ -5365,6 +5503,17 @@ function executeAttack(){
     if(hasIblis) typeBonus += 0.55;
   }
 
+  // ================================================================
+  //  ミラ(207): 光コンボ時「弱体解析」を敵に付与（2T）
+  // ================================================================
+  if(maxEntry && maxEntry[0]==='light'){
+    var hasMira = BT.partyHp.some(function(m){ return m.id===207 && m.hp>0; });
+    if(hasMira){
+      applyEnemyStatus('analyze', 1, 2);
+      showSpecialAtkBanner('📉 ミラ：弱体解析（被ダメ+12% / 2T）', '#9ad7ff');
+    }
+  }
+
   let total = 0;
   let totalHeal = 0;
   let cb = 1.0;
@@ -5590,7 +5739,7 @@ function enemyTurn(){
         const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
         const rawDmg = Math.round(multiAtk.totalAtk*(.8+Math.random()*.4));
         const dmg = Math.round(rawDmg*(1-reduction));
-        tgt.hp = Math.max(0, tgt.hp-dmg);
+        applyDamageToMember(tgt, dmg, actionEl);
         sfx('hit'); updatePartyHP();
         const tgtChar=CHARS.find(c=>c.id===tgt.id);
         setTimeout(()=>{
@@ -5641,7 +5790,7 @@ function enemyTurn(){
         const tgt = hateTgt || aliveNow[Math.floor(Math.random()*aliveNow.length)];
         const rawDmg = Math.round(atk.enemy.atk*(.8+Math.random()*.4));
         const dmg = Math.round(rawDmg*(1-reduction));
-        tgt.hp = Math.max(0, tgt.hp-dmg);
+        applyDamageToMember(tgt, dmg, actionEl);
         sfx('hit'); updatePartyHP(); renderPartyStatuses();
         const reductionTxt = reduction>0?' (軽減'+Math.round(reduction*100)+'%)':'';
         const tgtChar=CHARS.find(c=>c.id===tgt.id);
@@ -5698,7 +5847,7 @@ function enemyTurn(){
       var baseAtk = (BT.quest&&BT.quest.enemy&&BT.quest.enemy.atk)||100;
       let rawDmg = Math.round(baseAtk*(.8+Math.random()*.4));
       const dmg = Math.round(rawDmg*(1-reduction));
-      tgt.hp = Math.max(0, tgt.hp-dmg);
+      applyDamageToMember(tgt, dmg, actionEl);
       sfx('hit');
       updatePartyHP();
       renderPartyStatuses();
@@ -5739,6 +5888,25 @@ function afterEnemyAttacks(){
   // 状態異常ダメージ処理（味方の毒・炎症）
   if(!processPartyStatuses()) return;
   // ※敵の状態異常はenemyTurn開始時に処理済み
+
+  // ローグ：毎ターン回復/ダメージ（アイテム効果）
+  if(BT && BT.rogueEff){
+    const healPct = BT.rogueEff.healPct||0;
+    const dotPct  = BT.rogueEff.dotPct||0;
+    if(healPct>0){
+      BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
+        const heal=Math.round(m.maxHp*healPct);
+        if(heal>0) m.hp=Math.min(m.maxHp,m.hp+heal);
+      });
+    }
+    if(dotPct>0){
+      BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
+        const dmg=Math.round(m.maxHp*dotPct);
+        if(dmg>0) m.hp=Math.max(0,m.hp-dmg);
+      });
+      if(BT.partyHp.every(m=>m.hp<=0)){ loseBattle(); return; }
+    }
+  }
 
   // サポートキャラによる毎ターン回復
   const healRate=getPartyHealRate();
@@ -5882,7 +6050,17 @@ function updatePartyHP(){
   document.getElementById('party-hp-row').innerHTML=BT.partyHp.map(m=>{
     const ch=CHARS.find(c=>c.id===m.id),pct=m.hp/m.maxHp*100;
     const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
-    return`<div class="member-hp"><div class="member-nm">${ch.emoji} ${ch.name}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${pct}%;background:${col}"></div></div><div class="member-hp-val">${m.hp}/${m.maxHp}</div></div>`;
+    // 鉄像バリア（グラン）
+    const ibMax = m.ironBarrierMax||0;
+    const ib = m.ironBarrier||0;
+    const ibPct = ibMax>0 ? (ib/ibMax*100) : 0;
+    const ibBar = ibMax>0 ? `
+      <div class="member-hp-bar" style="height:4px;margin-top:4px;background:rgba(255,255,255,.06);">
+        <div class="member-hp-fill" style="width:${ibPct}%;background:linear-gradient(90deg,rgba(200,200,200,.9),rgba(255,220,120,.9));"></div>
+      </div>
+      <div style="font-size:9px;color:rgba(255,230,160,.8);margin-top:2px;">🗿 鉄像バリア ${ib}/${ibMax}</div>
+    ` : '';
+    return`<div class="member-hp"><div class="member-nm">${ch.emoji} ${ch.name}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${pct}%;background:${col}"></div></div>${ibBar}<div class="member-hp-val">${m.hp}/${m.maxHp}</div></div>`;
   }).join('');
 }
 
@@ -6284,6 +6462,453 @@ function renderTower(){
     el.textContent = formatTowerResetTime();
   }, 1000);
 }
+
+// ================================================================
+//  🧭 DEEP ROGUE（ローグライク）
+// ================================================================
+const ROGUE_MAX_FLOOR = 5;
+
+const ROGUE_PASS_TIERS = [
+  {req: 50,  reward:{gem:200}},
+  {req: 120, reward:{ticket:1}},
+  {req: 220, reward:{gem:400}},
+  {req: 360, reward:{craft:{rar:'SSR',val:10}}},
+  {req: 520, reward:{gem:800, ticket:1}},
+  {req: 700, reward:{icon:'🔭'}}, // 記念アイコン
+  {req: 900, reward:{ticket:2}},
+  {req: 1200,reward:{gem:1500, title:'深界踏破者'}},
+];
+
+const ROGUE_ITEMS = [
+  {id:'atk10',  name:'攻勢の香',   type:'buff',  desc:'味方全体 ATK +10%', effect:{atkMul:1.10}},
+  {id:'hp12',   name:'深海鱗粉',   type:'buff',  desc:'味方全体 最大HP +12%', effect:{hpMul:1.12}},
+  {id:'pick1',  name:'追加判断',   type:'buff',  desc:'毎ターン選択できるカード+1（最大+1）', effect:{extraPick:1}},
+  {id:'heal2',  name:'再生泡',     type:'buff',  desc:'毎ターン終了時に味方全体HP 2%回復', effect:{healPct:0.02}},
+  {id:'shield8',name:'鍛造膜',     type:'buff',  desc:'戦闘開始時にバリア（最大HPの8%）', effect:{startShieldPct:0.08}},
+  {id:'curse_atk', name:'錆の呪い', type:'debuff',desc:'味方全体 ATK -10%', effect:{atkMul:0.90}},
+  {id:'curse_dmg', name:'脆弱化',   type:'debuff',desc:'被ダメージ +12%', effect:{dmgTakenMul:1.12}},
+  {id:'curse_hp',  name:'圧壊水圧', type:'debuff',desc:'最大HP -10%', effect:{hpMul:0.90}},
+];
+
+const ROGUE_ITEMS_HARD_ONLY = [
+  {id:'hard_atk20', name:'深界共鳴核', type:'buff', desc:'味方全体 ATK +20%（HARD限定）', effect:{atkMul:1.20}, hardOnly:true},
+  {id:'hard_pick',  name:'観測拡張',   type:'buff', desc:'毎ターン選択+1＆被ダメ-6%（HARD限定）', effect:{extraPick:1, dmgTakenMul:0.94}, hardOnly:true},
+  {id:'hard_curse', name:'深界ノイズ', type:'debuff',desc:'毎ターン終了時に味方HP -1%（HARD限定）', effect:{dotPct:0.01}, hardOnly:true},
+];
+
+function rogueHardUnlocked(){
+  return (S.rank||1) >= 50;
+}
+
+function initRogueSaveDefaults(){
+  if(typeof S.roguePoints!=='number') S.roguePoints=0;
+  if(typeof S.roguePassPoints!=='number') S.roguePassPoints=0;
+  if(!Array.isArray(S.roguePassClaimed)) S.roguePassClaimed=[];
+  if(typeof S.rogueRun==='undefined') S.rogueRun=null;
+}
+
+function renderRogue(){
+  initRogueSaveDefaults();
+  const pd=document.getElementById('rogue-point-disp');
+  if(pd) pd.textContent='RP '+(S.roguePoints||0);
+  const el=document.getElementById('rogue-content'); if(!el) return;
+
+  const inRun = S.rogueRun && S.rogueRun.active;
+  const hardOk = rogueHardUnlocked();
+  const hardBadge = hardOk ? '' : `<div style="font-size:9px;color:rgba(255,180,120,.7);margin-top:6px;">※ HARDは Rank50 以上で解放</div>`;
+
+  if(!inRun){
+    el.innerHTML = `
+      <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.35);border-radius:14px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:800;color:#bfe9ff;letter-spacing:.08em;margin-bottom:6px;">🧭 DEEP ROGUE</div>
+        <div style="font-size:10px;color:rgba(160,210,240,.7);line-height:1.7;">
+          分岐ルートを選び、バフ/デバフを拾って強化しながら5階層のボスに挑むエンドコンテンツ。<br>
+          クリアでポイント獲得 → ローグ内バトルパス報酬が進行します。
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button onclick="startRogueRun(false)" style="flex:1;padding:10px;border-radius:12px;border:.5px solid rgba(30,120,200,.35);background:rgba(0,20,40,.45);color:var(--text);cursor:pointer;font-family:inherit;">▶ NORMAL 開始</button>
+          <button onclick="startRogueRun(true)" style="flex:1;padding:10px;border-radius:12px;border:.5px solid rgba(255,180,80,.35);background:${hardOk?'rgba(60,30,0,.35)':'rgba(30,30,30,.25)'};color:${hardOk?'#ffd8a0':'rgba(160,160,160,.7)'};cursor:${hardOk?'pointer':'not-allowed'};font-family:inherit;" ${hardOk?'':'disabled'}>⚠ HARD 開始</button>
+        </div>
+        ${hardBadge}
+      </div>
+      ${renderRoguePassHtml()}
+    `;
+    return;
+  }
+
+  el.innerHTML = `
+    ${renderRogueRunCard()}
+    ${renderRogueNodes()}
+    ${renderRoguePassHtml()}
+  `;
+}
+
+function renderRoguePassHtml(){
+  const pts = S.roguePassPoints||0;
+  const tiers = ROGUE_PASS_TIERS.map((t,idx)=>{
+    const done = pts>=t.req;
+    const claimed = (S.roguePassClaimed||[]).includes(idx);
+    const can = done && !claimed;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,20,40,.3);border:.5px solid rgba(20,80,140,.35);border-radius:10px;padding:10px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:10px;color:rgba(160,210,240,.65);">Tier ${idx+1} / 必要 ${t.req}pt</div>
+          <div style="font-size:12px;font-weight:700;color:${done?'#bfe9ff':'rgba(200,220,240,.55)'};">${formatRogueReward(t.reward)}</div>
+        </div>
+        <button onclick="claimRoguePass(${idx})" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(30,120,200,.35);background:${can?'rgba(10,60,120,.35)':'rgba(0,0,0,.15)'};color:${can?'#bfe9ff':'rgba(160,160,160,.6)'};cursor:${can?'pointer':'not-allowed'};font-family:inherit;" ${can?'':'disabled'}>
+          ${claimed?'受取済':(done?'受取':'未達')}
+        </button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:800;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス</div>
+        <div style="font-size:10px;color:rgba(160,210,240,.7);">進捗 ${pts}pt</div>
+      </div>
+      ${tiers}
+    </div>
+  `;
+}
+
+function formatRogueReward(rw){
+  if(!rw) return '—';
+  const parts=[];
+  if(rw.gem) parts.push('💎'+rw.gem);
+  if(rw.ticket) parts.push('🎫×'+rw.ticket);
+  if(rw.craft) parts.push('🔷'+rw.craft.rar+'×'+rw.craft.val);
+  if(rw.icon) parts.push('🎨アイコン '+rw.icon);
+  if(rw.title) parts.push('称号「'+rw.title+'」');
+  return parts.join(' / ');
+}
+
+function claimRoguePass(idx){
+  initRogueSaveDefaults();
+  const t=ROGUE_PASS_TIERS[idx]; if(!t) return;
+  const pts=S.roguePassPoints||0;
+  if(pts < t.req) return;
+  if(S.roguePassClaimed.includes(idx)) return;
+  const rw=t.reward||{};
+  if(rw.gem) S.gem += rw.gem;
+  if(rw.ticket) S.gachaTickets = (S.gachaTickets||0) + rw.ticket;
+  if(rw.craft){
+    if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+    S.craftPoints[rw.craft.rar] = (S.craftPoints[rw.craft.rar]||0) + rw.craft.val;
+  }
+  if(rw.icon){
+    if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+    if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon);
+  }
+  if(rw.title){
+    // 既存の称号システムに合わせ、実績とは独立して即付け可能にする（表示のみ）
+    S.equippedTitle = rw.title;
+  }
+  S.roguePassClaimed.push(idx);
+  saveGameImmediate();
+  showToast('✅ パス報酬を受け取りました');
+  renderRogue();
+  refreshHome();
+}
+
+function startRogueRun(hard){
+  initRogueSaveDefaults();
+  if(hard && !rogueHardUnlocked()){ showToast('Rank50以上でHARD解放'); return; }
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){ showModal('パーティ未編成','パーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]); return; }
+  S.rogueRun = {
+    active:true,
+    hard:!!hard,
+    floor:1,
+    nodeIndex:0,
+    nodes: buildRogueFloorNodes(1, !!hard),
+    items: [],
+    partyState: null,
+    score: 0,
+  };
+  saveGame();
+  renderRogue();
+  showToast(hard?'⚠ HARD開始':'🧭 ローグ開始');
+}
+
+function abandonRogueRun(){
+  if(!S.rogueRun || !S.rogueRun.active){ return; }
+  showModal('撤退確認','ローグランを中断しますか？（進行は失われます）',[
+    {label:'中断する',action:()=>{ S.rogueRun=null; saveGame(); renderRogue(); showToast('中断しました'); }},
+    {label:'続ける',action:()=>{},primary:true},
+  ]);
+}
+
+function buildRogueFloorNodes(floor, hard){
+  // 5ノード構成: 1(戦闘/休息/宝) -> 2(戦闘) -> 3(中ボス) -> 4(宝/呪い) -> 5(ボス)
+  const base = [
+    {type:'choice', name:'ルート分岐', done:false},
+    {type:'battle', name:'深海遭遇', done:false},
+    {type:'elite',  name:'中ボス',   done:false},
+    {type:'event',  name:'漂流物',   done:false},
+    {type:'boss',   name:'階層ボス', done:false},
+  ];
+  // HARDは敵強化＆デバフ率UP
+  base.forEach(n=>{ n.floor=floor; n.hard=hard; });
+  return base;
+}
+
+function renderRogueRunCard(){
+  const r=S.rogueRun;
+  const mode=r.hard?'HARD':'NORMAL';
+  const modeCol=r.hard?'#ffd8a0':'#bfe9ff';
+  const items=(r.items||[]).map(it=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:3px 8px;border-radius:999px;border:.5px solid rgba(30,120,200,.25);background:rgba(0,10,20,.25);font-size:9px;color:rgba(180,220,240,.7);">${it.type==='debuff'?'☠️':'✨'} ${it.name}</span>`).join('') || `<span style="font-size:9px;color:rgba(160,160,160,.6);">（まだアイテムなし）</span>`;
+  return `
+    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:10px;color:rgba(160,210,240,.65);">現在のラン</div>
+          <div style="font-size:14px;font-weight:900;color:${modeCol};letter-spacing:.12em;">${mode} / ${r.floor}F</div>
+        </div>
+        <button onclick="abandonRogueRun()" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(200,80,80,.35);background:rgba(60,0,0,.25);color:rgba(255,160,160,.8);cursor:pointer;font-family:inherit;">撤退</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:9px;color:rgba(160,210,240,.55);margin-bottom:6px;">獲得アイテム</div>
+        <div>${items}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRogueNodes(){
+  const r=S.rogueRun;
+  const idx=r.nodeIndex||0;
+  const rows=r.nodes.map((n,i)=>{
+    const locked = i>idx;
+    const done = n.done===true;
+    const can = !locked && !done && i===idx;
+    const badge = done?'✅':locked?'🔒':'▶';
+    const typeLbl = n.type==='battle'?'⚔️':n.type==='elite'?'👑':n.type==='boss'?'💀':n.type==='event'?'🎁':'🧭';
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,20,40,.28);border:.5px solid rgba(20,80,140,.3);border-radius:12px;padding:12px;margin-bottom:8px;opacity:${locked?0.55:1};">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(120,220,255,.12);">${typeLbl}</div>
+          <div>
+            <div style="font-size:12px;font-weight:800;color:rgba(200,230,255,.9);">${(r.floor||1)}F-${i+1} ${n.name}</div>
+            <div style="font-size:9px;color:rgba(160,210,240,.6);">${n.type==='choice'?'次のルートを選ぶ':(n.type==='event'?'アイテム獲得（良い/悪いがある）':(n.type==='elite'?'中ボス戦。報酬は良いが危険':(n.type==='boss'?'ボス撃破で次階層へ':'通常戦闘')))}</div>
+          </div>
+        </div>
+        <button onclick="enterRogueNode(${i})" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(30,120,200,.35);background:${can?'rgba(10,60,120,.35)':'rgba(0,0,0,.15)'};color:${can?'#bfe9ff':'rgba(160,160,160,.6)'};cursor:${can?'pointer':'not-allowed'};font-family:inherit;" ${can?'':'disabled'}>${badge}</button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;margin-bottom:10px;">🧭 ルート</div>
+      ${rows}
+    </div>
+  `;
+}
+
+function enterRogueNode(i){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  if(i!== (r.nodeIndex||0)) return;
+  const n=r.nodes[i]; if(!n||n.done) return;
+
+  if(n.type==='choice'){
+    showModal('ルート分岐','次のルートを選択してください',[
+      {label:'⚔️ 安定戦闘（小報酬）',primary:true,action:()=>{ r.choice='safe'; n.done=true; r.nodeIndex++; saveGame(); renderRogue(); }},
+      {label:'🎁 漂流物（良い/悪い）',action:()=>{ r.choice='event'; n.done=true; r.nodeIndex++; saveGame(); renderRogue(); }},
+    ]);
+    return;
+  }
+
+  if(n.type==='event'){
+    const it = rollRogueItem({hard:r.hard, prefer:(r.choice==='event')?'swing':null});
+    (r.items||[]).push(it);
+    applyRogueItemSideEffects(it);
+    n.done=true; r.nodeIndex++;
+    saveGameImmediate();
+    showModal('漂流物',`${it.type==='debuff'?'☠️':'✨'} <b>${it.name}</b><br><div style="font-size:10px;color:rgba(160,210,240,.7);margin-top:6px;">${it.desc}</div>`,[
+      {label:'続ける',primary:true,action:()=>{ renderRogue(); }},
+    ]);
+    return;
+  }
+
+  // battle / elite / boss
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){ showToast('パーティ未編成'); return; }
+  const q = buildRogueQuest(n, r.floor, r.hard);
+  BT.fromScreen='rogue';
+  initBattle(q, ap);
+}
+
+function buildRogueQuest(node, floor, hard){
+  const mul = hard ? (1.25 + floor*0.18) : (1.0 + floor*0.15);
+  const baseHp = 12000 + floor*18000;
+  const baseAtk= 700 + floor*260;
+  const bossMul = node.type==='boss' ? 2.6 : node.type==='elite' ? 1.9 : 1.0;
+  const spd = node.type==='boss' ? 3 : node.type==='elite' ? 3 : 2;
+  const emoji = node.type==='boss' ? '💀' : node.type==='elite' ? '👑' : '🦑';
+  const name  = node.type==='boss' ? `${floor}F BOSS 深界の番人` : node.type==='elite' ? `${floor}F 中ボス 深海の獣` : `${floor}F 深海の影`;
+
+  const enemy = {
+    name,
+    emoji,
+    hp: Math.round(baseHp*mul*bossMul),
+    atk: Math.round(baseAtk*mul*(node.type==='boss'?1.25:1.0)),
+    spd: spd,
+    boss: node.type==='boss',
+    statusPatterns: node.type==='elite' || node.type==='boss'
+      ? [{type:'para',prob:hard?0.22:0.16,stacks:1},{type:'poison',prob:hard?0.20:0.14,stacks:1}]
+      : (hard?[{type:'poison',prob:0.16,stacks:1}]:null),
+  };
+  return {
+    id: `rogue_${Date.now()}_${floor}_${node.type}`,
+    name: `🧭 ${floor}F ${node.type==='boss'?'BOSS':node.type==='elite'?'中ボス':'戦闘'}`,
+    enemy,
+    gold: node.type==='boss' ? 0 : 0,
+    gem: 0,
+    boss: node.type==='boss',
+    bgColor: ['#001020','#001a2a'],
+    story: [],
+    isRogue: true,
+    rogueFloor: floor,
+    rogueNodeType: node.type,
+    chapterId: 10,
+  };
+}
+
+function rollRogueItem(opts){
+  const hard = !!(opts && opts.hard);
+  const pool = [...ROGUE_ITEMS, ...(hard ? ROGUE_ITEMS_HARD_ONLY : [])];
+  let it = pool[Math.floor(Math.random()*pool.length)];
+  // 揺れ幅を増やす（eventルートはデバフも出やすい）
+  if(opts && opts.prefer==='swing'){
+    if(Math.random()<0.25){
+      const debuffs = pool.filter(x=>x.type==='debuff');
+      if(debuffs.length) it = debuffs[Math.floor(Math.random()*debuffs.length)];
+    }
+  }
+  return JSON.parse(JSON.stringify(it));
+}
+
+function applyRogueItemSideEffects(it){
+  // ここでは即時効果（ポイント/回復など）を追加できる。今回は無し。
+}
+
+function getRogueTotalEffect(){
+  const r=S.rogueRun;
+  const eff={atkMul:1, hpMul:1, extraPick:0, dmgTakenMul:1, healPct:0, startShieldPct:0, dotPct:0};
+  if(!r||!r.active) return eff;
+  (r.items||[]).forEach(it=>{
+    const e=it.effect||{};
+    if(typeof e.atkMul==='number') eff.atkMul *= e.atkMul;
+    if(typeof e.hpMul==='number')  eff.hpMul  *= e.hpMul;
+    if(typeof e.extraPick==='number') eff.extraPick += e.extraPick;
+    if(typeof e.dmgTakenMul==='number') eff.dmgTakenMul *= e.dmgTakenMul;
+    if(typeof e.healPct==='number') eff.healPct += e.healPct;
+    if(typeof e.startShieldPct==='number') eff.startShieldPct += e.startShieldPct;
+    if(typeof e.dotPct==='number') eff.dotPct += e.dotPct;
+  });
+  eff.extraPick = Math.max(0, Math.min(1, eff.extraPick)); // +1まで
+  return eff;
+}
+
+function applyRogueModifiersToParty(){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  const eff=getRogueTotalEffect();
+
+  BT.rogueEff = eff;
+  BT.partyHp.forEach(m=>{
+    m.maxHp = Math.max(1, Math.round(m.maxHp * eff.hpMul));
+    m.hp    = Math.min(m.maxHp, m.hp);
+    m.atk   = Math.max(1, Math.round(m.atk * eff.atkMul));
+    if(eff.startShieldPct>0){
+      m.shield = (m.shield||0) + Math.round(m.maxHp * eff.startShieldPct);
+    }
+  });
+  // 追加選択（既存仕様に最小侵入で：手札最大選択枚数を+1扱い）
+  BT.rogueExtraPick = eff.extraPick || 0;
+}
+
+function onRogueBattleWin(quest){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  // HP持ち越し保存
+  r.partyState = BT.partyHp.map(m=>({id:m.id, hp:m.hp, maxHpMul:1, atkMul:1}));
+
+  const nodeIdx = r.nodeIndex||0;
+  const node = r.nodes[nodeIdx];
+  if(node){
+    node.done=true;
+  }
+
+  // 報酬（戦闘後にアイテム）
+  let gainedItem = null;
+  if(quest.rogueNodeType==='battle'){
+    if(Math.random() < (r.hard?0.65:0.55)){
+      gainedItem = rollRogueItem({hard:r.hard});
+      r.items.push(gainedItem);
+    }
+  } else if(quest.rogueNodeType==='elite'){
+    gainedItem = rollRogueItem({hard:r.hard});
+    r.items.push(gainedItem);
+  } else if(quest.rogueNodeType==='boss'){
+    // 階層ボス報酬：ポイント大
+    const base = 60 + (r.floor-1)*35;
+    const hardBonus = r.hard ? 40 : 0;
+    const pts = base + hardBonus;
+    S.roguePoints = (S.roguePoints||0) + pts;
+    S.roguePassPoints = (S.roguePassPoints||0) + pts;
+    r.score = (r.score||0) + pts;
+  }
+
+  // end UI
+  const ttl = document.getElementById('end-ttl');
+  const rwv = document.getElementById('end-rw-val');
+  if(ttl) ttl.textContent = quest.rogueNodeType==='boss' ? `${r.floor}F BOSS 撃破！` : 'VICTORY';
+  if(ttl) ttl.className='end-ttl end-win';
+
+  // 次へ
+  if(quest.rogueNodeType==='boss'){
+    if(r.floor >= ROGUE_MAX_FLOOR){
+      // 完走
+      const clearBonus = r.hard ? 180 : 120;
+      S.roguePoints = (S.roguePoints||0) + clearBonus;
+      S.roguePassPoints = (S.roguePassPoints||0) + clearBonus;
+      r.score = (r.score||0) + clearBonus;
+      if(rwv) rwv.textContent = `🏁 5F踏破！ RP +${clearBonus}（合計 ${r.score}）`;
+      // 追加のHARD限定アイテム（記念）: icon
+      if(r.hard){
+        if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+        if(!S.ownedIcons.includes('⚒️')) S.ownedIcons.push('⚒️');
+      }
+      r.active=false;
+      S.rogueRun=null;
+      BT.fromScreen='rogue';
+      // 戻り先のボタン
+      var backBtn=document.getElementById('end-btn-back');
+      var homeBtn=document.getElementById('end-btn-home');
+      if(backBtn) backBtn.textContent='← ローグへ';
+      if(homeBtn) homeBtn.style.display='none';
+      return;
+    }
+    r.floor++;
+    r.nodeIndex=0;
+    r.nodes = buildRogueFloorNodes(r.floor, r.hard);
+    // ボス後は少し回復（難易度差）
+    const healPct = r.hard ? 0.18 : 0.25;
+    r.partyState.forEach(m=>{
+      m.hp = Math.min(m.hp + Math.round((m.hp||1) * 0) + 999999999, m.hp); // no-op (carry)
+    });
+    if(rwv) rwv.textContent = `➡ ${r.floor}Fへ進む（獲得RPは踏破後に加算）`;
+    BT.fromScreen='rogue';
+    return;
+  }
+
+  // 通常/中ボス勝利 → 次ノード
+  r.nodeIndex = (r.nodeIndex||0) + 1;
+  const parts=[];
+  if(gainedItem) parts.push(`${gainedItem.type==='debuff'?'☠️':'✨'} ${gainedItem.name}`);
+  if(rwv) rwv.textContent = parts.length ? parts.join(' / ') : 'クリア！';
+  BT.fromScreen='rogue';
+}
+
 
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
@@ -7570,6 +8195,15 @@ function winBattle(){
   }
   if(!S.cleared.includes(BT.quest.id)) S.cleared.push(BT.quest.id);
   if(BT.quest.isTower) onTowerClear(BT.quest);
+  // ================================================================
+  //  ROGUE: 勝利処理（ノード進行・アイテム付与・5階層クリア）
+  // ================================================================
+  if(BT.quest && BT.quest.isRogue){
+    try{ onRogueBattleWin(BT.quest); }catch(e){ console.log('[ROGUE] win hook err', e); }
+    saveGame();
+    document.getElementById('battle-end').classList.add('show');
+    return;
+  }
   if(BT.quest.isGrind){
     const gv=document.getElementById('grind-gold-val');
     if(gv) gv.textContent=S.gold.toLocaleString();
@@ -7714,6 +8348,7 @@ function refreshAfterBattle(){
   else if(BT.fromScreen==='tower') renderTower();
   else if(BT.fromScreen==='pvp') renderPvp();
   else if(BT.fromScreen==='grind') renderGrind();
+  else if(BT.fromScreen==='rogue') renderRogue();
 }
 
 function fleeConfirm(){
@@ -8443,10 +9078,11 @@ function getCharCardBadges(ch){
 //  状態異常UX強化
 // ================================================================
 const STATUS_CONFIG = {
-  burn:   {emoji:'🔥', label:'炎症',   color:'#ff9060', bg:'rgba(180,60,0,.85)',  overlayColor:'rgba(255,80,0,.25)'},
-  poison: {emoji:'☠️', label:'毒',     color:'#80ff40', bg:'rgba(30,100,0,.85)',  overlayColor:'rgba(60,200,0,.2)'},
-  freeze: {emoji:'❄️', label:'凍結',   color:'#80d8ff', bg:'rgba(0,60,180,.85)', overlayColor:'rgba(0,120,255,.3)'},
-  para:   {emoji:'⚡', label:'麻痺',   color:'#ffe860', bg:'rgba(140,120,0,.85)',overlayColor:'rgba(200,180,0,.2)'},
+  burn:    {emoji:'🔥', label:'炎症',     color:'#ff9060', bg:'rgba(180,60,0,.85)',  overlayColor:'rgba(255,80,0,.25)'},
+  poison:  {emoji:'☠️', label:'毒',       color:'#80ff40', bg:'rgba(30,100,0,.85)',  overlayColor:'rgba(60,200,0,.2)'},
+  freeze:  {emoji:'❄️', label:'凍結',     color:'#80d8ff', bg:'rgba(0,60,180,.85)', overlayColor:'rgba(0,120,255,.3)'},
+  para:    {emoji:'⚡', label:'麻痺',     color:'#ffe860', bg:'rgba(140,120,0,.85)',overlayColor:'rgba(200,180,0,.2)'},
+  analyze: {emoji:'📉', label:'弱体解析', color:'#9ad7ff', bg:'rgba(0,80,140,.85)', overlayColor:'rgba(0,180,255,.18)'},
 };
 
 // 状態異常付与時のフルスクリーン演出
@@ -8725,27 +9361,74 @@ function openBattleInfoPanel(){
       +'</div></div>';
   }
 
-  var statusHtml=
-    makeStatusRow('🔥','炎症','#ff9060','rgba(180,60,0,.3)','rgba(220,80,0,.5)',
-      '毎ターン開始時に<strong>敵ATKの8%×スタック数</strong>のダメージを受ける。3ターン持続。')
-    +makeStatusRow('☠️','毒','#80ff40','rgba(40,100,0,.3)','rgba(60,140,0,.5)',
-      '毎ターン開始時に<strong>敵ATKの5%×スタック数</strong>のダメージを受ける。<strong>最大5スタック</strong>重複可能。3ターン持続。')
-    +makeStatusRow('❄️','凍結','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
-      '凍結中のキャラはカードを選択できない。全員凍結で<strong>ターン強制スキップ</strong>。3ターン持続。')
-    +makeStatusRow('⚡','麻痺','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
-      '麻痺中のキャラのカード選択上限が<strong>1枚</strong>になる（通常3枚）。3ターン持続。麻痺はランダムな1体に付与される。');
+  // ================================================================
+  //  表示方針変更：
+  //  ①味方が付与できる効果（デバフ/スキル）を上
+  //  ②敵が付与してくるデバフを下
+  // ================================================================
 
-  // 敵に付与するデバフ説明
-  statusHtml += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">⚔️ 敵に付与するデバフ効果</div>';
-  statusHtml +=
-    makeStatusRow('🔥','炎症（敵）','#ff9060','rgba(180,60,0,.3)','rgba(220,80,0,.5)',
-      'デバッファーが付与。毎ターン敵の最大HPの<strong>3%×スタック数</strong>をダメージ。炎属性デバッファーが付与しやすい。')
-    +makeStatusRow('☠️','毒（敵）','#80ff40','rgba(40,100,0,.3)','rgba(60,140,0,.5)',
-      'デバッファーが付与。毎ターン敵の最大HPの<strong>2%×スタック数</strong>をダメージ。<strong>最大5スタック</strong>まで重複可能。')
-    +makeStatusRow('❄️','凍結（敵）','#80d8ff','rgba(0,60,180,.3)','rgba(0,100,220,.5)',
-      'デバッファーが付与。<strong>1ターン敵の行動を完全スキップ</strong>させる。敵は攻撃せず即プレイヤーターンへ。')
-    +makeStatusRow('⚡','麻痺（敵）','#ffe860','rgba(140,120,0,.3)','rgba(180,160,0,.5)',
-      'デバッファーが付与。麻痺中は<strong>攻撃が50%の確率でミス（外れる）</strong>。複数回攻撃の敵に特に効果的。');
+  // 味方の付与効果
+  var partyEffectHtml = '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:6px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">👥 味方の付与できる効果 / スキル</div>';
+  // ミラ弱体解析
+  if(pChars.some(function(c){return c.id===207;})){
+    partyEffectHtml += makeStatusRow('📉','弱体解析','#9ad7ff','rgba(0,80,140,.22)','rgba(0,160,220,.45)',
+      'ミラの光コンボで付与。敵が受けるダメージが<strong>+12%</strong>（2ターン）。');
+  }
+  // グラン鉄像バリア
+  if(pChars.some(function(c){return c.id===208;})){
+    partyEffectHtml += makeStatusRow('🗿','鉄像バリア','#ffe0a0','rgba(80,50,0,.22)','rgba(200,160,80,.45)',
+      '戦闘開始時に付与。味方全体の<strong>攻撃を3回無効</strong>（HPバー下に残回数表示）。');
+  }
+  // デバッファーの状態異常
+  var hasDebuffer = pChars.some(function(c){return c.role==='debuffer';});
+  if(hasDebuffer){
+    partyEffectHtml += makeStatusRow('🔥','炎症（敵）','#ff9060','rgba(180,60,0,.22)','rgba(220,80,0,.45)','デバッファーが付与。毎ターン敵最大HPの<strong>3%×スタック</strong>ダメージ。');
+    partyEffectHtml += makeStatusRow('☠️','毒（敵）','#80ff40','rgba(40,100,0,.22)','rgba(60,140,0,.45)','デバッファーが付与。毎ターン敵最大HPの<strong>2%×スタック</strong>ダメージ（最大5スタック）。');
+    partyEffectHtml += makeStatusRow('❄️','凍結（敵）','#80d8ff','rgba(0,60,180,.22)','rgba(0,100,220,.45)','デバッファーが付与。<strong>敵の行動をスキップ</strong>（1ターン）。');
+    partyEffectHtml += makeStatusRow('⚡','麻痺（敵）','#ffe860','rgba(140,120,0,.22)','rgba(180,160,0,.45)','デバッファーが付与。敵攻撃が<strong>50%ミス</strong>。');
+  }
+  // 各キャラの簡易説明
+  partyEffectHtml += '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:12px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">📌 編成キャラのスキル概要</div>';
+  partyEffectHtml += pChars.map(function(c){
+    return '<div style="background:rgba(0,20,40,.25);border:.5px solid rgba(20,80,140,.25);border-radius:10px;padding:10px;margin-bottom:8px;">'
+      +'<div style="font-size:12px;font-weight:800;">'+c.emoji+' '+c.name+'</div>'
+      +'<div style="font-size:10px;color:rgba(160,210,240,.7);margin-top:4px;"><strong>'+ (c.skillName||'') +'</strong> — '+ (c.skillDesc||'') +'</div>'
+      +'</div>';
+  }).join('');
+
+  // 敵の付与デバフ（statusPatternsベース）
+  function listEnemyPatterns(){
+    var pats = [];
+    if(BT_ENEMIES && BT_ENEMIES.length>1){
+      BT_ENEMIES.forEach(function(e){
+        (e.statusPatterns||[]).forEach(function(p){ pats.push(p); });
+      });
+    } else if(BT && BT.quest && BT.quest.enemy && BT.quest.enemy.statusPatterns){
+      pats = BT.quest.enemy.statusPatterns.slice();
+    }
+    // typeでユニーク化
+    var seen={};
+    return pats.filter(function(p){
+      var t=(p&&p.type)||'';
+      if(!t) return false;
+      if(seen[t]) return false;
+      seen[t]=1;
+      return true;
+    });
+  }
+
+  var enemyDebuffHtml = '<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin:6px 0 6px;border-bottom:.5px solid var(--border2);padding-bottom:3px;">👹 敵が付与してくるデバフ</div>';
+  var pats = listEnemyPatterns();
+  if(!pats.length){
+    enemyDebuffHtml += '<div style="font-size:10px;color:rgba(160,160,160,.6);">（この敵は状態異常を付与しません）</div>';
+  } else {
+    pats.forEach(function(p){
+      var cfg=STATUS_CONFIG[p.type]||{emoji:'☠️',label:p.type,color:'#fff'};
+      var prob = Math.round((p.prob||0.2)*100);
+      enemyDebuffHtml += makeStatusRow(cfg.emoji, cfg.label, cfg.color, 'rgba(0,0,0,.15)', 'rgba(255,255,255,.15)',
+        '攻撃時に<strong>'+prob+'%</strong>で付与（スタック '+(p.stacks||1)+'）。');
+    });
+  }
 
   // コンボ説明
   var comboHtml=
@@ -8795,8 +9478,10 @@ function openBattleInfoPanel(){
     +'<span onclick="closeBattleInfoPanel()" style="cursor:pointer;font-size:18px;color:var(--text3);">✕</span>'
     +'</div>'
     +'<div class="bip-section">'
-    +'<div class="bip-section-title">⚠️ 状態異常効果</div>'
-    +statusHtml
+    +'<div class="bip-section-title">🎯 付与できる効果 / 敵のデバフ</div>'
+    +partyEffectHtml
+    +'<div style="height:10px;"></div>'
+    +enemyDebuffHtml
     +'</div>'
     +'<div class="bip-section">'
     +'<div class="bip-section-title">🔥 コンボシステム</div>'
@@ -12436,7 +13121,16 @@ function getAttackTargetIndex(){
 // 複数敵にダメージを与える（攻撃処理から呼ぶ）
 function damageEnemy(idx, dmg){
   if(!BT_ENEMIES[idx]) return;
-  BT_ENEMIES[idx].hp = Math.max(0, BT_ENEMIES[idx].hp - dmg);
+  // ミラ弱体解析（analyze）：被ダメ+12%
+  var mul = 1;
+  if(BT_ENEMIES.length>1){
+    var e = BT_ENEMIES[idx];
+    if(e && (e.statuses||[]).some(function(s){return s.type==='analyze'&&s.turns>0;})) mul *= 1.12;
+  } else {
+    if(enemyStatuses.some(function(s){return s.type==='analyze'&&s.turns>0;})) mul *= 1.12;
+  }
+  var finalDmg = Math.round(dmg * mul);
+  BT_ENEMIES[idx].hp = Math.max(0, BT_ENEMIES[idx].hp - finalDmg);
   // 後方互換：BT.enemyHpを合計HPに
   BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
   if(BT_ENEMIES.length===1){
@@ -12497,16 +13191,16 @@ function getMultiEnemyAttack(){
 }
 
 // 敵状態異常の適用（複数敵対応）
-function applyEnemyStatusMulti(idx, type, stacks){
+function applyEnemyStatusMulti(idx, type, stacks, turns){
   if(!BT_ENEMIES[idx]) return;
   var e = BT_ENEMIES[idx];
   if(!e.statuses) e.statuses=[];
   var ex = e.statuses.find(function(s){return s.type===type;});
   if(ex){
     if(type==='poison') ex.stacks=Math.min(ex.stacks+stacks,5);
-    ex.turns=Math.max(ex.turns,3);
+    ex.turns=Math.max(ex.turns,turns||3);
   } else {
-    e.statuses.push({type:type,stacks:stacks||1,turns:3});
+    e.statuses.push({type:type,stacks:stacks||1,turns:turns||3});
   }
   if(BT_ENEMIES.length>1) renderMultiEnemies();
   else renderEnemyStatuses();
