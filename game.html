@@ -3244,50 +3244,6 @@ const CHAPTERS=[
        ]},
     ]
   },
-  // ============================================================
-  // 【管理者専用】デバッグクエスト
-  // ============================================================
-  {
-    id:99, name:'🔧 DEBUGクエスト', emoji:'🔧',
-    sub:'【ADMIN ONLY】バグ検証用。管理者専用。',
-    bgColor:['#001000','#002000'],
-    unlocked:true, adminOnly:true,
-    layers:[
-      {id:9901, name:'凍結テスト',    emoji:'❄️', boss:false,
-       enemy:{name:'[DEBUG]凍結Bot', emoji:'🤖', hp:9999999, atk:1,   spd:3,
-         statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
-       gold:0,gem:0,story:[]},
-      {id:9902, name:'麻痺テスト',    emoji:'⚡', boss:false,
-       enemy:{name:'[DEBUG]麻痺Bot', emoji:'🤖', hp:9999999, atk:1,   spd:3,
-         statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
-       gold:0,gem:0,story:[]},
-      {id:9903, name:'毒テスト',      emoji:'☠️', boss:false,
-       enemy:{name:'[DEBUG]毒Bot',   emoji:'🤖', hp:9999999, atk:1,   spd:3,
-         statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
-       gold:0,gem:0,story:[]},
-      {id:9904, name:'炎症テスト',    emoji:'🔥', boss:false,
-       enemy:{name:'[DEBUG]炎Bot',   emoji:'🤖', hp:9999999, atk:1,   spd:3,
-         statusPatterns:[{type:'burn',prob:1.0,stacks:2}]},
-       gold:0,gem:0,story:[]},
-      {id:9905, name:'高火力テスト',  emoji:'💥', boss:false,
-       enemy:{name:'[DEBUG]高火力Bot',emoji:'🤖', hp:100,    atk:99999,spd:5},
-       gold:0,gem:0,story:[]},
-      {id:9906, name:'複数敵テスト',  emoji:'👾', boss:false,
-       enemies:[
-         {name:'[DEBUG]敵A',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'attacker',
-           statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
-         {name:'[DEBUG]敵B',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'debuffer',
-           statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
-         {name:'[DEBUG]敵C',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'tank',
-           statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
-       ],
-       enemy:{name:'[DEBUG]複数敵',emoji:'👾',hp:29999997,atk:1,spd:1},
-       gold:0,gem:0,story:[]},
-      {id:9907, name:'スペシャルカードテスト', emoji:'✨', boss:false,
-       enemy:{name:'[DEBUG]SpecialBot',emoji:'🤖',hp:9999999,atk:1,spd:1},
-       gold:0,gem:0,story:[]},
-    ]
-  },
 ];
 
 // QUESTS: CHAPTERSを平坦化（後方互換）
@@ -3582,11 +3538,8 @@ let expandedChapter = -1;
 function renderMap(){
   const container = document.getElementById('quest-map');
   let html = '';
-  const _isAdmin = auth.currentUser && auth.currentUser.uid === 'OqP5BrVu0LYBeN49bcsye5IbYnk1';
 
   CHAPTERS.forEach(ch=>{
-    // 管理者専用チャプターは管理者のみ表示
-    if(ch.adminOnly && !_isAdmin) return;
     // 章のクリア状況
     const layerIds = ch.layers.map(l=>l.id);
     const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
@@ -3599,7 +3552,6 @@ function renderMap(){
 
     // 章テーマの背景スタイル
     const CH_MAP_THEMES = {
-      99:{bg:'rgba(0,20,0,.7)', border:'rgba(0,200,80,.5)',    glow:'rgba(0,200,80,.2)'},
       1:{bg:'rgba(0,20,50,.6)',  border:'rgba(20,100,180,.4)',  glow:'rgba(20,100,200,.15)'},
       2:{bg:'rgba(0,25,10,.6)',  border:'rgba(20,120,60,.4)',   glow:'rgba(20,140,60,.12)'},
       3:{bg:'rgba(10,0,30,.6)',  border:'rgba(100,20,180,.4)',  glow:'rgba(120,20,200,.15)'},
@@ -3620,7 +3572,7 @@ function renderMap(){
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
-          <div class="chapter-num">${ch.adminOnly ? '🔧 ADMIN DEBUG' : ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
+          <div class="chapter-num">${ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
           <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
           <div class="chapter-sub">${ch.sub}</div>
           <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
@@ -3635,7 +3587,7 @@ function renderMap(){
       const cleared = S.cleared.includes(q.id);
       // 層のロック: 試験的クエストは全層常時解放。通常は前の層クリアが必要
       const prevId = li > 0 ? ch.layers[li-1].id : null;
-      const locked = chLocked || (!(ch.isTrial||ch.adminOnly) && prevId !== null && !S.cleared.includes(prevId));
+      const locked = chLocked || (!ch.isTrial && prevId !== null && !S.cleared.includes(prevId));
       const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
       const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
       html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
@@ -5970,42 +5922,12 @@ function afterEnemyAttacks(){
     updatePartyHP();
   }
 
-  // 凍結チェック：全員凍結中なら味方のターンをスキップ
-  const aliveMembers = BT.partyHp.filter(m=>m.hp>0);
-  const frozenMembers = aliveMembers.filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
-  if(aliveMembers.length > 0 && frozenMembers.length === aliveMembers.length){
-    if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;font-weight:700;">❄️ 全員凍結！ターンスキップ！</span>';
-    // 凍結ターン数を1減らす
-    BT.partyHp.forEach(m=>{
-      m.statuses=(m.statuses||[]).map(s=>s.type==='freeze'?{...s,turns:Math.max(0,s.turns-1)}:s).filter(s=>s.turns>0);
-    });
-    renderPartyStatuses();
-    updateBattleStatusPanel();
-    // まだ全員凍結中かチェック（凍結が解けるまで連続スキップを防ぐため敵ターンへ）
-    const stillFrozen = BT.partyHp.filter(m=>m.hp>0).every(m=>
-      (m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0)
-    );
-    if(stillFrozen){
-      // まだ全員凍結中→敵ターンに渡す（敵ターン後また凍結チェックされる）
-      setTimeout(()=>{ if(BT.active) enemyTurn(); }, btDelay(1200));
-    } else {
-      // 凍結が解けた→プレイヤーターン開始
-      setTimeout(()=>{
-        if(!BT.active) return;
-        if(actionEl) actionEl.textContent='';
-        BT.turn++;
-        BT.combo=0;
-        resetSpecialCardFlags();
-        document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
-        document.getElementById('combo-disp').textContent='コンボ: 0';
-        const aliveIds2 = BT.partyHp.filter(m=>m.hp>0).map(m=>m.id);
-        drawHand(aliveIds2);
-        BT_PHASE='player';
-        const atkBtn2=document.getElementById('atk-btn');
-        if(atkBtn2){ atkBtn2.disabled=false; atkBtn2.style.opacity='1'; }
-        if(BT.auto && BT.active) setTimeout(runAutoTurn, 500);
-      }, btDelay(1200));
-    }
+  // 凍結チェック：凍結中なら味方のターンをスキップ
+  const frozenMembers=BT.partyHp.filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
+  if(frozenMembers.length===BT.partyHp.filter(m=>m.hp>0).length){
+    if(actionEl) actionEl.textContent='❄️ 全員凍結！ターンスキップ！';
+    BT.partyHp.forEach(m=>{ m.statuses=(m.statuses||[]).map(s=>s.type==='freeze'?{...s,turns:s.turns-1}:s).filter(s=>s.turns>0); });
+    setTimeout(()=>enemyTurn(),1200);
     return;
   }
   renderPartyStatuses();
@@ -6542,41 +6464,238 @@ function renderTower(){
 }
 
 // ================================================================
-//  🧭 DEEP ROGUE（ローグライク）
+//  🪞 DEEP ROGUE（鏡ダンジョン）
 // ================================================================
 const ROGUE_MAX_FLOOR = 5;
+const ROGUE_EXTENDED_FLOOR = 10;
 
 const ROGUE_PASS_TIERS = [
-  {req: 50,  reward:{gem:200}},
-  {req: 120, reward:{ticket:1}},
-  {req: 220, reward:{gem:400}},
-  {req: 360, reward:{craft:{rar:'SSR',val:10}}},
-  {req: 520, reward:{gem:800, ticket:1}},
-  {req: 700, reward:{icon:'🔭'}}, // 記念アイコン
-  {req: 900, reward:{ticket:2}},
-  {req: 1200,reward:{gem:1500, title:'深界踏破者'}},
+  {req:  30,  reward:{gem:100}},
+  {req:  80,  reward:{ticket:1}},
+  {req: 150,  reward:{gem:300}},
+  {req: 250,  reward:{craft:{rar:'SR',val:5}}},
+  {req: 380,  reward:{gem:600, ticket:1}},
+  {req: 520,  reward:{icon:'🔭'}},
+  {req: 680,  reward:{ticket:2}},
+  {req: 860,  reward:{gem:1000}},
+  {req:1060,  reward:{craft:{rar:'SSR',val:10}}},
+  {req:1300,  reward:{gem:1500, ticket:2}},
+  {req:1600,  reward:{title:'深界踏破者'}},
+  {req:1950,  reward:{gem:2000}},
+  {req:2350,  reward:{craft:{rar:'SSR',val:20}}},
+  {req:2800,  reward:{ticket:3, gem:1500}},
+  {req:3500,  reward:{gem:5000, title:'深淵の覇者'}},
 ];
 
-const ROGUE_ITEMS = [
-  {id:'atk10',  name:'攻勢の香',   type:'buff',  desc:'味方全体 ATK +10%', effect:{atkMul:1.10}},
-  {id:'hp12',   name:'深海鱗粉',   type:'buff',  desc:'味方全体 最大HP +12%', effect:{hpMul:1.12}},
-  {id:'pick1',  name:'追加判断',   type:'buff',  desc:'毎ターン選択できるカード+1（最大+1）', effect:{extraPick:1}},
-  {id:'heal2',  name:'再生泡',     type:'buff',  desc:'毎ターン終了時に味方全体HP 2%回復', effect:{healPct:0.02}},
-  {id:'shield8',name:'鍛造膜',     type:'buff',  desc:'戦闘開始時にバリア（最大HPの8%）', effect:{startShieldPct:0.08}},
-  {id:'curse_atk', name:'錆の呪い', type:'debuff',desc:'味方全体 ATK -10%', effect:{atkMul:0.90}},
-  {id:'curse_dmg', name:'脆弱化',   type:'debuff',desc:'被ダメージ +12%', effect:{dmgTakenMul:1.12}},
-  {id:'curse_hp',  name:'圧壊水圧', type:'debuff',desc:'最大HP -10%', effect:{hpMul:0.90}},
+// 深淵の遺物一覧
+const ROGUE_GIFTS = [
+  // ─── ATK系 ───
+  {id:'g_atk1',    name:'先兵の爪',    emoji:'🦀', type:'buff',   desc:'ATK +15%',                        effect:{atkMul:1.15}},
+  {id:'g_atk2',    name:'深界共鳴核',  emoji:'⚡', type:'rare',   desc:'ATK +25%',                        effect:{atkMul:1.25}},
+  {id:'g_atk3',    name:'深淵の牙',    emoji:'🗡️', type:'buff',   desc:'ATK +10%',                        effect:{atkMul:1.10}},
+  {id:'g_crit',    name:'深界の眼',    emoji:'👁️', type:'buff',   desc:'ATK +8% & 被ダメ -5%',            effect:{atkMul:1.08, dmgTakenMul:0.95}},
+  {id:'g_wrath',   name:'深淵の憤怒',  emoji:'😤', type:'rare',   desc:'ATK +20% & 毎ターンHP-1%',        effect:{atkMul:1.20, dotPct:0.01}},
+  // ─── HP系（削減） ───
+  {id:'g_hp1',     name:'再生鱗',      emoji:'🐠', type:'buff',   desc:'最大HP +12%',                     effect:{hpMul:1.12}},
+  {id:'g_hp2',     name:'深海装甲',    emoji:'🛡️', type:'rare',   desc:'最大HP +20%',                     effect:{hpMul:1.20}},
+  // ─── 回復系 ───
+  {id:'g_heal1',   name:'回生泡',      emoji:'💧', type:'buff',   desc:'毎ターン HP 2% 回復',              effect:{healPct:0.02}},
+  {id:'g_heal2',   name:'清浄の水流',  emoji:'🌊', type:'rare',   desc:'毎ターン HP 3% 回復',              effect:{healPct:0.03}},
+  {id:'g_shield',  name:'鍛造膜',      emoji:'🔮', type:'buff',   desc:'戦闘開始時 HP 10% シールド',       effect:{startShieldPct:0.10}},
+  // ─── ユーティリティ系 ───
+  {id:'g_pick',    name:'多重判断',    emoji:'🃏', type:'buff',   desc:'手札選択 +1',                      effect:{extraPick:1}},
+  {id:'g_coin',    name:'黄金珊瑚',    emoji:'🪸', type:'buff',   desc:'コイン獲得量 +50%',                effect:{coinMul:1.50}},
+  {id:'g_revive',  name:'深海の命脈',  emoji:'🌟', type:'rare',   desc:'初回戦闘不能を無効化（1回）',      effect:{oneRevive:true}},
+  // ─── 属性相性系 ───
+  {id:'g_fire',    name:'炎核の欠片',  emoji:'🔥', type:'buff',   desc:'炎属性カードの威力 +20%',          effect:{fireAtkMul:1.20}},
+  {id:'g_ice',     name:'氷晶の結界',  emoji:'❄️', type:'buff',   desc:'氷属性 被ダメ -18%',               effect:{iceDmgRedMul:0.82}},
+  {id:'g_thunder', name:'雷帝の瞳',    emoji:'⚡', type:'buff',   desc:'雷属性カードの威力 +20%',          effect:{thunderAtkMul:1.20}},
+  {id:'g_water',   name:'海神の涙',    emoji:'🌊', type:'buff',   desc:'水属性 毎ターン追加HP回復+2%',     effect:{waterHealExtra:0.02}},
+  {id:'g_dark',    name:'闇核の根源',  emoji:'🌑', type:'buff',   desc:'闇属性カードの威力 +20%',          effect:{darkAtkMul:1.20}},
+  {id:'g_light',   name:'聖光の加護',  emoji:'✨', type:'buff',   desc:'光属性 被ダメ -20%',               effect:{lightDmgRedMul:0.80}},
+  // ─── ユニーク系 ───
+  {id:'g_ench',    name:'深界共鳴',    emoji:'💎', type:'unique', desc:'ATK +12% & HP +12%',               effect:{atkMul:1.12, hpMul:1.12}},
+  {id:'g_dmgred',  name:'深海の堅牢',  emoji:'🪨', type:'unique', desc:'被ダメージ -15%',                  effect:{dmgTakenMul:0.85}},
+  {id:'g_atkhp',   name:'混沌の欠片',  emoji:'🌀', type:'rare',   desc:'ATK +15% & 被ダメ -10%',           effect:{atkMul:1.15, dmgTakenMul:0.90}},
+  {id:'g_abyss',   name:'深淵の核',    emoji:'🕳️', type:'unique', desc:'ATK +30% & HP上限 -10%',           effect:{atkMul:1.30, hpMul:0.90}},
+  // ─── 呪い系 ───
+  {id:'c_atk',     name:'錆の呪い',    emoji:'☠️', type:'curse',  desc:'ATK -12%',                        effect:{atkMul:0.88}},
+  {id:'c_hp',      name:'圧壊水圧',    emoji:'💀', type:'curse',  desc:'最大HP -12%',                     effect:{hpMul:0.88}},
+  {id:'c_dmg',     name:'脆弱化',      emoji:'🩸', type:'curse',  desc:'被ダメージ +15%',                 effect:{dmgTakenMul:1.15}},
+  {id:'c_slow',    name:'鉛の足枷',    emoji:'⛓️', type:'curse',  desc:'ATK -8% & 被ダメ +8%',            effect:{atkMul:0.92, dmgTakenMul:1.08}},
 ];
 
-const ROGUE_ITEMS_HARD_ONLY = [
-  {id:'hard_atk20', name:'深界共鳴核', type:'buff', desc:'味方全体 ATK +20%（HARD限定）', effect:{atkMul:1.20}, hardOnly:true},
-  {id:'hard_pick',  name:'観測拡張',   type:'buff', desc:'毎ターン選択+1＆被ダメ-6%（HARD限定）', effect:{extraPick:1, dmgTakenMul:0.94}, hardOnly:true},
-  {id:'hard_curse', name:'深界ノイズ', type:'debuff',desc:'毎ターン終了時に味方HP -1%（HARD限定）', effect:{dotPct:0.01}, hardOnly:true},
+// イベント定義
+const ROGUE_EVENTS = [
+  {
+    id:'e_fisherman', name:'漂流する漁師', emoji:'🎣',
+    desc:'深海に漂う老漁師と出会った。彼は何か大切なものを持っているようだ。',
+    choices:[
+      {label:'話を聞く', subdesc:'深淵の遺物1択を授かる',
+       outcome:(r)=>{ pendingGiftChoice(r,1,'buff'); return {text:'老人から遺物を授かった。',giftPick:true}; }},
+      {label:'無視して進む', subdesc:'何も起きない',
+       outcome:(r)=>{ return {text:'老人は静かに去っていった。'}; }},
+    ]
+  },
+  {
+    id:'e_chest', name:'封印された宝箱', emoji:'📦',
+    desc:'古い封印が施された宝箱を発見した。中身は不明だ…。',
+    choices:[
+      {label:'開ける（60%でバフ、40%で呪い）', subdesc:'博打だが見返りあり',
+       outcome:(r)=>{
+         if(Math.random()<0.6){ pendingGiftChoice(r,1,'buff'); return {text:'良いものが入っていた！',giftPick:true}; }
+         else{ addCurseToRun(r); return {text:'呪いがかかっていた…深淵の呪縛を受けた。'}; }
+       }},
+      {label:'放置する', subdesc:'安全だが何も得られない',
+       outcome:(r)=>{ return {text:'宝箱には触れなかった。'}; }},
+    ]
+  },
+  {
+    id:'e_shrine', name:'深界の祭壇', emoji:'🏛️',
+    desc:'光を放つ祭壇が立っている。強大な力を感じる。',
+    choices:[
+      {label:'血を捧げる（HP 30%消費）', subdesc:'強力な遺物2択を獲得',
+       outcome:(r)=>{ sacrificeRunHP(r,0.30); pendingGiftChoice(r,2,'any'); return {text:'HPを捧げ、強力な力を手に入れた。',giftPick:true}; }},
+      {label:'立ち去る', subdesc:'',
+       outcome:(r)=>{ return {text:'祭壇には触れなかった。'}; }},
+    ]
+  },
+  {
+    id:'e_merchant', name:'謎の商人', emoji:'🛒',
+    desc:'怪しげな仮面の商人が品物を並べている。',
+    choices:[
+      {label:'取引する（コイン 50 消費）', subdesc:'深淵の遺物1択を獲得',
+       outcome:(r)=>{
+         if((r.coins||0)>=50){ r.coins-=50; pendingGiftChoice(r,1,'buff'); return {text:'取引成立！遺物を獲得した。',giftPick:true}; }
+         else return {text:'コインが足りない（50必要）。'};
+       }},
+      {label:'断る', subdesc:'',
+       outcome:(r)=>{ return {text:'商人は静かに去った。'}; }},
+    ]
+  },
+  {
+    id:'e_anomaly', name:'深界の異常体', emoji:'🌀',
+    desc:'不思議な異常体が道を塞いでいる。',
+    choices:[
+      {label:'知識を差し出す（ATK -8%）', subdesc:'通してもらう',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_neg_atk',name:'知識の代償',emoji:'📉',type:'curse',effect:{atkMul:0.92},desc:'ATK-8%'}); return {text:'代償を払い通過した。ATK -8%。'}; }},
+      {label:'力で突破（HP 20% 消費）', subdesc:'HP消費で強行突破',
+       outcome:(r)=>{ sacrificeRunHP(r,0.20); return {text:'HP 20% を消費して強引に突破した。'}; }},
+    ]
+  },
+  {
+    id:'e_abyss', name:'深淵の声', emoji:'👁️',
+    desc:'暗闇の中から声が響いた。「強さを望むか？」',
+    choices:[
+      {label:'「望む」（HP上限 -15%）', subdesc:'ATK +20%の契約を結ぶ',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_abyss',name:'深淵の契約',emoji:'👁️',type:'unique',effect:{atkMul:1.20,hpMul:0.85},desc:'ATK+20% HP上限-15%'}); return {text:'深淵と契約した。ATK +20%、HP -15%。'}; }},
+      {label:'「断る」', subdesc:'何も起きない',
+       outcome:(r)=>{ return {text:'声は消えた。何も変わらない。'}; }},
+    ]
+  },
+  {
+    id:'e_relic', name:'流れ着いた遺物', emoji:'🦑',
+    desc:'海底に奇妙な形の遺物が落ちていた。何かの力を秘めているようだ。',
+    choices:[
+      {label:'調べる（70%で遺物、30%で呪い）', subdesc:'ギャンブルだが遺物の可能性あり',
+       outcome:(r)=>{
+         if(Math.random()<0.7){ pendingGiftChoice(r,1,'any'); return {text:'遺物から力を引き出した！',giftPick:true}; }
+         else{ addCurseToRun(r); return {text:'遺物に封じられた呪いが解放された…'}; }
+       }},
+      {label:'持ち去る（コイン +30）', subdesc:'安全に換金する',
+       outcome:(r)=>{ r.coins=(r.coins||0)+30; return {text:'遺物を換金した。コイン +30。'}; }},
+    ]
+  },
+  {
+    id:'e_library', name:'海底古都の図書館', emoji:'📚',
+    desc:'古代文明の図書館跡が現れた。知識の断片が散らばっている。',
+    choices:[
+      {label:'戦術書を読む', subdesc:'ATK +12%の知識を得る',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_lib_atk',name:'古代の戦術書',emoji:'📖',type:'buff',effect:{atkMul:1.12},desc:'ATK+12%'}); return {text:'古代の戦術書から力を習得した。ATK +12%。'}; }},
+      {label:'守護陣形書を読む', subdesc:'被ダメ -12%の知識を得る',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_lib_def',name:'古代の守護陣形',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.88},desc:'被ダメ-12%'}); return {text:'古代の守護陣形書から術を習得した。被ダメ -12%。'}; }},
+      {label:'立ち去る', subdesc:'',
+       outcome:(r)=>{ return {text:'知識を求めず先を急いだ。'}; }},
+    ]
+  },
+  {
+    id:'e_storm', name:'深界の嵐', emoji:'🌪️',
+    desc:'突然の嵐が周囲を包んだ。嵐の目の中に何かが光っている。',
+    choices:[
+      {label:'嵐を突破（HP 15% 消費）', subdesc:'遺物2択を得る',
+       outcome:(r)=>{ sacrificeRunHP(r,0.15); pendingGiftChoice(r,2,'buff'); return {text:'嵐を突破し、遺物を手に入れた！',giftPick:true}; }},
+      {label:'嵐の恵みを受ける（コイン +50）', subdesc:'コインを得て安全に通過',
+       outcome:(r)=>{ r.coins=(r.coins||0)+50; return {text:'嵐の恵みでコインを得た。コイン +50。'}; }},
+    ]
+  },
+  {
+    id:'e_guardian', name:'深界の守護霊', emoji:'👻',
+    desc:'古代の守護霊が現れた。「試練に耐えし者に力を授けよう。」',
+    choices:[
+      {label:'試練を受ける（HP 25% 消費）', subdesc:'珍しい遺物を授かる',
+       outcome:(r)=>{ sacrificeRunHP(r,0.25); pendingGiftChoice(r,1,'rare'); return {text:'試練を乗り越え、守護霊から珍しい力を授かった。',giftPick:true}; }},
+      {label:'礼を尽くして通過', subdesc:'コイン +20',
+       outcome:(r)=>{ r.coins=(r.coins||0)+20; return {text:'守護霊に礼を尽くし、安全に通過した。コイン +20。'}; }},
+    ]
+  },
+  {
+    id:'e_mirror', name:'呪われた鏡', emoji:'🪞',
+    desc:'歪んだ鏡に自分の姿が映っている。鏡の中の自分が微笑んだ。',
+    choices:[
+      {label:'鏡を見つめる（呪い確定）', subdesc:'反動で強力な遺物1択',
+       outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,1,'any'); return {text:'鏡の呪いを受けたが、反動で遺物を手に入れた。',giftPick:true}; }},
+      {label:'鏡を砕く（HP 20% 消費）', subdesc:'ATK +15%の力を解放',
+       outcome:(r)=>{ sacrificeRunHP(r,0.20); r.gifts=r.gifts||[]; r.gifts.push({id:'_mirror_atk',name:'砕けた鏡の刃',emoji:'🔪',type:'rare',effect:{atkMul:1.15},desc:'ATK+15%'}); return {text:'鏡を砕くとATKが上昇した！'}; }},
+      {label:'通り過ぎる', subdesc:'何も起きない',
+       outcome:(r)=>{ return {text:'鏡には触れず先に進んだ。'}; }},
+    ]
+  },
+  {
+    id:'e_traveler', name:'深界の旅人', emoji:'🧭',
+    desc:'深界を旅する謎めいた人物が「コインと交換してあげよう」と言っている。',
+    choices:[
+      {label:'コイン 30 で遺物1択', subdesc:'割安な取引',
+       outcome:(r)=>{
+         if((r.coins||0)>=30){ r.coins-=30; pendingGiftChoice(r,1,'buff'); return {text:'旅人から遺物を購入した。',giftPick:true}; }
+         else return {text:'コインが足りない（30必要）。'};
+       }},
+      {label:'コイン 60 で希少遺物1択', subdesc:'高価だが強力',
+       outcome:(r)=>{
+         if((r.coins||0)>=60){ r.coins-=60; pendingGiftChoice(r,1,'rare'); return {text:'旅人から希少な遺物を入手した！',giftPick:true}; }
+         else return {text:'コインが足りない（60必要）。'};
+       }},
+      {label:'断る', subdesc:'',
+       outcome:(r)=>{ return {text:'旅人は黙って去っていった。'}; }},
+    ]
+  },
 ];
 
-function rogueHardUnlocked(){
-  return (S.rank||1) >= 50;
-}
+// フロアマップ定義（各行に選択肢ノードを並べる）
+const ROGUE_FLOOR_MAPS = [
+  // ─── 通常難易度 1〜5F ───
+  [['battle'],['battle','event'],['rest','battle'],['elite','event'],['boss']],
+  [['battle'],['elite','event'],['rest','shop'],['battle','event'],['boss']],
+  [['battle'],['battle','rest'],['elite','shop'],['event','battle'],['boss']],
+  [['battle'],['elite','event'],['shop','battle'],['elite','rest'],['boss']],
+  [['elite'],['battle','event'],['elite','shop'],['battle','elite'],['boss']],
+  // ─── 深淵最奥 6〜10F（HARDモード延長用・高難易度） ───
+  [['elite'],['elite','event'],['battle','shop'],['elite','event'],['boss']],
+  [['elite'],['event','elite'],['elite','shop'],['battle','elite'],['boss']],
+  [['elite'],['elite','event'],['shop','elite'],['elite','rest'],['boss']],
+  [['elite'],['elite','shop'],['event','elite'],['elite','elite'],['boss']],
+  [['elite'],['elite','event'],['elite','elite'],['elite','shop'],['boss']],
+];
+
+const ROGUE_NODE_META = {
+  battle:{label:'戦闘',     emoji:'⚔️',col:'rgba(20,80,180,.45)', desc:'通常の戦闘。勝利で深淵の遺物1択。コイン+20。'},
+  elite: {label:'強敵',     emoji:'💀',col:'rgba(140,30,30,.45)',  desc:'強力な敵。勝利で深淵の遺物2択。コイン+40。'},
+  event: {label:'イベント', emoji:'📜',col:'rgba(70,50,140,.45)',  desc:'選択肢のあるテキストイベント。'},
+  rest:  {label:'休息',     emoji:'🛖',col:'rgba(15,90,50,.45)',   desc:'HPを30%回復する。'},
+  shop:  {label:'商店',     emoji:'🏪',col:'rgba(120,90,10,.45)',  desc:'コインで深淵の遺物を購入できる。'},
+  boss:  {label:'ボス',     emoji:'👑',col:'rgba(100,15,100,.45)', desc:'階層ボス。撃破で次のフロアへ。'},
+};
+
+function rogueHardUnlocked(){ return (S.rank||1)>=50; }
 
 function initRogueSaveDefaults(){
   if(typeof S.roguePoints!=='number') S.roguePoints=0;
@@ -6585,406 +6704,533 @@ function initRogueSaveDefaults(){
   if(typeof S.rogueRun==='undefined') S.rogueRun=null;
 }
 
+function sacrificeRunHP(r, pct){
+  if(!r.partyState||!r.partyState.length) return;
+  r.partyState=r.partyState.map(m=>({...m,hp:Math.max(1,Math.round((m.hp||0)*(1-pct)))}));
+}
+
+function addCurseToRun(r){
+  const curses=ROGUE_GIFTS.filter(g=>g.type==='curse');
+  r.gifts=r.gifts||[];
+  r.gifts.push(curses[Math.floor(Math.random()*curses.length)]);
+}
+
+function pendingGiftChoice(r, count, filter){
+  let pool=ROGUE_GIFTS.filter(g=>g.type!=='curse');
+  if(filter==='buff') pool=ROGUE_GIFTS.filter(g=>g.type==='buff'||g.type==='rare');
+  if(filter==='rare') pool=ROGUE_GIFTS.filter(g=>g.type==='rare'||g.type==='unique');
+  const owned=(r.gifts||[]).map(g=>g.id);
+  const filtered=pool.filter(g=>g.type==='rare'||!owned.includes(g.id));
+  const shuffled=[...filtered].sort(()=>Math.random()-0.5);
+  r.pendingGifts=shuffled.slice(0,Math.min(3,shuffled.length));
+  r.pendingGiftCount=count||1;
+  r.pendingGiftPicked=0;
+}
+
 function renderRogue(){
   initRogueSaveDefaults();
   const pd=document.getElementById('rogue-point-disp');
   if(pd) pd.textContent='RP '+(S.roguePoints||0);
   const el=document.getElementById('rogue-content'); if(!el) return;
-
-  const inRun = S.rogueRun && S.rogueRun.active;
-  const hardOk = rogueHardUnlocked();
-  const hardBadge = hardOk ? '' : `<div style="font-size:9px;color:rgba(255,180,120,.7);margin-top:6px;">※ HARDは Rank50 以上で解放</div>`;
-
+  const inRun=S.rogueRun&&S.rogueRun.active;
+  const hardOk=rogueHardUnlocked();
   if(!inRun){
-    el.innerHTML = `
-      <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.35);border-radius:14px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:800;color:#bfe9ff;letter-spacing:.08em;margin-bottom:6px;">🧭 DEEP ROGUE</div>
-        <div style="font-size:10px;color:rgba(160,210,240,.7);line-height:1.7;">
-          分岐ルートを選び、バフ/デバフを拾って強化しながら5階層のボスに挑むエンドコンテンツ。<br>
-          クリアでポイント獲得 → ローグ内バトルパス報酬が進行します。
+    el.innerHTML=`
+      <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.35);border-radius:14px;padding:18px;margin-bottom:12px;">
+        <div style="font-size:18px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;margin-bottom:8px;">🪞 DEEP ROGUE</div>
+        <div style="font-size:10px;color:rgba(160,210,240,.75);line-height:1.9;margin-bottom:16px;">
+          分岐マップを進み、<b style="color:#80e0b0;">深淵の遺物</b>を集めながら 5 フロアのボスを撃破するローグライクモード。<br>
+          ⚔️戦闘・📜イベント・🛖休息・🏪商店ノードを選択しながら攻略しよう。
         </div>
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <button onclick="startRogueRun(false)" style="flex:1;padding:10px;border-radius:12px;border:.5px solid rgba(30,120,200,.35);background:rgba(0,20,40,.45);color:var(--text);cursor:pointer;font-family:inherit;">▶ NORMAL 開始</button>
-          <button onclick="startRogueRun(true)" style="flex:1;padding:10px;border-radius:12px;border:.5px solid rgba(255,180,80,.35);background:${hardOk?'rgba(60,30,0,.35)':'rgba(30,30,30,.25)'};color:${hardOk?'#ffd8a0':'rgba(160,160,160,.7)'};cursor:${hardOk?'pointer':'not-allowed'};font-family:inherit;" ${hardOk?'':'disabled'}>⚠ HARD 開始</button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="startRogueRun(false)" style="flex:1;padding:13px;border-radius:12px;border:.5px solid rgba(30,120,200,.5);background:rgba(10,40,90,.5);color:#bfe9ff;font-size:13px;font-weight:700;cursor:pointer;">🎮 NORMAL</button>
+          <button onclick="startRogueRun(true)" style="flex:1;padding:13px;border-radius:12px;border:.5px solid rgba(255,180,80,.4);background:rgba(80,30,10,.4);color:#ffd8a0;font-size:13px;font-weight:700;cursor:pointer;${hardOk?'':'opacity:.4;'}" ${hardOk?'':'disabled'}>⚠️ HARD</button>
         </div>
-        ${hardBadge}
+        ${hardOk?'':'<div style="font-size:9px;color:rgba(255,180,120,.65);margin-top:8px;text-align:center;">※ HARDは Rank 50 以上で解放</div>'}
       </div>
       ${renderRoguePassHtml()}
     `;
     return;
   }
-
-  el.innerHTML = `
-    ${renderRogueRunCard()}
-    ${renderRogueNodes()}
-    ${renderRoguePassHtml()}
-  `;
-}
-
-function renderRoguePassHtml(){
-  const pts = S.roguePassPoints||0;
-  const tiers = ROGUE_PASS_TIERS.map((t,idx)=>{
-    const done = pts>=t.req;
-    const claimed = (S.roguePassClaimed||[]).includes(idx);
-    const can = done && !claimed;
-    return `
-      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,20,40,.3);border:.5px solid rgba(20,80,140,.35);border-radius:10px;padding:10px;margin-bottom:8px;">
-        <div>
-          <div style="font-size:10px;color:rgba(160,210,240,.65);">Tier ${idx+1} / 必要 ${t.req}pt</div>
-          <div style="font-size:12px;font-weight:700;color:${done?'#bfe9ff':'rgba(200,220,240,.55)'};">${formatRogueReward(t.reward)}</div>
-        </div>
-        <button onclick="claimRoguePass(${idx})" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(30,120,200,.35);background:${can?'rgba(10,60,120,.35)':'rgba(0,0,0,.15)'};color:${can?'#bfe9ff':'rgba(160,160,160,.6)'};cursor:${can?'pointer':'not-allowed'};font-family:inherit;" ${can?'':'disabled'}>
-          ${claimed?'受取済':(done?'受取':'未達')}
-        </button>
-      </div>
-    `;
-  }).join('');
-  return `
-    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:12px;font-weight:800;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス</div>
-        <div style="font-size:10px;color:rgba(160,210,240,.7);">進捗 ${pts}pt</div>
-      </div>
-      ${tiers}
-    </div>
-  `;
-}
-
-function formatRogueReward(rw){
-  if(!rw) return '—';
-  const parts=[];
-  if(rw.gem) parts.push('💎'+rw.gem);
-  if(rw.ticket) parts.push('🎫×'+rw.ticket);
-  if(rw.craft) parts.push('🔷'+rw.craft.rar+'×'+rw.craft.val);
-  if(rw.icon) parts.push('🎨アイコン '+rw.icon);
-  if(rw.title) parts.push('称号「'+rw.title+'」');
-  return parts.join(' / ');
-}
-
-function claimRoguePass(idx){
-  initRogueSaveDefaults();
-  const t=ROGUE_PASS_TIERS[idx]; if(!t) return;
-  const pts=S.roguePassPoints||0;
-  if(pts < t.req) return;
-  if(S.roguePassClaimed.includes(idx)) return;
-  const rw=t.reward||{};
-  if(rw.gem) S.gem += rw.gem;
-  if(rw.ticket) S.gachaTickets = (S.gachaTickets||0) + rw.ticket;
-  if(rw.craft){
-    if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
-    S.craftPoints[rw.craft.rar] = (S.craftPoints[rw.craft.rar]||0) + rw.craft.val;
+  if(S.rogueRun.pendingDeepGate){ renderDeepGateUI(); return; }
+  if(S.rogueRun.pendingGifts&&S.rogueRun.pendingGifts.length){
+    el.innerHTML=renderGiftPickUI(); return;
   }
-  if(rw.icon){
-    if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
-    if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon);
+  if(S.rogueRun.pendingEvent){
+    el.innerHTML=renderEventUI(); return;
   }
-  if(rw.title){
-    // 既存の称号システムに合わせ、実績とは独立して即付け可能にする（表示のみ）
-    S.equippedTitle = rw.title;
+  if(S.rogueRun.pendingShop){
+    el.innerHTML=renderShopUI(); return;
   }
-  S.roguePassClaimed.push(idx);
-  saveGameImmediate();
-  showToast('✅ パス報酬を受け取りました');
-  renderRogue();
-  refreshHome();
-}
-
-function startRogueRun(hard){
-  initRogueSaveDefaults();
-  if(hard && !rogueHardUnlocked()){ showToast('Rank50以上でHARD解放'); return; }
-  const ap=S.party.filter(id=>id!==-1);
-  if(!ap.length){ showModal('パーティ未編成','パーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]); return; }
-  S.rogueRun = {
-    active:true,
-    hard:!!hard,
-    floor:1,
-    nodeIndex:0,
-    nodes: buildRogueFloorNodes(1, !!hard),
-    items: [],
-    partyState: null,
-    score: 0,
-  };
-  saveGame();
-  renderRogue();
-  showToast(hard?'⚠ HARD開始':'🧭 ローグ開始');
-}
-
-function abandonRogueRun(){
-  if(!S.rogueRun || !S.rogueRun.active){ return; }
-  showModal('撤退確認','ローグランを中断しますか？（進行は失われます）',[
-    {label:'中断する',action:()=>{ S.rogueRun=null; saveGame(); renderRogue(); showToast('中断しました'); }},
-    {label:'続ける',action:()=>{},primary:true},
-  ]);
-}
-
-function buildRogueFloorNodes(floor, hard){
-  // 5ノード構成: 1(戦闘/休息/宝) -> 2(戦闘) -> 3(中ボス) -> 4(宝/呪い) -> 5(ボス)
-  const base = [
-    {type:'choice', name:'ルート分岐', done:false},
-    {type:'battle', name:'深海遭遇', done:false},
-    {type:'elite',  name:'中ボス',   done:false},
-    {type:'event',  name:'漂流物',   done:false},
-    {type:'boss',   name:'階層ボス', done:false},
-  ];
-  // HARDは敵強化＆デバフ率UP
-  base.forEach(n=>{ n.floor=floor; n.hard=hard; });
-  return base;
+  el.innerHTML=`${renderRogueRunCard()}${renderRogueFloorMap()}${renderRoguePassHtml()}`;
 }
 
 function renderRogueRunCard(){
   const r=S.rogueRun;
   const mode=r.hard?'HARD':'NORMAL';
   const modeCol=r.hard?'#ffd8a0':'#bfe9ff';
-  const items=(r.items||[]).map(it=>`<span style="display:inline-block;margin:4px 6px 0 0;padding:3px 8px;border-radius:999px;border:.5px solid rgba(30,120,200,.25);background:rgba(0,10,20,.25);font-size:9px;color:rgba(180,220,240,.7);">${it.type==='debuff'?'☠️':'✨'} ${it.name}</span>`).join('') || `<span style="font-size:9px;color:rgba(160,160,160,.6);">（まだアイテムなし）</span>`;
+  const coins=r.coins||0;
+  const gifts=(r.gifts||[]).map(g=>`<span title="${g.desc||''}" style="display:inline-flex;align-items:center;gap:3px;margin:3px 4px 0 0;padding:3px 9px;border-radius:999px;background:${g.type==='curse'?'rgba(120,20,20,.45)':g.type==='rare'?'rgba(90,55,0,.45)':g.type==='unique'?'rgba(55,10,95,.45)':'rgba(8,55,28,.45)'};border:.5px solid ${g.type==='curse'?'rgba(200,50,50,.55)':g.type==='rare'?'rgba(200,150,0,.55)':g.type==='unique'?'rgba(140,50,200,.55)':'rgba(28,120,75,.45)'};font-size:10px;color:${g.type==='curse'?'#ff9090':g.type==='rare'?'#ffe080':g.type==='unique'?'#d080ff':'#80e0b0'};">${g.emoji} ${g.name}</span>`).join('');
   return `
     <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div>
-          <div style="font-size:10px;color:rgba(160,210,240,.65);">現在のラン</div>
-          <div style="font-size:14px;font-weight:900;color:${modeCol};letter-spacing:.12em;">${mode} / ${r.floor}F</div>
+          <div style="font-size:10px;color:rgba(160,210,240,.6);">進行中のラン</div>
+          <div style="font-size:15px;font-weight:900;color:${modeCol};letter-spacing:.1em;">${mode} — ${r.floor}F</div>
         </div>
-        <button onclick="abandonRogueRun()" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(200,80,80,.35);background:rgba(60,0,0,.25);color:rgba(255,160,160,.8);cursor:pointer;font-family:inherit;">撤退</button>
-      </div>
-      <div style="margin-top:10px;">
-        <div style="font-size:9px;color:rgba(160,210,240,.55);margin-bottom:6px;">獲得アイテム</div>
-        <div>${items}</div>
-      </div>
-    </div>
-  `;
-}
-
-function renderRogueNodes(){
-  const r=S.rogueRun;
-  const idx=r.nodeIndex||0;
-  const rows=r.nodes.map((n,i)=>{
-    const locked = i>idx;
-    const done = n.done===true;
-    const can = !locked && !done && i===idx;
-    const badge = done?'✅':locked?'🔒':'▶';
-    const typeLbl = n.type==='battle'?'⚔️':n.type==='elite'?'👑':n.type==='boss'?'💀':n.type==='event'?'🎁':'🧭';
-    return `
-      <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,20,40,.28);border:.5px solid rgba(20,80,140,.3);border-radius:12px;padding:12px;margin-bottom:8px;opacity:${locked?0.55:1};">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(120,220,255,.12);">${typeLbl}</div>
-          <div>
-            <div style="font-size:12px;font-weight:800;color:rgba(200,230,255,.9);">${(r.floor||1)}F-${i+1} ${n.name}</div>
-            <div style="font-size:9px;color:rgba(160,210,240,.6);">${n.type==='choice'?'次のルートを選ぶ':(n.type==='event'?'アイテム獲得（良い/悪いがある）':(n.type==='elite'?'中ボス戦。報酬は良いが危険':(n.type==='boss'?'ボス撃破で次階層へ':'通常戦闘')))}</div>
-          </div>
+          <div style="font-size:12px;color:#ffd080;font-weight:700;">🪙 ${coins}</div>
+          <button onclick="abandonRogueRun()" style="padding:6px 10px;border-radius:8px;border:.5px solid rgba(200,80,80,.35);background:rgba(60,10,10,.4);color:#ff9090;font-size:10px;cursor:pointer;">撤退</button>
         </div>
-        <button onclick="enterRogueNode(${i})" style="padding:8px 10px;border-radius:10px;border:.5px solid rgba(30,120,200,.35);background:${can?'rgba(10,60,120,.35)':'rgba(0,0,0,.15)'};color:${can?'#bfe9ff':'rgba(160,160,160,.6)'};cursor:${can?'pointer':'not-allowed'};font-family:inherit;" ${can?'':'disabled'}>${badge}</button>
       </div>
-    `;
-  }).join('');
-  return `
-    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;margin-bottom:10px;">🧭 ルート</div>
-      ${rows}
+      <div style="font-size:9px;color:rgba(160,210,240,.5);margin-bottom:6px;letter-spacing:.08em;">深淵の遺物</div>
+      <div style="min-height:26px;">${gifts||'<span style="font-size:10px;color:rgba(160,210,240,.3);">（なし）</span>'}</div>
     </div>
   `;
 }
 
-function enterRogueNode(i){
-  const r=S.rogueRun; if(!r||!r.active) return;
-  if(i!== (r.nodeIndex||0)) return;
-  const n=r.nodes[i]; if(!n||n.done) return;
-
-  if(n.type==='choice'){
-    showModal('ルート分岐','次のルートを選択してください',[
-      {label:'⚔️ 安定戦闘（小報酬）',primary:true,action:()=>{ r.choice='safe'; n.done=true; r.nodeIndex++; saveGame(); renderRogue(); }},
-      {label:'🎁 漂流物（良い/悪い）',action:()=>{ r.choice='event'; n.done=true; r.nodeIndex++; saveGame(); renderRogue(); }},
-    ]);
-    return;
-  }
-
-  if(n.type==='event'){
-    const it = rollRogueItem({hard:r.hard, prefer:(r.choice==='event')?'swing':null});
-    (r.items||[]).push(it);
-    applyRogueItemSideEffects(it);
-    n.done=true; r.nodeIndex++;
-    saveGameImmediate();
-    showModal('漂流物',`${it.type==='debuff'?'☠️':'✨'} <b>${it.name}</b><br><div style="font-size:10px;color:rgba(160,210,240,.7);margin-top:6px;">${it.desc}</div>`,[
-      {label:'続ける',primary:true,action:()=>{ renderRogue(); }},
-    ]);
-    return;
-  }
-
-  // battle / elite / boss
-  const ap=S.party.filter(id=>id!==-1);
-  if(!ap.length){ showToast('パーティ未編成'); return; }
-  const q = buildRogueQuest(n, r.floor, r.hard);
-  BT.fromScreen='rogue';
-  initBattle(q, ap);
-}
-
-function buildRogueQuest(node, floor, hard){
-  const mul = hard ? (1.25 + floor*0.18) : (1.0 + floor*0.15);
-  const baseHp = 12000 + floor*18000;
-  const baseAtk= 700 + floor*260;
-  const bossMul = node.type==='boss' ? 2.6 : node.type==='elite' ? 1.9 : 1.0;
-  const spd = node.type==='boss' ? 3 : node.type==='elite' ? 3 : 2;
-  const emoji = node.type==='boss' ? '💀' : node.type==='elite' ? '👑' : '🦑';
-  const name  = node.type==='boss' ? `${floor}F BOSS 深界の番人` : node.type==='elite' ? `${floor}F 中ボス 深海の獣` : `${floor}F 深海の影`;
-
-  const enemy = {
-    name,
-    emoji,
-    hp: Math.round(baseHp*mul*bossMul),
-    atk: Math.round(baseAtk*mul*(node.type==='boss'?1.25:1.0)),
-    spd: spd,
-    boss: node.type==='boss',
-    statusPatterns: node.type==='elite' || node.type==='boss'
-      ? [{type:'para',prob:hard?0.22:0.16,stacks:1},{type:'poison',prob:hard?0.20:0.14,stacks:1}]
-      : (hard?[{type:'poison',prob:0.16,stacks:1}]:null),
-  };
-  return {
-    id: `rogue_${Date.now()}_${floor}_${node.type}`,
-    name: `🧭 ${floor}F ${node.type==='boss'?'BOSS':node.type==='elite'?'中ボス':'戦闘'}`,
-    enemy,
-    gold: node.type==='boss' ? 0 : 0,
-    gem: 0,
-    boss: node.type==='boss',
-    bgColor: ['#001020','#001a2a'],
-    story: [],
-    isRogue: true,
-    rogueFloor: floor,
-    rogueNodeType: node.type,
-    chapterId: 10,
-  };
-}
-
-function rollRogueItem(opts){
-  const hard = !!(opts && opts.hard);
-  const pool = [...ROGUE_ITEMS, ...(hard ? ROGUE_ITEMS_HARD_ONLY : [])];
-  let it = pool[Math.floor(Math.random()*pool.length)];
-  // 揺れ幅を増やす（eventルートはデバフも出やすい）
-  if(opts && opts.prefer==='swing'){
-    if(Math.random()<0.25){
-      const debuffs = pool.filter(x=>x.type==='debuff');
-      if(debuffs.length) it = debuffs[Math.floor(Math.random()*debuffs.length)];
-    }
-  }
-  return JSON.parse(JSON.stringify(it));
-}
-
-function applyRogueItemSideEffects(it){
-  // ここでは即時効果（ポイント/回復など）を追加できる。今回は無し。
-}
-
-function getRogueTotalEffect(){
+function renderRogueFloorMap(){
   const r=S.rogueRun;
-  const eff={atkMul:1, hpMul:1, extraPick:0, dmgTakenMul:1, healPct:0, startShieldPct:0, dotPct:0};
-  if(!r||!r.active) return eff;
-  (r.items||[]).forEach(it=>{
-    const e=it.effect||{};
-    if(typeof e.atkMul==='number') eff.atkMul *= e.atkMul;
-    if(typeof e.hpMul==='number')  eff.hpMul  *= e.hpMul;
-    if(typeof e.extraPick==='number') eff.extraPick += e.extraPick;
-    if(typeof e.dmgTakenMul==='number') eff.dmgTakenMul *= e.dmgTakenMul;
-    if(typeof e.healPct==='number') eff.healPct += e.healPct;
-    if(typeof e.startShieldPct==='number') eff.startShieldPct += e.startShieldPct;
-    if(typeof e.dotPct==='number') eff.dotPct += e.dotPct;
-  });
-  eff.extraPick = Math.max(0, Math.min(1, eff.extraPick)); // +1まで
-  return eff;
+  const mapDef=ROGUE_FLOOR_MAPS[Math.min(r.floor-1,ROGUE_FLOOR_MAPS.length-1)];
+  const rowIdx=r.rowIndex||0;
+  const chosenCols=r.chosenCols||[];
+  const rows=mapDef.map((row,ri)=>{
+    const isDone=ri<rowIdx;
+    const isCurrent=ri===rowIdx;
+    const isLocked=ri>rowIdx;
+    const chosenCol=chosenCols[ri];
+    const nodes=row.map((type,ci)=>{
+      const meta=ROGUE_NODE_META[type]||{label:type,emoji:'❓',col:'rgba(30,30,60,.4)',desc:''};
+      const wasChosen=isDone&&chosenCol===ci;
+      const dimmed=isLocked||(isDone&&!wasChosen);
+      const isChoosable=isCurrent;
+      return `<div onclick="${isChoosable?'enterRogueNode('+ri+','+ci+')':''}"
+        style="flex:1;padding:12px 6px;border-radius:12px;border:.5px solid ${dimmed?'rgba(30,60,90,.15)':wasChosen?'rgba(20,180,100,.55)':isCurrent?'rgba(255,255,255,.2)':meta.col};background:${dimmed?'rgba(0,10,20,.15)':wasChosen?'rgba(8,70,40,.4)':isCurrent?meta.col:'rgba(0,10,20,.2)'};text-align:center;cursor:${isChoosable?'pointer':'default'};opacity:${dimmed?.3:1};transition:transform .15s,box-shadow .15s;${isChoosable?'box-shadow:0 0 12px rgba(30,120,200,.3);':''}"
+        ${isChoosable?'onmouseover="this.style.transform=\'scale(1.06)\';this.style.boxShadow=\'0 0 18px rgba(30,150,230,.45)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 0 12px rgba(30,120,200,.3)\'"':''}>
+        <div style="font-size:22px;margin-bottom:5px;">${wasChosen?'✅':isDone?'—':isLocked?'🔒':meta.emoji}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(200,230,255,.9);">${meta.label}</div>
+        ${isCurrent?'<div style="font-size:8px;color:rgba(160,210,240,.65);margin-top:4px;">タップして選択</div>':''}
+      </div>`;
+    }).join('<div style="width:8px;flex-shrink:0;"></div>');
+    const rowLabel=ri===mapDef.length-1?'BOSS ROOM':`${r.floor}F — ゾーン ${ri+1}`;
+    return `<div style="margin-bottom:10px;">
+      <div style="font-size:8px;color:rgba(160,210,240,.4);margin-bottom:5px;letter-spacing:.1em;">${rowLabel}</div>
+      <div style="display:flex;gap:0;align-items:stretch;">${nodes}</div>
+    </div>`;
+  }).join('');
+  return `<div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;margin-bottom:12px;">🗺️ ${r.floor}F マップ</div>
+    ${rows}
+  </div>`;
+}
+
+function renderGiftPickUI(){
+  const r=S.rogueRun;
+  const gifts=r.pendingGifts||[];
+  const picked=r.pendingGiftPicked||0;
+  const count=r.pendingGiftCount||1;
+  const remaining=count-picked;
+  const cards=gifts.map((g,i)=>`
+    <div onclick="pickRogueGift(${i})" style="flex:1;padding:16px 8px;border-radius:14px;border:.5px solid ${g.type==='rare'?'rgba(200,150,0,.65)':g.type==='unique'?'rgba(140,50,200,.65)':'rgba(20,130,75,.5)'};background:${g.type==='rare'?'rgba(50,35,0,.45)':g.type==='unique'?'rgba(35,0,70,.45)':'rgba(0,35,18,.45)'};text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 0 16px rgba(30,200,100,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'">
+      <div style="font-size:34px;margin-bottom:10px;">${g.emoji}</div>
+      <div style="font-size:11px;font-weight:800;color:${g.type==='rare'?'#ffe080':g.type==='unique'?'#d080ff':'#80e0b0'};margin-bottom:5px;">${g.name}</div>
+      <div style="font-size:9px;color:rgba(160,210,240,.75);line-height:1.5;">${g.desc}</div>
+      ${g.type==='rare'?'<div style="font-size:8px;color:#ffe080;margin-top:8px;font-weight:700;letter-spacing:.08em;">★ レア</div>':''}
+      ${g.type==='unique'?'<div style="font-size:8px;color:#d080ff;margin-top:8px;font-weight:700;letter-spacing:.08em;">◆ ユニーク</div>':''}
+    </div>
+  `).join('');
+  return `<div style="background:rgba(0,30,15,.45);border:.5px solid rgba(20,160,80,.35);border-radius:14px;padding:18px;margin-bottom:12px;">
+    <div style="font-size:14px;font-weight:900;color:#80e0b0;letter-spacing:.08em;margin-bottom:4px;">✨ 深淵の遺物選択</div>
+    <div style="font-size:10px;color:rgba(160,210,240,.65);margin-bottom:16px;">1つ選んでください${remaining>1?' — あと '+remaining+' 回選択':''}。</div>
+    <div style="display:flex;gap:8px;">${cards}</div>
+  </div>${renderRogueRunCard()}`;
+}
+
+function pickRogueGift(idx){
+  const r=S.rogueRun; if(!r) return;
+  const gifts=r.pendingGifts||[];
+  const chosen=gifts[idx]; if(!chosen) return;
+  r.gifts=r.gifts||[];
+  r.gifts.push(chosen);
+  showToast('✨ '+chosen.name+' 獲得！');
+  const picked=(r.pendingGiftPicked||0)+1;
+  r.pendingGiftPicked=picked;
+  if(picked<(r.pendingGiftCount||1)){
+    // まだ選択回数が残っている → 選んだものを除いてもう一度
+    r.pendingGifts=gifts.filter((_,i)=>i!==idx);
+    saveGame(); renderRogue(); return;
+  }
+  r.pendingGifts=null; r.pendingGiftCount=1; r.pendingGiftPicked=0;
+  advanceRogueRow();
+}
+
+function renderEventUI(){
+  const r=S.rogueRun;
+  const ev=r.pendingEvent; if(!ev) return '';
+  const choices=ev.choices.map((c,i)=>`
+    <button onclick="chooseRogueEvent(${i})" style="width:100%;text-align:left;padding:13px 16px;border-radius:10px;border:.5px solid rgba(80,60,160,.5);background:rgba(20,10,60,.4);color:var(--text);font-size:12px;cursor:pointer;margin-bottom:8px;transition:background .2s;" onmouseover="this.style.background='rgba(45,25,110,.5)'" onmouseout="this.style.background='rgba(20,10,60,.4)'">
+      <div style="font-weight:700;margin-bottom:3px;">${c.label}</div>
+      ${c.subdesc?'<div style="font-size:9px;color:rgba(160,200,240,.6);">'+c.subdesc+'</div>':''}
+    </button>
+  `).join('');
+  return `<div style="background:rgba(10,5,40,.55);border:.5px solid rgba(80,60,160,.5);border-radius:14px;padding:18px;margin-bottom:12px;">
+    <div style="font-size:28px;margin-bottom:10px;text-align:center;">${ev.emoji}</div>
+    <div style="font-size:14px;font-weight:900;color:#c0a0ff;margin-bottom:10px;text-align:center;">${ev.name}</div>
+    <div style="font-size:11px;color:rgba(200,180,240,.8);line-height:1.8;margin-bottom:18px;text-align:center;">${ev.desc}</div>
+    ${choices}
+  </div>${renderRogueRunCard()}`;
+}
+
+function chooseRogueEvent(idx){
+  const r=S.rogueRun; if(!r||!r.pendingEvent) return;
+  const ev=r.pendingEvent;
+  const choice=ev.choices[idx]; if(!choice) return;
+  const result=choice.outcome(r);
+  r.pendingEvent=null;
+  saveGame();
+  if(result&&result.giftPick){ renderRogue(); return; }
+  showToast(result&&result.text?result.text:'完了');
+  advanceRogueRow();
+}
+
+function renderShopUI(){
+  const r=S.rogueRun;
+  const coins=r.coins||0;
+  if(!r.shopItems){
+    const pool=ROGUE_GIFTS.filter(g=>g.type!=='curse').sort(()=>Math.random()-0.5).slice(0,3);
+    r.shopItems=pool.map(g=>({...g,cost:g.type==='rare'?120:g.type==='unique'?150:70}));
+  }
+  const items=r.shopItems.map((g,i)=>{
+    const canBuy=coins>=g.cost;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;border:.5px solid rgba(160,120,20,.4);background:rgba(35,25,0,.4);margin-bottom:8px;opacity:${canBuy?1:.5}">
+      <div style="font-size:26px;">${g.emoji}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:700;color:#ffe080;">${g.name}</div>
+        <div style="font-size:9px;color:rgba(200,180,120,.7);">${g.desc}</div>
+      </div>
+      <button onclick="buyRogueShopItem(${i})" style="padding:8px 13px;border-radius:8px;border:.5px solid rgba(200,160,0,.45);background:rgba(70,50,0,.45);color:#ffd060;font-size:11px;cursor:pointer;${!canBuy?'opacity:.4;':''}" ${canBuy?'':'disabled'}>🪙 ${g.cost}</button>
+    </div>`;
+  }).join('');
+  return `<div style="background:rgba(28,18,0,.55);border:.5px solid rgba(160,120,20,.45);border-radius:14px;padding:16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:900;color:#ffd080;">🏪 商店</div>
+      <div style="font-size:12px;color:#ffd080;font-weight:700;">🪙 ${coins}</div>
+    </div>
+    ${items}
+    <button onclick="leaveRogueShop()" style="width:100%;padding:11px;border-radius:10px;border:.5px solid rgba(80,80,80,.4);background:rgba(10,10,10,.4);color:rgba(160,200,240,.7);font-size:11px;cursor:pointer;margin-top:4px;">商店を出る →</button>
+  </div>${renderRogueRunCard()}`;
+}
+
+function buyRogueShopItem(idx){
+  const r=S.rogueRun; if(!r||!r.shopItems) return;
+  const g=r.shopItems[idx]; if(!g) return;
+  if((r.coins||0)<g.cost){ showToast('コインが足りない'); return; }
+  r.coins-=g.cost;
+  r.gifts=r.gifts||[];
+  r.gifts.push(g);
+  r.shopItems.splice(idx,1);
+  showToast('✨ '+g.name+' 購入！');
+  saveGame(); renderRogue();
+}
+
+function leaveRogueShop(){
+  const r=S.rogueRun; if(!r) return;
+  r.pendingShop=false; r.shopItems=null;
+  advanceRogueRow();
+}
+
+// ─── 深淵最奥への門（HARD 5F→10F 延長イベント） ───
+function renderDeepGateUI(){
+  const el=document.getElementById('rogue-content'); if(!el) return;
+  const r=S.rogueRun;
+  el.innerHTML=`
+    <div style="background:rgba(30,0,60,.6);border:1px solid rgba(180,60,255,.5);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">🕳️</div>
+      <div style="font-size:16px;font-weight:900;color:#d080ff;letter-spacing:.08em;margin-bottom:12px;">深淵最奥への門</div>
+      <div style="font-size:11px;color:rgba(210,160,255,.85);line-height:1.9;margin-bottom:18px;">
+        5Fを踏破した者よ。<br>
+        深淵の最奥は更なる闇を持つ。<br>
+        <b style="color:#ff80ff;">6F〜10F</b>はこれまでの比ではない強さの敵が待ち受ける。<br>
+        <span style="color:rgba(210,160,255,.65);font-size:10px;">※ 10F踏破でアイコン🕳️・称号「深淵の最奥踏破者」を獲得</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="acceptDeepGate()" style="padding:14px;border-radius:12px;border:1px solid rgba(180,60,255,.6);background:rgba(60,0,100,.5);color:#e0a0ff;font-size:14px;font-weight:900;cursor:pointer;">
+          👁️ 最奥に挑む（6F〜10F 継続）
+        </button>
+        <button onclick="rejectDeepGate()" style="padding:12px;border-radius:12px;border:.5px solid rgba(100,60,100,.4);background:rgba(20,0,30,.4);color:rgba(200,160,220,.7);font-size:12px;cursor:pointer;">
+          撤退する（5F踏破として報酬を受け取る）
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function acceptDeepGate(){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  r.pendingDeepGate=false;
+  r.maxFloor=ROGUE_EXTENDED_FLOOR;
+  r.floor++;
+  r.rowIndex=0;
+  r.chosenCols=[];
+  r.shopItems=null;
+  // 6F開始時 HP 20% 回復
+  if(r.partyState&&r.partyState.length)
+    r.partyState=r.partyState.map(m=>({...m,hp:Math.round((m.hp||0)*1.20)}));
+  // 遺物1択プレゼント
+  pendingGiftChoice(r,1,'any');
+  showToast('👁️ 深淵最奥へ踏み込んだ…');
+  saveGame(); renderRogue();
+}
+
+function rejectDeepGate(){
+  const r=S.rogueRun; if(!r) return;
+  r.pendingDeepGate=false;
+  const gatePts=r.pendingDeepGatePts||0;
+  const clearBonus=180;
+  S.roguePoints=(S.roguePoints||0)+clearBonus;
+  S.roguePassPoints=(S.roguePassPoints||0)+clearBonus;
+  r.score=(r.score||0)+clearBonus;
+  if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+  if(!S.ownedIcons.includes('⚒️')) S.ownedIcons.push('⚒️');
+  r.active=false; S.rogueRun=null;
+  saveGame();
+  showToast('🏁 5F踏破！ RP +'+(gatePts+clearBonus)+' 獲得！');
+  renderRogue();
+}
+
+function startRogueRun(hard){
+  initRogueSaveDefaults();
+  if(hard&&!rogueHardUnlocked()){ showToast('Rank50以上でHARD解放'); return; }
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){ showModal('パーティ未編成','パーティを編成してください。',[{label:'編成へ',action:()=>goTo('party'),primary:true},{label:'閉じる',action:()=>{}}]); return; }
+  S.rogueRun={
+    active:true,hard:!!hard,floor:1,rowIndex:0,chosenCols:[],
+    gifts:[],items:[],coins:0,score:0,
+    partyState:null,pendingGifts:null,pendingGiftCount:1,pendingGiftPicked:0,
+    pendingEvent:null,pendingShop:false,shopItems:null,
+  };
+  saveGame(); renderRogue();
+  showToast(hard?'⚠ HARD 開始！':'🪞 ローグ開始！');
+}
+
+function abandonRogueRun(){
+  if(!S.rogueRun||!S.rogueRun.active) return;
+  showModal('撤退確認','ローグランを中断しますか？（進行は失われます）',[
+    {label:'中断する',action:()=>{ S.rogueRun=null; saveGame(); renderRogue(); showToast('撤退しました'); }},
+    {label:'続ける',action:()=>{}},
+  ]);
+}
+
+function enterRogueNode(rowIdx,colIdx){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  if(rowIdx!==(r.rowIndex||0)) return;
+  const mapDef=ROGUE_FLOOR_MAPS[Math.min(r.floor-1,ROGUE_FLOOR_MAPS.length-1)];
+  const row=mapDef[rowIdx]; if(!row) return;
+  const type=row[colIdx]; if(!type) return;
+  r.chosenCols=r.chosenCols||[];
+  r.chosenCols[rowIdx]=colIdx;
+  r.currentNodeType=type;
+  saveGame();
+  if(type==='rest'){
+    if(r.partyState&&r.partyState.length){
+      r.partyState=r.partyState.map(m=>({...m,hp:Math.round((m.hp||0)*1.30)}));
+    }
+    showToast('🛖 HP 30% 回復した！');
+    advanceRogueRow(); return;
+  }
+  if(type==='event'){
+    r.pendingEvent=ROGUE_EVENTS[Math.floor(Math.random()*ROGUE_EVENTS.length)];
+    saveGame(); renderRogue(); return;
+  }
+  if(type==='shop'){
+    r.pendingShop=true; r.shopItems=null;
+    saveGame(); renderRogue(); return;
+  }
+  startRogueBattle(type);
+}
+
+function advanceRogueRow(){
+  const r=S.rogueRun; if(!r) return;
+  r.rowIndex=(r.rowIndex||0)+1;
+  saveGame(); renderRogue();
+}
+
+function getRogueEnemy(type,floor,hard){
+  const scale=1+(floor-1)*0.35+(hard?0.4:0);
+  const enemies={
+    battle:{name:floor+'F 深海遭遇体',emoji:'🦑',hp:Math.round(120000*scale),atk:Math.round(1800*scale),spd:3},
+    elite: {name:floor+'F 深界の強敵',emoji:'💀',hp:Math.round(260000*scale),atk:Math.round(2600*scale),spd:3,statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.15,stacks:1}]},
+    boss:  {name:floor+'F 階層ボス', emoji:'👑',hp:Math.round(600000*scale),atk:Math.round(3200*scale),spd:3,boss:true,statusPatterns:[{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}]},
+  };
+  return enemies[type]||enemies.battle;
+}
+
+function startRogueBattle(nodeType){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  const ap=S.party.filter(id=>id!==-1);
+  if(!ap.length){ showToast('パーティを編成してください'); return; }
+  const enemy=getRogueEnemy(nodeType,r.floor,r.hard);
+  const quest={
+    id:'rogue_'+r.floor+'_'+nodeType,
+    name:enemy.name,enemy,gold:0,gem:0,
+    boss:nodeType==='boss',
+    bgColor:['#00060f','#001020'],story:[],
+    isRogue:true,rogueNodeType:nodeType,
+  };
+  sfx('click');
+  BT.fromScreen='rogue';
+  initBattle(quest,ap);
 }
 
 function applyRogueModifiersToParty(){
   const r=S.rogueRun; if(!r||!r.active) return;
   const eff=getRogueTotalEffect();
-
-  BT.rogueEff = eff;
+  BT.rogueEff=eff;
   BT.partyHp.forEach(m=>{
-    m.maxHp = Math.max(1, Math.round(m.maxHp * eff.hpMul));
-    m.hp    = Math.min(m.maxHp, m.hp);
-    m.atk   = Math.max(1, Math.round(m.atk * eff.atkMul));
-    if(eff.startShieldPct>0){
-      m.shield = (m.shield||0) + Math.round(m.maxHp * eff.startShieldPct);
-    }
+    m.maxHp=Math.max(1,Math.round(m.maxHp*eff.hpMul));
+    m.hp=Math.min(m.maxHp,m.hp);
+    m.atk=Math.max(1,Math.round(m.atk*eff.atkMul));
+    if(eff.startShieldPct>0) m.shield=(m.shield||0)+Math.round(m.maxHp*eff.startShieldPct);
   });
-  // 追加選択（既存仕様に最小侵入で：手札最大選択枚数を+1扱い）
-  BT.rogueExtraPick = eff.extraPick || 0;
+  BT.rogueExtraPick=eff.extraPick||0;
+}
+
+function getRogueTotalEffect(){
+  const r=S.rogueRun;
+  const allGifts=[...(r.gifts||[]),...(r.items||[])];
+  let eff={atkMul:1,hpMul:1,dmgTakenMul:1,extraPick:0,healPct:0,dotPct:0,startShieldPct:0};
+  allGifts.forEach(it=>{
+    if(!it||!it.effect) return;
+    const e=it.effect;
+    if(e.atkMul)         eff.atkMul*=e.atkMul;
+    if(e.hpMul)          eff.hpMul*=e.hpMul;
+    if(e.dmgTakenMul)    eff.dmgTakenMul*=e.dmgTakenMul;
+    if(e.extraPick)      eff.extraPick+=e.extraPick;
+    if(e.healPct)        eff.healPct+=e.healPct;
+    if(e.dotPct)         eff.dotPct+=e.dotPct;
+    if(e.startShieldPct) eff.startShieldPct+=e.startShieldPct;
+  });
+  return eff;
 }
 
 function onRogueBattleWin(quest){
   const r=S.rogueRun; if(!r||!r.active) return;
-  // HP持ち越し保存
-  r.partyState = BT.partyHp.map(m=>({id:m.id, hp:m.hp, maxHpMul:1, atkMul:1}));
-
-  const nodeIdx = r.nodeIndex||0;
-  const node = r.nodes[nodeIdx];
-  if(node){
-    node.done=true;
-  }
-
-  // 報酬（戦闘後にアイテム）
-  let gainedItem = null;
-  if(quest.rogueNodeType==='battle'){
-    if(Math.random() < (r.hard?0.65:0.55)){
-      gainedItem = rollRogueItem({hard:r.hard});
-      r.items.push(gainedItem);
-    }
-  } else if(quest.rogueNodeType==='elite'){
-    gainedItem = rollRogueItem({hard:r.hard});
-    r.items.push(gainedItem);
-  } else if(quest.rogueNodeType==='boss'){
-    // 階層ボス報酬：ポイント大
-    const base = 60 + (r.floor-1)*35;
-    const hardBonus = r.hard ? 40 : 0;
-    const pts = base + hardBonus;
-    S.roguePoints = (S.roguePoints||0) + pts;
-    S.roguePassPoints = (S.roguePassPoints||0) + pts;
-    r.score = (r.score||0) + pts;
-  }
-
-  // end UI
-  const ttl = document.getElementById('end-ttl');
-  const rwv = document.getElementById('end-rw-val');
-  if(ttl) ttl.textContent = quest.rogueNodeType==='boss' ? `${r.floor}F BOSS 撃破！` : 'VICTORY';
-  if(ttl) ttl.className='end-ttl end-win';
-
-  // 次へ
-  if(quest.rogueNodeType==='boss'){
-    if(r.floor >= ROGUE_MAX_FLOOR){
-      // 完走
-      const clearBonus = r.hard ? 180 : 120;
-      S.roguePoints = (S.roguePoints||0) + clearBonus;
-      S.roguePassPoints = (S.roguePassPoints||0) + clearBonus;
-      r.score = (r.score||0) + clearBonus;
-      if(rwv) rwv.textContent = `🏁 5F踏破！ RP +${clearBonus}（合計 ${r.score}）`;
-      // 追加のHARD限定アイテム（記念）: icon
+  r.partyState=BT.partyHp.map(m=>({id:m.id,hp:m.hp}));
+  const type=quest.rogueNodeType||'battle';
+  const coinGain=type==='boss'?80:type==='elite'?40:20;
+  r.coins=(r.coins||0)+coinGain+(r.hard?Math.round(coinGain*0.5):0);
+  const end=document.getElementById('end-rw-val');
+  if(type==='boss'){
+    const base=60+(r.floor-1)*35;
+    const pts=base+(r.hard?40:0);
+    S.roguePoints=(S.roguePoints||0)+pts;
+    S.roguePassPoints=(S.roguePassPoints||0)+pts;
+    r.score=(r.score||0)+pts;
+    const effectiveMax = r.maxFloor || ROGUE_MAX_FLOOR;
+    if(r.floor>=effectiveMax){
+      // HARD + 5F踏破 + まだ延長してない場合 → 深淵最奥への門イベント
+      if(r.hard && effectiveMax===ROGUE_MAX_FLOOR){
+        const pts5F=pts;
+        r.pendingDeepGate=true;
+        r.pendingDeepGatePts=pts5F;
+        BT.fromScreen='rogue';
+        if(end) end.textContent='🏁 5F踏破！ 深淵の声が響く…';
+        saveGame(); return;
+      }
+      const clearBonus=r.hard?280:120;
+      S.roguePoints=(S.roguePoints||0)+clearBonus;
+      S.roguePassPoints=(S.roguePassPoints||0)+clearBonus;
+      r.score=(r.score||0)+clearBonus;
+      const floorLabel=effectiveMax+'F';
+      if(end) end.textContent='🏁 '+floorLabel+'踏破！ RP +'+(pts+clearBonus)+'（合計 '+r.score+'）';
       if(r.hard){
         if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
         if(!S.ownedIcons.includes('⚒️')) S.ownedIcons.push('⚒️');
+        if(effectiveMax>=ROGUE_EXTENDED_FLOOR){
+          if(!S.ownedIcons.includes('🕳️')) S.ownedIcons.push('🕳️');
+          if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+          if(!S.ownedTitles.includes('深淵の最奥踏破者')) S.ownedTitles.push('深淵の最奥踏破者');
+        }
       }
-      r.active=false;
-      S.rogueRun=null;
+      r.active=false; S.rogueRun=null;
       BT.fromScreen='rogue';
-      // 戻り先のボタン
-      var backBtn=document.getElementById('end-btn-back');
-      var homeBtn=document.getElementById('end-btn-home');
+      const backBtn=document.getElementById('end-btn-back');
+      const homeBtn=document.getElementById('end-btn-home');
       if(backBtn) backBtn.textContent='← ローグへ';
       if(homeBtn) homeBtn.style.display='none';
-      return;
+      saveGame(); return;
     }
     r.floor++;
-    r.nodeIndex=0;
-    r.nodes = buildRogueFloorNodes(r.floor, r.hard);
-    // ボス後は少し回復（難易度差）
-    const healPct = r.hard ? 0.18 : 0.25;
-    r.partyState.forEach(m=>{
-      m.hp = Math.min(m.hp + Math.round((m.hp||1) * 0) + 999999999, m.hp); // no-op (carry)
-    });
-    if(rwv) rwv.textContent = `➡ ${r.floor}Fへ進む（獲得RPは踏破後に加算）`;
+    r.rowIndex=0;
+    r.chosenCols=[];
+    r.shopItems=null;
+    const healPct=r.hard?0.15:0.25;
+    r.partyState=r.partyState.map(m=>({...m,hp:Math.round((m.hp||0)*(1+healPct))}));
+    if(end) end.textContent='➡ '+r.floor+'Fへ進む！ 🪙+'+coinGain;
+    pendingGiftChoice(r,1,'any');
     BT.fromScreen='rogue';
-    return;
+    saveGame(); return;
   }
-
-  // 通常/中ボス勝利 → 次ノード
-  r.nodeIndex = (r.nodeIndex||0) + 1;
-  const parts=[];
-  if(gainedItem) parts.push(`${gainedItem.type==='debuff'?'☠️':'✨'} ${gainedItem.name}`);
-  if(rwv) rwv.textContent = parts.length ? parts.join(' / ') : 'クリア！';
+  const pickCount=type==='elite'?2:1;
+  pendingGiftChoice(r,pickCount,'any');
+  if(end) end.textContent='✨ 深淵の遺物選択へ！ 🪙+'+coinGain;
   BT.fromScreen='rogue';
+  saveGame();
+}
+
+function rollRogueItem(opts){ return ROGUE_GIFTS.filter(g=>g.type!=='curse')[Math.floor(Math.random()*ROGUE_GIFTS.filter(g=>g.type!=='curse').length)]; }
+
+function formatRogueReward(rw){
+  if(!rw) return '';
+  const parts=[];
+  if(rw.gem)   parts.push('💎×'+rw.gem);
+  if(rw.ticket)parts.push('🎫×'+rw.ticket);
+  if(rw.icon)  parts.push('アイコン '+rw.icon);
+  if(rw.title) parts.push('称号「'+rw.title+'」');
+  if(rw.craft) parts.push(rw.craft.rar+'素材×'+rw.craft.val);
+  return parts.join(' ');
+}
+
+function renderRoguePassHtml(){
+  const pts=S.roguePassPoints||0;
+  const tiers=ROGUE_PASS_TIERS.map((t,idx)=>{
+    const done=pts>=t.req;
+    const claimed=(S.roguePassClaimed||[]).includes(idx);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;margin-bottom:5px;background:rgba(0,15,35,.4);border:.5px solid ${done?'rgba(30,120,80,.4)':'rgba(30,60,90,.2)'};">
+      <div style="font-size:11px;color:${done?'#80e0b0':'rgba(160,210,240,.4)'};font-weight:700;min-width:50px;">RP ${t.req}</div>
+      <div style="flex:1;font-size:10px;color:${done?'var(--text)':'rgba(160,210,240,.4)'};">${formatRogueReward(t.reward)}</div>
+      <button onclick="claimRoguePass(${idx})" style="padding:5px 10px;border-radius:7px;border:.5px solid ${claimed?'rgba(30,60,90,.3)':done?'rgba(30,120,80,.5)':'rgba(30,60,90,.2)'};background:${claimed?'rgba(0,10,20,.2)':done?'rgba(10,70,40,.4)':'rgba(0,10,20,.2)'};color:${claimed?'rgba(160,210,240,.35)':done?'#80e0b0':'rgba(160,210,240,.25)'};font-size:10px;cursor:${done&&!claimed?'pointer':'default'};">${claimed?'受取済':done?'受け取る':'未達'}</button>
+    </div>`;
+  }).join('');
+  const pct=Math.min(100,Math.round((pts/(ROGUE_PASS_TIERS[ROGUE_PASS_TIERS.length-1].req||1200))*100));
+  return `<div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス</div>
+      <div style="font-size:10px;color:rgba(160,210,240,.6);">RP ${pts}</div>
+    </div>
+    <div style="height:3px;background:rgba(30,60,90,.5);border-radius:2px;margin-bottom:10px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .4s;"></div>
+    </div>
+    ${tiers}
+  </div>`;
+}
+
+function claimRoguePass(idx){
+  initRogueSaveDefaults();
+  const t=ROGUE_PASS_TIERS[idx]; if(!t) return;
+  const pts=S.roguePassPoints||0;
+  if(pts<t.req){ showToast('ポイントが足りません'); return; }
+  if((S.roguePassClaimed||[]).includes(idx)){ showToast('受取済です'); return; }
+  const rw=t.reward;
+  if(rw.gem)    S.gem=(S.gem||0)+rw.gem;
+  if(rw.ticket) S.gachaTickets=(S.gachaTickets||0)+rw.ticket;
+  if(rw.icon)   { if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊']; if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon); }
+  if(rw.title)  { if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[]; if(!S.ownedTitles.includes(rw.title)) S.ownedTitles.push(rw.title); }
+  S.roguePassClaimed=S.roguePassClaimed||[];
+  S.roguePassClaimed.push(idx);
+  saveGame();
+  showToast('✨ '+formatRogueReward(rw)+' 受け取りました！');
+  renderRogue();
 }
 
 
@@ -13498,6 +13744,13 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
     if(sc.requiredChars){
       var hasAll = sc.requiredChars.every(function(rid){return partyIds.includes(rid);});
       if(!hasAll) return;
+      // 必要キャラの属性がコンボ属性と一致しているか確認（属性ミスマッチ防止）
+      var charAttrs = sc.requiredChars.map(function(rid){
+        var ch = CHARS.find(function(c){return c.id===rid;});
+        return ch ? (ch.attribute||'none') : 'none';
+      });
+      var hasMatchingAttr = charAttrs.some(function(a){return a===comboAttr;});
+      if(!hasMatchingAttr) return;
       // 必要キャラのいずれかが行動阻害（凍結・麻痺）を受けていたら出現しない
       var anyDebuffed = sc.requiredChars.some(function(rid){
         var member = BT.partyHp.find(function(m){return m.id===rid;});
@@ -13512,9 +13765,15 @@ function checkAndAddSpecialCard(comboAttr, comboLv){
       matched.push(sc);
       return;
     }
-    // 属性揃え条件（コンボ中の属性と一致）
+    // 属性揃え条件（コンボ中の属性と一致 + パーティの属性数チェック）
     if(sc.requiredAttr){
       if(sc.requiredAttr===comboAttr && comboLv>=sc.requiredAttrCount){
+        // パーティに必要な属性キャラが揃っているか確認
+        var attrMatchCount = partyIds.filter(function(pid){
+          var ch = CHARS.find(function(c){return c.id===pid;});
+          return ch && ch.attribute===sc.requiredAttr;
+        }).length;
+        if(attrMatchCount < sc.requiredAttrCount) return;
         // 属性揃え系：70%の確率で出現
         if(Math.random() < 0.70) matched.push(sc);
       }
