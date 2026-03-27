@@ -3635,7 +3635,7 @@ function renderMap(){
       const cleared = S.cleared.includes(q.id);
       // 層のロック: 試験的クエストは全層常時解放。通常は前の層クリアが必要
       const prevId = li > 0 ? ch.layers[li-1].id : null;
-      const locked = chLocked || (!ch.isTrial && prevId !== null && !S.cleared.includes(prevId));
+      const locked = chLocked || (!(ch.isTrial||ch.adminOnly) && prevId !== null && !S.cleared.includes(prevId));
       const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
       const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
       html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
