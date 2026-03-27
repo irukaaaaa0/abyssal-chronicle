@@ -3244,6 +3244,50 @@ const CHAPTERS=[
        ]},
     ]
   },
+  // ============================================================
+  // 【管理者専用】デバッグクエスト
+  // ============================================================
+  {
+    id:99, name:'🔧 DEBUGクエスト', emoji:'🔧',
+    sub:'【ADMIN ONLY】バグ検証用。管理者専用。',
+    bgColor:['#001000','#002000'],
+    unlocked:true, adminOnly:true,
+    layers:[
+      {id:9901, name:'凍結テスト',    emoji:'❄️', boss:false,
+       enemy:{name:'[DEBUG]凍結Bot', emoji:'🤖', hp:9999999, atk:1,   spd:1,
+         statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
+       gold:0,gem:0,story:[]},
+      {id:9902, name:'麻痺テスト',    emoji:'⚡', boss:false,
+       enemy:{name:'[DEBUG]麻痺Bot', emoji:'🤖', hp:9999999, atk:1,   spd:1,
+         statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
+       gold:0,gem:0,story:[]},
+      {id:9903, name:'毒テスト',      emoji:'☠️', boss:false,
+       enemy:{name:'[DEBUG]毒Bot',   emoji:'🤖', hp:9999999, atk:1,   spd:1,
+         statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
+       gold:0,gem:0,story:[]},
+      {id:9904, name:'炎症テスト',    emoji:'🔥', boss:false,
+       enemy:{name:'[DEBUG]炎Bot',   emoji:'🤖', hp:9999999, atk:1,   spd:1,
+         statusPatterns:[{type:'burn',prob:1.0,stacks:2}]},
+       gold:0,gem:0,story:[]},
+      {id:9905, name:'高火力テスト',  emoji:'💥', boss:false,
+       enemy:{name:'[DEBUG]高火力Bot',emoji:'🤖', hp:100,    atk:99999,spd:5},
+       gold:0,gem:0,story:[]},
+      {id:9906, name:'複数敵テスト',  emoji:'👾', boss:false,
+       enemies:[
+         {name:'[DEBUG]敵A',emoji:'🤖',hp:9999999,atk:1,spd:1,role:'attacker',
+           statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
+         {name:'[DEBUG]敵B',emoji:'🤖',hp:9999999,atk:1,spd:1,role:'debuffer',
+           statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
+         {name:'[DEBUG]敵C',emoji:'🤖',hp:9999999,atk:1,spd:1,role:'tank',
+           statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
+       ],
+       enemy:{name:'[DEBUG]複数敵',emoji:'👾',hp:29999997,atk:1,spd:1},
+       gold:0,gem:0,story:[]},
+      {id:9907, name:'スペシャルカードテスト', emoji:'✨', boss:false,
+       enemy:{name:'[DEBUG]SpecialBot',emoji:'🤖',hp:9999999,atk:1,spd:1},
+       gold:0,gem:0,story:[]},
+    ]
+  },
 ];
 
 // QUESTS: CHAPTERSを平坦化（後方互換）
@@ -3538,8 +3582,11 @@ let expandedChapter = -1;
 function renderMap(){
   const container = document.getElementById('quest-map');
   let html = '';
+  const _isAdmin = auth.currentUser && auth.currentUser.uid === 'OqP5BrVu0LYBeN49bcsye5IbYnk1';
 
   CHAPTERS.forEach(ch=>{
+    // 管理者専用チャプターは管理者のみ表示
+    if(ch.adminOnly && !_isAdmin) return;
     // 章のクリア状況
     const layerIds = ch.layers.map(l=>l.id);
     const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
@@ -3552,6 +3599,7 @@ function renderMap(){
 
     // 章テーマの背景スタイル
     const CH_MAP_THEMES = {
+      99:{bg:'rgba(0,20,0,.7)', border:'rgba(0,200,80,.5)',    glow:'rgba(0,200,80,.2)'},
       1:{bg:'rgba(0,20,50,.6)',  border:'rgba(20,100,180,.4)',  glow:'rgba(20,100,200,.15)'},
       2:{bg:'rgba(0,25,10,.6)',  border:'rgba(20,120,60,.4)',   glow:'rgba(20,140,60,.12)'},
       3:{bg:'rgba(10,0,30,.6)',  border:'rgba(100,20,180,.4)',  glow:'rgba(120,20,200,.15)'},
@@ -3572,7 +3620,7 @@ function renderMap(){
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
-          <div class="chapter-num">${ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
+          <div class="chapter-num">${ch.adminOnly ? '🔧 ADMIN DEBUG' : ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
           <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
           <div class="chapter-sub">${ch.sub}</div>
           <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
@@ -5922,12 +5970,42 @@ function afterEnemyAttacks(){
     updatePartyHP();
   }
 
-  // 凍結チェック：凍結中なら味方のターンをスキップ
-  const frozenMembers=BT.partyHp.filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
-  if(frozenMembers.length===BT.partyHp.filter(m=>m.hp>0).length){
-    if(actionEl) actionEl.textContent='❄️ 全員凍結！ターンスキップ！';
-    BT.partyHp.forEach(m=>{ m.statuses=(m.statuses||[]).map(s=>s.type==='freeze'?{...s,turns:s.turns-1}:s).filter(s=>s.turns>0); });
-    setTimeout(()=>enemyTurn(),1200);
+  // 凍結チェック：全員凍結中なら味方のターンをスキップ
+  const aliveMembers = BT.partyHp.filter(m=>m.hp>0);
+  const frozenMembers = aliveMembers.filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0));
+  if(aliveMembers.length > 0 && frozenMembers.length === aliveMembers.length){
+    if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;font-weight:700;">❄️ 全員凍結！ターンスキップ！</span>';
+    // 凍結ターン数を1減らす
+    BT.partyHp.forEach(m=>{
+      m.statuses=(m.statuses||[]).map(s=>s.type==='freeze'?{...s,turns:Math.max(0,s.turns-1)}:s).filter(s=>s.turns>0);
+    });
+    renderPartyStatuses();
+    updateBattleStatusPanel();
+    // まだ全員凍結中かチェック（凍結が解けるまで連続スキップを防ぐため敵ターンへ）
+    const stillFrozen = BT.partyHp.filter(m=>m.hp>0).every(m=>
+      (m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0)
+    );
+    if(stillFrozen){
+      // まだ全員凍結中→敵ターンに渡す（敵ターン後また凍結チェックされる）
+      setTimeout(()=>{ if(BT.active) enemyTurn(); }, btDelay(1200));
+    } else {
+      // 凍結が解けた→プレイヤーターン開始
+      setTimeout(()=>{
+        if(!BT.active) return;
+        if(actionEl) actionEl.textContent='';
+        BT.turn++;
+        BT.combo=0;
+        resetSpecialCardFlags();
+        document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
+        document.getElementById('combo-disp').textContent='コンボ: 0';
+        const aliveIds2 = BT.partyHp.filter(m=>m.hp>0).map(m=>m.id);
+        drawHand(aliveIds2);
+        BT_PHASE='player';
+        const atkBtn2=document.getElementById('atk-btn');
+        if(atkBtn2){ atkBtn2.disabled=false; atkBtn2.style.opacity='1'; }
+        if(BT.auto && BT.active) setTimeout(runAutoTurn, 500);
+      }, btDelay(1200));
+    }
     return;
   }
   renderPartyStatuses();
