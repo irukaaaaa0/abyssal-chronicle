@@ -6470,21 +6470,31 @@ const ROGUE_MAX_FLOOR = 5;
 const ROGUE_EXTENDED_FLOOR = 10;
 
 const ROGUE_PASS_TIERS = [
-  {req:  30,  reward:{gem:100}},
-  {req:  80,  reward:{ticket:1}},
-  {req: 150,  reward:{gem:300}},
-  {req: 250,  reward:{craft:{rar:'SR',val:5}}},
-  {req: 380,  reward:{gem:600, ticket:1}},
-  {req: 520,  reward:{icon:'🔭'}},
-  {req: 680,  reward:{ticket:2}},
-  {req: 860,  reward:{gem:1000}},
-  {req:1060,  reward:{craft:{rar:'SSR',val:10}}},
-  {req:1300,  reward:{gem:1500, ticket:2}},
-  {req:1600,  reward:{title:'深界踏破者'}},
-  {req:1950,  reward:{gem:2000}},
-  {req:2350,  reward:{craft:{rar:'SSR',val:20}}},
-  {req:2800,  reward:{ticket:3, gem:1500}},
-  {req:3500,  reward:{gem:5000, title:'深淵の覇者'}},
+  {req:   30, reward:{gem:100}},
+  {req:   80, reward:{ticket:1}},
+  {req:  150, reward:{gem:300}},
+  {req:  250, reward:{craft:{rar:'SR',val:5}}},
+  {req:  380, reward:{gem:600}},
+  {req:  520, reward:{icon:'🔭'}},
+  {req:  680, reward:{ticket:2}},
+  {req:  860, reward:{gem:1000}},
+  {req: 1060, reward:{craft:{rar:'SSR',val:10}}},
+  {req: 1300, reward:{gem:1500, ticket:2}},
+  {req: 1600, reward:{title:'深界踏破者'}},
+  {req: 1950, reward:{gem:2000}},
+  {req: 2350, reward:{craft:{rar:'SSR',val:20}}},
+  {req: 2800, reward:{ticket:3, gem:1500}},
+  {req: 3300, reward:{icon:'🌑'}},
+  {req: 3900, reward:{gem:3000, ticket:3}},
+  {req: 4600, reward:{craft:{rar:'UR',val:5}}},
+  {req: 5400, reward:{gem:4000}},
+  {req: 6300, reward:{ticket:5, icon:'🩸'}},
+  {req: 7400, reward:{craft:{rar:'UR',val:10}}},
+  {req: 8600, reward:{gem:5000, ticket:4}},
+  {req:10000, reward:{title:'深淵の征服者'}},
+  {req:12000, reward:{craft:{rar:'UR',val:20}}},
+  {req:15000, reward:{gem:10000, ticket:10}},
+  {req:20000, reward:{title:'深淵神の器', icon:'♾️'}},
 ];
 
 // 深淵の遺物一覧
@@ -7056,11 +7066,33 @@ function advanceRogueRow(){
 }
 
 function getRogueEnemy(type,floor,hard){
-  const scale=1+(floor-1)*0.35+(hard?0.4:0);
+  // HARD 6F以降は急激に強化
+  let scale = 1+(floor-1)*0.35+(hard?0.4:0);
+  if(hard && floor>=6){
+    // 6F: 追加×1.5, 7F: ×1.8, 8F: ×2.2, 9F: ×2.7, 10F: ×3.5
+    const hardBoost=[0,0,0,0,0,0,1.5,1.8,2.2,2.7,3.5];
+    scale *= (hardBoost[floor]||1);
+  }
+  // HARD 6F以降の付与デバフ強化
+  const hardHighFloor = hard && floor>=6;
+  const elitePatterns = hardHighFloor
+    ? [{type:'para',prob:0.30,stacks:1},{type:'burn',prob:0.25,stacks:2},{type:'freeze',prob:0.20,stacks:1}]
+    : [{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.15,stacks:1}];
+  const bossPatterns = hardHighFloor
+    ? [{type:'freeze',prob:0.28,stacks:1},{type:'poison',prob:0.25,stacks:2},{type:'para',prob:0.20,stacks:1}]
+    : [{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}];
+  const battlePatterns = hardHighFloor
+    ? [{type:'burn',prob:0.22,stacks:1},{type:'poison',prob:0.18,stacks:1}]
+    : null;
+  const spd = hardHighFloor ? (floor>=9?4:3) : 3;
   const enemies={
-    battle:{name:floor+'F 深海遭遇体',emoji:'🦑',hp:Math.round(120000*scale),atk:Math.round(1800*scale),spd:3},
-    elite: {name:floor+'F 深界の強敵',emoji:'💀',hp:Math.round(260000*scale),atk:Math.round(2600*scale),spd:3,statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.15,stacks:1}]},
-    boss:  {name:floor+'F 階層ボス', emoji:'👑',hp:Math.round(600000*scale),atk:Math.round(3200*scale),spd:3,boss:true,statusPatterns:[{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}]},
+    battle:{name:floor+'F '+(hardHighFloor?'深淵の魔獣':'深海遭遇体'),emoji:hardHighFloor?'🌑':'🦑',
+      hp:Math.round(120000*scale),atk:Math.round(1800*scale),spd,
+      statusPatterns:battlePatterns},
+    elite: {name:floor+'F '+(hardHighFloor?'深淵の番人':'深界の強敵'),emoji:hardHighFloor?'💀':'💀',
+      hp:Math.round(260000*scale),atk:Math.round(2600*scale),spd,statusPatterns:elitePatterns},
+    boss:  {name:floor+'F '+(hardHighFloor?'深淵神の眷属':'階層ボス'),emoji:hardHighFloor?'🩸':'👑',
+      hp:Math.round(600000*scale),atk:Math.round(3200*scale),spd,boss:true,statusPatterns:bossPatterns},
   };
   return enemies[type]||enemies.battle;
 }
@@ -7224,13 +7256,36 @@ function claimRoguePass(idx){
   const rw=t.reward;
   if(rw.gem)    S.gem=(S.gem||0)+rw.gem;
   if(rw.ticket) S.gachaTickets=(S.gachaTickets||0)+rw.ticket;
-  if(rw.icon)   { if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊']; if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon); }
-  if(rw.title)  { if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[]; if(!S.ownedTitles.includes(rw.title)) S.ownedTitles.push(rw.title); }
+  if(rw.craft)  {
+    if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+    S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
+  }
+  if(rw.icon){
+    if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+    if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon);
+  }
+  if(rw.title){
+    if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+    if(!S.ownedTitles.includes(rw.title)) S.ownedTitles.push(rw.title);
+  }
   S.roguePassClaimed=S.roguePassClaimed||[];
   S.roguePassClaimed.push(idx);
-  saveGame();
+  // Firestoreにも即時同期（アイコン・称号が反映されない問題対策）
+  saveGameImmediate();
+  if(playerDocRef){
+    playerDocRef.update({
+      ownedIcons: S.ownedIcons,
+      ownedTitles: S.ownedTitles||[],
+      gachaTickets: S.gachaTickets,
+      gem: S.gem,
+      craftPoints: S.craftPoints,
+      roguePassClaimed: S.roguePassClaimed,
+      lastSaved: new Date().toISOString()
+    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
+  }
   showToast('✨ '+formatRogueReward(rw)+' 受け取りました！');
   renderRogue();
+  refreshHome();
 }
 
 
