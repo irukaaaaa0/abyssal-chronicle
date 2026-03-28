@@ -191,7 +191,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .char-rar{font-size:7px;font-weight:700;}
 
 /* BATTLE */
-.battle-header{position:relative;z-index:10;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,6,14,.9);border-bottom:.5px solid var(--border2);flex-shrink:0;backdrop-filter:blur(4px);}
+.battle-header{position:relative;z-index:10;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,8,18,.55);border-bottom:.5px solid rgba(14,216,176,.12);flex-shrink:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .battle-stage-txt{font-size:11px;color:var(--text2);}
 .battle-turn-txt{font-size:11px;font-weight:500;}
 .combo-txt{font-size:11px;color:var(--teal);}
@@ -208,15 +208,15 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 @keyframes dmgAnimBig{0%{opacity:1;transform:translateY(0) scale(1.2);}15%{transform:translateY(-15px) scale(1.4);}100%{opacity:0;transform:translateY(-100px) scale(1);}}
 @keyframes dmgAnimCrit{0%{opacity:1;transform:translateY(0) scale(1.4) rotate(-5deg);}15%{transform:translateY(-20px) scale(1.6) rotate(3deg);}100%{opacity:0;transform:translateY(-110px) scale(1.1) rotate(0deg);}}
 @keyframes dmgAnimCard{0%{opacity:0;transform:translateY(10px) scale(.7);}10%{opacity:1;transform:translateY(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translateY(-50px) scale(.9);}}
-.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.85);flex-shrink:0;position:relative;z-index:10;}
-.member-hp{flex:1;background:rgba(0,15,35,.6);border:.5px solid var(--border2);border-radius:7px;padding:5px 7px;}
-.member-nm{font-size:8px;color:var(--text2);margin-bottom:3px;}
-.member-hp-bar{height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;}
+.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,8,18,.5);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.member-hp{flex:1;background:rgba(0,12,28,.45);border:.5px solid rgba(14,216,176,.15);border-radius:8px;padding:5px 7px;}
+.member-nm{font-size:8px;color:rgba(160,220,255,.85);margin-bottom:3px;font-weight:500;}
+.member-hp-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
 .member-hp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#20d0a0);border-radius:1px;transition:width .4s;}
-.member-hp-val{font-size:8px;color:var(--text3);margin-top:2px;}
-.card-hand{padding:8px 12px 10px;background:rgba(2,6,14,.9);border-top:.5px solid var(--border2);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(4px);}
-.hand-lbl{font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;}
-.cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;}
+.member-hp-val{font-size:8px;color:rgba(120,180,220,.7);margin-top:2px;}
+.card-hand{padding:8px 12px 10px;background:rgba(2,8,18,.6);border-top:.5px solid rgba(14,216,176,.1);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.hand-lbl{font-size:9px;color:rgba(120,200,255,.6);margin-bottom:6px;letter-spacing:.1em;}
+.cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;padding-top:12px;}
 .cards-row::-webkit-scrollbar{height:2px;}
 .battle-card{flex-shrink:0;width:60px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:9px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;}
 .battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-4px);}
@@ -226,7 +226,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .card-nm{font-size:7px;color:var(--text2);text-align:center;}
 .card-dmg{font-size:9px;font-weight:700;}
 .card-own{font-size:6px;color:var(--text3);}
-.battle-actions{display:flex;gap:7px;padding:0 12px 10px;position:relative;z-index:10;flex-shrink:0;}
+.battle-actions{display:flex;gap:7px;padding:0 12px 10px;position:relative;z-index:10;flex-shrink:0;background:rgba(2,8,18,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .battle-btn{flex:1;padding:9px;border-radius:9px;border:.5px solid;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:background .15s,transform .1s;}
 .battle-btn:active{transform:scale(.96);}
 .btn-atk{background:rgba(10,40,100,.4);border-color:rgba(20,100,200,.4);color:var(--text);}
@@ -403,7 +403,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .cdp-close{width:100%;padding:11px;border-radius:10px;border:.5px solid var(--border3);background:rgba(255,255,255,.03);font-size:13px;cursor:pointer;font-family:inherit;color:var(--text2);margin-top:4px;}
 
 /* ===== BATTLE IMPROVEMENTS ===== */
-.battle-card{flex-shrink:0;width:68px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;user-select:none;}
+.battle-card{flex-shrink:0;width:68px;background:rgba(0,15,40,.5);border:.5px solid rgba(14,216,176,.15);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all .15s;user-select:none;}
 .battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-5px);}
 .battle-card.selected{border-color:var(--teal);background:rgba(10,80,70,.35);transform:translateY(-8px);box-shadow:0 0 12px rgba(16,192,160,.3);}
 .battle-card.used{opacity:.2;cursor:default;pointer-events:none;transform:none;}
@@ -421,7 +421,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .auto-btn:hover{background:rgba(120,60,10,.4);}
 
 /* コンボゲージ */
-.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
 .combo-gauge{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .combo-gauge-fill{height:100%;background:linear-gradient(90deg,#10c0a0,#4a90ff,#e0a020);border-radius:2px;transition:width .3s;}
 .combo-lv-txt{font-size:10px;font-weight:500;min-width:50px;text-align:right;}
@@ -1197,6 +1197,71 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .speed-btn.active{background:rgba(20,80,180,.5);color:#80c8ff;border-color:rgba(60,160,255,.5);}
 .speed-btn:hover{background:rgba(10,50,120,.4);}
 @keyframes orbBadgePulse{0%{transform:scale(1);opacity:.8;}100%{transform:scale(1.1);opacity:1;}}
+
+
+
+/* ===== マージカード ===== */
+.battle-card.merge-lv2{
+  border-color:rgba(220,160,0,.7)!important;
+  background:rgba(60,40,0,.5)!important;
+  box-shadow:0 0 14px rgba(220,160,0,.4)!important;
+}
+.battle-card.merge-lv3{
+  border-color:rgba(255,100,200,.8)!important;
+  background:rgba(60,0,40,.5)!important;
+  box-shadow:0 0 18px rgba(255,80,200,.5)!important;
+}
+.merge-badge{
+  position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;
+  white-space:nowrap;z-index:5;
+}
+.merge-badge.lv2{background:linear-gradient(90deg,#c0800,#e0c020);color:#fff;box-shadow:0 0 6px rgba(220,160,0,.6);}
+.merge-badge.lv3{background:linear-gradient(90deg,#c020a0,#ff40c0);color:#fff;box-shadow:0 0 8px rgba(255,80,200,.7);}
+
+/* ===== 敵行動予告 ===== */
+.enemy-intent{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:5px 12px;margin:0 12px 4px;
+  border-radius:8px;font-size:10px;font-weight:700;
+  border:.5px solid;flex-shrink:0;min-height:28px;
+}
+.enemy-intent.attack{background:rgba(60,0,0,.5);border-color:rgba(200,40,40,.5);color:#ff8080;}
+.enemy-intent.heavy{background:rgba(80,0,0,.6);border-color:rgba(255,40,40,.6);color:#ff4040;animation:intentPulse 1s ease-in-out infinite alternate;}
+.enemy-intent.debuff{background:rgba(40,0,60,.5);border-color:rgba(160,40,200,.5);color:#d080ff;}
+.enemy-intent.buff{background:rgba(0,40,60,.5);border-color:rgba(40,160,200,.4);color:#60c8ff;}
+.enemy-intent.unknown{background:rgba(20,20,20,.4);border-color:rgba(80,80,80,.3);color:rgba(160,160,160,.6);}
+@keyframes intentPulse{0%{box-shadow:0 0 4px rgba(255,40,40,.3);}100%{box-shadow:0 0 12px rgba(255,40,40,.7);}}
+
+/* ===== カードスライドイン演出 ===== */
+@keyframes cardSlideIn{
+  0%  { opacity:0; transform:translateX(-60px) translateY(8px) scale(.85); }
+  60% { opacity:1; transform:translateX(4px) translateY(-2px) scale(1.04); }
+  100%{ opacity:1; transform:translateX(0) translateY(0) scale(1); }
+}
+.battle-card.slide-in{
+  animation: cardSlideIn .32s cubic-bezier(.22,.68,0,1.2) both;
+}
+
+/* ===== 星レベル（マージ改善） ===== */
+.battle-card.star2 {
+  border-color:rgba(255,200,0,.8)!important;
+  background:linear-gradient(180deg,rgba(60,45,0,.6),rgba(30,20,0,.5))!important;
+  box-shadow:0 0 14px rgba(255,180,0,.45)!important;
+}
+.battle-card.star3 {
+  border-color:rgba(255,80,220,.9)!important;
+  background:linear-gradient(180deg,rgba(70,0,60,.6),rgba(40,0,35,.5))!important;
+  box-shadow:0 0 20px rgba(255,60,200,.55)!important;
+}
+.star-badge {
+  position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-weight:900;padding:1px 8px;border-radius:99px;
+  white-space:nowrap;z-index:5;letter-spacing:.05em;
+}
+.star-badge.s2 { background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7); }
+.star-badge.s3 { background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8); }
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1621,7 +1686,7 @@ function onPvpEnd(won, quest){
   <div class="party-hp-row" id="pvp-my-hp-row"></div>
 
   <!-- 手札（通常戦闘と完全同一） -->
-  <div class="card-hand" style="padding-top:4px;">
+  <div class="card-hand" style="padding-top:6px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="hand-lbl" style="margin-bottom:0;">HAND — 最大4枚選択・長押しで連続選択</div>
       <div class="card-select-info" id="pvp-card-select-info">0 / 4 枚選択</div>
@@ -1928,10 +1993,12 @@ function onPvpEnd(won, quest){
     <!-- 集中狙い表示 -->
     <div id="focus-target-disp" style="display:none;font-size:9px;color:#ffd060;text-align:center;margin-top:2px;"></div>
   </div>
+  <!-- 敵行動予告 -->
+  <div class="enemy-intent unknown" id="enemy-intent">❓ 行動準備中...</div>
   <!-- 味方状態異常パネル -->
   <div class="battle-status-panel" id="battle-status-panel"></div>
   <div class="party-hp-row" id="party-hp-row"></div>
-  <div class="card-hand" style="padding-top:4px;">
+  <div class="card-hand" style="padding-top:6px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="hand-lbl" style="margin-bottom:0;">HAND — 最大4枚選択・長押しで連続選択</div>
       <div class="card-select-info" id="card-select-info">0 / 4 枚選択</div>
@@ -2607,6 +2674,63 @@ async function checkGifts(){
 // ================================================================
 //  DATA
 // ================================================================
+
+// ================================================================
+//  ⚡ Ultimate（必殺技）定義
+// ================================================================
+const ULT_DEFS = {
+  // ── UR 個別定義 ──
+  1:  {name:'旧破の顕現',    stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:8.0,  desc:'ATK×8の暗黒の一撃'},
+  2:  {name:'深淵の絶呪',    stacks:3, emoji:'🕳️', effect:'debuff_all',   type:'para', stacks2:2, desc:'全敵に麻痺×2付与'},
+  3:  {name:'崩壊炎爆',      stacks:3, emoji:'💀', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の炎ダメージ'},
+  59: {name:'虚空掌握・極',  stacks:4, emoji:'🌌', effect:'ultra_atk',    mul:10.0, desc:'ATK×10の虚空消滅'},
+  60: {name:'炎帝の怒り・烈',stacks:3, emoji:'🌋', effect:'aoe_atk',      mul:6.0,  desc:'全敵にATK×6の炎嵐'},
+  61: {name:'雷帝の裁き',    stacks:3, emoji:'⚡', effect:'ultra_atk',    mul:9.0,  desc:'ATK×9の雷撃'},
+  62: {name:'永久凍土',      stacks:3, emoji:'❄️', effect:'debuff_all',   type:'freeze', stacks2:2, desc:'全敵に凍結×2付与'},
+  63: {name:'竜王の守護',    stacks:3, emoji:'🐉', effect:'party_shield', pct:0.30, desc:'味方全員にHP30%のバリア'},
+  64: {name:'星滅閃光',      stacks:3, emoji:'💫', effect:'debuff_all',   type:'para', stacks2:1, desc:'全敵に麻痺付与＋ATK×5攻撃', mul:5.0},
+  65: {name:'海神の守護',    stacks:4, emoji:'🔱', effect:'party_heal',   pct:0.40, desc:'味方全員HP40%回復'},
+  66: {name:'深淵の光',      stacks:3, emoji:'✨', effect:'party_heal',   pct:0.30, desc:'味方全員HP30%回復'},
+  67: {name:'氷牙連撃',      stacks:3, emoji:'🧊', effect:'ultra_atk',    mul:7.0,  desc:'ATK×7の氷撃'},
+  68: {name:'業火の裁き',    stacks:3, emoji:'🔥', effect:'aoe_atk',      mul:5.5,  desc:'全敵にATK×5.5の業火'},
+  69: {name:'深海津波',      stacks:3, emoji:'🌊', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の水流'},
+  70: {name:'闇の収束',      stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:8.5,  desc:'ATK×8.5の暗黒撃'},
+  71: {name:'雷の連鎖',      stacks:3, emoji:'⚡', effect:'ultra_atk',    mul:7.5,  desc:'ATK×7.5の雷連撃'},
+  72: {name:'光の審判',      stacks:3, emoji:'☀️', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の光撃'},
+  73: {name:'氷壁の守り',    stacks:4, emoji:'🛡️', effect:'party_shield', pct:0.25, desc:'味方全員にHP25%のバリア'},
+  74: {name:'炎獄の烙印',    stacks:3, emoji:'🔥', effect:'debuff_all',   type:'burn', stacks2:3, desc:'全敵に炎症×3付与'},
+  75: {name:'深淵の瞬閃',    stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:9.0,  desc:'ATK×9の深淵撃'},
+  76: {name:'海神の慈悲',    stacks:4, emoji:'💧', effect:'party_heal',   pct:0.35, desc:'味方全員HP35%回復'},
+  77: {name:'雷爆の嵐',      stacks:3, emoji:'⛈️', effect:'aoe_atk',      mul:5.5,  desc:'全敵にATK×5.5の雷嵐'},
+  78: {name:'氷葬の舞',      stacks:3, emoji:'❄️', effect:'debuff_all',   type:'freeze', stacks2:1, desc:'全敵に凍結付与＋ATK×4攻撃', mul:4.0},
+  79: {name:'崩壊の刃',      stacks:3, emoji:'💀', effect:'ultra_atk',    mul:8.0,  desc:'ATK×8の崩壊撃'},
+  200:{name:'旧破神の降臨',  stacks:5, emoji:'🌑', effect:'ultra_atk',    mul:12.0, desc:'ATK×12の絶対消滅'},
+  201:{name:'深海の奇跡',    stacks:4, emoji:'💚', effect:'party_heal',   pct:0.50, desc:'味方全員HP50%全回復'},
+  202:{name:'虚空の覇道',    stacks:4, emoji:'🌌', effect:'ultra_atk',    mul:10.0, desc:'ATK×10の虚空砲'},
+  203:{name:'崩壊炎獄',      stacks:3, emoji:'🌋', effect:'aoe_atk',      mul:6.5,  desc:'全敵にATK×6.5の炎獄'},
+  204:{name:'深淵崩落',      stacks:4, emoji:'🕳️', effect:'debuff_all',   type:'poison', stacks2:3, desc:'全敵に毒×3付与'},
+  205:{name:'旧破の封印',    stacks:4, emoji:'⛓️', effect:'debuff_all',   type:'para', stacks2:2, desc:'全敵に麻痺×2付与'},
+  206:{name:'海神の慈悲・極',stacks:4, emoji:'🔱', effect:'party_heal',   pct:0.45, desc:'味方全員HP45%回復'},
+  207:{name:'始原の炎',      stacks:3, emoji:'🔥', effect:'aoe_atk',      mul:7.0,  desc:'全敵にATK×7の始原炎'},
+  208:{name:'深淵竜の息吹',  stacks:3, emoji:'🐉', effect:'ultra_atk',    mul:9.5,  desc:'ATK×9.5の竜の息吹'},
+};
+
+// roleとattributeに基づくデフォルトUlt
+function getUltDef(charId, ch){
+  if(ULT_DEFS[charId]) return ULT_DEFS[charId];
+  const role = ch ? ch.role : 'attacker';
+  const attr = ch ? ch.attribute : 'none';
+  if(role==='support') return {name:'深海の加護', stacks:4, emoji:'💧', effect:'party_heal', pct:0.25, desc:'味方全員HP25%回復'};
+  if(role==='tank')    return {name:'鉄壁の守護', stacks:4, emoji:'🛡️', effect:'party_shield', pct:0.20, desc:'味方全員にHP20%のバリア'};
+  if(role==='debuffer'){
+    const dtype = attr==='ice'?'freeze':attr==='thunder'?'para':attr==='fire'?'burn':'poison';
+    return {name:'深淵の呪縛', stacks:3, emoji:'☠️', effect:'debuff_all', type:dtype, stacks2:1, desc:`全敵に${dtype}付与`};
+  }
+  // attacker系はattributeで分岐
+  const mul = 6.0;
+  return {name:'深海の一撃', stacks:3, emoji:'⚔️', effect:'ultra_atk', mul, desc:`ATK×${mul}の一撃`};
+}
+
 const CHARS=[
   // UR (超激レア)
   {id:1, name:'旧破神アルカナ',  emoji:'🌑',rarity:'UR', bg:'rgba(0,0,0,.6)',     border:'rgba(255,215,0,.9)',  hp:1500,atk:280,level:1,attribute:'dark',role:'attacker',skillName:'フルドライブ',skillDesc:'全カード+1枚選択可能'},
@@ -4650,6 +4774,9 @@ function initBattle(quest,pids){
     }
   }
   BT.turn=1;BT.combo=0;BT.active=true;
+  BT.ultStacks={}; // キャラごとのUltスタック
+  setTimeout(()=>updateUltGauge(), 300);
+  BT.enemyIntent=null; // 敵行動予告
   initStatuses();
   setTimeout(()=>updateBattleStatusPanel(),200);
   // autoタイマーをリセット（前の戦闘の残りを消す）
@@ -4671,6 +4798,7 @@ function initBattle(quest,pids){
   if(autoBtn) autoBtn.classList.toggle('on', BT.auto);
   initBattleBg();
   goTo('battle');
+  setTimeout(()=>{ generateEnemyIntent(); }, 200);
   // ★オートがONなら画面遷移後すぐに開始
   if(BT.auto) setTimeout(()=>{ if(BT.active && BT_PHASE==='player') runAutoTurn(); }, 300);
 }
@@ -5273,6 +5401,71 @@ COMBO_TYPE_BONUS['none'] = 0.20; // 無属性コンボ+20%
 function closePartyCharDetail(){ const ov=document.getElementById('party-char-detail-ov'); if(ov) ov.classList.remove('show'); }
 
 
+
+// リバース方式手札補充：使ったカードのみ新しいカードで補充
+function replenishHand(aliveIds){
+  // 使用済みカードを除去・selectedリセット
+  BT.hand = BT.hand.filter(c=>!c.used);
+  BT.hand.forEach(c=>{ c.selected=false; });
+  BT.selectedOrder = [];
+
+  // 各キャラのカード枚数をカウントして不足分を補充
+  aliveIds.forEach(id=>{
+    const ch = CHARS.find(c=>c.id===id); if(!ch) return;
+    const memberData = BT.partyHp.find(m=>m.id===id);
+    const actualAtk = memberData ? memberData.atk : ch.atk;
+    const existing = BT.hand.filter(c=>c.charId===id && !c.isUlt);
+    const current = existing.length;
+    const need = CARDS_PER_MEMBER - current;
+
+    for(let i=0;i<need;i++){
+      if(id===201){
+        // ヒールキャラ：新しいカードを追加しつつ既存をランクアップ
+        const existHeal = BT.hand.find(c=>c.charId===id&&c.isHeal&&(c.cardRank||1)<3);
+        if(existHeal){
+          const newRank = Math.min(3,(existHeal.cardRank||1)+1);
+          existHeal.cardRank = newRank;
+          existHeal._rankUp = true;
+        }
+        BT.hand.push({
+          name:'ヒール',emoji:'💚',dmg:0,comboType:'none',
+          charId:id,charName:ch.name,charAtk:actualAtk,
+          isHeal:true,healRate:0.30,cardRank:1,
+          used:false,selected:false,_isNew:true
+        });
+      } else {
+        const newCard = getCardForChar(ch.attribute);
+        // 同一カード（同名・同comboType）が既にあれば★ランクアップ
+        // ※キャラが違っても同じカードなら対象（同名かつ同属性）
+        const sameCard = BT.hand.find(c=>
+          c.name===newCard.name &&
+          c.comboType===newCard.comboType &&
+          !c.isUlt && (c.cardRank||1)<3
+        );
+        if(sameCard){
+          const newRank = Math.min(3,(sameCard.cardRank||1)+1);
+          sameCard.cardRank = newRank;
+          sameCard._rankUp = true;
+          sameCard.dmg = (sameCard._baseDmg||sameCard.dmg) * (newRank>=3?1.5:1.25);
+        }
+        // 常に新カードを追加
+        BT.hand.push({
+          ...newCard,
+          charId:id,charName:ch.name,charAtk:actualAtk,
+          cardRank:1,_baseDmg:newCard.dmg,
+          used:false,selected:false,_isNew:true
+        });
+      }
+    }
+  });
+  // 死亡キャラのカードを除去（Ultは残す）
+  BT.hand = BT.hand.filter(c=>aliveIds.includes(c.charId)||c.isUlt);
+
+  buildMergeGroups();
+  renderHand();
+  updateComboGauge();
+}
+
 function drawHand(ids){
   BT.hand=[];
   BT.selectedOrder=[];
@@ -5287,17 +5480,41 @@ function drawHand(ids){
         BT.hand.push({
           name:'ヒール', emoji:'💚', dmg:0, comboType:'none',
           charId:id, charName:ch.name, charAtk:actualAtk,
-          isHeal:true, healRate:0.30, // ATKの30%をヒール
+          isHeal:true, healRate:0.30, cardRank:1,
           used:false, selected:false
         });
       } else {
         const c=getCardForChar(ch.attribute);
-        BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,used:false,selected:false});
+        BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,cardRank:1,_baseDmg:c.dmg,used:false,selected:false});
       }
     }
   });
+  // 同キャラのカードをマージ候補としてグループ化
+  buildMergeGroups();
   renderHand();
   updateComboGauge();
+}
+
+// マージグループ構築（同キャラの複数カードをマージ可能にする）
+function buildMergeGroups(){
+  const groups={};
+  BT.hand.forEach((c,i)=>{
+    if(c.isSpecial||c.isHeal||c.isUlt) return;
+    // キャラではなくカード名+属性でグループ化
+    const key = c.name+'_'+c.comboType;
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(i);
+  });
+  BT.hand.forEach(c=>{ c.mergeGroup=null; c.mergeLevel=1; });
+  Object.entries(groups).forEach(([key,indices])=>{
+    if(indices.length>=2){
+      indices.forEach((idx,pos)=>{
+        BT.hand[idx].mergeGroup=key;
+        BT.hand[idx].mergeGroupSize=indices.length;
+        BT.hand[idx].mergeGroupPos=pos;
+      });
+    }
+  });
 }
 
 function renderHand(){
@@ -5315,47 +5532,107 @@ function renderHand(){
     const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:'⚪無属性'};
     const comboLabel = `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>`;
 
-    const isParaCard   = paraIds.has(c.charId);
-    const isFreezeCard = freezeIds.has(c.charId);
+    const isParaCard    = paraIds.has(c.charId);
+    const isFreezeCard  = freezeIds.has(c.charId);
+    const isPoisonCard  = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='poison'&&s.turns>0)).map(m=>m.id)).has(c.charId);
+    const isBurnCard    = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='burn'&&s.turns>0)).map(m=>m.id)).has(c.charId);
     const isSpecialCard = c.isSpecial;
 
+    // カードランク
+    const cardRank = c.cardRank||1;
+    const rankUpAnim = c._rankUp ? 'animation:cardSlideIn .4s ease both;' : '';
+
     // カードスタイル
-    var cardStyle = 'position:relative;';
+    var cardStyle = 'position:relative;'+rankUpAnim;
     if(isSpecialCard){
-      // 特殊カードは専用CSSクラスで処理
     } else if(isFreezeCard){
       cardStyle += 'border-color:rgba(80,180,255,.8);box-shadow:0 0 10px rgba(80,180,255,.5);background:rgba(0,30,80,.7);opacity:.7;';
+    } else if(isHealCard && cardRank>=3){
+      cardStyle += 'border-color:rgba(255,80,200,.8);box-shadow:0 0 12px rgba(255,80,200,.5);background:rgba(50,0,40,.6);';
+    } else if(isHealCard && cardRank>=2){
+      cardStyle += 'border-color:rgba(255,200,0,.7);box-shadow:0 0 10px rgba(255,200,0,.4);background:rgba(40,30,0,.5);';
     } else if(isHealCard){
       cardStyle += 'border-color:rgba(40,200,100,.6);box-shadow:0 0 6px rgba(40,200,100,.3);background:rgba(0,40,20,.5);';
+    } else if(cardRank>=3){
+      cardStyle += 'border-color:rgba(255,80,200,.85);box-shadow:0 0 16px rgba(255,60,180,.6);background:rgba(50,0,40,.6);';
+    } else if(cardRank>=2){
+      cardStyle += 'border-color:rgba(255,200,0,.75);box-shadow:0 0 12px rgba(255,180,0,.5);background:rgba(50,35,0,.55);';
     } else if(isParaCard){
       cardStyle += 'border-color:rgba(220,180,0,.6);box-shadow:0 0 6px rgba(220,180,0,.3);';
+    } else if(isBurnCard){
+      cardStyle += 'border-color:rgba(220,80,20,.6);box-shadow:0 0 6px rgba(220,80,20,.3);';
+    } else if(isPoisonCard){
+      cardStyle += 'border-color:rgba(80,200,20,.6);box-shadow:0 0 6px rgba(80,200,20,.3);';
     }
 
+    // ランクバッジ
+    const rankBadge = cardRank>=3
+      ? '<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,80,220,.8);z-index:5;">★★★</div>'
+      : cardRank>=2
+      ? '<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#c07000,#ffe040);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,180,0,.8);z-index:5;">★★</div>'
+      : '';
+
     // バッジ
-    const paraBadge   = isParaCard   ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.8);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;z-index:2;">⚡麻痺</div>' : '';
+    const paraBadge    = isParaCard   ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.9);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">⚡麻痺</div>' : '';
+    const poisonBadge  = isPoisonCard && !isParaCard ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(40,120,0,.9);color:#80ff40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">☠️毒</div>' : '';
+    const burnBadge    = isBurnCard && !isParaCard && !isPoisonCard ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,50,0,.9);color:#ffaa40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">🔥炎症</div>' : '';
     // 凍結はカード全体を氷のオーバーレイで覆う
     const freezeOverlay = isFreezeCard ? '<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>' : '';
 
-    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isSpecialCard?'special-card':''}"
-      style="${cardStyle}"
+    // 星レベル情報
+    const selGroup = c.mergeGroup && c.selected
+      ? BT.hand.filter((x,xi)=>x.mergeGroup===c.mergeGroup&&x.selected&&!x.used).length : 0;
+    const starLv = selGroup>=3?3:selGroup>=2?2:1;
+    const mergeCls = c.selected && c.mergeGroup ? (starLv>=3?'star3':starLv>=2?'star2':'') : '';
+    const STAR_CHARS = {1:'★', 2:'★★', 3:'★★★'};
+    const mergeBadge = c.selected && c.mergeGroup && starLv>=2
+      ? `<div class="star-badge ${starLv>=3?'s3':'s2'}">${STAR_CHARS[starLv]}</div>` : '';
+    // 星レベル時の威力表示
+    const starMul = starLv>=3?2.5:starLv>=2?1.6:1.0;
+    const displayD = isHealCard?d:Math.round(d*starMul);
+    const displayCol = starLv>=3?'#ff80e0':starLv>=2?'#ffe040':col;
+
+    const isNewCard = !!c._isNew;
+    const slideDelay = isNewCard ? `animation-delay:${i*55}ms;` : '';
+    // Ultカードの特殊表示
+    if(c.isUlt){
+      return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isNewCard?'slide-in':''}"
+        style="border-color:rgba(255,200,0,.9)!important;background:linear-gradient(180deg,rgba(80,50,0,.7),rgba(40,20,0,.6))!important;box-shadow:0 0 18px rgba(255,180,0,.7)!important;position:relative;${slideDelay}"
+        onclick="toggleCard(${i})"
+        ontouchstart="startLongPress(${i})" ontouchend="endLongPress()" onmousedown="startLongPress(${i})" onmouseup="endLongPress()" onmouseleave="endLongPress()">
+        <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#ff8000,#ffcc00);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,180,0,.8);">⚡必殺</div>
+        ${c.selected?`<div class="selected-order">${BT.selectedOrder.indexOf(i)+1}</div>`:''}
+        <div style="font-size:22px;">${c.emoji}</div>
+        <div style="font-size:7px;color:#ffe080;text-align:center;font-weight:700;">${c.name}</div>
+        <div style="font-size:8px;color:#ffcc00;font-weight:800;">ULTIMATE</div>
+        <div style="font-size:6px;color:rgba(255,200,100,.7);text-align:center;">${c.charName}</div>
+      </div>`;
+    }
+    const isNewCard2 = isNewCard;
+    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isSpecialCard?'special-card':''} ${mergeCls} ${isNewCard2?'slide-in':''}" 
+      style="${cardStyle}${slideDelay}"
       onclick="toggleCard(${i})"
       onmousedown="startLongPress(${i})"
       onmouseup="endLongPress()"
       onmouseleave="endLongPress()"
       ontouchstart="startLongPress(${i})"
       ontouchend="endLongPress()">
+      ${rankBadge}
+      ${mergeBadge}
       ${orderBadge}
-      ${paraBadge}
+      ${paraBadge}${poisonBadge}${burnBadge}
       ${freezeOverlay}
       ${isSpecialCard?'<div class="special-badge">✨特殊</div>':''}
       <div class="card-em" style="${isFreezeCard?'filter:grayscale(.5);':''}">${isHealCard?'💚':c.emoji}</div>
       <div class="card-nm">${c.name}</div>
-      <div class="card-dmg" style="color:${col}">${isSpecialCard?'✨特殊':(isHealCard?'💊+'+d:d)}</div>
+      <div class="card-dmg" style="color:${displayCol}">${isSpecialCard?'✨特殊':(isHealCard?'💊+'+d:displayD)}</div>
       ${isHealCard?'':comboLabel}
       <div class="card-own">${c.charName}</div>
     </div>`;
   }).join('');
 
+  // _isNewフラグをクリア（スライド演出は1回のみ）
+  BT.hand.forEach(c=>{ c._isNew=false; c._rankUp=false; });
   // 選択枚数表示
   const n = BT.hand.filter(c=>c.selected).length;
   const info = document.getElementById('card-select-info');
@@ -5421,8 +5698,32 @@ function toggleCard(i){
     BT.selectedOrder = BT.selectedOrder.filter(idx=>idx!==i);
   }
   sfx('select');
+  // 同キャラのカードをマージ候補としてグループ化
+  buildMergeGroups();
   renderHand();
   updateComboGauge();
+}
+
+// マージグループ構築（同キャラの複数カードをマージ可能にする）
+function buildMergeGroups(){
+  const groups={};
+  BT.hand.forEach((c,i)=>{
+    if(c.isSpecial||c.isHeal||c.isUlt) return;
+    // キャラではなくカード名+属性でグループ化
+    const key = c.name+'_'+c.comboType;
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(i);
+  });
+  BT.hand.forEach(c=>{ c.mergeGroup=null; c.mergeLevel=1; });
+  Object.entries(groups).forEach(([key,indices])=>{
+    if(indices.length>=2){
+      indices.forEach((idx,pos)=>{
+        BT.hand[idx].mergeGroup=key;
+        BT.hand[idx].mergeGroupSize=indices.length;
+        BT.hand[idx].mergeGroupPos=pos;
+      });
+    }
+  });
 }
 
 function updateComboGauge(){
@@ -5563,9 +5864,17 @@ function executeAttack(){
   let totalHeal = 0;
   let cb = 1.0;
   var specialsToExec = [];
+  // 星レベル計算：同キャラのカード枚数で★1/2/3を決定
+  const starGroupCounts={};
+  sel.forEach(c=>{ if(c.mergeGroup) starGroupCounts[c.mergeGroup]=(starGroupCounts[c.mergeGroup]||0)+1; });
+
   sel.forEach(c=>{
-    if(c.isSpecial){
-      // 特殊カードは後でまとめて実行
+    if(c.isUlt){
+      // Ultカードは通常のコンボ後にエフェクト発動（ダメージは別途）
+      BT.ultStacks[c.charId]=0; // ゲージリセット
+      c.used=true; c.selected=false;
+      setTimeout(()=>activateUlt_effect(c.charId, c.ultDef, BT.partyHp.find(m=>m.id===c.charId)), btDelay(400));
+    } else if(c.isSpecial){
       specialsToExec.push(c);
     } else if(c.isHeal){
       const healAmt = Math.round(c.charAtk * (c.healRate||0.30));
@@ -5573,14 +5882,28 @@ function executeAttack(){
       const weakest = alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b, alive[0]);
       if(weakest){ weakest.hp = Math.min(weakest.maxHp, weakest.hp + healAmt); totalHeal += healAmt; }
       BT.combo = Math.max(0, BT.combo);
+      // Ultスタック加算（ヒールカードでも）
+      if(c.charId) addUltStack(c.charId);
+      c.used=true; c.selected=false;
     } else {
-      const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus));
-      total += dmg;
-      BT.combo++;
-      cb = 1 + BT.combo * 0.1;
+      const grpCnt = c.mergeGroup ? (starGroupCounts[c.mergeGroup]||1) : 1;
+      // 星レベル倍率：★1=×1.0、★2=×1.6、★3=×2.5
+      const starMul = grpCnt>=3 ? 2.5 : grpCnt>=2 ? 1.6 : 1.0;
+      const grpIdx = c.mergeGroup ? sel.filter(x=>x.mergeGroup===c.mergeGroup).indexOf(c) : 0;
+      if(c.mergeGroup && grpIdx > 0){
+        // ★2・★3の2枚目・3枚目はスキップ（倍率は1枚目に集約）
+        c.used=true; c.selected=false;
+      } else {
+        const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus) * starMul);
+        total += dmg;
+        BT.combo++;
+        cb = 1 + BT.combo * 0.1;
+        // Ultスタック加算（攻撃カード使用時）
+        if(c.charId) addUltStack(c.charId);
+        c.used=true; c.selected=false;
+      }
     }
-    c.used = true;
-    c.selected = false;
+    if(!c.used){ c.used=true; c.selected=false; }
   });
   // 特殊カード実行
   var specialAvgAtk = BT.partyHp.reduce(function(s,m){return s+m.atk;},0)/Math.max(BT.partyHp.length,1);
@@ -5661,6 +5984,9 @@ function runAutoTurn(){
         if(a.isHeal && !b.isHeal) return -1;
         if(!a.isHeal && b.isHeal) return 1;
       }
+      // Ult優先：Ultカードは常に先頭
+      if(a.isUlt && !b.isUlt) return -1;
+      if(!a.isUlt && b.isUlt) return 1;
       // 通常はダメージ順
       return (b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0.20)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0.20)+a.dmg);
     });
@@ -5688,6 +6014,8 @@ function runAutoTurn(){
     }
     // 特殊カード：設定がOFFならスキップ
     if(c.isSpecial && !bs.autoSpecial) continue;
+    // Ultカード：常に優先選択（手札にあれば必ず使う）
+    // isUltはそのまま通過
 
     charSelectCount[c.charId] = alreadySel + 1;
     available.push(c);
@@ -5985,9 +6313,9 @@ function afterEnemyAttacks(){
   document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
   document.getElementById('combo-disp').textContent='コンボ: 0';
 
-  // 新しい手札を配る
+  // 新しい手札を配る（リバース方式：使ったカードのみ補充）
   const aliveIds = BT.partyHp.filter(m=>m.hp>0).map(m=>m.id);
-  drawHand(aliveIds);
+  replenishHand(aliveIds);
 
   // プレイヤーターンへ
   setTimeout(()=>{
@@ -6004,6 +6332,8 @@ function afterEnemyAttacks(){
     BT_PHASE='player';
     const atkBtn=document.getElementById('atk-btn');
     if(atkBtn){ atkBtn.disabled=false; atkBtn.style.opacity='1'; }
+    // 次の敵行動を予告
+    generateEnemyIntent();
     if(BT.auto && BT.active) setTimeout(runAutoTurn, 500);
   }, 400);
 }
@@ -6095,18 +6425,142 @@ function updatePartyHP(){
   document.getElementById('party-hp-row').innerHTML=BT.partyHp.map(m=>{
     const ch=CHARS.find(c=>c.id===m.id),pct=m.hp/m.maxHp*100;
     const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
-    // 鉄像バリア（グラン）
-    const ibMax = m.ironBarrierMax||0;
-    const ib = m.ironBarrier||0;
-    const ibPct = ibMax>0 ? (ib/ibMax*100) : 0;
-    const ibBar = ibMax>0 ? `
-      <div class="member-hp-bar" style="height:4px;margin-top:4px;background:rgba(255,255,255,.06);">
-        <div class="member-hp-fill" style="width:${ibPct}%;background:linear-gradient(90deg,rgba(200,200,200,.9),rgba(255,220,120,.9));"></div>
-      </div>
-      <div style="font-size:9px;color:rgba(255,230,160,.8);margin-top:2px;">🗿 鉄像バリア ${ib}/${ibMax}</div>
-    ` : '';
-    return`<div class="member-hp"><div class="member-nm">${ch.emoji} ${ch.name}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${pct}%;background:${col}"></div></div>${ibBar}<div class="member-hp-val">${m.hp}/${m.maxHp}</div></div>`;
+    const ibMax=m.ironBarrierMax||0,ib=m.ironBarrier||0,ibPct=ibMax>0?(ib/ibMax*100):0;
+    const ibBar=ibMax>0?`<div class="member-hp-bar" style="height:4px;margin-top:4px;background:rgba(255,255,255,.06);"><div class="member-hp-fill" style="width:${ibPct}%;background:linear-gradient(90deg,rgba(200,200,200,.9),rgba(255,220,120,.9));"></div></div><div style="font-size:9px;color:rgba(255,230,160,.8);margin-top:2px;">🗿 ${ib}/${ibMax}</div>`:'';
+    // Ultゲージ（小さく）
+    const def = getUltDef(m.id, ch);
+    const maxStk = def.stacks||3;
+    const stack = Math.min(BT.ultStacks&&BT.ultStacks[m.id]||0, maxStk);
+    const ready = stack>=maxStk;
+    const ultPips = Array.from({length:maxStk},(_,i)=>
+      `<div style="width:${Math.floor(14/maxStk)-1}px;height:3px;border-radius:1px;background:${i<stack?(ready?'#ffcc00':'#8040ff'):'rgba(255,255,255,.1)'};transition:background .2s;"></div>`
+    ).join('');
+    const ultBar = `<div style="display:flex;gap:1px;margin-top:3px;" title="${def.name}">${ultPips}</div>`;
+    return`<div class="member-hp"><div class="member-nm">${ch?ch.emoji:''} ${ch?ch.name:m.id}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${Math.max(0,pct)}%;background:${col}"></div></div>${ibBar}${ultBar}<div class="member-hp-val" style="color:${ready?'#ffcc00':'var(--text3)'};">${ready?'⚡Ult READY':m.hp+'/'+m.maxHp}</div></div>`;
   }).join('');
+}
+
+function updateUltGauge(){
+  // UltゲージはupdatePartyHPで各メンバーパネル内に表示
+  updatePartyHP();
+}
+
+function addUltStack(charId){
+  if(!BT.ultStacks) BT.ultStacks={};
+  const ch = CHARS.find(c=>c.id===charId);
+  const def = getUltDef(charId, ch);
+  const maxStk = def.stacks||3;
+  const prev = BT.ultStacks[charId]||0;
+  if(prev >= maxStk) return; // 既に満タン（カード追加済み）
+  BT.ultStacks[charId] = prev+1;
+  updatePartyHP();
+  // 満タンになったらUltカードを手札に追加
+  if(BT.ultStacks[charId] >= maxStk){
+    addUltCardToHand(charId, ch, def);
+  }
+}
+
+function addUltCardToHand(charId, ch, def){
+  // 既にUltカードが手札にある場合はスキップ
+  if(BT.hand.some(c=>c.isUlt&&c.charId===charId)) return;
+  const member = BT.partyHp.find(m=>m.id===charId);
+  BT.hand.push({
+    name: def.name,
+    emoji: def.emoji||'⚡',
+    dmg: def.mul||0,
+    comboType: 'none',
+    charId: charId,
+    charName: ch?ch.name:'???',
+    charAtk: member?member.atk:(ch?ch.atk:100),
+    isUlt: true,
+    ultDef: def,
+    used: false,
+    selected: false,
+    _isNew: true,
+  });
+  renderHand();
+  showSpecialAtkBanner(`⚡ ${ch?ch.name:'???'}の必殺技が発動可能！`, '#ffcc00');
+  sfx('select');
+}
+
+function activateUlt(charId){
+  // カード追加トリガー（ゲージ満タン時）は addUltStack から呼ばれる
+  // 手動発動は不要（カードとして手札に出るため）
+}
+
+function activateUlt_effect(charId, def, member){
+  if(!BT.active) return;
+  if(!def) {
+    const ch = CHARS.find(c=>c.id===charId);
+    def = getUltDef(charId, ch);
+  }
+  if(!member) member = BT.partyHp.find(m=>m.id===charId);
+  if(!member||member.hp<=0) return;
+  const ch = CHARS.find(c=>c.id===charId);
+  updatePartyHP();
+
+  const ef = def.effect;
+  const name = ch?ch.name:'???';
+
+  if(ef==='ultra_atk'){
+    const dmg = Math.round(member.atk*(def.mul||6.0));
+    const tgt = getAttackTargetIndex();
+    damageEnemy(tgt, dmg);
+    updateEnemyHP();
+    showSpecialAtkBanner(`⚡ ${def.emoji||'⚡'} ${name}「${def.name}」！ ${dmg.toLocaleString()} ダメージ！`, '#ff80ff');
+    sfx('win');
+    if(areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
+
+  } else if(ef==='aoe_atk'){
+    const dmg = Math.round(member.atk*(def.mul||5.0));
+    if(BT_ENEMIES&&BT_ENEMIES.length>0){
+      BT_ENEMIES.forEach((_,i)=>{ if(BT_ENEMIES[i].hp>0) damageEnemy(i,dmg); });
+    } else {
+      BT.enemyHp=Math.max(0,(BT.enemyHp||0)-dmg);
+    }
+    updateEnemyHP();
+    showSpecialAtkBanner(`⚡ ${def.emoji||'🔥'} ${name}「${def.name}」！全敵 ${dmg.toLocaleString()} ダメージ！`, '#ff6040');
+    sfx('win');
+    if(areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
+
+  } else if(ef==='debuff_all'){
+    const dtype = def.type||'poison';
+    const ds = def.stacks2||1;
+    if(BT_ENEMIES&&BT_ENEMIES.length>0){
+      BT_ENEMIES.forEach((_,i)=>{ if(BT_ENEMIES[i].hp>0) applyEnemyStatusMulti(i,dtype,ds); });
+    } else {
+      applyEnemyStatus(dtype,ds);
+    }
+    // ダメージも付与する場合
+    if(def.mul){
+      const dmg2 = Math.round(member.atk*def.mul);
+      damageEnemy(getAttackTargetIndex(), dmg2);
+      updateEnemyHP();
+    }
+    const STATUS_JP={freeze:'❄️凍結',para:'⚡麻痺',poison:'☠️毒',burn:'🔥炎症'};
+    renderEnemyStatuses();
+    showSpecialAtkBanner(`⚡ ${def.emoji||'☠️'} ${name}「${def.name}」！全敵に${STATUS_JP[dtype]||dtype}×${ds}付与！`, '#c040ff');
+    sfx('win');
+    if(def.mul&&areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
+
+  } else if(ef==='party_heal'){
+    const pct = def.pct||0.25;
+    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
+      m.hp=Math.min(m.maxHp, m.hp+Math.round(m.maxHp*pct));
+    });
+    updatePartyHP();
+    showSpecialAtkBanner(`✨ ${def.emoji||'💧'} ${name}「${def.name}」！味方全員HP+${Math.round(pct*100)}%回復！`, '#40e0a0');
+    sfx('win');
+
+  } else if(ef==='party_shield'){
+    const pct = def.pct||0.20;
+    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
+      m.shield=(m.shield||0)+Math.round(m.maxHp*pct);
+    });
+    updatePartyHP();
+    showSpecialAtkBanner(`🛡️ ${def.emoji||'🛡️'} ${name}「${def.name}」！味方全員HP${Math.round(pct*100)}%バリア！`, '#60a0ff');
+    sfx('win');
+  }
 }
 
 // ================================================================
@@ -14815,6 +15269,43 @@ async function distributeRankingBonus(prevBest, baseTickets){
       }
     });
   }catch(e){}
+}
+
+// ================================================================
+//  敵行動予告システム
+// ================================================================
+function generateEnemyIntent(){
+  if(!BT.active) return;
+  const enemy = BT_ENEMIES && BT_ENEMIES.length>0 ? BT_ENEMIES[0] : {atk:BT.quest&&BT.quest.enemy?BT.quest.enemy.atk:100, statusPatterns:[]};
+  const patterns = enemy.statusPatterns || (BT.quest&&BT.quest.enemy?BT.quest.enemy.statusPatterns:[]) || [];
+  const spd = enemy.spd || (BT.quest&&BT.quest.enemy?BT.quest.enemy.spd:1) || 1;
+
+  // 行動タイプをランダム決定
+  const r = Math.random();
+  let intent;
+  const hasDebuff = patterns && patterns.length>0;
+
+  if(spd>=3 && r<0.25){
+    intent = {type:'heavy', label:'💢 強攻撃', sub:'大ダメージ予告', power: Math.round((enemy.atk||100)*1.8)};
+  } else if(hasDebuff && r<(spd>=3?0.50:0.35)){
+    const pat = patterns[Math.floor(Math.random()*patterns.length)];
+    const STATUS_NAMES={freeze:'❄️凍結',para:'⚡麻痺',poison:'☠️毒',burn:'🔥炎症'};
+    intent = {type:'debuff', label:STATUS_NAMES[pat.type]+'付与', sub:'デバフ攻撃', debuffType:pat.type};
+  } else {
+    intent = {type:'attack', label:'⚔️ 通常攻撃', sub:'×'+spd+'回', power: enemy.atk||100};
+  }
+  BT.enemyIntent = intent;
+  renderEnemyIntent();
+}
+
+function renderEnemyIntent(){
+  const el = document.getElementById('enemy-intent');
+  if(!el) return;
+  const intent = BT.enemyIntent;
+  if(!intent){ el.className='enemy-intent unknown'; el.textContent='❓ 行動準備中...'; return; }
+  el.className = 'enemy-intent '+intent.type;
+  const pwrTxt = intent.power ? ' （推定'+intent.power.toLocaleString()+'ダメ）' : '';
+  el.innerHTML = `<span>${intent.label}</span><span style="font-size:9px;opacity:.75;margin-left:6px;">${intent.sub}${pwrTxt}</span>`;
 }
 </script>
 
