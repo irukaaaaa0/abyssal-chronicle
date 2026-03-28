@@ -3259,7 +3259,7 @@ const QUESTS = CHAPTERS.flatMap(ch=>ch.layers.map(l=>({
 // ================================================================
 const SAVE_KEY = 'abyssal_save_v1';
 const DEFAULT_S = {gold:0,gem:600,pityPerBanner:[0,0,0,0,0,0,0,0,0,0,0,0,0,0],playerName:'深海司令官',dailyDone:0,owned:[29,30,31],party:[-1,-1,-1],selectedSlot:-1,cleared:[],seOn:true,seVol:.8,bubbleOn:true,ownedData:{},rank:1,rankExp:0,towerFloor:1,towerBest:0,achievements:{},equippedTitle:'',friends:[],pendingRequests:[],helperChar:null,supportChar:null,pvpRank:1200,pvpWin:0,pvpLose:0,receivedRankRewards:[],lastSeenVersion:'', playerIcon:'🌊', ownedIcons:['🌊'], receivedAchievementRewards:{}, gachaTickets:0, craftPoints:{R:0,SR:0,SSR:0,UR:0}, craftMaterials:{}, bagItems:{},
-  roguePoints:0, roguePassPoints:0, roguePassClaimed:[], rogueRun:null,
+  roguePoints:0, roguePassPoints:0, roguePassClaimed:[], roguePassLap:0, rogueRun:null,
   lastLoginDate:'',dailyRewardClaimed:false,
   towerResetDate:'',towerRandomSeed:0,towerDayBest:0,
   weeklyProgress:{quest:0,pvp:0,tower:0,gacha:0},weeklyRewardClaimed:[],lastWeeklyReset:''
@@ -6711,6 +6711,7 @@ function initRogueSaveDefaults(){
   if(typeof S.roguePoints!=='number') S.roguePoints=0;
   if(typeof S.roguePassPoints!=='number') S.roguePassPoints=0;
   if(!Array.isArray(S.roguePassClaimed)) S.roguePassClaimed=[];
+  if(typeof S.roguePassLap!=='number') S.roguePassLap=0;
   if(typeof S.rogueRun==='undefined') S.rogueRun=null;
 }
 
@@ -7224,26 +7225,51 @@ function formatRogueReward(rw){
 }
 
 function renderRoguePassHtml(){
-  const pts=S.roguePassPoints||0;
-  const tiers=ROGUE_PASS_TIERS.map((t,idx)=>{
-    const done=pts>=t.req;
-    const claimed=(S.roguePassClaimed||[]).includes(idx);
-    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;margin-bottom:5px;background:rgba(0,15,35,.4);border:.5px solid ${done?'rgba(30,120,80,.4)':'rgba(30,60,90,.2)'};">
-      <div style="font-size:11px;color:${done?'#80e0b0':'rgba(160,210,240,.4)'};font-weight:700;min-width:50px;">RP ${t.req}</div>
-      <div style="flex:1;font-size:10px;color:${done?'var(--text)':'rgba(160,210,240,.4)'};">${formatRogueReward(t.reward)}</div>
-      <button onclick="claimRoguePass(${idx})" style="padding:5px 10px;border-radius:7px;border:.5px solid ${claimed?'rgba(30,60,90,.3)':done?'rgba(30,120,80,.5)':'rgba(30,60,90,.2)'};background:${claimed?'rgba(0,10,20,.2)':done?'rgba(10,70,40,.4)':'rgba(0,10,20,.2)'};color:${claimed?'rgba(160,210,240,.35)':done?'#80e0b0':'rgba(160,210,240,.25)'};font-size:10px;cursor:${done&&!claimed?'pointer':'default'};">${claimed?'受取済':done?'受け取る':'未達'}</button>
+  const pts = S.roguePassPoints||0;
+  const lap = S.roguePassLap||0;
+  const maxReq = ROGUE_PASS_TIERS[ROGUE_PASS_TIERS.length-1].req||20000;
+  const pct = Math.min(100, Math.round((pts/maxReq)*100));
+
+  // 受け取れる報酬が1つでもあるか
+  const claimable = ROGUE_PASS_TIERS.some((t,i)=>pts>=t.req && !(S.roguePassClaimed||[]).includes(i));
+  // 全報酬受取済みかつポイント足りてるか（周回可能か）
+  const allClaimed = ROGUE_PASS_TIERS.every((_,i)=>(S.roguePassClaimed||[]).includes(i));
+
+  const tiers = ROGUE_PASS_TIERS.map((t,idx)=>{
+    const done = pts>=t.req;
+    const claimed = (S.roguePassClaimed||[]).includes(idx);
+    const can = done && !claimed;
+    const rewardHtml = formatRogueReward(t.reward);
+    // アイコン・称号は2周目以降に再取得できないので表示を変える
+    const isUnique = !!(t.reward.icon || t.reward.title);
+    const lapGrey = lap>0 && isUnique && claimed;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:5px;
+      background:${can?'rgba(0,40,20,.5)':claimed?'rgba(0,15,30,.3)':'rgba(0,10,25,.3)'};
+      border:.5px solid ${can?'rgba(30,180,80,.5)':claimed?'rgba(20,80,50,.3)':'rgba(30,60,90,.2)'};">
+      <div style="font-size:10px;color:${done?'#80e0b0':'rgba(120,160,200,.35)'};font-weight:700;min-width:52px;">RP ${t.req}</div>
+      <div style="flex:1;font-size:10px;color:${done?'var(--text)':'rgba(160,210,240,.35)'};">${rewardHtml}${isUnique?'<span style="font-size:8px;color:rgba(200,180,80,.7);margin-left:4px;">★唯一</span>':''}</div>
+      <div style="font-size:12px;">${claimed?'✅':done?'🎁':'🔒'}</div>
     </div>`;
   }).join('');
-  const pct=Math.min(100,Math.round((pts/(ROGUE_PASS_TIERS[ROGUE_PASS_TIERS.length-1].req||1200))*100));
+
+  const lapBadge = lap>0 ? `<span style="font-size:9px;background:rgba(180,120,0,.3);color:#ffc060;border:.5px solid rgba(200,140,0,.4);border-radius:99px;padding:1px 8px;margin-left:6px;">${lap}周目</span>` : '';
+
   return `<div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス${lapBadge}</div>
       <div style="font-size:10px;color:rgba(160,210,240,.6);">RP ${pts}</div>
     </div>
-    <div style="height:3px;background:rgba(30,60,90,.5);border-radius:2px;margin-bottom:10px;overflow:hidden;">
+    <div style="height:4px;background:rgba(30,60,90,.5);border-radius:2px;margin-bottom:10px;overflow:hidden;">
       <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .4s;"></div>
     </div>
-    ${tiers}
+    <!-- 一括受け取りボタン -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button onclick="claimAllRoguePass()" style="flex:1;padding:9px;border-radius:10px;border:.5px solid ${claimable?'rgba(30,200,100,.5)':'rgba(30,60,90,.25)'};background:${claimable?'rgba(10,80,40,.4)':'rgba(0,10,20,.2)'};color:${claimable?'#80e0b0':'rgba(120,160,200,.3)'};font-size:11px;font-weight:700;cursor:${claimable?'pointer':'default'};font-family:inherit;">
+        📦 一括受け取り${claimable?'':'（なし）'}
+      </button>
+      ${allClaimed?`<button onclick="resetRoguePass()" style="padding:9px 12px;border-radius:10px;border:.5px solid rgba(200,140,0,.5);background:rgba(80,50,0,.3);color:#ffc060;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 周回</button>`:''}
+    </div>
+    <div style="max-height:320px;overflow-y:auto;">${tiers}</div>
   </div>`;
 }
 
@@ -7288,6 +7314,73 @@ function claimRoguePass(idx){
   refreshHome();
 }
 
+
+
+// 一括受け取り
+function claimAllRoguePass(){
+  initRogueSaveDefaults();
+  const pts = S.roguePassPoints||0;
+  let totalGem=0, totalTicket=0, newIcons=[], newTitles=[], craftGained=[];
+  let claimed = false;
+  ROGUE_PASS_TIERS.forEach((t,idx)=>{
+    if(pts < t.req) return;
+    if((S.roguePassClaimed||[]).includes(idx)) return;
+    const rw = t.reward;
+    if(rw.gem)    { S.gem=(S.gem||0)+rw.gem; totalGem+=rw.gem; }
+    if(rw.ticket) { S.gachaTickets=(S.gachaTickets||0)+rw.ticket; totalTicket+=rw.ticket; }
+    if(rw.craft)  {
+      if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+      S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
+      craftGained.push(rw.craft.rar+'×'+rw.craft.val);
+    }
+    if(rw.icon && !S.ownedIcons.includes(rw.icon)){
+      S.ownedIcons.push(rw.icon); newIcons.push(rw.icon);
+    }
+    if(rw.title){
+      if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+      if(!S.ownedTitles.includes(rw.title)){ S.ownedTitles.push(rw.title); newTitles.push(rw.title); }
+    }
+    S.roguePassClaimed.push(idx);
+    claimed = true;
+  });
+  if(!claimed){ showToast('受け取れる報酬がありません'); return; }
+  saveGameImmediate();
+  if(playerDocRef){
+    playerDocRef.update({
+      ownedIcons:S.ownedIcons, ownedTitles:S.ownedTitles||[],
+      gachaTickets:S.gachaTickets, gem:S.gem, craftPoints:S.craftPoints,
+      roguePassClaimed:S.roguePassClaimed, lastSaved:new Date().toISOString()
+    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
+  }
+  const parts=[];
+  if(totalGem>0)     parts.push('💎'+totalGem);
+  if(totalTicket>0)  parts.push('🎫×'+totalTicket);
+  if(craftGained.length) parts.push(craftGained.join('/'));
+  if(newIcons.length)    parts.push('アイコン'+newIcons.join(''));
+  if(newTitles.length)   parts.push('称号「'+newTitles.join('・')+'」');
+  showModal('📦 一括受け取り完了！', parts.join('\n'), [{label:'OK！',action:()=>{refreshHome();},primary:true}]);
+  renderRogue();
+}
+
+// パスをリセット（周回）
+function resetRoguePass(){
+  showModal('🔄 パス周回','全報酬受取後、パスをリセットして2周目を開始します。\n\n★唯一アイコン・称号は再取得できません。\nジェム・チケット・素材報酬のみ再取得可能です。',
+    [
+      {label:'周回する', primary:true, action:()=>{
+        S.roguePassClaimed=[];
+        S.roguePassLap=(S.roguePassLap||0)+1;
+        // 周回時はアイコン・称号をスキップ（受取済み扱い）
+        ROGUE_PASS_TIERS.forEach((t,idx)=>{
+          if(t.reward.icon || t.reward.title) S.roguePassClaimed.push(idx);
+        });
+        saveGameImmediate();
+        showToast('🔄 '+(S.roguePassLap)+'周目開始！');
+        renderRogue();
+      }},
+      {label:'キャンセル', action:()=>{}},
+    ]
+  );
+}
 
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
@@ -7678,6 +7771,73 @@ function getTowerRewards(floor){
 }
 
 
+
+
+// 一括受け取り
+function claimAllRoguePass(){
+  initRogueSaveDefaults();
+  const pts = S.roguePassPoints||0;
+  let totalGem=0, totalTicket=0, newIcons=[], newTitles=[], craftGained=[];
+  let claimed = false;
+  ROGUE_PASS_TIERS.forEach((t,idx)=>{
+    if(pts < t.req) return;
+    if((S.roguePassClaimed||[]).includes(idx)) return;
+    const rw = t.reward;
+    if(rw.gem)    { S.gem=(S.gem||0)+rw.gem; totalGem+=rw.gem; }
+    if(rw.ticket) { S.gachaTickets=(S.gachaTickets||0)+rw.ticket; totalTicket+=rw.ticket; }
+    if(rw.craft)  {
+      if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
+      S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
+      craftGained.push(rw.craft.rar+'×'+rw.craft.val);
+    }
+    if(rw.icon && !S.ownedIcons.includes(rw.icon)){
+      S.ownedIcons.push(rw.icon); newIcons.push(rw.icon);
+    }
+    if(rw.title){
+      if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+      if(!S.ownedTitles.includes(rw.title)){ S.ownedTitles.push(rw.title); newTitles.push(rw.title); }
+    }
+    S.roguePassClaimed.push(idx);
+    claimed = true;
+  });
+  if(!claimed){ showToast('受け取れる報酬がありません'); return; }
+  saveGameImmediate();
+  if(playerDocRef){
+    playerDocRef.update({
+      ownedIcons:S.ownedIcons, ownedTitles:S.ownedTitles||[],
+      gachaTickets:S.gachaTickets, gem:S.gem, craftPoints:S.craftPoints,
+      roguePassClaimed:S.roguePassClaimed, lastSaved:new Date().toISOString()
+    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
+  }
+  const parts=[];
+  if(totalGem>0)     parts.push('💎'+totalGem);
+  if(totalTicket>0)  parts.push('🎫×'+totalTicket);
+  if(craftGained.length) parts.push(craftGained.join('/'));
+  if(newIcons.length)    parts.push('アイコン'+newIcons.join(''));
+  if(newTitles.length)   parts.push('称号「'+newTitles.join('・')+'」');
+  showModal('📦 一括受け取り完了！', parts.join('\n'), [{label:'OK！',action:()=>{refreshHome();},primary:true}]);
+  renderRogue();
+}
+
+// パスをリセット（周回）
+function resetRoguePass(){
+  showModal('🔄 パス周回','全報酬受取後、パスをリセットして2周目を開始します。\n\n★唯一アイコン・称号は再取得できません。\nジェム・チケット・素材報酬のみ再取得可能です。',
+    [
+      {label:'周回する', primary:true, action:()=>{
+        S.roguePassClaimed=[];
+        S.roguePassLap=(S.roguePassLap||0)+1;
+        // 周回時はアイコン・称号をスキップ（受取済み扱い）
+        ROGUE_PASS_TIERS.forEach((t,idx)=>{
+          if(t.reward.icon || t.reward.title) S.roguePassClaimed.push(idx);
+        });
+        saveGameImmediate();
+        showToast('🔄 '+(S.roguePassLap)+'周目開始！');
+        renderRogue();
+      }},
+      {label:'キャンセル', action:()=>{}},
+    ]
+  );
+}
 
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
