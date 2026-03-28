@@ -208,17 +208,17 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 @keyframes dmgAnimBig{0%{opacity:1;transform:translateY(0) scale(1.2);}15%{transform:translateY(-15px) scale(1.4);}100%{opacity:0;transform:translateY(-100px) scale(1);}}
 @keyframes dmgAnimCrit{0%{opacity:1;transform:translateY(0) scale(1.4) rotate(-5deg);}15%{transform:translateY(-20px) scale(1.6) rotate(3deg);}100%{opacity:0;transform:translateY(-110px) scale(1.1) rotate(0deg);}}
 @keyframes dmgAnimCard{0%{opacity:0;transform:translateY(10px) scale(.7);}10%{opacity:1;transform:translateY(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translateY(-50px) scale(.9);}}
-.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.85);flex-shrink:0;position:relative;z-index:10;}
+.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.40);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(10px);}
 .member-hp{flex:1;background:rgba(0,15,35,.6);border:.5px solid var(--border2);border-radius:7px;padding:5px 7px;}
 .member-nm{font-size:8px;color:var(--text2);margin-bottom:3px;}
 .member-hp-bar{height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;}
 .member-hp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#20d0a0);border-radius:1px;transition:width .4s;}
 .member-hp-val{font-size:8px;color:var(--text3);margin-top:2px;}
-.card-hand{padding:8px 12px 10px;background:rgba(2,6,14,.9);border-top:.5px solid var(--border2);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(4px);}
+.card-hand{padding:8px 12px 10px;background:rgba(2,6,14,.45);border-top:.5px solid rgba(255,255,255,.06);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(12px);}
 .hand-lbl{font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;}
 .cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;}
 .cards-row::-webkit-scrollbar{height:2px;}
-.battle-card{flex-shrink:0;width:60px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:9px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;}
+.battle-card{flex-shrink:0;width:60px;background:rgba(0,15,40,.45);border:.5px solid rgba(30,80,160,.4);border-radius:9px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;backdrop-filter:blur(6px);}
 .battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-4px);}
 .battle-card.selected{border-color:var(--teal);background:rgba(10,80,70,.3);transform:translateY(-6px);}
 .battle-card.used{opacity:.25;cursor:default;pointer-events:none;}
@@ -403,12 +403,12 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .cdp-close{width:100%;padding:11px;border-radius:10px;border:.5px solid var(--border3);background:rgba(255,255,255,.03);font-size:13px;cursor:pointer;font-family:inherit;color:var(--text2);margin-top:4px;}
 
 /* ===== BATTLE IMPROVEMENTS ===== */
-.battle-card{flex-shrink:0;width:68px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;user-select:none;}
+.battle-card{flex-shrink:0;width:68px;background:rgba(0,15,40,.45);border:.5px solid rgba(30,80,160,.4);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;user-select:none;backdrop-filter:blur(6px);}
 .battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-5px);}
 .battle-card.selected{border-color:var(--teal);background:rgba(10,80,70,.35);transform:translateY(-8px);box-shadow:0 0 12px rgba(16,192,160,.3);}
 .battle-card.used{opacity:.2;cursor:default;pointer-events:none;transform:none;}
 .battle-card.dragging{opacity:.7;transform:translateY(-10px) scale(1.05);}
-.card-combo-badge{font-size:8px;padding:1px 5px;border-radius:4px;font-weight:700;margin-top:1px;}
+.card-combo-badge{font-size:7px;padding:1px 4px;border-radius:3px;font-weight:700;margin-top:auto;}
 .combo-fire{background:rgba(200,80,20,.3);color:#e0a060;border:.5px solid rgba(200,80,20,.5);}
 .combo-ice{background:rgba(20,100,200,.3);color:#60c0ff;border:.5px solid rgba(20,100,200,.5);}
 .combo-thunder{background:rgba(180,160,0,.3);color:#e0d040;border:.5px solid rgba(180,160,0,.5);}
@@ -421,7 +421,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .auto-btn:hover{background:rgba(120,60,10,.4);}
 
 /* コンボゲージ */
-.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
 .combo-gauge{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .combo-gauge-fill{height:100%;background:linear-gradient(90deg,#10c0a0,#4a90ff,#e0a020);border-radius:2px;transition:width .3s;}
 .combo-lv-txt{font-size:10px;font-weight:500;min-width:50px;text-align:right;}
@@ -1207,7 +1207,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .battle-card.star4{border-color:rgba(80,200,255,.95)!important;background:linear-gradient(180deg,rgba(0,50,80,.7),rgba(0,20,50,.6))!important;box-shadow:0 0 24px rgba(40,180,255,.7)!important;}
 .battle-card.star5{border-color:rgba(255,220,80,1)!important;background:linear-gradient(180deg,rgba(60,40,0,.8),rgba(30,15,0,.7))!important;animation:star5Pulse 1.2s ease-in-out infinite alternate;}
 @keyframes star5Pulse{0%{box-shadow:0 0 20px rgba(255,200,0,.7);}100%{box-shadow:0 0 35px rgba(255,220,80,1);}}
-.star-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;padding:1px 8px;border-radius:99px;white-space:nowrap;z-index:5;}
+.star-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 7px;border-radius:99px;white-space:nowrap;z-index:5;}
 .star-badge.s2{background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7);}
 .star-badge.s3{background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8);}
 .star-badge.s4{background:linear-gradient(90deg,#0060c0,#40c0ff);color:#fff;box-shadow:0 0 12px rgba(40,180,255,.8);}
@@ -7397,42 +7397,67 @@ function startRogueRun(hard){
 function showRogueRelicDetail(){
   const r=S.rogueRun; if(!r) return;
   const all=[...(r.gifts||[]),...(r.items||[])];
-  if(!all.length){
-    showModal('📋 所持遺物','まだ遺物を入手していません。',[{label:'閉じる',action:()=>{}}]);
-    return;
+
+  // 専用オーバーレイを使って3列グリッド＋スクロール表示
+  let ov=document.getElementById('relic-detail-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='relic-detail-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,5,15,.88);backdrop-filter:blur(10px);display:flex;flex-direction:column;';
+    ov.onclick=function(ev){if(ev.target===ov)closeRelicDetail();};
+    document.body.appendChild(ov);
   }
-  let html='';
-  all.forEach(function(g){
+
+  // カード生成
+  function makeCard(g){
     const isBuff=g.type!=='curse';
     const e=g.effect||{};
     const ep=[];
-    if(e.atkMul&&e.atkMul>1)   ep.push('⚔️ ATK +'+(((e.atkMul-1)*100).toFixed(0))+'%');
-    if(e.atkMul&&e.atkMul<1)   ep.push('⚔️ ATK -'+(((1-e.atkMul)*100).toFixed(0))+'%');
-    if(e.hpMul&&e.hpMul>1)     ep.push('💚 MaxHP +'+(((e.hpMul-1)*100).toFixed(0))+'%');
-    if(e.hpMul&&e.hpMul<1)     ep.push('💔 MaxHP -'+(((1-e.hpMul)*100).toFixed(0))+'%');
-    if(e.dmgTakenMul&&e.dmgTakenMul<1) ep.push('🛡️ 被ダメ -'+(((1-e.dmgTakenMul)*100).toFixed(0))+'%');
-    if(e.dmgTakenMul&&e.dmgTakenMul>1) ep.push('💥 被ダメ +'+(((e.dmgTakenMul-1)*100).toFixed(0))+'%');
-    if(e.healPct)        ep.push('🌀 毎T回復 +'+(e.healPct*100).toFixed(0)+'%');
-    if(e.dotPct)         ep.push('☠️ 毎T減少 -'+(e.dotPct*100).toFixed(0)+'%');
-    if(e.extraPick)      ep.push('🃏 選択枚数 +'+e.extraPick);
-    if(e.startShieldPct) ep.push('🛡️ 開幕バリア +'+(e.startShieldPct*100).toFixed(0)+'%');
-    if(e.coinMul)        ep.push('🪙 コイン獲得 ×'+e.coinMul);
-    if(e.oneRevive)      ep.push('💫 戦闘不能1回無効');
-    html+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;margin-bottom:6px;'
-      +'background:'+(isBuff?'rgba(0,25,55,.5)':'rgba(55,0,0,.5)')+';'
-      +'border:.5px solid '+(isBuff?'rgba(30,120,200,.3)':'rgba(200,30,30,.3)')+';'
-      +'border-radius:10px;">'
-      +'<span style="font-size:22px;flex-shrink:0;">'+(g.emoji||'📦')+'</span>'
-      +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:11px;font-weight:800;color:'+(isBuff?'#80c8ff':'#ff8080')+';">'+(g.name||'')+'</div>'
-        +'<div style="font-size:9px;color:rgba(160,210,240,.6);margin-top:2px;">'+(g.desc||'')+'</div>'
-        +(ep.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
-          +ep.map(t=>'<span style="font-size:9px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 6px;color:rgba(200,230,255,.8);">'+t+'</span>').join('')
-          +'</div>':'')
+    if(e.atkMul&&e.atkMul>1)   ep.push('⚔️+'+(((e.atkMul-1)*100).toFixed(0))+'%');
+    if(e.atkMul&&e.atkMul<1)   ep.push('⚔️-'+(((1-e.atkMul)*100).toFixed(0))+'%');
+    if(e.hpMul&&e.hpMul>1)     ep.push('💚+'+(((e.hpMul-1)*100).toFixed(0))+'%');
+    if(e.hpMul&&e.hpMul<1)     ep.push('💔-'+(((1-e.hpMul)*100).toFixed(0))+'%');
+    if(e.dmgTakenMul&&e.dmgTakenMul<1) ep.push('🛡️-'+(((1-e.dmgTakenMul)*100).toFixed(0))+'%');
+    if(e.dmgTakenMul&&e.dmgTakenMul>1) ep.push('💥+'+(((e.dmgTakenMul-1)*100).toFixed(0))+'%');
+    if(e.healPct)        ep.push('🌀+'+(e.healPct*100).toFixed(0)+'%');
+    if(e.dotPct)         ep.push('☠️-'+(e.dotPct*100).toFixed(0)+'%');
+    if(e.extraPick)      ep.push('🃏+'+e.extraPick);
+    if(e.startShieldPct) ep.push('🛡️開幕+'+(e.startShieldPct*100).toFixed(0)+'%');
+    if(e.coinMul)        ep.push('🪙×'+e.coinMul);
+    if(e.oneRevive)      ep.push('💫1回無効');
+    const col=isBuff?'rgba(0,25,60,.7)':'rgba(55,0,0,.7)';
+    const brd=isBuff?'rgba(30,120,200,.4)':'rgba(200,30,30,.4)';
+    const nc=isBuff?'#80c8ff':'#ff8080';
+    return '<div style="background:'+col+';border:.5px solid '+brd+';border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;">'
+      +'<div style="font-size:28px;">'+(g.emoji||'📦')+'</div>'
+      +'<div style="font-size:10px;font-weight:800;color:'+nc+';line-height:1.3;">'+(g.name||'')+'</div>'
+      +'<div style="font-size:8px;color:rgba(160,210,240,.55);line-height:1.4;">'+(g.desc||'')+'</div>'
+      +(ep.length?'<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:2px;">'
+        +ep.map(t=>'<span style="font-size:8px;background:rgba(255,255,255,.08);border-radius:3px;padding:1px 5px;color:rgba(200,230,255,.85);">'+t+'</span>').join('')
+        +'</div>':'')
+      +'</div>';
+  }
+
+  const cards=all.map(makeCard).join('');
+  const empty='<div style="text-align:center;padding:40px;color:rgba(160,210,240,.4);font-size:12px;">まだ遺物を入手していません。</div>';
+
+  ov.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;flex-shrink:0;">'
+      +'<div style="font-size:14px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;">📋 所持遺物 <span style="font-size:11px;color:rgba(160,210,240,.5);">('+all.length+'個)</span></div>'
+      +'<button onclick="closeRelicDetail()" style="font-size:18px;background:none;border:none;color:rgba(160,210,240,.6);cursor:pointer;padding:4px 8px;">✕</button>'
+    +'</div>'
+    +'<div style="flex:1;overflow-y:auto;padding:0 12px 20px;">'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+        +(all.length?cards:empty)
       +'</div>'
     +'</div>';
-  });
-  showModal('📋 所持遺物 （'+all.length+'個）', html, [{label:'閉じる',action:()=>{},primary:true}]);
+
+  ov.style.display='flex';
+}
+
+function closeRelicDetail(){
+  const ov=document.getElementById('relic-detail-overlay');
+  if(ov) ov.style.display='none';
 }
 
 function abandonRogueRun(){
