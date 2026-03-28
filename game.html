@@ -6966,6 +6966,86 @@ const ROGUE_EVENTS = [
        outcome:(r)=>{ return {text:'旅人は黙って去っていった。'}; }},
     ]
   },
+  ,{
+    id:'e_poison_spring', name:'毒の泉', emoji:'☠️',
+    desc:'怪しい緑色の泉が湧いている。飲めば力が得られるかもしれないが…',
+    choices:[
+      {label:'飲む（HP-20% ATK+18%）', subdesc:'毒を浴びて力を得る',
+       outcome:(r)=>{ sacrificeRunHP(r,0.20); r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_pwr',name:'毒の活力',emoji:'☠️',type:'buff',effect:{atkMul:1.18},desc:'ATK+18%'}); return {text:'ATK+18%！HP-20%。'}; }},
+      {label:'武器に塗る（被ダメ-10%）', subdesc:'守りを固める',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_def',name:'毒の鱗甲',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.90},desc:'被ダメ-10%'}); return {text:'被ダメ-10%。'}; }},
+      {label:'無視して通る', subdesc:'',
+       outcome:(r)=>({text:'泉には近づかなかった。'})},
+    ]
+  },
+  {
+    id:'e_frozen_soul', name:'凍てつく魂', emoji:'❄️',
+    desc:'氷に閉ざされた魂が漂っている。触れると何かが起きそうだ。',
+    choices:[
+      {label:'解放する（コイン+40 HP-15%）', subdesc:'代償を払って解放',
+       outcome:(r)=>{ sacrificeRunHP(r,0.15); r.coins=(r.coins||0)+40; return {text:'コイン+40。HP-15%。'}; }},
+      {label:'力を吸収（ATK+12% 被ダメ+8%）', subdesc:'危険な力を得る',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_frz_pwr',name:'凍魂の力',emoji:'❄️',type:'rare',effect:{atkMul:1.12,dmgTakenMul:1.08},desc:'ATK+12% 被ダメ+8%'}); return {text:'ATK+12%。被ダメ+8%。'}; }},
+      {label:'通り過ぎる', subdesc:'',
+       outcome:(r)=>({text:'魂には触れなかった。'})},
+    ]
+  },
+  {
+    id:'e_healer_spring', name:'癒しの泉', emoji:'💧',
+    desc:'温かな光を放つ泉が現れた。傷が癒えそうな気がする。',
+    choices:[
+      {label:'全員で浴びる（HP+35%回復）', subdesc:'回復に専念',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.35))})); return {text:'全員HP+35%回復！'}; }},
+      {label:'回復しつつ遺物1択（HP+15%）', subdesc:'バランス型',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.15))})); pendingGiftChoice(r,1,'buff'); return {text:'HP+15%＋遺物1択！',giftPick:true}; }},
+    ]
+  },
+  {
+    id:'e_cursed_idol', name:'呪われた偶像', emoji:'🗿',
+    desc:'強烈な禍々しさを放つ偶像が鎮座している。',
+    choices:[
+      {label:'呪いを受け入れる（呪い確定 遺物2択）', subdesc:'高リスク高リターン',
+       outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,2,'any'); return {text:'呪いを受け強力な遺物2択！',giftPick:true}; }},
+      {label:'破壊（HP-25% 被ダメ-15%）', subdesc:'身を守る盾を得る',
+       outcome:(r)=>{ sacrificeRunHP(r,0.25); r.gifts=r.gifts||[]; r.gifts.push({id:'_idol_def',name:'呪いの破片',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.85},desc:'被ダメ-15%'}); return {text:'被ダメ-15%。HP-25%。'}; }},
+      {label:'礼拝して通過（コイン+25）', subdesc:'無難な選択',
+       outcome:(r)=>{ r.coins=(r.coins||0)+25; return {text:'コイン+25。'}; }},
+    ]
+  },
+  {
+    id:'e_deep_trial', name:'深淵の試練', emoji:'🌑',
+    desc:'「三つの試練から一つを選べ」声が響いた。',
+    choices:[
+      {label:'力の試練（HP-30% ATK+30%）', subdesc:'攻撃特化',
+       outcome:(r)=>{ sacrificeRunHP(r,0.30); r.gifts=r.gifts||[]; r.gifts.push({id:'_trial_atk',name:'力の試練',emoji:'💪',type:'rare',effect:{atkMul:1.30},desc:'ATK+30%'}); return {text:'ATK+30%！HP-30%。'}; }},
+      {label:'守りの試練（コイン-40 MaxHP+20%）', subdesc:'耐久特化',
+       outcome:(r)=>{ if((r.coins||0)>=40){ r.coins-=40; r.gifts=r.gifts||[]; r.gifts.push({id:'_trial_hp',name:'守りの試練',emoji:'🛡️',type:'rare',effect:{hpMul:1.20},desc:'MaxHP+20%'}); return {text:'MaxHP+20%！コイン-40。'}; } return {text:'コイン不足（40必要）。'}; }},
+      {label:'知恵の試練（呪い確定 希少遺物1択）', subdesc:'ギャンブル',
+       outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,1,'rare'); return {text:'希少遺物獲得！呪いも…',giftPick:true}; }},
+    ]
+  },
+  {
+    id:'e_lab', name:'漂流する研究所', emoji:'🔬',
+    desc:'廃墟となった海底研究所が漂っていた。実験装置がまだ動いている。',
+    choices:[
+      {label:'強化実験（70%ATK+20% 30%HP-20%）', subdesc:'ギャンブル',
+       outcome:(r)=>{ if(Math.random()<0.7){ r.gifts=r.gifts||[]; r.gifts.push({id:'_lab_atk',name:'強化実験体',emoji:'🧬',type:'buff',effect:{atkMul:1.20},desc:'ATK+20%'}); return {text:'実験成功！ATK+20%。'}; } sacrificeRunHP(r,0.20); return {text:'実験失敗…HP-20%。'}; }},
+      {label:'回復装置（HP+40%）', subdesc:'安全に回復',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.40))})); return {text:'HP+40%回復！'}; }},
+      {label:'データ売却（コイン+50）', subdesc:'換金',
+       outcome:(r)=>{ r.coins=(r.coins||0)+50; return {text:'コイン+50。'}; }},
+    ]
+  },
+  {
+    id:'e_ancient_weapon', name:'古代の兵器', emoji:'⚔️',
+    desc:'海底に眠る古代の兵器を発見した。まだ使えそうだ。',
+    choices:[
+      {label:'起動（コイン80消費 ATK+25%）', subdesc:'高価だが強力',
+       outcome:(r)=>{ if((r.coins||0)>=80){ r.coins-=80; r.gifts=r.gifts||[]; r.gifts.push({id:'_anc_atk',name:'古代の兵器',emoji:'⚔️',type:'rare',effect:{atkMul:1.25},desc:'ATK+25%'}); return {text:'ATK+25%！コイン-80。'}; } return {text:'コイン不足（80必要）。'}; }},
+      {label:'売却（コイン+60）', subdesc:'換金する',
+       outcome:(r)=>{ r.coins=(r.coins||0)+60; return {text:'コイン+60。'}; }},
+    ]
+  },
 ];
 
 // フロアマップ定義（各行に選択肢ノードを並べる）
@@ -7079,7 +7159,7 @@ function renderRogueRunCard(){
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="font-size:12px;color:#ffd080;font-weight:700;">🪙 ${coins}</div>
-          <button onclick="abandonRogueRun()" style="padding:6px 10px;border-radius:8px;border:.5px solid rgba(200,80,80,.35);background:rgba(60,10,10,.4);color:#ff9090;font-size:10px;cursor:pointer;">撤退</button>
+          <button onclick="showRogueRelicDetail()" style="padding:6px 10px;border-radius:8px;border:.5px solid rgba(30,120,200,.35);background:rgba(0,20,50,.4);color:#80c8ff;font-size:10px;cursor:pointer;">📋 遺物</button><button onclick="abandonRogueRun()" style="padding:6px 10px;border-radius:8px;border:.5px solid rgba(200,80,80,.35);background:rgba(60,10,10,.4);color:#ff9090;font-size:10px;cursor:pointer;">撤退</button>
         </div>
       </div>
       <div style="font-size:9px;color:rgba(160,210,240,.5);margin-bottom:6px;letter-spacing:.08em;">深淵の遺物</div>
@@ -7310,6 +7390,49 @@ function startRogueRun(hard){
   };
   saveGame(); renderRogue();
   showToast(hard?'⚠ HARD 開始！':'🪞 ローグ開始！');
+}
+
+
+// ローグ所持遺物の詳細モーダル
+function showRogueRelicDetail(){
+  const r=S.rogueRun; if(!r) return;
+  const all=[...(r.gifts||[]),...(r.items||[])];
+  if(!all.length){
+    showModal('📋 所持遺物','まだ遺物を入手していません。',[{label:'閉じる',action:()=>{}}]);
+    return;
+  }
+  let html='';
+  all.forEach(function(g){
+    const isBuff=g.type!=='curse';
+    const e=g.effect||{};
+    const ep=[];
+    if(e.atkMul&&e.atkMul>1)   ep.push('⚔️ ATK +'+(((e.atkMul-1)*100).toFixed(0))+'%');
+    if(e.atkMul&&e.atkMul<1)   ep.push('⚔️ ATK -'+(((1-e.atkMul)*100).toFixed(0))+'%');
+    if(e.hpMul&&e.hpMul>1)     ep.push('💚 MaxHP +'+(((e.hpMul-1)*100).toFixed(0))+'%');
+    if(e.hpMul&&e.hpMul<1)     ep.push('💔 MaxHP -'+(((1-e.hpMul)*100).toFixed(0))+'%');
+    if(e.dmgTakenMul&&e.dmgTakenMul<1) ep.push('🛡️ 被ダメ -'+(((1-e.dmgTakenMul)*100).toFixed(0))+'%');
+    if(e.dmgTakenMul&&e.dmgTakenMul>1) ep.push('💥 被ダメ +'+(((e.dmgTakenMul-1)*100).toFixed(0))+'%');
+    if(e.healPct)        ep.push('🌀 毎T回復 +'+(e.healPct*100).toFixed(0)+'%');
+    if(e.dotPct)         ep.push('☠️ 毎T減少 -'+(e.dotPct*100).toFixed(0)+'%');
+    if(e.extraPick)      ep.push('🃏 選択枚数 +'+e.extraPick);
+    if(e.startShieldPct) ep.push('🛡️ 開幕バリア +'+(e.startShieldPct*100).toFixed(0)+'%');
+    if(e.coinMul)        ep.push('🪙 コイン獲得 ×'+e.coinMul);
+    if(e.oneRevive)      ep.push('💫 戦闘不能1回無効');
+    html+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;margin-bottom:6px;'
+      +'background:'+(isBuff?'rgba(0,25,55,.5)':'rgba(55,0,0,.5)')+';'
+      +'border:.5px solid '+(isBuff?'rgba(30,120,200,.3)':'rgba(200,30,30,.3)')+';'
+      +'border-radius:10px;">'
+      +'<span style="font-size:22px;flex-shrink:0;">'+(g.emoji||'📦')+'</span>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:11px;font-weight:800;color:'+(isBuff?'#80c8ff':'#ff8080')+';">'+(g.name||'')+'</div>'
+        +'<div style="font-size:9px;color:rgba(160,210,240,.6);margin-top:2px;">'+(g.desc||'')+'</div>'
+        +(ep.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'
+          +ep.map(t=>'<span style="font-size:9px;background:rgba(255,255,255,.06);border-radius:4px;padding:2px 6px;color:rgba(200,230,255,.8);">'+t+'</span>').join('')
+          +'</div>':'')
+      +'</div>'
+    +'</div>';
+  });
+  showModal('📋 所持遺物 （'+all.length+'個）', html, [{label:'閉じる',action:()=>{},primary:true}]);
 }
 
 function abandonRogueRun(){
