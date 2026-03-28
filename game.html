@@ -3244,6 +3244,47 @@ const CHAPTERS=[
        ]},
     ]
   },
+  ,{
+    id:99, name:'🔧 DEBUGクエスト', emoji:'🔧',
+    sub:'【ADMIN ONLY】バグ検証用',
+    bgColor:['#001000','#002000'],
+    unlocked:true, adminOnly:true,
+    layers:[
+      {id:9901, name:'凍結テスト',   emoji:'❄️', boss:false,
+       enemy:{name:'[DEBUG]凍結Bot',emoji:'🤖',hp:9999999,atk:1,spd:3,
+         statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
+       gold:0,gem:0,story:[]},
+      {id:9902, name:'麻痺テスト',   emoji:'⚡', boss:false,
+       enemy:{name:'[DEBUG]麻痺Bot',emoji:'🤖',hp:9999999,atk:1,spd:3,
+         statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
+       gold:0,gem:0,story:[]},
+      {id:9903, name:'毒テスト',     emoji:'☠️', boss:false,
+       enemy:{name:'[DEBUG]毒Bot',  emoji:'🤖',hp:9999999,atk:1,spd:3,
+         statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
+       gold:0,gem:0,story:[]},
+      {id:9904, name:'炎症テスト',   emoji:'🔥', boss:false,
+       enemy:{name:'[DEBUG]炎Bot',  emoji:'🤖',hp:9999999,atk:1,spd:3,
+         statusPatterns:[{type:'burn',prob:1.0,stacks:2}]},
+       gold:0,gem:0,story:[]},
+      {id:9905, name:'高火力テスト', emoji:'💥', boss:false,
+       enemy:{name:'[DEBUG]高火力Bot',emoji:'🤖',hp:100,atk:99999,spd:5},
+       gold:0,gem:0,story:[]},
+      {id:9906, name:'複数敵テスト', emoji:'👾', boss:false,
+       enemies:[
+         {name:'[DEBUG]敵A',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'attacker',
+           statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
+         {name:'[DEBUG]敵B',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'debuffer',
+           statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
+         {name:'[DEBUG]敵C',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'tank',
+           statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
+       ],
+       enemy:{name:'[DEBUG]複数敵',emoji:'👾',hp:29999997,atk:1,spd:3},
+       gold:0,gem:0,story:[]},
+      {id:9907, name:'スペシャルテスト',emoji:'✨', boss:false,
+       enemy:{name:'[DEBUG]SpecialBot',emoji:'🤖',hp:9999999,atk:1,spd:1},
+       gold:0,gem:0,story:[]},
+    ]
+  }
 ];
 
 // QUESTS: CHAPTERSを平坦化（後方互換）
@@ -3538,8 +3579,11 @@ let expandedChapter = -1;
 function renderMap(){
   const container = document.getElementById('quest-map');
   let html = '';
+  const _isAdmin = auth && auth.currentUser && auth.currentUser.uid === 'OqP5BrVu0LYBeN49bcsye5IbYnk1';
 
   CHAPTERS.forEach(ch=>{
+    // 管理者専用チャプターは管理者のみ表示
+    if(ch.adminOnly && !_isAdmin) return;
     // 章のクリア状況
     const layerIds = ch.layers.map(l=>l.id);
     const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
@@ -3552,6 +3596,7 @@ function renderMap(){
 
     // 章テーマの背景スタイル
     const CH_MAP_THEMES = {
+      99:{bg:'rgba(0,20,0,.7)', border:'rgba(0,200,80,.5)',    glow:'rgba(0,200,80,.2)'},
       1:{bg:'rgba(0,20,50,.6)',  border:'rgba(20,100,180,.4)',  glow:'rgba(20,100,200,.15)'},
       2:{bg:'rgba(0,25,10,.6)',  border:'rgba(20,120,60,.4)',   glow:'rgba(20,140,60,.12)'},
       3:{bg:'rgba(10,0,30,.6)',  border:'rgba(100,20,180,.4)',  glow:'rgba(120,20,200,.15)'},
@@ -3572,7 +3617,7 @@ function renderMap(){
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
-          <div class="chapter-num">${ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
+          <div class="chapter-num">${ch.adminOnly ? '🔧 ADMIN DEBUG' : ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
           <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
           <div class="chapter-sub">${ch.sub}</div>
           <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
@@ -3587,7 +3632,7 @@ function renderMap(){
       const cleared = S.cleared.includes(q.id);
       // 層のロック: 試験的クエストは全層常時解放。通常は前の層クリアが必要
       const prevId = li > 0 ? ch.layers[li-1].id : null;
-      const locked = chLocked || (!ch.isTrial && prevId !== null && !S.cleared.includes(prevId));
+      const locked = chLocked || (!(ch.isTrial||ch.adminOnly) && prevId !== null && !S.cleared.includes(prevId));
       const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
       const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
       html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
