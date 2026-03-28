@@ -8735,7 +8735,12 @@ function equipTitle(title){
 function winBattle(){
   bgmEndBattle();
   BT.active=false; sfx('win');
-  S.gold+=BT.quest.gold; S.gem+=BT.quest.gem;
+  // 初回クリア時のみ報酬付与
+  const _isFirstClear = !S.cleared.includes(BT.quest.id);
+  if(_isFirstClear && !BT.quest.isGrind && !BT.quest.isTower && !BT.quest.isRogue){
+    S.gold += BT.quest.gold;
+    S.gem  += BT.quest.gem;
+  }
   S.dailyDone=Math.min(5,S.dailyDone+1);
   // ミッション進捗
   if(!BT.quest.isGrind){
@@ -8835,10 +8840,12 @@ function winBattle(){
   document.getElementById('end-ttl').textContent='VICTORY';
   document.getElementById('end-ttl').className='end-ttl end-win';
   var rwParts = [];
-  if(BT.quest.gold>0) rwParts.push('💰 +'+BT.quest.gold.toLocaleString());
-  if(BT.quest.gem>0)  rwParts.push('💎 +'+BT.quest.gem);
-  if(BT.quest.tickets>0) rwParts.push('🎫 ×'+BT.quest.tickets);
-  document.getElementById('end-rw-val').textContent = rwParts.join('  ')||'クリア！';
+  if(_isFirstClear){
+    if(BT.quest.gold>0) rwParts.push('💰 +'+BT.quest.gold.toLocaleString());
+    if(BT.quest.gem>0)  rwParts.push('💎 +'+BT.quest.gem);
+    if(BT.quest.tickets>0) rwParts.push('🎫 ×'+BT.quest.tickets);
+  }
+  document.getElementById('end-rw-val').textContent = rwParts.join('  ')||(_isFirstClear?'クリア！':'クリア済（報酬なし）');
   const expRow=document.getElementById('end-exp-row');
   const expBar=document.getElementById('end-exp-bar');
   const expLbl=document.getElementById('end-exp-label');
