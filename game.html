@@ -191,7 +191,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .char-rar{font-size:7px;font-weight:700;}
 
 /* BATTLE */
-.battle-header{position:relative;z-index:10;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,8,18,.55);border-bottom:.5px solid rgba(14,216,176,.12);flex-shrink:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.battle-header{position:relative;z-index:10;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,6,14,.9);border-bottom:.5px solid var(--border2);flex-shrink:0;backdrop-filter:blur(4px);}
 .battle-stage-txt{font-size:11px;color:var(--text2);}
 .battle-turn-txt{font-size:11px;font-weight:500;}
 .combo-txt{font-size:11px;color:var(--teal);}
@@ -208,14 +208,14 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 @keyframes dmgAnimBig{0%{opacity:1;transform:translateY(0) scale(1.2);}15%{transform:translateY(-15px) scale(1.4);}100%{opacity:0;transform:translateY(-100px) scale(1);}}
 @keyframes dmgAnimCrit{0%{opacity:1;transform:translateY(0) scale(1.4) rotate(-5deg);}15%{transform:translateY(-20px) scale(1.6) rotate(3deg);}100%{opacity:0;transform:translateY(-110px) scale(1.1) rotate(0deg);}}
 @keyframes dmgAnimCard{0%{opacity:0;transform:translateY(10px) scale(.7);}10%{opacity:1;transform:translateY(0) scale(1);}80%{opacity:1;}100%{opacity:0;transform:translateY(-50px) scale(.9);}}
-.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,8,18,.5);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-.member-hp{flex:1;background:rgba(0,12,28,.45);border:.5px solid rgba(14,216,176,.15);border-radius:8px;padding:5px 7px;}
-.member-nm{font-size:8px;color:rgba(160,220,255,.85);margin-bottom:3px;font-weight:500;}
-.member-hp-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.party-hp-row{display:flex;gap:6px;padding:6px 12px;background:rgba(2,6,14,.85);flex-shrink:0;position:relative;z-index:10;}
+.member-hp{flex:1;background:rgba(0,15,35,.6);border:.5px solid var(--border2);border-radius:7px;padding:5px 7px;}
+.member-nm{font-size:8px;color:var(--text2);margin-bottom:3px;}
+.member-hp-bar{height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;}
 .member-hp-fill{height:100%;background:linear-gradient(90deg,var(--teal),#20d0a0);border-radius:1px;transition:width .4s;}
-.member-hp-val{font-size:8px;color:rgba(120,180,220,.7);margin-top:2px;}
-.card-hand{padding:8px 12px 10px;background:rgba(2,8,18,.6);border-top:.5px solid rgba(14,216,176,.1);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
-.hand-lbl{font-size:9px;color:rgba(120,200,255,.6);margin-bottom:6px;letter-spacing:.1em;}
+.member-hp-val{font-size:8px;color:var(--text3);margin-top:2px;}
+.card-hand{padding:8px 12px 10px;background:rgba(2,6,14,.9);border-top:.5px solid var(--border2);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(4px);}
+.hand-lbl{font-size:9px;color:var(--text3);margin-bottom:6px;letter-spacing:.1em;}
 .cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:3px;padding-top:12px;}
 .cards-row::-webkit-scrollbar{height:2px;}
 .battle-card{flex-shrink:0;width:60px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:9px;padding:7px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;}
@@ -226,7 +226,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .card-nm{font-size:7px;color:var(--text2);text-align:center;}
 .card-dmg{font-size:9px;font-weight:700;}
 .card-own{font-size:6px;color:var(--text3);}
-.battle-actions{display:flex;gap:7px;padding:0 12px 10px;position:relative;z-index:10;flex-shrink:0;background:rgba(2,8,18,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.battle-actions{display:flex;gap:7px;padding:0 12px 10px;position:relative;z-index:10;flex-shrink:0;}
 .battle-btn{flex:1;padding:9px;border-radius:9px;border:.5px solid;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:background .15s,transform .1s;}
 .battle-btn:active{transform:scale(.96);}
 .btn-atk{background:rgba(10,40,100,.4);border-color:rgba(20,100,200,.4);color:var(--text);}
@@ -403,7 +403,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .cdp-close{width:100%;padding:11px;border-radius:10px;border:.5px solid var(--border3);background:rgba(255,255,255,.03);font-size:13px;cursor:pointer;font-family:inherit;color:var(--text2);margin-top:4px;}
 
 /* ===== BATTLE IMPROVEMENTS ===== */
-.battle-card{flex-shrink:0;width:68px;background:rgba(0,15,40,.5);border:.5px solid rgba(14,216,176,.15);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all .15s;user-select:none;}
+.battle-card{flex-shrink:0;width:68px;background:rgba(0,20,50,.6);border:.5px solid var(--border3);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;user-select:none;}
 .battle-card:hover{border-color:rgba(20,100,180,.6);background:rgba(5,40,100,.6);transform:translateY(-5px);}
 .battle-card.selected{border-color:var(--teal);background:rgba(10,80,70,.35);transform:translateY(-8px);box-shadow:0 0 12px rgba(16,192,160,.3);}
 .battle-card.used{opacity:.2;cursor:default;pointer-events:none;transform:none;}
@@ -421,7 +421,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .auto-btn:hover{background:rgba(120,60,10,.4);}
 
 /* コンボゲージ */
-.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
 .combo-gauge{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .combo-gauge-fill{height:100%;background:linear-gradient(90deg,#10c0a0,#4a90ff,#e0a020);border-radius:2px;transition:width .3s;}
 .combo-lv-txt{font-size:10px;font-weight:500;min-width:50px;text-align:right;}
@@ -1198,88 +1198,37 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .speed-btn:hover{background:rgba(10,50,120,.4);}
 @keyframes orbBadgePulse{0%{transform:scale(1);opacity:.8;}100%{transform:scale(1.1);opacity:1;}}
 
+/* ===== カードスライドイン ===== */
+@keyframes cardSlideIn{
+  0%  { opacity:0; transform:translateX(-60px) scale(.85); }
+  60% { opacity:1; transform:translateX(4px) scale(1.04); }
+  100%{ opacity:1; transform:translateX(0) scale(1); }
+}
+.battle-card.slide-in{ animation:cardSlideIn .32s cubic-bezier(.22,.68,0,1.2) both; }
 
-
-/* ===== マージカード ===== */
-.battle-card.merge-lv2{
-  border-color:rgba(220,160,0,.7)!important;
-  background:rgba(60,40,0,.5)!important;
-  box-shadow:0 0 14px rgba(220,160,0,.4)!important;
-}
-.battle-card.merge-lv3{
-  border-color:rgba(255,100,200,.8)!important;
-  background:rgba(60,0,40,.5)!important;
-  box-shadow:0 0 18px rgba(255,80,200,.5)!important;
-}
-.merge-badge{
-  position:absolute;top:-8px;left:50%;transform:translateX(-50%);
-  font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;
-  white-space:nowrap;z-index:5;
-}
-.merge-badge.lv2{background:linear-gradient(90deg,#c0800,#e0c020);color:#fff;box-shadow:0 0 6px rgba(220,160,0,.6);}
-.merge-badge.lv3{background:linear-gradient(90deg,#c020a0,#ff40c0);color:#fff;box-shadow:0 0 8px rgba(255,80,200,.7);}
+/* ===== 星レベル ===== */
+.battle-card.star2{border-color:rgba(255,200,0,.8)!important;background:linear-gradient(180deg,rgba(60,45,0,.6),rgba(30,20,0,.5))!important;box-shadow:0 0 14px rgba(255,180,0,.45)!important;}
+.battle-card.star3{border-color:rgba(255,80,220,.9)!important;background:linear-gradient(180deg,rgba(70,0,60,.6),rgba(40,0,35,.5))!important;box-shadow:0 0 20px rgba(255,60,200,.55)!important;}
+.battle-card.star4{border-color:rgba(80,200,255,.95)!important;background:linear-gradient(180deg,rgba(0,50,80,.7),rgba(0,20,50,.6))!important;box-shadow:0 0 24px rgba(40,180,255,.7)!important;}
+.battle-card.star5{border-color:rgba(255,220,80,1)!important;background:linear-gradient(180deg,rgba(60,40,0,.8),rgba(30,15,0,.7))!important;box-shadow:0 0 28px rgba(255,200,0,.9)!important;animation:star5Pulse 1.2s ease-in-out infinite alternate;}
+@keyframes star5Pulse{0%{box-shadow:0 0 20px rgba(255,200,0,.7);}100%{box-shadow:0 0 35px rgba(255,220,80,1);}}
+.star-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;padding:1px 8px;border-radius:99px;white-space:nowrap;z-index:5;}
+.star-badge.s2{background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7);}
+.star-badge.s3{background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8);}
+.star-badge.s4{background:linear-gradient(90deg,#0060c0,#40c0ff);color:#fff;box-shadow:0 0 12px rgba(40,180,255,.8);}
+.star-badge.s5{background:linear-gradient(90deg,#c08000,#ffe060,#ffa000);color:#fff;box-shadow:0 0 14px rgba(255,200,0,1);}
 
 /* ===== 敵行動予告 ===== */
-.enemy-intent{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:5px 12px;margin:0 12px 4px;
-  border-radius:8px;font-size:10px;font-weight:700;
-  border:.5px solid;flex-shrink:0;min-height:28px;
-}
+.enemy-intent{display:flex;align-items:center;justify-content:center;gap:6px;padding:5px 12px;margin:0 12px 4px;border-radius:8px;font-size:10px;font-weight:700;border:.5px solid;flex-shrink:0;min-height:28px;backdrop-filter:blur(6px);}
 .enemy-intent.attack{background:rgba(60,0,0,.5);border-color:rgba(200,40,40,.5);color:#ff8080;}
 .enemy-intent.heavy{background:rgba(80,0,0,.6);border-color:rgba(255,40,40,.6);color:#ff4040;animation:intentPulse 1s ease-in-out infinite alternate;}
 .enemy-intent.debuff{background:rgba(40,0,60,.5);border-color:rgba(160,40,200,.5);color:#d080ff;}
-.enemy-intent.buff{background:rgba(0,40,60,.5);border-color:rgba(40,160,200,.4);color:#60c8ff;}
 .enemy-intent.unknown{background:rgba(20,20,20,.4);border-color:rgba(80,80,80,.3);color:rgba(160,160,160,.6);}
 @keyframes intentPulse{0%{box-shadow:0 0 4px rgba(255,40,40,.3);}100%{box-shadow:0 0 12px rgba(255,40,40,.7);}}
 
-/* ===== カードスライドイン演出 ===== */
-@keyframes cardSlideIn{
-  0%  { opacity:0; transform:translateX(-60px) translateY(8px) scale(.85); }
-  60% { opacity:1; transform:translateX(4px) translateY(-2px) scale(1.04); }
-  100%{ opacity:1; transform:translateX(0) translateY(0) scale(1); }
-}
-.battle-card.slide-in{
-  animation: cardSlideIn .32s cubic-bezier(.22,.68,0,1.2) both;
-}
-
-/* ===== 星レベル（マージ改善） ===== */
-.battle-card.star2 {
-  border-color:rgba(255,200,0,.8)!important;
-  background:linear-gradient(180deg,rgba(60,45,0,.6),rgba(30,20,0,.5))!important;
-  box-shadow:0 0 14px rgba(255,180,0,.45)!important;
-}
-.battle-card.star3 {
-  border-color:rgba(255,80,220,.9)!important;
-  background:linear-gradient(180deg,rgba(70,0,60,.6),rgba(40,0,35,.5))!important;
-  box-shadow:0 0 20px rgba(255,60,200,.55)!important;
-}
-.star-badge {
-  position:absolute;top:-9px;left:50%;transform:translateX(-50%);
-  font-size:10px;font-weight:900;padding:1px 8px;border-radius:99px;
-  white-space:nowrap;z-index:5;letter-spacing:.05em;
-}
-.star-badge.s2 { background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7); }
-.star-badge.s3 { background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8); }
-
-
-.battle-card.star4 {
-  border-color:rgba(80,200,255,.95)!important;
-  background:linear-gradient(180deg,rgba(0,50,80,.7),rgba(0,20,50,.6))!important;
-  box-shadow:0 0 24px rgba(40,180,255,.7)!important;
-}
-.battle-card.star5 {
-  border-color:rgba(255,220,80,1)!important;
-  background:linear-gradient(180deg,rgba(60,40,0,.8),rgba(30,15,0,.7))!important;
-  box-shadow:0 0 28px rgba(255,200,0,.9),0 0 8px rgba(255,160,0,.6)!important;
-  animation:star5Pulse 1.2s ease-in-out infinite alternate;
-}
-@keyframes star5Pulse{
-  0%{box-shadow:0 0 20px rgba(255,200,0,.7);}
-  100%{box-shadow:0 0 35px rgba(255,220,80,1),0 0 14px rgba(255,200,0,.8);}
-}
-.star-badge.s4 { background:linear-gradient(90deg,#0060c0,#40c0ff);color:#fff;box-shadow:0 0 12px rgba(40,180,255,.8); }
-.star-badge.s5 { background:linear-gradient(90deg,#c08000,#ffe060,#ffa000);color:#fff;box-shadow:0 0 14px rgba(255,200,0,1); }
+/* ===== Ult必殺カード ===== */
+.ult-card-pulse{animation:ultCardPulse .8s ease-in-out infinite alternate;}
+@keyframes ultCardPulse{0%{box-shadow:0 0 8px rgba(255,180,0,.5);}100%{box-shadow:0 0 20px rgba(255,200,0,.9);}}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1704,7 +1653,7 @@ function onPvpEnd(won, quest){
   <div class="party-hp-row" id="pvp-my-hp-row"></div>
 
   <!-- 手札（通常戦闘と完全同一） -->
-  <div class="card-hand" style="padding-top:6px;">
+  <div class="card-hand" style="padding-top:4px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="hand-lbl" style="margin-bottom:0;">HAND — 最大4枚選択・長押しで連続選択</div>
       <div class="card-select-info" id="pvp-card-select-info">0 / 4 枚選択</div>
@@ -2016,7 +1965,7 @@ function onPvpEnd(won, quest){
   <!-- 味方状態異常パネル -->
   <div class="battle-status-panel" id="battle-status-panel"></div>
   <div class="party-hp-row" id="party-hp-row"></div>
-  <div class="card-hand" style="padding-top:6px;">
+  <div class="card-hand" style="padding-top:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="hand-lbl" style="margin-bottom:0;">HAND — 最大4枚選択・長押しで連続選択</div>
       <div class="card-select-info" id="card-select-info">0 / 4 枚選択</div>
@@ -2694,107 +2643,88 @@ async function checkGifts(){
 // ================================================================
 
 // ================================================================
-//  ⚡ Ultimate（必殺技）定義
-// ================================================================
-const ULT_DEFS = {
-  // ── UR 個別定義 ──
-  1:  {name:'旧破の顕現',    stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:8.0,  desc:'ATK×8の暗黒の一撃'},
-  2:  {name:'深淵の絶呪',    stacks:3, emoji:'🕳️', effect:'debuff_all',   type:'para', stacks2:2, desc:'全敵に麻痺×2付与'},
-  3:  {name:'崩壊炎爆',      stacks:3, emoji:'💀', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の炎ダメージ'},
-  59: {name:'虚空掌握・極',  stacks:4, emoji:'🌌', effect:'ultra_atk',    mul:10.0, desc:'ATK×10の虚空消滅'},
-  60: {name:'炎帝の怒り・烈',stacks:3, emoji:'🌋', effect:'aoe_atk',      mul:6.0,  desc:'全敵にATK×6の炎嵐'},
-  61: {name:'雷帝の裁き',    stacks:3, emoji:'⚡', effect:'ultra_atk',    mul:9.0,  desc:'ATK×9の雷撃'},
-  62: {name:'永久凍土',      stacks:3, emoji:'❄️', effect:'debuff_all',   type:'freeze', stacks2:2, desc:'全敵に凍結×2付与'},
-  63: {name:'竜王の守護',    stacks:3, emoji:'🐉', effect:'party_shield', pct:0.30, desc:'味方全員にHP30%のバリア'},
-  64: {name:'星滅閃光',      stacks:3, emoji:'💫', effect:'debuff_all',   type:'para', stacks2:1, desc:'全敵に麻痺付与＋ATK×5攻撃', mul:5.0},
-  65: {name:'海神の守護',    stacks:4, emoji:'🔱', effect:'party_heal',   pct:0.40, desc:'味方全員HP40%回復'},
-  66: {name:'深淵の光',      stacks:3, emoji:'✨', effect:'party_heal',   pct:0.30, desc:'味方全員HP30%回復'},
-  67: {name:'氷牙連撃',      stacks:3, emoji:'🧊', effect:'ultra_atk',    mul:7.0,  desc:'ATK×7の氷撃'},
-  68: {name:'業火の裁き',    stacks:3, emoji:'🔥', effect:'aoe_atk',      mul:5.5,  desc:'全敵にATK×5.5の業火'},
-  69: {name:'深海津波',      stacks:3, emoji:'🌊', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の水流'},
-  70: {name:'闇の収束',      stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:8.5,  desc:'ATK×8.5の暗黒撃'},
-  71: {name:'雷の連鎖',      stacks:3, emoji:'⚡', effect:'ultra_atk',    mul:7.5,  desc:'ATK×7.5の雷連撃'},
-  72: {name:'光の審判',      stacks:3, emoji:'☀️', effect:'aoe_atk',      mul:5.0,  desc:'全敵にATK×5の光撃'},
-  73: {name:'氷壁の守り',    stacks:4, emoji:'🛡️', effect:'party_shield', pct:0.25, desc:'味方全員にHP25%のバリア'},
-  74: {name:'炎獄の烙印',    stacks:3, emoji:'🔥', effect:'debuff_all',   type:'burn', stacks2:3, desc:'全敵に炎症×3付与'},
-  75: {name:'深淵の瞬閃',    stacks:3, emoji:'🌑', effect:'ultra_atk',    mul:9.0,  desc:'ATK×9の深淵撃'},
-  76: {name:'海神の慈悲',    stacks:4, emoji:'💧', effect:'party_heal',   pct:0.35, desc:'味方全員HP35%回復'},
-  77: {name:'雷爆の嵐',      stacks:3, emoji:'⛈️', effect:'aoe_atk',      mul:5.5,  desc:'全敵にATK×5.5の雷嵐'},
-  78: {name:'氷葬の舞',      stacks:3, emoji:'❄️', effect:'debuff_all',   type:'freeze', stacks2:1, desc:'全敵に凍結付与＋ATK×4攻撃', mul:4.0},
-  79: {name:'崩壊の刃',      stacks:3, emoji:'💀', effect:'ultra_atk',    mul:8.0,  desc:'ATK×8の崩壊撃'},
-  200:{name:'旧破神の降臨',  stacks:5, emoji:'🌑', effect:'ultra_atk',    mul:12.0, desc:'ATK×12の絶対消滅'},
-  201:{name:'深海の奇跡',    stacks:4, emoji:'💚', effect:'party_heal',   pct:0.50, desc:'味方全員HP50%全回復'},
-  202:{name:'虚空の覇道',    stacks:4, emoji:'🌌', effect:'ultra_atk',    mul:10.0, desc:'ATK×10の虚空砲'},
-  203:{name:'崩壊炎獄',      stacks:3, emoji:'🌋', effect:'aoe_atk',      mul:6.5,  desc:'全敵にATK×6.5の炎獄'},
-  204:{name:'深淵崩落',      stacks:4, emoji:'🕳️', effect:'debuff_all',   type:'poison', stacks2:3, desc:'全敵に毒×3付与'},
-  205:{name:'旧破の封印',    stacks:4, emoji:'⛓️', effect:'debuff_all',   type:'para', stacks2:2, desc:'全敵に麻痺×2付与'},
-  206:{name:'海神の慈悲・極',stacks:4, emoji:'🔱', effect:'party_heal',   pct:0.45, desc:'味方全員HP45%回復'},
-  207:{name:'始原の炎',      stacks:3, emoji:'🔥', effect:'aoe_atk',      mul:7.0,  desc:'全敵にATK×7の始原炎'},
-  208:{name:'深淵竜の息吹',  stacks:3, emoji:'🐉', effect:'ultra_atk',    mul:9.5,  desc:'ATK×9.5の竜の息吹'},
-};
-
-// roleとattributeに基づくデフォルトUlt
-function getUltDef(charId, ch){
-  if(ULT_DEFS[charId]) return ULT_DEFS[charId];
-  const role = ch ? ch.role : 'attacker';
-  const attr = ch ? ch.attribute : 'none';
-  if(role==='support') return {name:'深海の加護', stacks:4, emoji:'💧', effect:'party_heal', pct:0.25, desc:'味方全員HP25%回復'};
-  if(role==='tank')    return {name:'鉄壁の守護', stacks:4, emoji:'🛡️', effect:'party_shield', pct:0.20, desc:'味方全員にHP20%のバリア'};
-  if(role==='debuffer'){
-    const dtype = attr==='ice'?'freeze':attr==='thunder'?'para':attr==='fire'?'burn':'poison';
-    return {name:'深淵の呪縛', stacks:3, emoji:'☠️', effect:'debuff_all', type:dtype, stacks2:1, desc:`全敵に${dtype}付与`};
-  }
-  // attacker系はattributeで分岐
-  const mul = 6.0;
-  return {name:'深海の一撃', stacks:3, emoji:'⚔️', effect:'ultra_atk', mul, desc:`ATK×${mul}の一撃`};
-}
-
-
-// ================================================================
-//  💚 ヒーラーカード定義（キャラごとの固有カード）
+//  💚 ヒーラーカード定義
 // ================================================================
 const HEALER_CARDS = {
-  // 常設UR
-  65: [
-    {name:'海神の波動',  emoji:'🔱', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
-    {name:'海神の守護',  emoji:'🌊', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
-    {name:'深海の命脈',  emoji:'💧', healRate:1.80, type:'single',  desc:'ATK×180%回復（単体）'},
-    {name:'海神の恩寵',  emoji:'🌈', healRate:1.20, type:'all',     desc:'ATK×120%回復（全体）'},
-    {name:'深海の神域',  emoji:'✨', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋全員復活'},
+  65:  [
+    {name:'海神の波動', emoji:'🔱', healRate:0.80, type:'single', desc:'ATK×80%回復（単体）'},
+    {name:'海神の守護', emoji:'🌊', healRate:0.50, type:'all',    desc:'ATK×50%回復（全体）'},
+    {name:'深海の命脈', emoji:'💧', healRate:1.80, type:'single', desc:'ATK×180%回復（単体）'},
+    {name:'海神の恩寵', emoji:'🌈', healRate:1.20, type:'all',    desc:'ATK×120%回復（全体）'},
+    {name:'深海の神域', emoji:'✨', healRate:2.50, type:'all',    desc:'ATK×250%回復（全体）'},
   ],
-  // 限定UR: アルテア
   201: [
-    {name:'星の祝福',    emoji:'⭐', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
-    {name:'星海の加護',  emoji:'✨', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
-    {name:'星の奇跡',    emoji:'🌟', healRate:1.10, type:'all',     desc:'ATK×110%回復（全体）'},
-    {name:'星海の祝福',  emoji:'🌠', healRate:1.50, type:'all',     desc:'ATK×150%回復（全体）'},
-    {name:'星の降臨',    emoji:'💫', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋デバフ解除'},
+    {name:'星の祝福',   emoji:'⭐', healRate:0.80, type:'single', desc:'ATK×80%回復（単体）'},
+    {name:'星海の加護', emoji:'✨', healRate:0.50, type:'all',    desc:'ATK×50%回復（全体）'},
+    {name:'星の奇跡',   emoji:'🌟', healRate:1.10, type:'all',    desc:'ATK×110%回復（全体）'},
+    {name:'星海の祝福', emoji:'🌠', healRate:1.50, type:'all',    desc:'ATK×150%回復（全体）'},
+    {name:'星の降臨',   emoji:'💫', healRate:2.50, type:'all',    desc:'ATK×250%回復（全体）'},
   ],
-  // 限定UR: ネレイス
   205: [
-    {name:'深海の癒し',  emoji:'🌊', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
-    {name:'水神の恵み',  emoji:'💦', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
-    {name:'深海の奔流',  emoji:'🌀', healRate:1.00, type:'all',     desc:'ATK×100%回復（全体）＋被ダメ軽減', shield:true},
-    {name:'深海の加護',  emoji:'🌊', healRate:1.40, type:'all',     desc:'ATK×140%回復（全体）＋被ダメ軽減', shield:true},
-    {name:'深淵の水神',  emoji:'🔱', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋2ターン被ダメ-50%', shield:true},
+    {name:'深海の癒し', emoji:'🌊', healRate:0.80, type:'single', desc:'ATK×80%回復（単体）'},
+    {name:'水神の恵み', emoji:'💦', healRate:0.50, type:'all',    desc:'ATK×50%回復（全体）'},
+    {name:'深海の奔流', emoji:'🌀', healRate:1.00, type:'all',    desc:'ATK×100%回復（全体）＋被ダメ軽減', shield:true},
+    {name:'深海の加護', emoji:'🌊', healRate:1.40, type:'all',    desc:'ATK×140%回復＋被ダメ軽減', shield:true},
+    {name:'深淵の水神', emoji:'🔱', healRate:2.50, type:'all',    desc:'ATK×250%回復＋被ダメ軽減', shield:true},
   ],
-  // 限定UR: グラン
   208: [
-    {name:'鍛造の盾',    emoji:'🛡️', type:'shield',    shieldRate:0.10, desc:'バリア(MaxHP10%)'},
-    {name:'深海の守護',  emoji:'⚒️', type:'shieldHeal', shieldRate:0.08, healRate:0.60, desc:'バリア(8%)＋ATK×60%回復'},
-    {name:'鍛造の城壁',  emoji:'🏰', type:'shield',    shieldRate:0.20, desc:'大バリア(MaxHP20%)'},
-    {name:'深海の要塞',  emoji:'🗿', type:'shieldHeal', shieldRate:0.15, healRate:1.00, desc:'バリア(15%)＋ATK×100%回復'},
-    {name:'奈落の鎧',    emoji:'⚙️', type:'shieldHeal', shieldRate:0.30, healRate:1.50, desc:'超バリア(30%)＋ATK×150%回復'},
+    {name:'鍛造の盾',   emoji:'🛡️', type:'shield',    shieldRate:0.10, healRate:0,    desc:'バリア(MaxHP10%)'},
+    {name:'深海の守護', emoji:'⚒️', type:'shieldHeal', shieldRate:0.08, healRate:0.60, desc:'バリア(8%)＋ATK×60%回復'},
+    {name:'鍛造の城壁', emoji:'🏰', type:'shield',    shieldRate:0.20, healRate:0,    desc:'大バリア(MaxHP20%)'},
+    {name:'深海の要塞', emoji:'🗿', type:'shieldHeal', shieldRate:0.15, healRate:1.00, desc:'バリア(15%)＋ATK×100%回復'},
+    {name:'奈落の鎧',   emoji:'⚙️', type:'shieldHeal', shieldRate:0.30, healRate:1.50, desc:'超バリア(30%)＋ATK×150%回復'},
   ],
 };
 
-// ヒーラーカードを生成（cardRankに応じてカードを選ぶ）
 function getHealerCard(charId, rank){
-  const defs = HEALER_CARDS[charId];
-  if(!defs) return null;
-  // ★1: index0, ★2: index1, ★3: index2(rare)
-  const idx = rank>=3 ? 2 : rank>=2 ? 1 : 0;
-  return defs[Math.min(idx, defs.length-1)];
+  const defs = HEALER_CARDS[charId]; if(!defs) return null;
+  const idx = Math.min(rank-1, defs.length-1);
+  return defs[Math.max(0,idx)];
+}
+
+function buildHealerCardObj(def, charId, ch, actualAtk, rank){
+  return {
+    name:def.name, emoji:def.emoji, dmg:0, comboType:'none',
+    charId:charId, charName:ch?ch.name:'???', charAtk:actualAtk,
+    isHeal: def.type!=='shield',
+    isShieldCard: def.type==='shield'||def.type==='shieldHeal',
+    isShieldHeal: def.type==='shieldHeal',
+    healRate: def.healRate||0, healType: def.type||'single',
+    shieldRate: def.shieldRate||0, shieldExtra: def.shield||false,
+    cardRank:rank||1, _baseDmg:0, used:false, selected:false
+  };
+}
+
+// ================================================================
+//  ⚡ Ultimate定義
+// ================================================================
+const ULT_DEFS = {
+  1:  {name:'旧破の顕現',   stacks:3,emoji:'🌑',effect:'ultra_atk', mul:8.0, desc:'ATK×8の一撃'},
+  2:  {name:'深淵の絶呪',   stacks:3,emoji:'🕳️',effect:'debuff_all',type:'para',stacks2:2,desc:'全敵に麻痺×2'},
+  3:  {name:'崩壊炎爆',     stacks:3,emoji:'💀',effect:'aoe_atk',   mul:5.0, desc:'全敵ATK×5'},
+  59: {name:'虚空掌握・極', stacks:4,emoji:'🌌',effect:'ultra_atk', mul:10.0,desc:'ATK×10'},
+  60: {name:'炎帝の怒り',   stacks:3,emoji:'🌋',effect:'aoe_atk',   mul:6.0, desc:'全敵ATK×6'},
+  61: {name:'雷帝の裁き',   stacks:3,emoji:'⚡',effect:'ultra_atk', mul:9.0, desc:'ATK×9'},
+  62: {name:'永久凍土',     stacks:3,emoji:'❄️',effect:'debuff_all',type:'freeze',stacks2:2,desc:'全敵凍結×2'},
+  63: {name:'竜王の守護',   stacks:3,emoji:'🐉',effect:'party_shield',pct:0.30,desc:'バリア30%'},
+  65: {name:'海神の守護',   stacks:4,emoji:'🔱',effect:'party_heal',pct:0.40,desc:'HP40%回復'},
+  200:{name:'旧破神の降臨', stacks:5,emoji:'🌑',effect:'ultra_atk', mul:12.0,desc:'ATK×12'},
+  201:{name:'深海の奇跡',   stacks:4,emoji:'💚',effect:'party_heal',pct:0.50,desc:'HP50%回復'},
+  205:{name:'深淵の水姫',   stacks:4,emoji:'🌊',effect:'party_heal',pct:0.45,desc:'HP45%回復'},
+  208:{name:'奈落の鎧神',   stacks:3,emoji:'⚒️',effect:'party_shield',pct:0.30,desc:'バリア30%'},
+};
+
+function getUltDef(charId,ch){
+  if(ULT_DEFS[charId]) return ULT_DEFS[charId];
+  const role=ch?ch.role:'attacker';
+  if(role==='support') return {name:'深海の加護',stacks:4,emoji:'💧',effect:'party_heal',pct:0.25,desc:'HP25%回復'};
+  if(role==='tank')    return {name:'鉄壁の守護',stacks:4,emoji:'🛡️',effect:'party_shield',pct:0.20,desc:'バリア20%'};
+  if(role==='debuffer'){
+    const attr=ch?ch.attribute:'none';
+    const dtype=attr==='ice'?'freeze':attr==='thunder'?'para':attr==='fire'?'burn':'poison';
+    return {name:'深淵の呪縛',stacks:3,emoji:'☠️',effect:'debuff_all',type:dtype,stacks2:1,desc:dtype+'付与'};
+  }
+  return {name:'深海の一撃',stacks:3,emoji:'⚔️',effect:'ultra_atk',mul:6.0,desc:'ATK×6'};
 }
 
 const CHARS=[
@@ -2992,7 +2922,7 @@ function getCardForChar(charAttr){
   const attr = charAttr || 'none';
   const roll = Math.random();
   if(roll < 0.70){
-    // 70%: キャラ属性のカード（同名融合が起きやすいよう属性率高め）
+    // 70%: キャラ属性のカード
     const pool = CARDS_BY_ATTR[attr] || CARDS_BY_ATTR['none'];
     return pool[Math.floor(Math.random()*pool.length)];
   } else if(roll < 0.85){
@@ -3434,47 +3364,6 @@ const CHAPTERS=[
        ]},
     ]
   },
-  ,{
-    id:99, name:'🔧 DEBUGクエスト', emoji:'🔧',
-    sub:'【ADMIN ONLY】バグ検証用',
-    bgColor:['#001000','#002000'],
-    unlocked:true, adminOnly:true,
-    layers:[
-      {id:9901, name:'凍結テスト',   emoji:'❄️', boss:false,
-       enemy:{name:'[DEBUG]凍結Bot',emoji:'🤖',hp:9999999,atk:1,spd:3,
-         statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
-       gold:0,gem:0,story:[]},
-      {id:9902, name:'麻痺テスト',   emoji:'⚡', boss:false,
-       enemy:{name:'[DEBUG]麻痺Bot',emoji:'🤖',hp:9999999,atk:1,spd:3,
-         statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
-       gold:0,gem:0,story:[]},
-      {id:9903, name:'毒テスト',     emoji:'☠️', boss:false,
-       enemy:{name:'[DEBUG]毒Bot',  emoji:'🤖',hp:9999999,atk:1,spd:3,
-         statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
-       gold:0,gem:0,story:[]},
-      {id:9904, name:'炎症テスト',   emoji:'🔥', boss:false,
-       enemy:{name:'[DEBUG]炎Bot',  emoji:'🤖',hp:9999999,atk:1,spd:3,
-         statusPatterns:[{type:'burn',prob:1.0,stacks:2}]},
-       gold:0,gem:0,story:[]},
-      {id:9905, name:'高火力テスト', emoji:'💥', boss:false,
-       enemy:{name:'[DEBUG]高火力Bot',emoji:'🤖',hp:100,atk:99999,spd:5},
-       gold:0,gem:0,story:[]},
-      {id:9906, name:'複数敵テスト', emoji:'👾', boss:false,
-       enemies:[
-         {name:'[DEBUG]敵A',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'attacker',
-           statusPatterns:[{type:'freeze',prob:1.0,stacks:1}]},
-         {name:'[DEBUG]敵B',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'debuffer',
-           statusPatterns:[{type:'para',prob:1.0,stacks:1}]},
-         {name:'[DEBUG]敵C',emoji:'🤖',hp:9999999,atk:1,spd:3,role:'tank',
-           statusPatterns:[{type:'poison',prob:1.0,stacks:3}]},
-       ],
-       enemy:{name:'[DEBUG]複数敵',emoji:'👾',hp:29999997,atk:1,spd:3},
-       gold:0,gem:0,story:[]},
-      {id:9907, name:'スペシャルテスト',emoji:'✨', boss:false,
-       enemy:{name:'[DEBUG]SpecialBot',emoji:'🤖',hp:9999999,atk:1,spd:1},
-       gold:0,gem:0,story:[]},
-    ]
-  }
 ];
 
 // QUESTS: CHAPTERSを平坦化（後方互換）
@@ -3769,11 +3658,8 @@ let expandedChapter = -1;
 function renderMap(){
   const container = document.getElementById('quest-map');
   let html = '';
-  const _isAdmin = auth && auth.currentUser && auth.currentUser.uid === 'OqP5BrVu0LYBeN49bcsye5IbYnk1';
 
   CHAPTERS.forEach(ch=>{
-    // 管理者専用チャプターは管理者のみ表示
-    if(ch.adminOnly && !_isAdmin) return;
     // 章のクリア状況
     const layerIds = ch.layers.map(l=>l.id);
     const clearedCount = layerIds.filter(id=>S.cleared.includes(id)).length;
@@ -3786,7 +3672,6 @@ function renderMap(){
 
     // 章テーマの背景スタイル
     const CH_MAP_THEMES = {
-      99:{bg:'rgba(0,20,0,.7)', border:'rgba(0,200,80,.5)',    glow:'rgba(0,200,80,.2)'},
       1:{bg:'rgba(0,20,50,.6)',  border:'rgba(20,100,180,.4)',  glow:'rgba(20,100,200,.15)'},
       2:{bg:'rgba(0,25,10,.6)',  border:'rgba(20,120,60,.4)',   glow:'rgba(20,140,60,.12)'},
       3:{bg:'rgba(10,0,30,.6)',  border:'rgba(100,20,180,.4)',  glow:'rgba(120,20,200,.15)'},
@@ -3807,7 +3692,7 @@ function renderMap(){
       <div class="chapter-header" onclick="${chLocked?'showToast(\'前の章をクリアしてください！\')':'toggleChapter('+ch.id+');sfx(\'click\')'}">
         <div class="chapter-icon">${ch.emoji}</div>
         <div class="chapter-info">
-          <div class="chapter-num">${ch.adminOnly ? '🔧 ADMIN DEBUG' : ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
+          <div class="chapter-num">${ch.isTrial ? '⚗️ 試験的クエスト' : '第'+(ch.displayNum||ch.id)+'章'}${allCleared?' ✓':''}</div>
           <div class="chapter-name" style="color:${chLocked?'var(--text3)':allCleared?'var(--teal)':'var(--text)'}">${ch.name}</div>
           <div class="chapter-sub">${ch.sub}</div>
           <div class="chapter-prog">${clearedCount} / ${layerIds.length} 層クリア
@@ -3822,7 +3707,7 @@ function renderMap(){
       const cleared = S.cleared.includes(q.id);
       // 層のロック: 試験的クエストは全層常時解放。通常は前の層クリアが必要
       const prevId = li > 0 ? ch.layers[li-1].id : null;
-      const locked = chLocked || (!(ch.isTrial||ch.adminOnly) && prevId !== null && !S.cleared.includes(prevId));
+      const locked = chLocked || (!ch.isTrial && prevId !== null && !S.cleared.includes(prevId));
       const liCls = locked?'li-locked':cleared?'li-clear':q.boss?'li-boss':'li-unlock';
       const nameColor = q.boss?'#cc4040':cleared?'var(--teal)':locked?'var(--text3)':'var(--text)';
       html += `<div class="layer-item ${locked?'locked':''} ${cleared?'cleared':''}"
@@ -4840,9 +4725,8 @@ function initBattle(quest,pids){
     }
   }
   BT.turn=1;BT.combo=0;BT.active=true;
-  BT.ultStacks={}; // キャラごとのUltスタック
-  setTimeout(()=>updateUltGauge(), 300);
-  BT.enemyIntent=null; // 敵行動予告
+  BT.ultStacks={};
+  BT.enemyIntent=null;
   initStatuses();
   setTimeout(()=>updateBattleStatusPanel(),200);
   // autoタイマーをリセット（前の戦闘の残りを消す）
@@ -4864,7 +4748,6 @@ function initBattle(quest,pids){
   if(autoBtn) autoBtn.classList.toggle('on', BT.auto);
   initBattleBg();
   goTo('battle');
-  setTimeout(()=>{ generateEnemyIntent(); }, 200);
   // ★オートがONなら画面遷移後すぐに開始
   if(BT.auto) setTimeout(()=>{ if(BT.active && BT_PHASE==='player') runAutoTurn(); }, 300);
 }
@@ -5110,6 +4993,8 @@ function initBattleBg(){
 // ================================================================
 let MAX_SELECT = 4; // 最大選択枚数（ロールで変化）
 const CARDS_PER_MEMBER = 3; // キャラ1体あたりのカード枚数
+const HAND_MIN_SIZE = 9;  // 手札の最低保証枚数
+const HAND_MAX_SIZE = 15; // 手札の上限枚数
 
 // コンボタイプボーナス倍率
 const COMBO_TYPE_BONUS = {fire:0.25, ice:0.2, thunder:0.3, water:0.22, dark:0.28, light:0.25, none:0.20};
@@ -5323,14 +5208,17 @@ function getPartyHealRate(){
   ap.forEach(function(c){
     if(c.role==='support'){
       var healMap = {
-        // URヒーラー（カードがメイン回復なので自動は控えめ）
-        65:0.02,   // トリトス（常設UR）：自動2%＋カード回復
-        201:0.02,  // アルテア（限定）：自動2%＋カード回復
-        205:0.02,  // ネレイス（限定）：自動2%＋カード回復
-        208:0.01,  // グラン（限定）：バリア特化、自動回復は1%
-        // SSR（カード化していないので従来通り）
-        9:0.03, 12:0.025, 72:0.04, 76:0.04,
-        21:0.02, 84:0.015, 89:0.025,
+        65:0.08,   // トリトス（常設UR）：8%
+        201:0.08,  // アルテア（限定）：8%
+        205:0.06,  // ネレイス（限定）：6%（水コンボ軽減で差別化）
+        208:0.02,  // グラン（限定）：バリア特化、自動回復は低め
+        9:0.03,
+        12:0.025,
+        72:0.04,
+        76:0.04,
+        21:0.02,
+        84:0.015,
+        89:0.025,
       };
       rate += (healMap[c.id] || 0.01);
     }
@@ -5341,7 +5229,7 @@ function getPartyHealRate(){
 // URヒーラーがアクティブか確認
 function hasURHealer(){
   const activeIds = getActiveSkillMembers(BT.partyHp, BT.statusEffects||[]).map(m=>m.id);
-  return BT.partyHp.some(function(m){ return activeIds.includes(m.id)&&(m.id===65||m.id===201||m.id===205||m.id===208)&&m.hp>0; });
+  return BT.partyHp.some(function(m){ return activeIds.includes(m.id)&&(m.id===65||m.id===201)&&m.hp>0; });
 }
 
 // トリトスの追加スキル：HP50%以下の味方に+7%緊急回復（1回限り）
@@ -5357,12 +5245,12 @@ function applyURHealerBonus(){
   var weakest = alive.reduce(function(a,b){
     return (a.hp/a.maxHp) < (b.hp/b.maxHp) ? a : b;
   });
-  if(weakest.hp/weakest.maxHp < 0.40){
+  if(weakest.hp/weakest.maxHp < 0.5){
     _tritosEmergencyUsed = true;
-    var bonus = Math.round(weakest.maxHp * 0.12); // 常設UR強化: 12%回復
+    var bonus = Math.round(weakest.maxHp * 0.07);
     weakest.hp = Math.min(weakest.maxHp, weakest.hp + bonus);
     var targetCh = CHARS.find(function(c){return c.id===weakest.id;});
-    showSpecialAtkBanner('🔱 トリトス 海神の加護！'+(targetCh?targetCh.name:'味方')+' HP40%以下 緊急回復 +12%！', '#40e080');
+    showSpecialAtkBanner('💚 トリトス → '+(targetCh?targetCh.name:'味方')+' 緊急回復！HP+'+(bonus).toLocaleString(), '#40e080');
   }
 }
 
@@ -5374,23 +5262,20 @@ function applyAlteaEmergency(){
   if(!alteaMember) return;
   var activeIds = getActiveSkillMembers(BT.partyHp, BT.statusEffects||[]).map(m=>m.id);
   if(!activeIds.includes(201)) return;
-  // HP55%以下の味方が1人でもいれば発動
   var alive = BT.partyHp.filter(function(m){return m.hp>0;});
   var needHeal = alive.filter(function(m){return m.hp/m.maxHp<=0.55;});
   if(!needHeal.length) return;
   _alteaEmergencyUsed = true;
-  // 全員にボーナス回復（最も低い順に多く）
   needHeal.forEach(function(m){
-    var rate = 0.15; // 15%回復
-    var amt = Math.round(m.maxHp * rate);
+    var amt = Math.round(m.maxHp * 0.15);
     m.hp = Math.min(m.maxHp, m.hp + amt);
   });
   var tgtNames = needHeal.map(function(m){var c=CHARS.find(function(c){return c.id===m.id;}); return c?c.name:'味方';}).join('・');
-  showSpecialAtkBanner('⭐ アルテア 緊急回復発動！'+tgtNames+' HP+15%', '#a0d0ff');
+  showSpecialAtkBanner('⭐ アルテア 緊急回復！'+tgtNames+' HP+15%', '#a0d0ff');
   updatePartyHP();
 }
 
-// ネレイスの緊急回復：HP45%以下全員に1回限り大回復
+// ネレイスの緊急回復：HP45%以下全員に1回限り
 var _nereisEmergencyUsed = false;
 function applyNereisEmergency(){
   if(_nereisEmergencyUsed) return;
@@ -5403,10 +5288,25 @@ function applyNereisEmergency(){
   if(!needHeal.length) return;
   _nereisEmergencyUsed = true;
   needHeal.forEach(function(m){
-    var amt = Math.round(m.maxHp * 0.20); // 20%回復
-    m.hp = Math.min(m.maxHp, m.hp + amt);
+    m.hp = Math.min(m.maxHp, m.hp + Math.round(m.maxHp * 0.20));
   });
   showSpecialAtkBanner('🌊 ネレイス 深海の護り！HP45%以下の味方全員 +20%回復！', '#60d8ff');
+  updatePartyHP();
+}
+
+// グランの炎コンボ追加バリア（1戦3回まで）
+var _granFireShieldCount = 0;
+function applyGranFireShield(){
+  if(_granFireShieldCount >= 3) return;
+  var gran = BT.partyHp.find(function(m){return m.hp>0&&m.id===208;});
+  if(!gran) return;
+  var activeIds = getActiveSkillMembers(BT.partyHp, BT.statusEffects||[]).map(m=>m.id);
+  if(!activeIds.includes(208)) return;
+  _granFireShieldCount++;
+  BT.partyHp.filter(function(m){return m.hp>0;}).forEach(function(m){
+    m.shield = (m.shield||0) + Math.round(m.maxHp * 0.05);
+  });
+  showSpecialAtkBanner('⚒️ グラン 炎コンボバリア！全員+5%バリア（残り'+(3-_granFireShieldCount)+'回）', '#ffc060');
   updatePartyHP();
 }
 
@@ -5423,10 +5323,6 @@ function showHealPopup(amt){
 
 function getPartyDamageReduction(){
   const ap = BT.partyHp.filter(m=>m.hp>0).map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
-  // ネレイス水コンボ軽減フラグ
-  if(BT._nereisShield){
-    BT._nereisShield = false; // 1ターン限り
-  }
   let reduce=0;
   ap.forEach(c=>{
     if(c.role==='tank') reduce+=({4:0.15,6:0.10,14:0.08,20:0.15,23:0.10,62:0.20,63:0.15,69:0.25,75:0.12,79:0.20,87:0.18}[c.id]||0.05);
@@ -5461,16 +5357,11 @@ function applyDamageToMember(tgt, dmg, actionEl){
     return 0;
   }
   // バリア(shield)があればまずバリアを削る
-  if((tgt.shield||0) > 0 && dmg>0){
-    const shieldDmg = Math.min(tgt.shield, dmg);
-    tgt.shield = Math.max(0, tgt.shield - shieldDmg);
-    const remainDmg = dmg - shieldDmg;
-    if(actionEl && shieldDmg>0){
-      actionEl.innerHTML = '<span style="color:#80c0ff;font-weight:800;">🛡️ バリア '+(shieldDmg>0?'-'+shieldDmg.toLocaleString():'全吸収')+'！</span>';
-    }
-    if(remainDmg > 0){
-      tgt.hp = Math.max(0, tgt.hp - remainDmg);
-    }
+  if((tgt.shield||0)>0&&dmg>0){
+    const sd=Math.min(tgt.shield,dmg);
+    tgt.shield=Math.max(0,tgt.shield-sd);
+    const rd=dmg-sd;
+    if(rd>0) tgt.hp=Math.max(0,tgt.hp-rd);
     updatePartyHP();
     return dmg;
   }
@@ -5504,296 +5395,212 @@ COMBO_TYPE_BONUS['none'] = 0.20; // 無属性コンボ+20%
 function closePartyCharDetail(){ const ov=document.getElementById('party-char-detail-ov'); if(ov) ov.classList.remove('show'); }
 
 
-
-// リバース方式手札補充：使ったカードのみ新しいカードで補充
+// ================================================================
+// リバース方式手札補充：使ったカードのみ補充
+// ================================================================
 function replenishHand(aliveIds){
-  // 使用済みカードを除去・selectedリセット
-  BT.hand = BT.hand.filter(c=>!c.used);
-  BT.hand.forEach(c=>{ c.selected=false; });
-  BT.selectedOrder = [];
+  // 使用済みカードを除去・未使用は左に残す
+  BT.hand=BT.hand.filter(c=>!c.used);
+  BT.hand.forEach(c=>{c.selected=false; c._isNew=false;});
+  BT.selectedOrder=[];
+  // 死亡キャラのカードを除去（Ultは残す）
+  BT.hand=BT.hand.filter(c=>aliveIds.includes(c.charId)||c.isUlt);
 
-  // 各キャラのカード枚数をカウントして不足分を補充
+  const ultCards=BT.hand.filter(c=>c.isUlt);
+  const normalCards=BT.hand.filter(c=>!c.isUlt);
+
+  // キャラごとの現在枚数を確認し、3枚未満なら不足分だけ補充
+  const newCards=[];
   aliveIds.forEach(id=>{
-    const ch = CHARS.find(c=>c.id===id); if(!ch) return;
-    const memberData = BT.partyHp.find(m=>m.id===id);
-    const actualAtk = memberData ? memberData.atk : ch.atk;
-    const existing = BT.hand.filter(c=>c.charId===id && !c.isUlt);
-    const current = existing.length;
-    const need = CARDS_PER_MEMBER - current;
+    const ch=CHARS.find(c=>c.id===id); if(!ch) return;
+    const memberData=BT.partyHp.find(m=>m.id===id);
+    const actualAtk=memberData?memberData.atk:ch.atk;
+    const currentCount=normalCards.filter(c=>c.charId===id).length;
+    const need=CARDS_PER_MEMBER-currentCount; // 3枚未満なら不足分を補充
+    if(need<=0) return; // 既に3枚あれば出さない
 
     for(let i=0;i<need;i++){
-      const _rHealerDef = getHealerCard(id, 1);
-      if(_rHealerDef){
-        // ヒーラー：既存カードのランクアップ
-        // 同じカード名が手札にあればランクアップ
-        const newHealDef = getHealerCard(id, 1);
-        const existHeal = newHealDef ? BT.hand.find(c=>c.name===newHealDef.name&&(c.cardRank||1)<3) : null;
-        if(existHeal){
-          const newRank = Math.min(5,(existHeal.cardRank||1)+1);
-          existHeal.cardRank = newRank;
-          existHeal._rankUp = true;
-          const upgDef = getHealerCard(id, newRank);
-          if(upgDef){
-            existHeal.name = upgDef.name;
-            existHeal.emoji = upgDef.emoji;
-            existHeal.healRate = upgDef.healRate||0.10;
-            existHeal.healType = upgDef.type;
-            existHeal.shieldRate = upgDef.shieldRate||0;
-            existHeal.isShieldCard = upgDef.type==='shield';
-          }
-        }
-        const _newHc = buildHealerCardObj(_rHealerDef, id, ch, actualAtk, 1);
-        _newHc._isNew = true;
-        BT.hand.push(_newHc);
+      const hDef=getHealerCard(id,1);
+      if(hDef){
+        const nc=buildHealerCardObj(hDef,id,ch,actualAtk,1);
+        nc._isNew=true; newCards.push(nc);
       } else {
-        const newCard = getCardForChar(ch.attribute);
-        // 同一カード（同名・同comboType）が既にあれば★ランクアップ
-        // ※キャラが違っても同じカードなら対象（同名かつ同属性）
-        const sameCard = BT.hand.find(c=>
-          c.name===newCard.name &&
-          c.comboType===newCard.comboType &&
-          !c.isUlt && (c.cardRank||1)<3
-        );
-        if(sameCard){
-          const newRank = Math.min(5,(sameCard.cardRank||1)+1);
-          sameCard.cardRank = newRank;
-          sameCard._rankUp = true;
-          const _repMul = newRank>=5?5.0:newRank>=4?3.5:newRank>=3?2.5:newRank>=2?1.6:1.0;
-          sameCard.dmg = (sameCard._baseDmg||sameCard.dmg) * _repMul;
-        }
-        // 常に新カードを追加
-        BT.hand.push({
-          ...newCard,
-          charId:id,charName:ch.name,charAtk:actualAtk,
-          cardRank:1,_baseDmg:newCard.dmg,
-          used:false,selected:false,_isNew:true
-        });
+        const newCard=getCardForChar(ch.attribute);
+        newCards.push({...newCard,charId:id,charName:ch.name,charAtk:actualAtk,
+          cardRank:1,_baseDmg:newCard.dmg,used:false,selected:false,_isNew:true});
       }
     }
   });
-  // 死亡キャラのカードを除去（Ultは残す）
-  BT.hand = BT.hand.filter(c=>aliveIds.includes(c.charId)||c.isUlt);
 
+  // 新カードをシャッフル（属性出現率は維持）
+  for(let i=newCards.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [newCards[i],newCards[j]]=[newCards[j],newCards[i]];
+  }
+
+  // 未使用カードを左・新カードを右・Ultを末尾
+  BT.hand=[...normalCards,...newCards,...ultCards];
+
+  // 隣接融合チェック
+  autoFuseAdjacentCards();
   buildMergeGroups();
   renderHand();
   updateComboGauge();
 }
 
+// 隣接する同名・同ランクカードを自動融合
+function autoFuseAdjacentCards(){
+  const hand=BT.hand;
+  for(let i=0;i<hand.length-1;i++){
+    const a=hand[i],b=hand[i+1];
+    if(a.used||b.used||a.isUlt||b.isUlt) continue;
+    const sameName=a.name===b.name&&(a.cardRank||1)===(b.cardRank||1)&&(a.cardRank||1)<5;
+    const sameType=a.isHeal||a.isShieldCard?(a.charId===b.charId):(a.comboType===b.comboType);
+    if(sameName&&sameType){
+      const nr=Math.min(5,(a.cardRank||1)+1);
+      // aをランクアップ
+      a.cardRank=nr; a._rankUp=true;
+      const mul=nr>=5?5.0:nr>=4?3.5:nr>=3?2.5:1.6;
+      a.dmg=(a._baseDmg||a.dmg)*mul;
+      if(a.isHeal||a.isShieldCard){
+        const ud=getHealerCard(a.charId,nr);
+        if(ud){a.name=ud.name;a.emoji=ud.emoji;a.healRate=ud.healRate||0;a.healType=ud.type;a.shieldRate=ud.shieldRate||0;a.isShieldCard=ud.type==='shield'||ud.type==='shieldHeal';a.isHeal=ud.type!=='shield';}
+      }
+      // bはランクアップ済みの新★1カードに差し替え（枚数を維持）
+      const fuseChar=CHARS.find(c=>c.id===b.charId);
+      if(fuseChar){
+        const fm=BT.partyHp&&BT.partyHp.find(m=>m.id===b.charId);
+        const fa=fm?fm.atk:fuseChar.atk;
+        const fhd=getHealerCard(b.charId,1);
+        if(fhd){
+          const nc=buildHealerCardObj(fhd,b.charId,fuseChar,fa,1);
+          nc._isNew=true;
+          hand[i+1]=nc; // 削除せず差し替え
+        } else {
+          const nc=getCardForChar(fuseChar.attribute);
+          hand[i+1]={...nc,charId:b.charId,charName:fuseChar.name,charAtk:fa,cardRank:1,_baseDmg:nc.dmg,used:false,selected:false,_isNew:true};
+        }
+      }
+      i--; // 再チェック（差し替えたカードで再度融合できる可能性）
+    }
+  }
+}
 
-// ヒーラーカードオブジェクト生成
-function buildHealerCardObj(def, charId, ch, actualAtk, rank){
-  return {
-    name: def.name,
-    emoji: def.emoji,
-    dmg: 0,
-    comboType: 'none',
-    charId: charId,
-    charName: ch ? ch.name : '???',
-    charAtk: actualAtk,
-    isHeal: def.type !== 'shield',
-    isShieldCard: def.type === 'shield' || def.type === 'shieldHeal',
-    isShieldHeal: def.type === 'shieldHeal', // バリア＋回復兼用
-    healRate: def.healRate || 0,
-    healType: def.type || 'single',
-    shieldRate: def.shieldRate || 0,
-    shieldExtra: def.shield || false,
-    cardRank: rank||1,
-    _baseDmg: 0,
-    used: false, selected: false
-  };
+// カード名でグループ化（マージ表示用）
+function buildMergeGroups(){
+  BT.hand.forEach(c=>{c.mergeGroup=null;});
 }
 
 function drawHand(ids){
   BT.hand=[];
   BT.selectedOrder=[];
   MAX_SELECT=getPartyMaxSelect();
+  // 全カードを生成してからシャッフル（属性出現率は維持）
+  const allCards=[];
   ids.forEach(id=>{
     const ch=CHARS.find(c=>c.id===id);if(!ch)return;
-    const memberData = BT.partyHp.find(m=>m.id===id);
-    const actualAtk = memberData ? memberData.atk : ch.atk;
+    const memberData=BT.partyHp.find(m=>m.id===id);
+    const actualAtk=memberData?memberData.atk:ch.atk;
     for(let i=0;i<CARDS_PER_MEMBER;i++){
-      // ヒーラーキャラは固有ヒールカードを生成
-      const _healerDef = getHealerCard(id, 1);
-      if(_healerDef){
-        const _hc = buildHealerCardObj(_healerDef, id, ch, actualAtk, 1);
-        BT.hand.push(_hc);
+      const hDef=getHealerCard(id,1);
+      if(hDef){
+        const hc=buildHealerCardObj(hDef,id,ch,actualAtk,1);
+        hc._isNew=true; allCards.push(hc);
       } else {
-        const c=getCardForChar(ch.attribute);
-        BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,cardRank:1,_baseDmg:c.dmg,used:false,selected:false});
+        const c=getCardForChar(ch.attribute); // 属性70%・無属性15%・ランダム15%
+        allCards.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,cardRank:1,_baseDmg:c.dmg,used:false,selected:false,_isNew:true});
       }
     }
   });
-  // 同キャラのカードをマージ候補としてグループ化
+  // Fisher-Yatesシャッフル
+  for(let i=allCards.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [allCards[i],allCards[j]]=[allCards[j],allCards[i]];
+  }
+  BT.hand=allCards;
+  autoFuseAdjacentCards();
   buildMergeGroups();
   renderHand();
   updateComboGauge();
-}
-
-// マージグループ構築（同キャラの複数カードをマージ可能にする）
-function buildMergeGroups(){
-  BT.hand.forEach(c=>{ c.mergeGroup=null; });
-  // 隣接する同名・同ランクカードを自動融合（1回のみ）
-  autoFuseAdjacentCards();
-}
-
-// 隣接する同名・同ランクカードを融合してランクアップ
-function autoFuseAdjacentCards(){
-  const hand = BT.hand;
-  let fuseCount = 0;
-  for(let i=0; i<hand.length-1; i++){
-    const a = hand[i];
-    const b = hand[i+1];
-    if(a.used||b.used||a.isUlt||b.isUlt) continue;
-    // 同名・同ランクが隣り合っていたら融合
-    if(a.name===b.name && a.comboType===b.comboType &&
-       (a.cardRank||1)===(b.cardRank||1) && (a.cardRank||1)<3){
-      const newRank = Math.min(5,(a.cardRank||1)+1);
-      a.cardRank = newRank;
-      a._rankUp = true;
-      const _fuseMul = newRank>=5?5.0:newRank>=4?3.5:newRank>=3?2.5:newRank>=2?1.6:1.0;
-      a.dmg = (a._baseDmg||a.dmg) * _fuseMul;
-      if(a.isHeal||a.isShieldCard){
-        const upgDef = getHealerCard(a.charId, newRank);
-        if(upgDef){
-          a.name=upgDef.name; a.emoji=upgDef.emoji;
-          a.healRate=upgDef.healRate||0.10; a.healType=upgDef.type;
-          a.shieldRate=upgDef.shieldRate||0;
-          a.isShieldCard=upgDef.type==='shield';
-          a.isHeal=upgDef.type!=='shield';
-        }
-      }
-      // bのcharIdを記録してから削除（融合後に補充カードを追加）
-      const fuseCharId = b.charId;
-      hand.splice(i+1,1);
-      fuseCount++;
-      // 融合で消えた枠に新しいカードを末尾に補充
-      const fuseChar = CHARS.find(c=>c.id===fuseCharId);
-      if(fuseChar){
-        const fuseMember = BT.partyHp.find(m=>m.id===fuseCharId);
-        const fuseAtk = fuseMember ? fuseMember.atk : fuseChar.atk;
-        const fuseHealDef = getHealerCard(fuseCharId, 1);
-        if(fuseHealDef){
-          const nc = buildHealerCardObj(fuseHealDef, fuseCharId, fuseChar, fuseAtk, 1);
-          nc._isNew = true;
-          hand.push(nc);
-        } else {
-          const nc = getCardForChar(fuseChar.attribute);
-          hand.push({...nc, charId:fuseCharId, charName:fuseChar.name,
-            charAtk:fuseAtk, cardRank:1, _baseDmg:nc.dmg,
-            used:false, selected:false, _isNew:true});
-        }
-      }
-      i--; // 再チェック
-    }
-  }
+  if(BT.ultStacks) setTimeout(()=>updatePartyHP(),200);
 }
 
 function renderHand(){
   const row = document.getElementById('cards-row');
-  const paraIds  = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'  &&s.turns>0)).map(m=>m.id));
+  const paraIds   = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'   &&s.turns>0)).map(m=>m.id));
+  const poisonIds = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='poison' &&s.turns>0)).map(m=>m.id));
+  const burnIds   = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='burn'   &&s.turns>0)).map(m=>m.id));
   const freezeIds= new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0)).map(m=>m.id));
   row.innerHTML = BT.hand.map((c,i)=>{
     const isHealCard  = c.isHeal || c.isShieldCard;
-    const healRankMul = 1.0; // healRateにランク分を直接反映済み
-    const healAmt     = c.isShieldCard
-      ? Math.round((BT.partyHp[0]?.maxHp||1000)*(c.shieldRate||0.10)*healRankMul)
-      : isHealCard ? Math.round(c.charAtk*(c.healRate||0.15)*healRankMul) : 0;
+    // バリアカード：avgMaxHpベースで表示値計算
+    const avgMaxHp = BT.partyHp&&BT.partyHp.length>0
+      ? Math.round(BT.partyHp.reduce((s,m)=>s+(m.maxHp||1000),0)/BT.partyHp.length) : 1000;
+    const healAmt = c.isShieldCard
+      ? Math.round(avgMaxHp*(c.shieldRate||0.10))
+      : isHealCard ? Math.round(c.charAtk*(c.healRate||0)) : 0;
     const d   = isHealCard ? healAmt : Math.round(c.charAtk * c.dmg);
-    const healTypeLabel = c.isShieldCard?'🛡️':c.healType==='all'?'全体':'単体';
-    const col = c.isShieldCard?'#80c0ff':isHealCard ? '#40e080' : (c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)');
+    const col = c.isShieldCard ? '#80c0ff' : isHealCard ? '#40e080' : (c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)');
     const orderIdx  = BT.selectedOrder.indexOf(i);
     const orderBadge= c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
     const comboCls  = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
     const COMBO_LABELS = {fire:'🔥炎',ice:'❄️氷',thunder:'⚡雷',water:'🌊水',dark:'🌑闇',light:'✨光',none:'⚪無属性'};
     const comboLabel = `<div class="card-combo-badge ${comboCls}">${COMBO_LABELS[c.comboType]||c.comboType}</div>`;
 
-    const isParaCard    = paraIds.has(c.charId);
-    const isFreezeCard  = freezeIds.has(c.charId);
-    const isPoisonCard  = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='poison'&&s.turns>0)).map(m=>m.id)).has(c.charId);
-    const isBurnCard    = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='burn'&&s.turns>0)).map(m=>m.id)).has(c.charId);
+    const isParaCard   = paraIds.has(c.charId);
+    const isFreezeCard = freezeIds.has(c.charId);
+    const isPoison     = poisonIds.has(c.charId);
+    const isBurn       = burnIds.has(c.charId);
     const isSpecialCard = c.isSpecial;
 
-    // カードランク
-    const cardRank = c.cardRank||1;
-    const rankUpAnim = c._rankUp ? 'animation:cardSlideIn .4s ease both;' : '';
-
-    // カードスタイル
-    var cardStyle = 'position:relative;'+rankUpAnim;
-    if(isSpecialCard){
-    } else if(isFreezeCard){
-      cardStyle += 'border-color:rgba(80,180,255,.8);box-shadow:0 0 10px rgba(80,180,255,.5);background:rgba(0,30,80,.7);opacity:.7;';
-    } else if(cardRank>=5){
-      cardStyle += 'border-color:rgba(255,220,80,1);box-shadow:0 0 28px rgba(255,200,0,.9);background:rgba(60,40,0,.8);';
-    } else if(cardRank>=4){
-      cardStyle += 'border-color:rgba(80,200,255,.95);box-shadow:0 0 22px rgba(40,180,255,.7);background:rgba(0,40,70,.7);';
-    } else if(isHealCard && cardRank>=3){
-      cardStyle += 'border-color:rgba(255,80,200,.8);box-shadow:0 0 12px rgba(255,80,200,.5);background:rgba(50,0,40,.6);';
-    } else if(isHealCard && cardRank>=2){
-      cardStyle += 'border-color:rgba(255,200,0,.7);box-shadow:0 0 10px rgba(255,200,0,.4);background:rgba(40,30,0,.5);';
-    } else if(isHealCard){
-      cardStyle += 'border-color:rgba(40,200,100,.6);box-shadow:0 0 6px rgba(40,200,100,.3);background:rgba(0,40,20,.5);';
-    } else if(cardRank>=3){
-      cardStyle += 'border-color:rgba(255,80,200,.85);box-shadow:0 0 16px rgba(255,60,180,.6);background:rgba(50,0,40,.6);';
-    } else if(cardRank>=2){
-      cardStyle += 'border-color:rgba(255,200,0,.75);box-shadow:0 0 12px rgba(255,180,0,.5);background:rgba(50,35,0,.55);';
-    } else if(isParaCard){
-      cardStyle += 'border-color:rgba(220,180,0,.6);box-shadow:0 0 6px rgba(220,180,0,.3);';
-    } else if(isBurnCard){
-      cardStyle += 'border-color:rgba(220,80,20,.6);box-shadow:0 0 6px rgba(220,80,20,.3);';
-    } else if(isPoisonCard){
-      cardStyle += 'border-color:rgba(80,200,20,.6);box-shadow:0 0 6px rgba(80,200,20,.3);';
-    }
-
-    // ランクバッジ
-    const _RANK_BADGE_STYLES = {
-      2:'background:linear-gradient(90deg,#c07000,#ffe040);box-shadow:0 0 8px rgba(255,180,0,.8);',
-      3:'background:linear-gradient(90deg,#c000a0,#ff60e0);box-shadow:0 0 10px rgba(255,80,220,.8);',
-      4:'background:linear-gradient(90deg,#0060c0,#40c0ff);box-shadow:0 0 12px rgba(40,180,255,.8);',
-      5:'background:linear-gradient(90deg,#c08000,#ffe060,#ffa000);box-shadow:0 0 14px rgba(255,200,0,1);',
-    };
-    const _RANK_STARS = {1:'',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
-    const rankBadge = cardRank>=2
-      ? `<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:${cardRank>=5?'8':'9'}px;font-weight:900;padding:1px 8px;border-radius:99px;${_RANK_BADGE_STYLES[cardRank]||_RANK_BADGE_STYLES[2]}color:#fff;white-space:nowrap;z-index:5;">${_RANK_STARS[cardRank]||''}</div>`
-      : '';
+    // 星レベル
+    const cardRk=c.cardRank||1;
+    const STAR_CHARS={1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+    const STAR_CLS={2:'s2',3:'s3',4:'s4',5:'s5'};
+    const starCls=cardRk>=5?'star5':cardRk>=4?'star4':cardRk>=3?'star3':cardRk>=2?'star2':'';
+    const starBadge=cardRk>=2?`<div class="star-badge ${STAR_CLS[cardRk]||'s2'}">${STAR_CHARS[cardRk]||'★'}</div>`:'';
+    const isNewCard=!!c._isNew;
+    const slideDelay=isNewCard?`animation-delay:${i*55}ms;`:'';
 
     // バッジ
-    const paraBadge    = isParaCard   ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.9);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">⚡麻痺</div>' : '';
-    const poisonBadge  = isPoisonCard && !isParaCard ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(40,120,0,.9);color:#80ff40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">☠️毒</div>' : '';
-    const burnBadge    = isBurnCard && !isParaCard && !isPoisonCard ? '<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,50,0,.9);color:#ffaa40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">🔥炎症</div>' : '';
-    // 凍結はカード全体を氷のオーバーレイで覆う
-    const freezeOverlay = isFreezeCard ? '<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>' : '';
+    const paraBadge  =isParaCard   ?'<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,130,0,.9);color:#ffe860;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">⚡麻痺</div>':'';
+    const poisonBadge=isPoison&&!isParaCard?'<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(40,120,0,.9);color:#80ff40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">☠️毒</div>':'';
+    const burnBadge  =isBurn&&!isParaCard&&!isPoison?'<div style="position:absolute;top:2px;right:2px;font-size:8px;background:rgba(160,50,0,.9);color:#ffaa40;border-radius:3px;padding:1px 3px;font-weight:700;z-index:3;">🔥炎症</div>':'';
+    const freezeOverlay=isFreezeCard?'<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>':'';
 
-    // カードの現在のランク（cardRankに基づく・選択状態とは無関係）
-    const cardRk = c.cardRank||1;
-    const mergeCls = cardRk>=5?'star5':cardRk>=4?'star4':cardRk>=3?'star3':cardRk>=2?'star2':'';
-    const STAR_CHARS = {1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
-    const STAR_CLS   = {1:'',2:'s2',3:'s3',4:'s4',5:'s5'};
-    // ランクバッジは常時表示（選択状態無関係）
-    const mergeBadge = cardRk>=2
-      ? `<div class="star-badge ${STAR_CLS[cardRk]||'s2'}">${STAR_CHARS[cardRk]||'★'}</div>` : '';
-    // ★ランクに応じた威力倍率
-    const starMul = cardRk>=5?5.0:cardRk>=4?3.5:cardRk>=3?2.5:cardRk>=2?1.6:1.0;
-    const displayD = isHealCard?d:Math.round(d*starMul);
-    const displayCol = cardRk>=5?'#ffdd00':cardRk>=4?'#60d8ff':cardRk>=3?'#ff80e0':cardRk>=2?'#ffe040':col;
+    // カードスタイル
+    var cardStyle='position:relative;';
+    if(cardRk>=5)      cardStyle+='border-color:rgba(255,220,80,1);background:rgba(60,40,0,.8);';
+    else if(cardRk>=4) cardStyle+='border-color:rgba(80,200,255,.95);background:rgba(0,40,70,.7);';
+    else if(cardRk>=3) cardStyle+='border-color:rgba(255,80,200,.85);background:rgba(50,0,40,.6);';
+    else if(cardRk>=2) cardStyle+='border-color:rgba(255,200,0,.75);background:rgba(50,35,0,.55);';
+    else if(isFreezeCard) cardStyle+='border-color:rgba(80,180,255,.8);background:rgba(0,30,80,.7);opacity:.7;';
+    else if(isHealCard)   cardStyle+='border-color:rgba(40,200,100,.6);background:rgba(0,40,20,.5);';
+    else if(isParaCard)   cardStyle+='border-color:rgba(220,180,0,.6);';
+    else if(isBurn)       cardStyle+='border-color:rgba(220,80,20,.6);';
+    else if(isPoison)     cardStyle+='border-color:rgba(80,200,20,.6);';
 
-    const isNewCard = !!c._isNew;
-    const slideDelay = isNewCard ? `animation-delay:${i*55}ms;` : '';
-    // Ultカードの特殊表示
+    // Ultカード
     if(c.isUlt){
-      return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isNewCard?'slide-in':''}"
-        style="border-color:rgba(255,200,0,.9)!important;background:linear-gradient(180deg,rgba(80,50,0,.7),rgba(40,20,0,.6))!important;box-shadow:0 0 18px rgba(255,180,0,.7)!important;position:relative;${slideDelay}"
-        onclick="toggleCard(${i})"
-        ontouchstart="startLongPress(${i})" ontouchend="endLongPress()" onmousedown="startLongPress(${i})" onmouseup="endLongPress()" onmouseleave="endLongPress()">
-        <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#ff8000,#ffcc00);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,180,0,.8);">⚡必殺</div>
+      return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ult-card-pulse"
+        style="border-color:rgba(255,200,0,.9)!important;background:linear-gradient(180deg,rgba(80,50,0,.7),rgba(40,20,0,.6))!important;position:relative;${slideDelay}"
+        onclick="toggleCard(${i})" onmousedown="startLongPress(${i})" onmouseup="endLongPress()" onmouseleave="endLongPress()" ontouchstart="startLongPress(${i})" ontouchend="endLongPress()">
+        <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#ff8000,#ffcc00);color:#fff;white-space:nowrap;z-index:5;">⚡必殺</div>
         ${c.selected?`<div class="selected-order">${BT.selectedOrder.indexOf(i)+1}</div>`:''}
         <div style="font-size:22px;">${c.emoji}</div>
         <div style="font-size:7px;color:#ffe080;text-align:center;font-weight:700;">${c.name}</div>
         <div style="font-size:8px;color:#ffcc00;font-weight:800;">ULTIMATE</div>
-        <div style="font-size:6px;color:rgba(255,200,100,.7);text-align:center;">${c.charName}</div>
+        <div style="font-size:6px;color:rgba(255,200,100,.7);">${c.charName}</div>
       </div>`;
     }
-    const isNewCard2 = isNewCard;
-    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isSpecialCard?'special-card':''} ${mergeCls} ${isNewCard2?'slide-in':''}" 
+
+    // 威力表示
+    const starMul=cardRk>=5?5.0:cardRk>=4?3.5:cardRk>=3?2.5:cardRk>=2?1.6:1.0;
+    const dispD=isHealCard?d:Math.round(d*starMul);
+    const dispCol=cardRk>=5?'#ffdd00':cardRk>=4?'#60d8ff':cardRk>=3?'#ff80e0':cardRk>=2?'#ffe040':col;
+    const healTypeLabel=c.isShieldCard?'🛡️':c.healType==='all'?'全':'単';
+
+    return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${isSpecialCard?'special-card':''} ${starCls} ${isNewCard?'slide-in':''}"
       style="${cardStyle}${slideDelay}"
       onclick="toggleCard(${i})"
       onmousedown="startLongPress(${i})"
@@ -5801,22 +5608,21 @@ function renderHand(){
       onmouseleave="endLongPress()"
       ontouchstart="startLongPress(${i})"
       ontouchend="endLongPress()">
-      ${rankBadge}
-      ${mergeBadge}
+      ${starBadge}
       ${orderBadge}
       ${paraBadge}${poisonBadge}${burnBadge}
       ${freezeOverlay}
       ${isSpecialCard?'<div class="special-badge">✨特殊</div>':''}
-      <div class="card-em" style="${isFreezeCard?'filter:grayscale(.5);':''}">${isHealCard?'💚':c.emoji}</div>
+      <div class="card-em" style="${isFreezeCard?'filter:grayscale(.5);':''}">${c.emoji||'⚔️'}</div>
       <div class="card-nm">${c.name}</div>
-      <div class="card-dmg" style="color:${displayCol}">${isSpecialCard?'✨特殊':(c.isShieldCard?'🛡️+'+d:(isHealCard?healTypeLabel+'💊+'+d:displayD))}</div>
+      <div class="card-dmg" style="color:${dispCol}">${isSpecialCard?'✨特殊':(c.isShieldCard?'🛡️+'+d:(isHealCard?healTypeLabel+'💊+'+d:dispD))}</div>
       ${isHealCard?'':comboLabel}
       <div class="card-own">${c.charName}</div>
     </div>`;
-  }).join('');
 
-  // _isNewフラグをクリア（スライド演出は1回のみ）
-  BT.hand.forEach(c=>{ c._isNew=false; c._rankUp=false; });
+  }).join('');
+  // _isNew/_rankUpフラグクリア
+  BT.hand.forEach(c=>{c._isNew=false;c._rankUp=false;});
   // 選択枚数表示
   const n = BT.hand.filter(c=>c.selected).length;
   const info = document.getElementById('card-select-info');
@@ -5882,14 +5688,45 @@ function toggleCard(i){
     BT.selectedOrder = BT.selectedOrder.filter(idx=>idx!==i);
   }
   sfx('select');
-  // 同キャラのカードをマージ候補としてグループ化
-  buildMergeGroups();
+  // 隣接融合リアルタイムチェック（選択中でないカード同士のみ）
+  if(checkAndFuseRealtime()) buildMergeGroups();
   renderHand();
   updateComboGauge();
 }
 
-// マージグループ構築（同キャラの複数カードをマージ可能にする）
-
+// リアルタイム融合：隣接する同名・同ランクを即融合
+function checkAndFuseRealtime(){
+  const hand=BT.hand;
+  let fused=false;
+  for(let i=0;i<hand.length-1;i++){
+    const a=hand[i],b=hand[i+1];
+    if(a.used||b.used||a.isUlt||b.isUlt||a.selected||b.selected) continue;
+    const sameName=a.name===b.name&&(a.cardRank||1)===(b.cardRank||1)&&(a.cardRank||1)<5;
+    const sameType=(a.isHeal||a.isShieldCard)?(a.charId===b.charId):(a.comboType===b.comboType);
+    if(sameName&&sameType){
+      const nr=Math.min(5,(a.cardRank||1)+1);
+      a.cardRank=nr; a._rankUp=true;
+      const mul=nr>=5?5.0:nr>=4?3.5:nr>=3?2.5:1.6;
+      a.dmg=(a._baseDmg||a.dmg)*mul;
+      if(a.isHeal||a.isShieldCard){
+        const ud=getHealerCard(a.charId,nr);
+        if(ud){a.name=ud.name;a.emoji=ud.emoji;a.healRate=ud.healRate||0;a.healType=ud.type;a.shieldRate=ud.shieldRate||0;a.isShieldCard=ud.type==='shield'||ud.type==='shieldHeal';a.isHeal=ud.type!=='shield';}
+      }
+      // bを新★1カードに差し替え（枚数維持）
+      const fuseChar=CHARS.find(c=>c.id===b.charId);
+      if(fuseChar){
+        const fm=BT.partyHp&&BT.partyHp.find(m=>m.id===b.charId);
+        const fa=fm?fm.atk:fuseChar.atk;
+        const fhd=getHealerCard(b.charId,1);
+        if(fhd){hand[i+1]=buildHealerCardObj(fhd,b.charId,fuseChar,fa,1);}
+        else{const nc=getCardForChar(fuseChar.attribute);hand[i+1]={...nc,charId:b.charId,charName:fuseChar.name,charAtk:fa,cardRank:1,_baseDmg:nc.dmg,used:false,selected:false};}
+        hand[i+1]._isNew=true;
+      }
+      fused=true; i--;
+    }
+  }
+  return fused;
+}
 
 function updateComboGauge(){
   updateComboGaugeFor(
@@ -6029,74 +5866,41 @@ function executeAttack(){
   let totalHeal = 0;
   let cb = 1.0;
   var specialsToExec = [];
-  // 星レベル計算：同キャラのカード枚数で★1/2/3を決定
-  const starGroupCounts={};
-  sel.forEach(c=>{ if(c.mergeGroup) starGroupCounts[c.mergeGroup]=(starGroupCounts[c.mergeGroup]||0)+1; });
-
   sel.forEach(c=>{
-    if(c.isUlt){
-      // Ultカードは通常のコンボ後にエフェクト発動（ダメージは別途）
-      BT.ultStacks[c.charId]=0; // ゲージリセット
-      c.used=true; c.selected=false;
-      setTimeout(()=>activateUlt_effect(c.charId, c.ultDef, BT.partyHp.find(m=>m.id===c.charId)), btDelay(400));
-    } else if(c.isSpecial){
+    if(c.isSpecial){
+      // 特殊カードは後でまとめて実行
       specialsToExec.push(c);
-    } else if(c.isHeal || c.isShieldCard){
-      const rankMul = 1.0; // healRateにランク分を直接反映済み
-      const alive = BT.partyHp.filter(m=>m.hp>0);
-      if(c.isShieldCard){
-        // バリアカード（グラン）：味方全員にシールド付与
-        const aliveM = BT.partyHp.filter(m=>m.hp>0);
-        const avgMaxHp = aliveM.reduce((s,m)=>s+m.maxHp,0) / Math.max(1,aliveM.length);
-        const shieldAmt = Math.round(avgMaxHp * (c.shieldRate||0.10) * rankMul);
-        aliveM.forEach(m=>{ m.shield=(m.shield||0)+shieldAmt; });
-        totalHeal += shieldAmt;
-        // shieldHeal（深海の守護）はバリア＋回復も
-        if(c.isShieldHeal && c.healRate>0){
-          const healAmt2 = Math.round(c.charAtk*(c.healRate||0.05)*rankMul);
-          aliveM.forEach(m=>{ m.hp=Math.min(m.maxHp,m.hp+healAmt2); });
-          showSpecialAtkBanner('⚒️ '+c.name+'！バリア+'+shieldAmt.toLocaleString()+'＋回復+'+healAmt2.toLocaleString()+'！', '#ffc060');
-        } else {
-          showSpecialAtkBanner('🛡️ '+c.name+'！味方全員にバリア+'+shieldAmt.toLocaleString()+'付与！', '#80c0ff');
-        }
-        updatePartyHP();
-      } else {
-        const healAmt = Math.round(c.charAtk * (c.healRate||0.15) * rankMul);
-        if(c.healType==='all'){
-          // 全体回復
-          alive.forEach(m=>{ m.hp=Math.min(m.maxHp, m.hp+healAmt); });
-          totalHeal += healAmt;
-        } else {
-          // 最もHPの低い味方を回復
-          const weakest = alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b, alive[0]);
-          if(weakest){ weakest.hp=Math.min(weakest.maxHp, weakest.hp+healAmt); totalHeal+=healAmt; }
-        }
-        // ネレイスの深海の奔流：被ダメ軽減フラグ
-        if(c.shieldExtra){ BT._nereisShield=true; }
-      }
-      BT.combo = Math.max(0, BT.combo);
-      if(c.charId) addUltStack(c.charId);
+    } else if(c.isUlt){
+      // Ultカード処理
+      BT.ultStacks[c.charId]=0; updatePartyHP();
       c.used=true; c.selected=false;
-    } else {
-      const grpCnt = c.mergeGroup ? (starGroupCounts[c.mergeGroup]||1) : 1;
-      // 星レベル倍率：★1=×1.0、★2=×1.6、★3=×2.5
-      // 実際の威力はcardRankで管理、grpCntは選択時マージなし
-      const starMul = 1.0; // rankはcardRankに反映済み
-      const grpIdx = c.mergeGroup ? sel.filter(x=>x.mergeGroup===c.mergeGroup).indexOf(c) : 0;
-      if(c.mergeGroup && grpIdx > 0){
-        // ★2・★3の2枚目・3枚目はスキップ（倍率は1枚目に集約）
-        c.used=true; c.selected=false;
+      setTimeout(()=>activateUlt_effect(c.charId,c.ultDef,BT.partyHp.find(m=>m.id===c.charId)),btDelay(400));
+    } else if(c.isHeal||c.isShieldCard){
+      const alive=BT.partyHp.filter(m=>m.hp>0);
+      if(c.isShieldCard){
+        const avg=alive.reduce((s,m)=>s+m.maxHp,0)/Math.max(1,alive.length);
+        const sa=Math.round(avg*(c.shieldRate||0.10));
+        alive.forEach(m=>{m.shield=(m.shield||0)+sa;}); totalHeal+=sa;
+        if(c.isShieldHeal&&c.healRate>0){ const ha=Math.round(c.charAtk*(c.healRate||0)); alive.forEach(m=>{m.hp=Math.min(m.maxHp,m.hp+ha);}); }
+        updatePartyHP();
+        showSpecialAtkBanner('🛡️ '+c.name+'！バリア付与！','#80c0ff');
       } else {
-        const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus) * starMul);
-        total += dmg;
-        BT.combo++;
-        cb = 1 + BT.combo * 0.1;
-        // Ultスタック加算（攻撃カード使用時）
-        if(c.charId) addUltStack(c.charId);
-        c.used=true; c.selected=false;
+        const healAmt=Math.round(c.charAtk*(c.healRate||0.15));
+        if(c.healType==='all'){ alive.forEach(m=>{m.hp=Math.min(m.maxHp,m.hp+healAmt);}); totalHeal+=healAmt; }
+        else { const weakest=alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b,alive[0]); if(weakest){weakest.hp=Math.min(weakest.maxHp,weakest.hp+healAmt);totalHeal+=healAmt;} }
       }
+      if(c.charId) addUltStack(c.charId);
+      BT.combo=Math.max(0,BT.combo);
+    } else {
+      const starMul=((c.cardRank||1)>=5?5.0:(c.cardRank||1)>=4?3.5:(c.cardRank||1)>=3?2.5:(c.cardRank||1)>=2?1.6:1.0);
+      const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus) * starMul);
+      total += dmg;
+      BT.combo++;
+      cb = 1 + BT.combo * 0.1;
+      if(c.charId) addUltStack(c.charId);
     }
-    if(!c.used){ c.used=true; c.selected=false; }
+    c.used = true;
+    c.selected = false;
   });
   // 特殊カード実行
   var specialAvgAtk = BT.partyHp.reduce(function(s,m){return s+m.atk;},0)/Math.max(BT.partyHp.length,1);
@@ -6177,9 +5981,8 @@ function runAutoTurn(){
         if(a.isHeal && !b.isHeal) return -1;
         if(!a.isHeal && b.isHeal) return 1;
       }
-      // Ult優先：Ultカードは常に先頭
-      if(a.isUlt && !b.isUlt) return -1;
-      if(!a.isUlt && b.isUlt) return 1;
+      // Ult優先
+      if(a.isUlt&&!b.isUlt) return -1; if(!a.isUlt&&b.isUlt) return 1;
       // 通常はダメージ順
       return (b.dmg*(COMBO_TYPE_BONUS[b.comboType]||0.20)+b.dmg) - (a.dmg*(COMBO_TYPE_BONUS[a.comboType]||0.20)+a.dmg);
     });
@@ -6207,8 +6010,6 @@ function runAutoTurn(){
     }
     // 特殊カード：設定がOFFならスキップ
     if(c.isSpecial && !bs.autoSpecial) continue;
-    // Ultカード：常に優先選択（手札にあれば必ず使う）
-    // isUltはそのまま通過
 
     charSelectCount[c.charId] = alreadySel + 1;
     available.push(c);
@@ -6483,8 +6284,8 @@ function afterEnemyAttacks(){
     });
     // トリトスのHP最低優先ボーナス回復
     applyURHealerBonus();
-    // アルテアの緊急回復（1回限り）
     applyAlteaEmergency();
+    applyNereisEmergency();
     updatePartyHP();
   }
 
@@ -6506,7 +6307,7 @@ function afterEnemyAttacks(){
   document.getElementById('battle-turn').textContent=`ターン ${BT.turn}`;
   document.getElementById('combo-disp').textContent='コンボ: 0';
 
-  // 新しい手札を配る（リバース方式：使ったカードのみ補充）
+  // 新しい手札を配る
   const aliveIds = BT.partyHp.filter(m=>m.hp>0).map(m=>m.id);
   replenishHand(aliveIds);
 
@@ -6525,7 +6326,6 @@ function afterEnemyAttacks(){
     BT_PHASE='player';
     const atkBtn=document.getElementById('atk-btn');
     if(atkBtn){ atkBtn.disabled=false; atkBtn.style.opacity='1'; }
-    // 次の敵行動を予告
     generateEnemyIntent();
     if(BT.auto && BT.active) setTimeout(runAutoTurn, 500);
   }, 400);
@@ -6618,150 +6418,28 @@ function updatePartyHP(){
   document.getElementById('party-hp-row').innerHTML=BT.partyHp.map(m=>{
     const ch=CHARS.find(c=>c.id===m.id),pct=m.hp/m.maxHp*100;
     const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
-    const ibMax=m.ironBarrierMax||0,ib=m.ironBarrier||0,ibPct=ibMax>0?(ib/ibMax*100):0;
-    const ibBar=ibMax>0?`<div class="member-hp-bar" style="height:4px;margin-top:4px;background:rgba(255,255,255,.06);"><div class="member-hp-fill" style="width:${ibPct}%;background:linear-gradient(90deg,rgba(200,200,200,.9),rgba(255,220,120,.9));"></div></div><div style="font-size:9px;color:rgba(255,230,160,.8);margin-top:2px;">🗿 ${ib}/${ibMax}</div>`:'';
-    // Ultゲージ（小さく）
-    const def = getUltDef(m.id, ch);
-    const maxStk = def.stacks||3;
-    const stack = Math.min(BT.ultStacks&&BT.ultStacks[m.id]||0, maxStk);
-    const ready = stack>=maxStk;
-    const ultPips = Array.from({length:maxStk},(_,i)=>
-      `<div style="width:${Math.floor(14/maxStk)-1}px;height:3px;border-radius:1px;background:${i<stack?(ready?'#ffcc00':'#8040ff'):'rgba(255,255,255,.1)'};transition:background .2s;"></div>`
-    ).join('');
-    const ultBar = `<div style="display:flex;gap:1px;margin-top:3px;" title="${def.name}">${ultPips}</div>`;
-    // バリアバー（shield）
-    const shield = m.shield||0;
-    const shieldBar = shield>0 ? `<div style="display:flex;align-items:center;gap:3px;margin-top:2px;">
-      <div style="flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:1px;overflow:hidden;">
-        <div style="height:100%;width:100%;background:linear-gradient(90deg,#60a0ff,#a0d0ff);border-radius:1px;"></div>
+    // 鉄像バリア（グラン）
+    const ibMax = m.ironBarrierMax||0;
+    const ib = m.ironBarrier||0;
+    const ibPct = ibMax>0 ? (ib/ibMax*100) : 0;
+    const ibBar = ibMax>0 ? `
+      <div class="member-hp-bar" style="height:4px;margin-top:4px;background:rgba(255,255,255,.06);">
+        <div class="member-hp-fill" style="width:${ibPct}%;background:linear-gradient(90deg,rgba(200,200,200,.9),rgba(255,220,120,.9));"></div>
       </div>
-      <div style="font-size:7px;color:#80c0ff;white-space:nowrap;">🛡️${shield.toLocaleString()}</div>
-    </div>` : '';
-    return`<div class="member-hp"><div class="member-nm">${ch?ch.emoji:''} ${ch?ch.name:m.id}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${Math.max(0,pct)}%;background:${col}"></div></div>${shieldBar}${ibBar}${ultBar}<div class="member-hp-val" style="color:${ready?'#ffcc00':'var(--text3)'};">${ready?'⚡Ult READY':m.hp+'/'+m.maxHp}</div></div>`;
+      <div style="font-size:9px;color:rgba(255,230,160,.8);margin-top:2px;">🗿 鉄像バリア ${ib}/${ibMax}</div>
+    ` : '';
+    // バリアバー
+    const shield=m.shield||0;
+    const shieldBar=shield>0?`<div style="display:flex;align-items:center;gap:3px;margin-top:2px;"><div style="flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:1px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#60a0ff,#a0d0ff);border-radius:1px;"></div></div><div style="font-size:7px;color:#80c0ff;white-space:nowrap;">🛡️${shield.toLocaleString()}</div></div>`:'';
+    // Ultゲージ
+    const _ultDef=getUltDef(m.id,ch);
+    const _maxStk=_ultDef.stacks||3;
+    const _stk=Math.min(BT.ultStacks&&BT.ultStacks[m.id]||0,_maxStk);
+    const _ready=_stk>=_maxStk;
+    const ultPips=Array.from({length:_maxStk},(_,pi)=>`<div style="width:${Math.floor(14/_maxStk)-1}px;height:3px;border-radius:1px;background:${pi<_stk?(_ready?'#ffcc00':'#8040ff'):'rgba(255,255,255,.1)'};"></div>`).join('');
+    const ultBar=`<div style="display:flex;gap:1px;margin-top:3px;">${ultPips}</div>`;
+    return`<div class="member-hp"><div class="member-nm">${ch?ch.emoji:''} ${ch?ch.name:m.id}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${Math.max(0,pct)}%;background:${col}"></div></div>${shieldBar}${ibBar}${ultBar}<div class="member-hp-val" style="color:${_ready?'#ffcc00':'var(--text3)'};">${_ready?'⚡Ult READY':m.hp+'/'+m.maxHp}</div></div>`;
   }).join('');
-}
-
-function updateUltGauge(){
-  // UltゲージはupdatePartyHPで各メンバーパネル内に表示
-  updatePartyHP();
-}
-
-function addUltStack(charId){
-  if(!BT.ultStacks) BT.ultStacks={};
-  const ch = CHARS.find(c=>c.id===charId);
-  const def = getUltDef(charId, ch);
-  const maxStk = def.stacks||3;
-  const prev = BT.ultStacks[charId]||0;
-  if(prev >= maxStk) return; // 既に満タン（カード追加済み）
-  BT.ultStacks[charId] = prev+1;
-  updatePartyHP();
-  // 満タンになったらUltカードを手札に追加
-  if(BT.ultStacks[charId] >= maxStk){
-    addUltCardToHand(charId, ch, def);
-  }
-}
-
-function addUltCardToHand(charId, ch, def){
-  // 既にUltカードが手札にある場合はスキップ
-  if(BT.hand.some(c=>c.isUlt&&c.charId===charId)) return;
-  const member = BT.partyHp.find(m=>m.id===charId);
-  BT.hand.push({
-    name: def.name,
-    emoji: def.emoji||'⚡',
-    dmg: def.mul||0,
-    comboType: 'none',
-    charId: charId,
-    charName: ch?ch.name:'???',
-    charAtk: member?member.atk:(ch?ch.atk:100),
-    isUlt: true,
-    ultDef: def,
-    used: false,
-    selected: false,
-    _isNew: true,
-  });
-  renderHand();
-  showSpecialAtkBanner(`⚡ ${ch?ch.name:'???'}の必殺技が発動可能！`, '#ffcc00');
-  sfx('select');
-}
-
-function activateUlt(charId){
-  // カード追加トリガー（ゲージ満タン時）は addUltStack から呼ばれる
-  // 手動発動は不要（カードとして手札に出るため）
-}
-
-function activateUlt_effect(charId, def, member){
-  if(!BT.active) return;
-  if(!def) {
-    const ch = CHARS.find(c=>c.id===charId);
-    def = getUltDef(charId, ch);
-  }
-  if(!member) member = BT.partyHp.find(m=>m.id===charId);
-  if(!member||member.hp<=0) return;
-  const ch = CHARS.find(c=>c.id===charId);
-  updatePartyHP();
-
-  const ef = def.effect;
-  const name = ch?ch.name:'???';
-
-  if(ef==='ultra_atk'){
-    const dmg = Math.round(member.atk*(def.mul||6.0));
-    const tgt = getAttackTargetIndex();
-    damageEnemy(tgt, dmg);
-    updateEnemyHP();
-    showSpecialAtkBanner(`⚡ ${def.emoji||'⚡'} ${name}「${def.name}」！ ${dmg.toLocaleString()} ダメージ！`, '#ff80ff');
-    sfx('win');
-    if(areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
-
-  } else if(ef==='aoe_atk'){
-    const dmg = Math.round(member.atk*(def.mul||5.0));
-    if(BT_ENEMIES&&BT_ENEMIES.length>0){
-      BT_ENEMIES.forEach((_,i)=>{ if(BT_ENEMIES[i].hp>0) damageEnemy(i,dmg); });
-    } else {
-      BT.enemyHp=Math.max(0,(BT.enemyHp||0)-dmg);
-    }
-    updateEnemyHP();
-    showSpecialAtkBanner(`⚡ ${def.emoji||'🔥'} ${name}「${def.name}」！全敵 ${dmg.toLocaleString()} ダメージ！`, '#ff6040');
-    sfx('win');
-    if(areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
-
-  } else if(ef==='debuff_all'){
-    const dtype = def.type||'poison';
-    const ds = def.stacks2||1;
-    if(BT_ENEMIES&&BT_ENEMIES.length>0){
-      BT_ENEMIES.forEach((_,i)=>{ if(BT_ENEMIES[i].hp>0) applyEnemyStatusMulti(i,dtype,ds); });
-    } else {
-      applyEnemyStatus(dtype,ds);
-    }
-    // ダメージも付与する場合
-    if(def.mul){
-      const dmg2 = Math.round(member.atk*def.mul);
-      damageEnemy(getAttackTargetIndex(), dmg2);
-      updateEnemyHP();
-    }
-    const STATUS_JP={freeze:'❄️凍結',para:'⚡麻痺',poison:'☠️毒',burn:'🔥炎症'};
-    renderEnemyStatuses();
-    showSpecialAtkBanner(`⚡ ${def.emoji||'☠️'} ${name}「${def.name}」！全敵に${STATUS_JP[dtype]||dtype}×${ds}付与！`, '#c040ff');
-    sfx('win');
-    if(def.mul&&areAllEnemiesDead()){ setTimeout(winBattle, btDelay(700)); return; }
-
-  } else if(ef==='party_heal'){
-    const pct = def.pct||0.25;
-    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
-      m.hp=Math.min(m.maxHp, m.hp+Math.round(m.maxHp*pct));
-    });
-    updatePartyHP();
-    showSpecialAtkBanner(`✨ ${def.emoji||'💧'} ${name}「${def.name}」！味方全員HP+${Math.round(pct*100)}%回復！`, '#40e0a0');
-    sfx('win');
-
-  } else if(ef==='party_shield'){
-    const pct = def.pct||0.20;
-    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{
-      m.shield=(m.shield||0)+Math.round(m.maxHp*pct);
-    });
-    updatePartyHP();
-    showSpecialAtkBanner(`🛡️ ${def.emoji||'🛡️'} ${name}「${def.name}」！味方全員HP${Math.round(pct*100)}%バリア！`, '#60a0ff');
-    sfx('win');
-  }
 }
 
 // ================================================================
@@ -7361,6 +7039,115 @@ const ROGUE_EVENTS = [
     ]
   },
   {
+    id:'e_poison_spring', name:'毒の泉', emoji:'☠️',
+    desc:'怪しい緑色の泉が湧いている。',
+    choices:[
+      {label:'飲む（HP-20% ATK+18%）', subdesc:'毒を浴びて力を得る',
+       outcome:(r)=>{ sacrificeRunHP(r,0.20); r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_pwr',name:'毒の活力',emoji:'☠️',type:'buff',effect:{atkMul:1.18},desc:'ATK+18%'}); return {text:'毒を浴びATKが上昇！ATK+18% HP-20%。'}; }},
+      {label:'武器に塗る（被ダメ-10%）', subdesc:'守りを固める',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_def',name:'毒の鱗甲',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.90},desc:'被ダメ-10%'}); return {text:'武器を強化。被ダメ-10%。'}; }},
+      {label:'無視して通る',outcome:(r)=>({text:'泉には近づかなかった。'})},
+    ]
+  },
+  {
+    id:'e_frozen_soul', name:'凍てつく魂', emoji:'❄️',
+    desc:'氷に閉ざされた魂が漂っている。',
+    choices:[
+      {label:'解放する（コイン+40 HP-15%）',
+       outcome:(r)=>{ sacrificeRunHP(r,0.15); r.coins=(r.coins||0)+40; return {text:'魂を解放しコイン+40。HP-15%。'}; }},
+      {label:'力を吸収（ATK+12% 被ダメ+8%）',
+       outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_frz_pwr',name:'凍魂の力',emoji:'❄️',type:'rare',effect:{atkMul:1.12,dmgTakenMul:1.08},desc:'ATK+12% 被ダメ+8%'}); return {text:'ATK+12%。被ダメ+8%。'}; }},
+      {label:'通り過ぎる',outcome:(r)=>({text:'魂には触れなかった。'})},
+    ]
+  },
+  {
+    id:'e_ancient_weapon', name:'古代の兵器', emoji:'⚔️',
+    desc:'海底に眠る古代の兵器を発見した。',
+    choices:[
+      {label:'起動（コイン80消費 ATK+25%）',
+       outcome:(r)=>{ if((r.coins||0)>=80){ r.coins-=80; r.gifts=r.gifts||[]; r.gifts.push({id:'_anc_atk',name:'古代の兵器',emoji:'⚔️',type:'rare',effect:{atkMul:1.25},desc:'ATK+25%'}); return {text:'ATK+25%！コイン-80。'}; } return {text:'コイン不足（80必要）。'}; }},
+      {label:'売却（コイン+60）',outcome:(r)=>{ r.coins=(r.coins||0)+60; return {text:'コイン+60。'}; }},
+    ]
+  },
+  {
+    id:'e_cursed_idol', name:'呪われた偶像', emoji:'🗿',
+    desc:'強烈な禍々しさを放つ偶像が鎮座している。',
+    choices:[
+      {label:'呪いを受け入れる（呪い確定 遺物2択）',
+       outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,2,'any'); return {text:'呪いを受け強力な遺物2択！',giftPick:true}; }},
+      {label:'破壊（HP-25% 被ダメ-15%）',
+       outcome:(r)=>{ sacrificeRunHP(r,0.25); r.gifts=r.gifts||[]; r.gifts.push({id:'_idol_def',name:'呪いの破片',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.85},desc:'被ダメ-15%'}); return {text:'被ダメ-15%。HP-25%。'}; }},
+      {label:'礼拝して通過（コイン+25）',outcome:(r)=>{ r.coins=(r.coins||0)+25; return {text:'コイン+25。'}; }},
+    ]
+  },
+  {
+    id:'e_healer_spring', name:'癒しの泉', emoji:'💧',
+    desc:'温かな光を放つ泉が現れた。',
+    choices:[
+      {label:'全員で浴びる（HP+35%回復）',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.35))})); return {text:'全員HP+35%回復！'}; }},
+      {label:'回復しつつ遺物1択（HP+15%）',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.15))})); pendingGiftChoice(r,1,'buff'); return {text:'HP+15%回復＋遺物1択！',giftPick:true}; }},
+    ]
+  },
+  {
+    id:'e_deep_trial', name:'深淵の試練', emoji:'🌑',
+    desc:'「三つの試練から一つを選べ」声が響いた。',
+    choices:[
+      {label:'力の試練（HP-30% ATK+30%）',
+       outcome:(r)=>{ sacrificeRunHP(r,0.30); r.gifts=r.gifts||[]; r.gifts.push({id:'_trial_atk',name:'力の試練',emoji:'💪',type:'rare',effect:{atkMul:1.30},desc:'ATK+30%'}); return {text:'ATK+30%！HP-30%。'}; }},
+      {label:'守りの試練（コイン-40 MaxHP+20%）',
+       outcome:(r)=>{ if((r.coins||0)>=40){ r.coins-=40; r.gifts=r.gifts||[]; r.gifts.push({id:'_trial_hp',name:'守りの試練',emoji:'🛡️',type:'rare',effect:{hpMul:1.20},desc:'MaxHP+20%'}); return {text:'MaxHP+20%！コイン-40。'}; } return {text:'コイン不足（40必要）。'}; }},
+      {label:'知恵の試練（呪い確定 希少遺物1択）',
+       outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,1,'rare'); return {text:'希少遺物獲得！呪いも…',giftPick:true}; }},
+    ]
+  },
+  {
+    id:'e_lab', name:'漂流する研究所', emoji:'🔬',
+    desc:'廃墟となった海底研究所が漂っていた。',
+    choices:[
+      {label:'強化実験（70%でATK+20% 30%でHP-20%）',
+       outcome:(r)=>{ if(Math.random()<0.7){ r.gifts=r.gifts||[]; r.gifts.push({id:'_lab_atk',name:'強化実験体',emoji:'🧬',type:'buff',effect:{atkMul:1.20},desc:'ATK+20%'}); return {text:'実験成功！ATK+20%。'}; } sacrificeRunHP(r,0.20); return {text:'実験失敗…HP-20%。'}; }},
+      {label:'回復装置（HP+40%）',
+       outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.40))})); return {text:'HP+40%回復！'}; }},
+      {label:'データ売却（コイン+50）',outcome:(r)=>{ r.coins=(r.coins||0)+50; return {text:'コイン+50。'}; }},
+    ]
+  },
+  {
+    id:'e_poison_spring', name:'毒の泉', emoji:'☠️',
+    desc:'怪しい緑色の泉が湧いている。',
+    choices:[
+      {label:'飲む（HP-20% ATK+18%）',outcome:(r)=>{ sacrificeRunHP(r,0.20); r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_pwr',name:'毒の活力',emoji:'☠️',type:'buff',effect:{atkMul:1.18},desc:'ATK+18%'}); return {text:'ATK+18% HP-20%。'}; }},
+      {label:'武器に塗る（被ダメ-10%）',outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_psn_def',name:'毒の鱗甲',emoji:'🛡️',type:'buff',effect:{dmgTakenMul:0.90},desc:'被ダメ-10%'}); return {text:'被ダメ-10%。'}; }},
+      {label:'無視して通る',outcome:(r)=>({text:'泉には近づかなかった。'})},
+    ]
+  },
+  {
+    id:'e_frozen_soul', name:'凍てつく魂', emoji:'❄️',
+    desc:'氷に閉ざされた魂が漂っている。',
+    choices:[
+      {label:'解放する（コイン+40 HP-15%）',outcome:(r)=>{ sacrificeRunHP(r,0.15); r.coins=(r.coins||0)+40; return {text:'コイン+40。HP-15%。'}; }},
+      {label:'力を吸収（ATK+12% 被ダメ+8%）',outcome:(r)=>{ r.gifts=r.gifts||[]; r.gifts.push({id:'_frz_pwr',name:'凍魂の力',emoji:'❄️',type:'rare',effect:{atkMul:1.12,dmgTakenMul:1.08},desc:'ATK+12% 被ダメ+8%'}); return {text:'ATK+12%。被ダメ+8%。'}; }},
+      {label:'通り過ぎる',outcome:(r)=>({text:'魂には触れなかった。'})},
+    ]
+  },
+  {
+    id:'e_healer_spring', name:'癒しの泉', emoji:'💧',
+    desc:'温かな光を放つ泉が現れた。',
+    choices:[
+      {label:'全員で浴びる（HP+35%回復）',outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.35))})); return {text:'全員HP+35%回復！'}; }},
+      {label:'回復しつつ遺物1択（HP+15%）',outcome:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.15))})); pendingGiftChoice(r,1,'buff'); return {text:'HP+15%＋遺物1択！',giftPick:true}; }},
+    ]
+  },
+  {
+    id:'e_deep_trial', name:'深淵の試練', emoji:'🌑',
+    desc:'三つの試練から一つを選べと声が響いた。',
+    choices:[
+      {label:'力の試練（HP-30% ATK+30%）',outcome:(r)=>{ sacrificeRunHP(r,0.30); r.gifts=r.gifts||[]; r.gifts.push({id:'_trial_atk',name:'力の試練',emoji:'💪',type:'rare',effect:{atkMul:1.30},desc:'ATK+30%'}); return {text:'ATK+30%！HP-30%。'}; }},
+      {label:'知恵の試練（呪い確定 希少遺物1択）',outcome:(r)=>{ addCurseToRun(r); pendingGiftChoice(r,1,'rare'); return {text:'希少遺物獲得！呪いも…',giftPick:true}; }},
+    ]
+  },
+  {
     id:'e_traveler', name:'深界の旅人', emoji:'🧭',
     desc:'深界を旅する謎めいた人物が「コインと交換してあげよう」と言っている。',
     choices:[
@@ -7609,7 +7396,17 @@ function renderShopUI(){
   const coins=r.coins||0;
   if(!r.shopItems){
     const pool=ROGUE_GIFTS.filter(g=>g.type!=='curse').sort(()=>Math.random()-0.5).slice(0,3);
-    r.shopItems=pool.map(g=>({...g,cost:g.type==='rare'?120:g.type==='unique'?150:70}));
+    const shopBase=pool.map(g=>({...g,cost:g.type==='rare'?130:g.type==='unique'?160:75}));
+    const specials=[
+      {id:'_s_heal',name:'回復薬',emoji:'💊',type:'special',desc:'全員HP+30%回復',cost:60,
+       onBuy:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.30))})); }},
+      {id:'_s_fullheal',name:'深海の霊水',emoji:'🧪',type:'special',desc:'全員HP+60%回復',cost:120,
+       onBuy:(r)=>{ if(r.partyState) r.partyState=r.partyState.map(m=>({...m,hp:Math.round(Math.min((m.maxHp||m.hp*2),m.hp*1.60))})); }},
+      {id:'_s_curse_rm',name:'呪い解除の石',emoji:'💎',type:'special',desc:'呪いアイテムを1つ除去',cost:90,
+       onBuy:(r)=>{ r.gifts=r.gifts||[]; const ci=r.gifts.findIndex(g=>g.type==='curse'); if(ci>=0) r.gifts.splice(ci,1); }},
+    ];
+    const selSpecials=specials.sort(()=>Math.random()-0.5).slice(0,2);
+    r.shopItems=[...shopBase,...selSpecials];
   }
   const items=r.shopItems.map((g,i)=>{
     const canBuy=coins>=g.cost;
@@ -7767,33 +7564,11 @@ function advanceRogueRow(){
 }
 
 function getRogueEnemy(type,floor,hard){
-  // HARD 6F以降は急激に強化
-  let scale = 1+(floor-1)*0.35+(hard?0.4:0);
-  if(hard && floor>=6){
-    // 6F: 追加×1.5, 7F: ×1.8, 8F: ×2.2, 9F: ×2.7, 10F: ×3.5
-    const hardBoost=[0,0,0,0,0,0,1.5,1.8,2.2,2.7,3.5];
-    scale *= (hardBoost[floor]||1);
-  }
-  // HARD 6F以降の付与デバフ強化
-  const hardHighFloor = hard && floor>=6;
-  const elitePatterns = hardHighFloor
-    ? [{type:'para',prob:0.30,stacks:1},{type:'burn',prob:0.25,stacks:2},{type:'freeze',prob:0.20,stacks:1}]
-    : [{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.15,stacks:1}];
-  const bossPatterns = hardHighFloor
-    ? [{type:'freeze',prob:0.28,stacks:1},{type:'poison',prob:0.25,stacks:2},{type:'para',prob:0.20,stacks:1}]
-    : [{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}];
-  const battlePatterns = hardHighFloor
-    ? [{type:'burn',prob:0.22,stacks:1},{type:'poison',prob:0.18,stacks:1}]
-    : null;
-  const spd = hardHighFloor ? (floor>=9?4:3) : 3;
+  const scale=1+(floor-1)*0.35+(hard?0.4:0);
   const enemies={
-    battle:{name:floor+'F '+(hardHighFloor?'深淵の魔獣':'深海遭遇体'),emoji:hardHighFloor?'🌑':'🦑',
-      hp:Math.round(120000*scale),atk:Math.round(1800*scale),spd,
-      statusPatterns:battlePatterns},
-    elite: {name:floor+'F '+(hardHighFloor?'深淵の番人':'深界の強敵'),emoji:hardHighFloor?'💀':'💀',
-      hp:Math.round(260000*scale),atk:Math.round(2600*scale),spd,statusPatterns:elitePatterns},
-    boss:  {name:floor+'F '+(hardHighFloor?'深淵神の眷属':'階層ボス'),emoji:hardHighFloor?'🩸':'👑',
-      hp:Math.round(600000*scale),atk:Math.round(3200*scale),spd,boss:true,statusPatterns:bossPatterns},
+    battle:{name:floor+'F 深海遭遇体',emoji:'🦑',hp:Math.round(120000*scale),atk:Math.round(1800*scale),spd:3},
+    elite: {name:floor+'F 深界の強敵',emoji:'💀',hp:Math.round(260000*scale),atk:Math.round(2600*scale),spd:3,statusPatterns:[{type:'para',prob:0.15,stacks:1},{type:'burn',prob:0.15,stacks:1}]},
+    boss:  {name:floor+'F 階層ボス', emoji:'👑',hp:Math.round(600000*scale),atk:Math.round(3200*scale),spd:3,boss:true,statusPatterns:[{type:'freeze',prob:0.16,stacks:1},{type:'poison',prob:0.16,stacks:1}]},
   };
   return enemies[type]||enemies.battle;
 }
@@ -7803,9 +7578,13 @@ function startRogueBattle(nodeType){
   const ap=S.party.filter(id=>id!==-1);
   if(!ap.length){ showToast('パーティを編成してください'); return; }
   const enemy=getRogueEnemy(nodeType,r.floor,r.hard);
+  let enemies=null;
+  if(r.hard && r.floor>=6 && nodeType!=='boss'){
+    enemies=buildRogueMultiEnemies(r.floor,enemy);
+  }
   const quest={
     id:'rogue_'+r.floor+'_'+nodeType,
-    name:enemy.name,enemy,gold:0,gem:0,
+    name:enemy.name,enemy,enemies,gold:0,gem:0,
     boss:nodeType==='boss',
     bgColor:['#00060f','#001020'],story:[],
     isRogue:true,rogueNodeType:nodeType,
@@ -7813,6 +7592,23 @@ function startRogueBattle(nodeType){
   sfx('click');
   BT.fromScreen='rogue';
   initBattle(quest,ap);
+}
+
+function buildRogueMultiEnemies(floor,mainEnemy){
+  const count=floor>=10?3:floor>=8?2:2;
+  const sc=mainEnemy.hp/120000;
+  const debuffers=[
+    {name:floor+'F 深淵の毒使い',emoji:'☠️',hp:Math.round(160000*sc*0.7),atk:Math.round(mainEnemy.atk*0.8),spd:3,
+      statusPatterns:[{type:'poison',prob:0.45,stacks:2},{type:'burn',prob:0.25,stacks:1}]},
+    {name:floor+'F 深淵の凍結師',emoji:'❄️',hp:Math.round(160000*sc*0.7),atk:Math.round(mainEnemy.atk*0.8),spd:3,
+      statusPatterns:[{type:'freeze',prob:0.35,stacks:1},{type:'para',prob:0.20,stacks:1}]},
+  ];
+  const result=[{...mainEnemy,maxHp:mainEnemy.hp}];
+  for(let i=1;i<count;i++){
+    const d=debuffers[(i-1)%debuffers.length];
+    result.push({...d,maxHp:d.hp});
+  }
+  return result;
 }
 
 function applyRogueModifiersToParty(){
@@ -7925,35 +7721,24 @@ function formatRogueReward(rw){
 }
 
 function renderRoguePassHtml(){
-  const pts = S.roguePassPoints||0;
-  const lap = S.roguePassLap||0;
-  const maxReq = ROGUE_PASS_TIERS[ROGUE_PASS_TIERS.length-1].req||20000;
-  const pct = Math.min(100, Math.round((pts/maxReq)*100));
-
-  // 受け取れる報酬が1つでもあるか
-  const claimable = ROGUE_PASS_TIERS.some((t,i)=>pts>=t.req && !(S.roguePassClaimed||[]).includes(i));
-  // 全報酬受取済みかつポイント足りてるか（周回可能か）
-  const allClaimed = ROGUE_PASS_TIERS.every((_,i)=>(S.roguePassClaimed||[]).includes(i));
-
-  const tiers = ROGUE_PASS_TIERS.map((t,idx)=>{
-    const done = pts>=t.req;
-    const claimed = (S.roguePassClaimed||[]).includes(idx);
-    const can = done && !claimed;
-    const rewardHtml = formatRogueReward(t.reward);
-    // アイコン・称号は2周目以降に再取得できないので表示を変える
-    const isUnique = !!(t.reward.icon || t.reward.title);
-    const lapGrey = lap>0 && isUnique && claimed;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:5px;
-      background:${can?'rgba(0,40,20,.5)':claimed?'rgba(0,15,30,.3)':'rgba(0,10,25,.3)'};
-      border:.5px solid ${can?'rgba(30,180,80,.5)':claimed?'rgba(20,80,50,.3)':'rgba(30,60,90,.2)'};">
+  const pts=S.roguePassPoints||0;
+  const lap=S.roguePassLap||0;
+  const maxReq=ROGUE_PASS_TIERS[ROGUE_PASS_TIERS.length-1].req||20000;
+  const pct=Math.min(100,Math.round((pts/maxReq)*100));
+  const claimable=ROGUE_PASS_TIERS.some((t,i)=>pts>=t.req&&!(S.roguePassClaimed||[]).includes(i));
+  const allClaimed=ROGUE_PASS_TIERS.every((_,i)=>(S.roguePassClaimed||[]).includes(i));
+  const tiers=ROGUE_PASS_TIERS.map((t,idx)=>{
+    const done=pts>=t.req;
+    const claimed=(S.roguePassClaimed||[]).includes(idx);
+    const can=done&&!claimed;
+    const isUnique=!!(t.reward.icon||t.reward.title);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:5px;background:${can?'rgba(0,40,20,.5)':claimed?'rgba(0,15,30,.3)':'rgba(0,10,25,.3)'};border:.5px solid ${can?'rgba(30,180,80,.5)':claimed?'rgba(20,80,50,.3)':'rgba(30,60,90,.2)'};">
       <div style="font-size:10px;color:${done?'#80e0b0':'rgba(120,160,200,.35)'};font-weight:700;min-width:52px;">RP ${t.req}</div>
-      <div style="flex:1;font-size:10px;color:${done?'var(--text)':'rgba(160,210,240,.35)'};">${rewardHtml}${isUnique?'<span style="font-size:8px;color:rgba(200,180,80,.7);margin-left:4px;">★唯一</span>':''}</div>
+      <div style="flex:1;font-size:10px;color:${done?'var(--text)':'rgba(160,210,240,.35)'};">${formatRogueReward(t.reward)}${isUnique?'<span style="font-size:8px;color:rgba(200,180,80,.7);margin-left:4px;">★唯一</span>':''}</div>
       <div style="font-size:12px;">${claimed?'✅':done?'🎁':'🔒'}</div>
     </div>`;
   }).join('');
-
-  const lapBadge = lap>0 ? `<span style="font-size:9px;background:rgba(180,120,0,.3);color:#ffc060;border:.5px solid rgba(200,140,0,.4);border-radius:99px;padding:1px 8px;margin-left:6px;">${lap}周目</span>` : '';
-
+  const lapBadge=lap>0?`<span style="font-size:9px;background:rgba(180,120,0,.3);color:#ffc060;border:.5px solid rgba(200,140,0,.4);border-radius:99px;padding:1px 8px;margin-left:6px;">${lap}周目</span>`:'';
   return `<div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div style="font-size:12px;font-weight:900;color:#bfe9ff;letter-spacing:.08em;">🎫 ローグバトルパス${lapBadge}</div>
@@ -7962,7 +7747,6 @@ function renderRoguePassHtml(){
     <div style="height:4px;background:rgba(30,60,90,.5);border-radius:2px;margin-bottom:10px;overflow:hidden;">
       <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--teal),var(--accent));border-radius:2px;transition:width .4s;"></div>
     </div>
-    <!-- 一括受け取りボタン -->
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <button onclick="claimAllRoguePass()" style="flex:1;padding:9px;border-radius:10px;border:.5px solid ${claimable?'rgba(30,200,100,.5)':'rgba(30,60,90,.25)'};background:${claimable?'rgba(10,80,40,.4)':'rgba(0,10,20,.2)'};color:${claimable?'#80e0b0':'rgba(120,160,200,.3)'};font-size:11px;font-weight:700;cursor:${claimable?'pointer':'default'};font-family:inherit;">
         📦 一括受け取り${claimable?'':'（なし）'}
@@ -7973,114 +7757,70 @@ function renderRoguePassHtml(){
   </div>`;
 }
 
+// 一括受け取り
+function claimAllRoguePass(){
+  initRogueSaveDefaults();
+  const pts=S.roguePassPoints||0;
+  let totalGem=0,totalTicket=0,newIcons=[],newTitles=[],craftGained=[],claimed=false;
+  ROGUE_PASS_TIERS.forEach((t,idx)=>{
+    if(pts<t.req||(S.roguePassClaimed||[]).includes(idx)) return;
+    const rw=t.reward;
+    if(rw.gem)    {S.gem=(S.gem||0)+rw.gem; totalGem+=rw.gem;}
+    if(rw.ticket) {S.gachaTickets=(S.gachaTickets||0)+rw.ticket; totalTicket+=rw.ticket;}
+    if(rw.craft)  {if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0}; S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val; craftGained.push(rw.craft.rar+'×'+rw.craft.val);}
+    if(rw.icon&&!Array.isArray(S.ownedIcons)){S.ownedIcons=['🌊'];}
+    if(rw.icon&&!S.ownedIcons.includes(rw.icon)){S.ownedIcons.push(rw.icon);newIcons.push(rw.icon);}
+    if(rw.title){if(!Array.isArray(S.ownedTitles))S.ownedTitles=[];if(!S.ownedTitles.includes(rw.title)){S.ownedTitles.push(rw.title);newTitles.push(rw.title);}}
+    S.roguePassClaimed.push(idx); claimed=true;
+  });
+  if(!claimed){showToast('受け取れる報酬がありません');return;}
+  saveGameImmediate();
+  if(playerDocRef){playerDocRef.update({ownedIcons:S.ownedIcons,ownedTitles:S.ownedTitles||[],gachaTickets:S.gachaTickets,gem:S.gem,craftPoints:S.craftPoints,roguePassClaimed:S.roguePassClaimed,lastSaved:new Date().toISOString()}).catch(e=>console.log('[ROGUE PASS]',e));}
+  const parts=[];
+  if(totalGem>0)parts.push('💎'+totalGem);
+  if(totalTicket>0)parts.push('🎫×'+totalTicket);
+  if(craftGained.length)parts.push(craftGained.join('/'));
+  if(newIcons.length)parts.push('アイコン'+newIcons.join(''));
+  if(newTitles.length)parts.push('称号「'+newTitles.join('・')+'」');
+  showModal('📦 一括受け取り完了！',parts.join('<br>'),[{label:'OK！',action:()=>{refreshHome();},primary:true}]);
+  renderRogue();
+}
+
+// パス周回リセット
+function resetRoguePass(){
+  showModal('🔄 パス周回','全報酬受取後パスをリセットして周回できます。★唯一アイコン・称号は再取得できません。',[
+    {label:'周回する',primary:true,action:()=>{
+      S.roguePassClaimed=[];
+      S.roguePassLap=(S.roguePassLap||0)+1;
+      ROGUE_PASS_TIERS.forEach((t,idx)=>{if(t.reward.icon||t.reward.title)S.roguePassClaimed.push(idx);});
+      saveGameImmediate();
+      showToast('🔄 '+(S.roguePassLap)+'周目開始！');
+      renderRogue();
+    }},
+    {label:'キャンセル',action:()=>{}},
+  ]);
+}
+
 function claimRoguePass(idx){
   initRogueSaveDefaults();
   const t=ROGUE_PASS_TIERS[idx]; if(!t) return;
   const pts=S.roguePassPoints||0;
-  if(pts<t.req){ showToast('ポイントが足りません'); return; }
-  if((S.roguePassClaimed||[]).includes(idx)){ showToast('受取済です'); return; }
+  if(pts<t.req){showToast('ポイントが足りません');return;}
+  if((S.roguePassClaimed||[]).includes(idx)){showToast('受取済です');return;}
   const rw=t.reward;
   if(rw.gem)    S.gem=(S.gem||0)+rw.gem;
   if(rw.ticket) S.gachaTickets=(S.gachaTickets||0)+rw.ticket;
-  if(rw.craft)  {
-    if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
-    S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
-  }
-  if(rw.icon){
-    if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
-    if(!S.ownedIcons.includes(rw.icon)) S.ownedIcons.push(rw.icon);
-  }
-  if(rw.title){
-    if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
-    if(!S.ownedTitles.includes(rw.title)) S.ownedTitles.push(rw.title);
-  }
+  if(rw.craft)  {if(typeof S.craftPoints!=='object'||!S.craftPoints)S.craftPoints={R:0,SR:0,SSR:0,UR:0};S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;}
+  if(rw.icon)   {if(!Array.isArray(S.ownedIcons))S.ownedIcons=['🌊'];if(!S.ownedIcons.includes(rw.icon))S.ownedIcons.push(rw.icon);}
+  if(rw.title)  {if(!Array.isArray(S.ownedTitles))S.ownedTitles=[];if(!S.ownedTitles.includes(rw.title))S.ownedTitles.push(rw.title);}
   S.roguePassClaimed=S.roguePassClaimed||[];
   S.roguePassClaimed.push(idx);
-  // Firestoreにも即時同期（アイコン・称号が反映されない問題対策）
   saveGameImmediate();
-  if(playerDocRef){
-    playerDocRef.update({
-      ownedIcons: S.ownedIcons,
-      ownedTitles: S.ownedTitles||[],
-      gachaTickets: S.gachaTickets,
-      gem: S.gem,
-      craftPoints: S.craftPoints,
-      roguePassClaimed: S.roguePassClaimed,
-      lastSaved: new Date().toISOString()
-    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
-  }
+  if(playerDocRef){playerDocRef.update({ownedIcons:S.ownedIcons,ownedTitles:S.ownedTitles||[],gachaTickets:S.gachaTickets,gem:S.gem,craftPoints:S.craftPoints,roguePassClaimed:S.roguePassClaimed,lastSaved:new Date().toISOString()}).catch(e=>console.log('[ROGUE PASS]',e));}
   showToast('✨ '+formatRogueReward(rw)+' 受け取りました！');
-  renderRogue();
-  refreshHome();
+  renderRogue(); refreshHome();
 }
 
-
-
-// 一括受け取り
-function claimAllRoguePass(){
-  initRogueSaveDefaults();
-  const pts = S.roguePassPoints||0;
-  let totalGem=0, totalTicket=0, newIcons=[], newTitles=[], craftGained=[];
-  let claimed = false;
-  ROGUE_PASS_TIERS.forEach((t,idx)=>{
-    if(pts < t.req) return;
-    if((S.roguePassClaimed||[]).includes(idx)) return;
-    const rw = t.reward;
-    if(rw.gem)    { S.gem=(S.gem||0)+rw.gem; totalGem+=rw.gem; }
-    if(rw.ticket) { S.gachaTickets=(S.gachaTickets||0)+rw.ticket; totalTicket+=rw.ticket; }
-    if(rw.craft)  {
-      if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
-      S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
-      craftGained.push(rw.craft.rar+'×'+rw.craft.val);
-    }
-    if(rw.icon && !S.ownedIcons.includes(rw.icon)){
-      S.ownedIcons.push(rw.icon); newIcons.push(rw.icon);
-    }
-    if(rw.title){
-      if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
-      if(!S.ownedTitles.includes(rw.title)){ S.ownedTitles.push(rw.title); newTitles.push(rw.title); }
-    }
-    S.roguePassClaimed.push(idx);
-    claimed = true;
-  });
-  if(!claimed){ showToast('受け取れる報酬がありません'); return; }
-  saveGameImmediate();
-  if(playerDocRef){
-    playerDocRef.update({
-      ownedIcons:S.ownedIcons, ownedTitles:S.ownedTitles||[],
-      gachaTickets:S.gachaTickets, gem:S.gem, craftPoints:S.craftPoints,
-      roguePassClaimed:S.roguePassClaimed, lastSaved:new Date().toISOString()
-    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
-  }
-  const parts=[];
-  if(totalGem>0)     parts.push('💎'+totalGem);
-  if(totalTicket>0)  parts.push('🎫×'+totalTicket);
-  if(craftGained.length) parts.push(craftGained.join('/'));
-  if(newIcons.length)    parts.push('アイコン'+newIcons.join(''));
-  if(newTitles.length)   parts.push('称号「'+newTitles.join('・')+'」');
-  showModal('📦 一括受け取り完了！', parts.join('\n'), [{label:'OK！',action:()=>{refreshHome();},primary:true}]);
-  renderRogue();
-}
-
-// パスをリセット（周回）
-function resetRoguePass(){
-  showModal('🔄 パス周回','全報酬受取後、パスをリセットして2周目を開始します。\n\n★唯一アイコン・称号は再取得できません。\nジェム・チケット・素材報酬のみ再取得可能です。',
-    [
-      {label:'周回する', primary:true, action:()=>{
-        S.roguePassClaimed=[];
-        S.roguePassLap=(S.roguePassLap||0)+1;
-        // 周回時はアイコン・称号をスキップ（受取済み扱い）
-        ROGUE_PASS_TIERS.forEach((t,idx)=>{
-          if(t.reward.icon || t.reward.title) S.roguePassClaimed.push(idx);
-        });
-        saveGameImmediate();
-        showToast('🔄 '+(S.roguePassLap)+'周目開始！');
-        renderRogue();
-      }},
-      {label:'キャンセル', action:()=>{}},
-    ]
-  );
-}
 
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
@@ -8144,8 +7884,9 @@ async function saveTowerRanking(floor){
       uid: uid,
       name: S.playerName||'深海司令官',
       icon: S.playerIcon||'🌊',
-      floor: S.towerDayBest||0, // 当日の最高到達階層のみ
+      floor: S.towerDayBest||0,
       rank: S.rank||1,
+      party: S.party.filter(id=>id!==-1).map(id=>{var ch=CHARS.find(c=>c.id===id);return ch?{id:id,name:ch.name,emoji:ch.emoji}:null;}).filter(Boolean),
       updatedAt: new Date().toISOString(),
       date: today,
     });
@@ -8472,73 +8213,6 @@ function getTowerRewards(floor){
 
 
 
-
-// 一括受け取り
-function claimAllRoguePass(){
-  initRogueSaveDefaults();
-  const pts = S.roguePassPoints||0;
-  let totalGem=0, totalTicket=0, newIcons=[], newTitles=[], craftGained=[];
-  let claimed = false;
-  ROGUE_PASS_TIERS.forEach((t,idx)=>{
-    if(pts < t.req) return;
-    if((S.roguePassClaimed||[]).includes(idx)) return;
-    const rw = t.reward;
-    if(rw.gem)    { S.gem=(S.gem||0)+rw.gem; totalGem+=rw.gem; }
-    if(rw.ticket) { S.gachaTickets=(S.gachaTickets||0)+rw.ticket; totalTicket+=rw.ticket; }
-    if(rw.craft)  {
-      if(typeof S.craftPoints!=='object'||!S.craftPoints) S.craftPoints={R:0,SR:0,SSR:0,UR:0};
-      S.craftPoints[rw.craft.rar]=(S.craftPoints[rw.craft.rar]||0)+rw.craft.val;
-      craftGained.push(rw.craft.rar+'×'+rw.craft.val);
-    }
-    if(rw.icon && !S.ownedIcons.includes(rw.icon)){
-      S.ownedIcons.push(rw.icon); newIcons.push(rw.icon);
-    }
-    if(rw.title){
-      if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
-      if(!S.ownedTitles.includes(rw.title)){ S.ownedTitles.push(rw.title); newTitles.push(rw.title); }
-    }
-    S.roguePassClaimed.push(idx);
-    claimed = true;
-  });
-  if(!claimed){ showToast('受け取れる報酬がありません'); return; }
-  saveGameImmediate();
-  if(playerDocRef){
-    playerDocRef.update({
-      ownedIcons:S.ownedIcons, ownedTitles:S.ownedTitles||[],
-      gachaTickets:S.gachaTickets, gem:S.gem, craftPoints:S.craftPoints,
-      roguePassClaimed:S.roguePassClaimed, lastSaved:new Date().toISOString()
-    }).catch(e=>console.log('[ROGUE PASS SYNC]',e));
-  }
-  const parts=[];
-  if(totalGem>0)     parts.push('💎'+totalGem);
-  if(totalTicket>0)  parts.push('🎫×'+totalTicket);
-  if(craftGained.length) parts.push(craftGained.join('/'));
-  if(newIcons.length)    parts.push('アイコン'+newIcons.join(''));
-  if(newTitles.length)   parts.push('称号「'+newTitles.join('・')+'」');
-  showModal('📦 一括受け取り完了！', parts.join('\n'), [{label:'OK！',action:()=>{refreshHome();},primary:true}]);
-  renderRogue();
-}
-
-// パスをリセット（周回）
-function resetRoguePass(){
-  showModal('🔄 パス周回','全報酬受取後、パスをリセットして2周目を開始します。\n\n★唯一アイコン・称号は再取得できません。\nジェム・チケット・素材報酬のみ再取得可能です。',
-    [
-      {label:'周回する', primary:true, action:()=>{
-        S.roguePassClaimed=[];
-        S.roguePassLap=(S.roguePassLap||0)+1;
-        // 周回時はアイコン・称号をスキップ（受取済み扱い）
-        ROGUE_PASS_TIERS.forEach((t,idx)=>{
-          if(t.reward.icon || t.reward.title) S.roguePassClaimed.push(idx);
-        });
-        saveGameImmediate();
-        showToast('🔄 '+(S.roguePassLap)+'周目開始！');
-        renderRogue();
-      }},
-      {label:'キャンセル', action:()=>{}},
-    ]
-  );
-}
-
 function startTowerBattle(){
   const ap = S.party.filter(id=>id!==-1);
   if(!ap.length){
@@ -8597,12 +8271,17 @@ async function saveTowerRanking(floor){
     var uid = auth.currentUser.uid;
     var today = new Date().toDateString();
     var rankRef = db.collection('tower_ranking').doc(today+'_'+uid);
+    var _pi=S.party.filter(function(id){return id!==-1;}).map(function(id){
+      var ch=CHARS.find(function(c){return c.id===id;});
+      return ch?{id:id,name:ch.name,emoji:ch.emoji,rarity:ch.rarity}:null;
+    }).filter(Boolean);
     await rankRef.set({
       uid: uid,
       name: S.playerName||'深海司令官',
       icon: S.playerIcon||'🌊',
-      floor: S.towerDayBest||0, // 当日の最高到達階層のみ
+      floor: S.towerDayBest||0,
       rank: S.rank||1,
+      party: _pi,
       updatedAt: new Date().toISOString(),
       date: today,
     });
@@ -8628,7 +8307,7 @@ async function showTowerRanking(){
       var d = doc.data();
       var isMe = d.uid === myUid;
       if(isMe) myRank = i+1;
-      return {rank:i+1, icon:d.icon||'🌊', name:d.name||'司令官', floor:d.floor||0, isMe:isMe};
+      return {rank:i+1,icon:d.icon||'🌊',name:d.name||'司令官',floor:d.floor||0,isMe:isMe,party:d.party||[]};
     });
     showTowerRankingModal(entries, myRank);
   }catch(e){
@@ -8653,6 +8332,8 @@ function showTowerRankingModal(entries, myRank){
     entries.forEach(function(e,i){
       var bg = e.isMe ? 'rgba(20,80,20,.35)' : 'rgba(0,15,35,.5)';
       var border = e.isMe ? 'rgba(60,200,60,.4)' : 'rgba(30,60,120,.3)';
+      var pe=(e.party||[]).map(function(p){return p.emoji||'';}).join('');
+      var pe=(e.party||[]).map(function(p){return p.emoji||'';}).join('');
       html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;'
         +'background:'+bg+';border:.5px solid '+border+';border-radius:8px;">'
         +'<div style="font-size:16px;width:28px;text-align:center;">'+medals[i]+'</div>'
@@ -8660,6 +8341,8 @@ function showTowerRankingModal(entries, myRank){
         +'<div style="flex:1;">'
           +'<div style="font-size:11px;font-weight:600;color:var(--text);">'+e.name+(e.isMe?' 👈':'')+'</div>'
           +'<div style="font-size:10px;color:var(--text2);">'+e.floor+'F到達</div>'
+          +(pe?'<div style="font-size:13px;margin-top:2px;">'+pe+'</div>':'')
+          +(pe?'<div style="font-size:13px;margin-top:2px;">'+pe+'</div>':'')
         +'</div>'
         +(bonuses[i]?'<div style="font-size:10px;color:#ffe040;font-weight:700;">'+bonuses[i]+'</div>':'')
         +'</div>';
@@ -9432,15 +9115,111 @@ function equipTitle(title){
 // ================================================================
 //  BATTLE END / FLEE
 // ================================================================
+
+// ================================================================
+//  ⚡ Ultimateシステム
+// ================================================================
+function addUltStack(charId){
+  if(!BT.ultStacks) BT.ultStacks={};
+  const ch=CHARS.find(c=>c.id===charId);
+  const def=getUltDef(charId,ch);
+  const maxStk=def.stacks||3;
+  const prev=BT.ultStacks[charId]||0;
+  if(prev>=maxStk) return;
+  BT.ultStacks[charId]=prev+1;
+  updatePartyHP();
+  if(BT.ultStacks[charId]>=maxStk) addUltCardToHand(charId,ch,def);
+}
+
+function addUltCardToHand(charId,ch,def){
+  if(BT.hand.some(c=>c.isUlt&&c.charId===charId)) return;
+  const member=BT.partyHp.find(m=>m.id===charId);
+  BT.hand.push({name:def.name,emoji:def.emoji||'⚡',dmg:def.mul||0,comboType:'none',
+    charId:charId,charName:ch?ch.name:'???',charAtk:member?member.atk:(ch?ch.atk:100),
+    isUlt:true,ultDef:def,used:false,selected:false,_isNew:true});
+  renderHand();
+  showSpecialAtkBanner('⚡ '+(ch?ch.name:'???')+'の必殺技が使用可能！','#ffcc00');
+  sfx('select');
+}
+
+function activateUlt(charId){} // 手動発動は無効（カード選択で使用）
+
+function activateUlt_effect(charId,def,member){
+  if(!BT.active) return;
+  if(!def){const ch=CHARS.find(c=>c.id===charId);def=getUltDef(charId,ch);}
+  if(!member) member=BT.partyHp.find(m=>m.id===charId);
+  if(!member||member.hp<=0) return;
+  const ch=CHARS.find(c=>c.id===charId);
+  const ef=def.effect, name=ch?ch.name:'???';
+
+  if(ef==='ultra_atk'){
+    const dmg=Math.round(member.atk*(def.mul||6.0));
+    damageEnemy(getAttackTargetIndex(),dmg); updateEnemyHP();
+    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」'+dmg.toLocaleString()+'ダメージ！','#ff80ff');
+    sfx('select');
+    if(areAllEnemiesDead()){setTimeout(winBattle,btDelay(700));return;}
+  } else if(ef==='aoe_atk'){
+    const dmg=Math.round(member.atk*(def.mul||5.0));
+    if(BT_ENEMIES&&BT_ENEMIES.length>0) BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)damageEnemy(i,dmg);});
+    else BT.enemyHp=Math.max(0,(BT.enemyHp||0)-dmg);
+    updateEnemyHP();
+    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」全敵'+dmg.toLocaleString()+'ダメージ！','#ff6040');
+    sfx('select');
+    if(areAllEnemiesDead()){setTimeout(winBattle,btDelay(700));return;}
+  } else if(ef==='debuff_all'){
+    const dtype=def.type||'poison', ds=def.stacks2||1;
+    if(BT_ENEMIES&&BT_ENEMIES.length>0) BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)applyEnemyStatusMulti(i,dtype,ds);});
+    else applyEnemyStatus(dtype,ds);
+    if(def.mul){const dmg2=Math.round(member.atk*def.mul);damageEnemy(getAttackTargetIndex(),dmg2);updateEnemyHP();}
+    renderEnemyStatuses();
+    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」全敵にデバフ付与！','#c040ff');
+    sfx('select');
+  } else if(ef==='party_heal'){
+    const pct=def.pct||0.25;
+    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*pct));});
+    updatePartyHP();
+    showSpecialAtkBanner('✨ '+name+'「'+def.name+'」HP+'+Math.round(pct*100)+'%回復！','#40e0a0');
+    sfx('select');
+  } else if(ef==='party_shield'){
+    const pct=def.pct||0.20;
+    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.shield=(m.shield||0)+Math.round(m.maxHp*pct);});
+    updatePartyHP();
+    showSpecialAtkBanner('🛡️ '+name+'「'+def.name+'」バリア+'+Math.round(pct*100)+'%！','#60a0ff');
+    sfx('select');
+  }
+  updatePartyHP();
+}
+
+// ================================================================
+//  敵行動予告
+// ================================================================
+function generateEnemyIntent(){
+  if(!BT.active) return;
+  const enemy=BT_ENEMIES&&BT_ENEMIES.length>0?BT_ENEMIES[0]:{atk:BT.quest&&BT.quest.enemy?BT.quest.enemy.atk:100,statusPatterns:[]};
+  const patterns=enemy.statusPatterns||(BT.quest&&BT.quest.enemy?BT.quest.enemy.statusPatterns:[])||[];
+  const spd=enemy.spd||(BT.quest&&BT.quest.enemy?BT.quest.enemy.spd:1)||1;
+  const r=Math.random(); let intent;
+  const hasDebuff=patterns&&patterns.length>0;
+  if(spd>=3&&r<0.25){ intent={type:'heavy',label:'💢 強攻撃',sub:'大ダメージ予告',power:Math.round((enemy.atk||100)*1.8)}; }
+  else if(hasDebuff&&r<(spd>=3?0.50:0.35)){ const pat=patterns[Math.floor(Math.random()*patterns.length)]; const SN={freeze:'❄️凍結',para:'⚡麻痺',poison:'☠️毒',burn:'🔥炎症'}; intent={type:'debuff',label:(SN[pat.type]||pat.type)+'付与',sub:'デバフ攻撃',debuffType:pat.type}; }
+  else { intent={type:'attack',label:'⚔️ 通常攻撃',sub:'×'+spd+'回',power:enemy.atk||100}; }
+  BT.enemyIntent=intent; renderEnemyIntent();
+}
+
+function renderEnemyIntent(){
+  const el=document.getElementById('enemy-intent'); if(!el) return;
+  const intent=BT.enemyIntent;
+  if(!intent){el.className='enemy-intent unknown';el.textContent='❓ 行動準備中...';return;}
+  el.className='enemy-intent '+intent.type;
+  const pwrTxt=intent.power?' （推定'+intent.power.toLocaleString()+'ダメ）':'';
+  el.innerHTML=`<span>${intent.label}</span><span style="font-size:9px;opacity:.75;margin-left:6px;">${intent.sub}${pwrTxt}</span>`;
+}
+
 function winBattle(){
   bgmEndBattle();
   BT.active=false; sfx('win');
-  // 初回クリア時のみ報酬付与
-  const _isFirstClear = !S.cleared.includes(BT.quest.id);
-  if(_isFirstClear && !BT.quest.isGrind && !BT.quest.isTower && !BT.quest.isRogue){
-    S.gold += BT.quest.gold;
-    S.gem  += BT.quest.gem;
-  }
+  const _isFirstClear=!S.cleared.includes(BT.quest.id);
+  if(_isFirstClear&&!BT.quest.isGrind&&!BT.quest.isTower&&!BT.quest.isRogue){S.gold+=BT.quest.gold;S.gem+=BT.quest.gem;}
   S.dailyDone=Math.min(5,S.dailyDone+1);
   // ミッション進捗
   if(!BT.quest.isGrind){
@@ -9454,6 +9233,10 @@ function winBattle(){
   // ================================================================
   if(BT.quest && BT.quest.isRogue){
     try{ onRogueBattleWin(BT.quest); }catch(e){ console.log('[ROGUE] win hook err', e); }
+    const _re=document.getElementById('end-ttl');
+    if(_re){_re.textContent='VICTORY';_re.className='end-ttl end-win';}
+    const _re2=document.getElementById('end-exp-row');
+    if(_re2) _re2.style.display='none';
     saveGame();
     document.getElementById('battle-end').classList.add('show');
     return;
@@ -10749,6 +10532,47 @@ function openBattleInfoPanel(){
     +'<div style="margin-top:8px;font-size:9px;color:var(--text3);">'+statTxt+'</div>'
     +'</div>';
 
+  // ローグ所持アイテム効果
+  if(BT.quest&&BT.quest.isRogue&&S.rogueRun){
+    var _rr3=S.rogueRun,_ag3=[...(_rr3.gifts||[]),...(_rr3.items||[])];
+    if(_ag3.length){
+      var _rh3='<div style="font-size:9px;color:var(--text3);margin:10px 0 6px;border-bottom:.5px solid var(--border2);">🎒 所持遺物</div>';
+      _ag3.forEach(function(g){
+        var b=g.type!=='curse',eff=g.effect||{},ep=[];
+        if(eff.atkMul&&eff.atkMul>1) ep.push('⚔️ATK+'+(((eff.atkMul-1)*100).toFixed(0))+'%');
+        if(eff.atkMul&&eff.atkMul<1) ep.push('⚔️ATK-'+(((1-eff.atkMul)*100).toFixed(0))+'%');
+        if(eff.hpMul&&eff.hpMul>1)   ep.push('💚MaxHP+'+(((eff.hpMul-1)*100).toFixed(0))+'%');
+        if(eff.dmgTakenMul&&eff.dmgTakenMul<1) ep.push('🛡被ダメ-'+(((1-eff.dmgTakenMul)*100).toFixed(0))+'%');
+        if(eff.healPct) ep.push('🌀毎T+'+((eff.healPct*100).toFixed(0))+'%');
+        if(eff.extraPick) ep.push('🃏選択+'+eff.extraPick);
+        _rh3+='<div style="display:flex;gap:6px;align-items:center;padding:5px 7px;margin-bottom:3px;background:'+(b?'rgba(0,30,60,.3)':'rgba(60,0,0,.3)')+';border:.5px solid '+(b?'rgba(30,120,200,.25)':'rgba(200,30,30,.25)')+';border-radius:7px;">'
+          +'<span style="font-size:14px;">'+(g.emoji||'📦')+'</span>'
+          +'<div><div style="font-size:10px;font-weight:700;color:'+(b?'#80c8ff':'#ff8080')+';">'+g.name+'</div>'
+          +(ep.length?'<div style="font-size:9px;color:rgba(160,220,255,.7);">'+ep.join(' ')+'</div>':'')
+          +'</div></div>';
+      });
+      var _bip3=document.getElementById('bip-box');
+      if(_bip3) _bip3.innerHTML+=_rh3;
+    }
+  }
+  if(BT.quest&&BT.quest.isRogue&&S.rogueRun){
+    var _rr3=S.rogueRun,_ag3=[...(_rr3.gifts||[]),...(_rr3.items||[])];
+    if(_ag3.length){
+      var _rh3='<div style="font-size:9px;color:var(--text3);margin:10px 0 6px;border-bottom:.5px solid var(--border2);">🎒 所持遺物</div>';
+      _ag3.forEach(function(g){
+        var b=g.type!=='curse',e=g.effect||{},ep=[];
+        if(e.atkMul&&e.atkMul>1)ep.push('⚔️+'+(((e.atkMul-1)*100).toFixed(0))+'%');
+        if(e.atkMul&&e.atkMul<1)ep.push('⚔️-'+(((1-e.atkMul)*100).toFixed(0))+'%');
+        if(e.hpMul&&e.hpMul>1)  ep.push('💚+'+(((e.hpMul-1)*100).toFixed(0))+'%');
+        if(e.dmgTakenMul&&e.dmgTakenMul<1)ep.push('🛡-'+(((1-e.dmgTakenMul)*100).toFixed(0))+'%');
+        if(e.healPct)ep.push('🌀+'+((e.healPct*100).toFixed(0))+'%');
+        if(e.extraPick)ep.push('🃏+'+e.extraPick);
+        _rh3+='<div style="display:flex;gap:5px;align-items:center;padding:5px 7px;margin-bottom:3px;background:'+(b?'rgba(0,30,60,.3)':'rgba(60,0,0,.3)')+';border:.5px solid '+(b?'rgba(30,120,200,.25)':'rgba(200,30,30,.25)')+';border-radius:7px;"><span>'+(g.emoji||'📦')+'</span><div><div style="font-size:10px;font-weight:700;color:'+(b?'#80c8ff':'#ff8080')+';">'+g.name+'</div>'+(ep.length?'<div style="font-size:9px;color:rgba(160,220,255,.7);">'+ep.join(' ')+'</div>':'')+'</div></div>';
+      });
+      var _bip3=document.getElementById('bip-box');
+      if(_bip3) _bip3.innerHTML+=_rh3;
+    }
+  }
   document.getElementById('battle-info-panel').classList.add('show');
 }
 
@@ -14281,7 +14105,9 @@ function initMultiEnemies(quest){
   if(document.getElementById('speed-btn-'+BT_SPEED)) setBattleSpeed(BT_SPEED);
   _alteaEmergencyUsed = false; // アルテア緊急回復リセット
   _tritosEmergencyUsed = false;
-  _nereisEmergencyUsed = false; // トリトス緊急回復リセット
+  _alteaEmergencyUsed = false;
+  _nereisEmergencyUsed = false;
+  _granFireShieldCount = 0; // トリトス緊急回復リセット
   document.getElementById('focus-target-disp').style.display='none';
   // 後方互換：BT.enemyHpをメイン敵HPに設定
   BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
@@ -15471,43 +15297,6 @@ async function distributeRankingBonus(prevBest, baseTickets){
       }
     });
   }catch(e){}
-}
-
-// ================================================================
-//  敵行動予告システム
-// ================================================================
-function generateEnemyIntent(){
-  if(!BT.active) return;
-  const enemy = BT_ENEMIES && BT_ENEMIES.length>0 ? BT_ENEMIES[0] : {atk:BT.quest&&BT.quest.enemy?BT.quest.enemy.atk:100, statusPatterns:[]};
-  const patterns = enemy.statusPatterns || (BT.quest&&BT.quest.enemy?BT.quest.enemy.statusPatterns:[]) || [];
-  const spd = enemy.spd || (BT.quest&&BT.quest.enemy?BT.quest.enemy.spd:1) || 1;
-
-  // 行動タイプをランダム決定
-  const r = Math.random();
-  let intent;
-  const hasDebuff = patterns && patterns.length>0;
-
-  if(spd>=3 && r<0.25){
-    intent = {type:'heavy', label:'💢 強攻撃', sub:'大ダメージ予告', power: Math.round((enemy.atk||100)*1.8)};
-  } else if(hasDebuff && r<(spd>=3?0.50:0.35)){
-    const pat = patterns[Math.floor(Math.random()*patterns.length)];
-    const STATUS_NAMES={freeze:'❄️凍結',para:'⚡麻痺',poison:'☠️毒',burn:'🔥炎症'};
-    intent = {type:'debuff', label:STATUS_NAMES[pat.type]+'付与', sub:'デバフ攻撃', debuffType:pat.type};
-  } else {
-    intent = {type:'attack', label:'⚔️ 通常攻撃', sub:'×'+spd+'回', power: enemy.atk||100};
-  }
-  BT.enemyIntent = intent;
-  renderEnemyIntent();
-}
-
-function renderEnemyIntent(){
-  const el = document.getElementById('enemy-intent');
-  if(!el) return;
-  const intent = BT.enemyIntent;
-  if(!intent){ el.className='enemy-intent unknown'; el.textContent='❓ 行動準備中...'; return; }
-  el.className = 'enemy-intent '+intent.type;
-  const pwrTxt = intent.power ? ' （推定'+intent.power.toLocaleString()+'ダメ）' : '';
-  el.innerHTML = `<span>${intent.label}</span><span style="font-size:9px;opacity:.75;margin-left:6px;">${intent.sub}${pwrTxt}</span>`;
 }
 </script>
 
