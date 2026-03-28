@@ -1262,6 +1262,24 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .star-badge.s2 { background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7); }
 .star-badge.s3 { background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8); }
 
+
+.battle-card.star4 {
+  border-color:rgba(80,200,255,.95)!important;
+  background:linear-gradient(180deg,rgba(0,50,80,.7),rgba(0,20,50,.6))!important;
+  box-shadow:0 0 24px rgba(40,180,255,.7)!important;
+}
+.battle-card.star5 {
+  border-color:rgba(255,220,80,1)!important;
+  background:linear-gradient(180deg,rgba(60,40,0,.8),rgba(30,15,0,.7))!important;
+  box-shadow:0 0 28px rgba(255,200,0,.9),0 0 8px rgba(255,160,0,.6)!important;
+  animation:star5Pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes star5Pulse{
+  0%{box-shadow:0 0 20px rgba(255,200,0,.7);}
+  100%{box-shadow:0 0 35px rgba(255,220,80,1),0 0 14px rgba(255,200,0,.8);}
+}
+.star-badge.s4 { background:linear-gradient(90deg,#0060c0,#40c0ff);color:#fff;box-shadow:0 0 12px rgba(40,180,255,.8); }
+.star-badge.s5 { background:linear-gradient(90deg,#c08000,#ffe060,#ffa000);color:#fff;box-shadow:0 0 14px rgba(255,200,0,1); }
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -2731,6 +2749,54 @@ function getUltDef(charId, ch){
   return {name:'深海の一撃', stacks:3, emoji:'⚔️', effect:'ultra_atk', mul, desc:`ATK×${mul}の一撃`};
 }
 
+
+// ================================================================
+//  💚 ヒーラーカード定義（キャラごとの固有カード）
+// ================================================================
+const HEALER_CARDS = {
+  // 常設UR
+  65: [
+    {name:'海神の波動',  emoji:'🔱', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
+    {name:'海神の守護',  emoji:'🌊', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
+    {name:'深海の命脈',  emoji:'💧', healRate:1.80, type:'single',  desc:'ATK×180%回復（単体）'},
+    {name:'海神の恩寵',  emoji:'🌈', healRate:1.20, type:'all',     desc:'ATK×120%回復（全体）'},
+    {name:'深海の神域',  emoji:'✨', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋全員復活'},
+  ],
+  // 限定UR: アルテア
+  201: [
+    {name:'星の祝福',    emoji:'⭐', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
+    {name:'星海の加護',  emoji:'✨', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
+    {name:'星の奇跡',    emoji:'🌟', healRate:1.10, type:'all',     desc:'ATK×110%回復（全体）'},
+    {name:'星海の祝福',  emoji:'🌠', healRate:1.50, type:'all',     desc:'ATK×150%回復（全体）'},
+    {name:'星の降臨',    emoji:'💫', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋デバフ解除'},
+  ],
+  // 限定UR: ネレイス
+  205: [
+    {name:'深海の癒し',  emoji:'🌊', healRate:0.80, type:'single',  desc:'ATK×80%回復（単体）'},
+    {name:'水神の恵み',  emoji:'💦', healRate:0.50, type:'all',     desc:'ATK×50%回復（全体）'},
+    {name:'深海の奔流',  emoji:'🌀', healRate:1.00, type:'all',     desc:'ATK×100%回復（全体）＋被ダメ軽減', shield:true},
+    {name:'深海の加護',  emoji:'🌊', healRate:1.40, type:'all',     desc:'ATK×140%回復（全体）＋被ダメ軽減', shield:true},
+    {name:'深淵の水神',  emoji:'🔱', healRate:2.50, type:'all',     desc:'ATK×250%回復（全体）＋2ターン被ダメ-50%', shield:true},
+  ],
+  // 限定UR: グラン
+  208: [
+    {name:'鍛造の盾',    emoji:'🛡️', type:'shield',    shieldRate:0.10, desc:'バリア(MaxHP10%)'},
+    {name:'深海の守護',  emoji:'⚒️', type:'shieldHeal', shieldRate:0.08, healRate:0.60, desc:'バリア(8%)＋ATK×60%回復'},
+    {name:'鍛造の城壁',  emoji:'🏰', type:'shield',    shieldRate:0.20, desc:'大バリア(MaxHP20%)'},
+    {name:'深海の要塞',  emoji:'🗿', type:'shieldHeal', shieldRate:0.15, healRate:1.00, desc:'バリア(15%)＋ATK×100%回復'},
+    {name:'奈落の鎧',    emoji:'⚙️', type:'shieldHeal', shieldRate:0.30, healRate:1.50, desc:'超バリア(30%)＋ATK×150%回復'},
+  ],
+};
+
+// ヒーラーカードを生成（cardRankに応じてカードを選ぶ）
+function getHealerCard(charId, rank){
+  const defs = HEALER_CARDS[charId];
+  if(!defs) return null;
+  // ★1: index0, ★2: index1, ★3: index2(rare)
+  const idx = rank>=3 ? 2 : rank>=2 ? 1 : 0;
+  return defs[Math.min(idx, defs.length-1)];
+}
+
 const CHARS=[
   // UR (超激レア)
   {id:1, name:'旧破神アルカナ',  emoji:'🌑',rarity:'UR', bg:'rgba(0,0,0,.6)',     border:'rgba(255,215,0,.9)',  hp:1500,atk:280,level:1,attribute:'dark',role:'attacker',skillName:'フルドライブ',skillDesc:'全カード+1枚選択可能'},
@@ -2926,7 +2992,7 @@ function getCardForChar(charAttr){
   const attr = charAttr || 'none';
   const roll = Math.random();
   if(roll < 0.70){
-    // 70%: キャラ属性のカード
+    // 70%: キャラ属性のカード（同名融合が起きやすいよう属性率高め）
     const pool = CARDS_BY_ATTR[attr] || CARDS_BY_ATTR['none'];
     return pool[Math.floor(Math.random()*pool.length)];
   } else if(roll < 0.85){
@@ -5257,15 +5323,14 @@ function getPartyHealRate(){
   ap.forEach(function(c){
     if(c.role==='support'){
       var healMap = {
-        65:0.05,   // トリトス：5%
-        201:0.08,  // アルテア：8%（上方）
-        9:0.03,
-        12:0.025,
-        72:0.04,
-        76:0.04,
-        21:0.02,
-        84:0.015,
-        89:0.025,
+        // URヒーラー（カードがメイン回復なので自動は控えめ）
+        65:0.02,   // トリトス（常設UR）：自動2%＋カード回復
+        201:0.02,  // アルテア（限定）：自動2%＋カード回復
+        205:0.02,  // ネレイス（限定）：自動2%＋カード回復
+        208:0.01,  // グラン（限定）：バリア特化、自動回復は1%
+        // SSR（カード化していないので従来通り）
+        9:0.03, 12:0.025, 72:0.04, 76:0.04,
+        21:0.02, 84:0.015, 89:0.025,
       };
       rate += (healMap[c.id] || 0.01);
     }
@@ -5276,7 +5341,7 @@ function getPartyHealRate(){
 // URヒーラーがアクティブか確認
 function hasURHealer(){
   const activeIds = getActiveSkillMembers(BT.partyHp, BT.statusEffects||[]).map(m=>m.id);
-  return BT.partyHp.some(function(m){ return activeIds.includes(m.id)&&(m.id===65||m.id===201)&&m.hp>0; });
+  return BT.partyHp.some(function(m){ return activeIds.includes(m.id)&&(m.id===65||m.id===201||m.id===205||m.id===208)&&m.hp>0; });
 }
 
 // トリトスの追加スキル：HP50%以下の味方に+7%緊急回復（1回限り）
@@ -5292,12 +5357,12 @@ function applyURHealerBonus(){
   var weakest = alive.reduce(function(a,b){
     return (a.hp/a.maxHp) < (b.hp/b.maxHp) ? a : b;
   });
-  if(weakest.hp/weakest.maxHp < 0.5){
+  if(weakest.hp/weakest.maxHp < 0.40){
     _tritosEmergencyUsed = true;
-    var bonus = Math.round(weakest.maxHp * 0.07);
+    var bonus = Math.round(weakest.maxHp * 0.12); // 常設UR強化: 12%回復
     weakest.hp = Math.min(weakest.maxHp, weakest.hp + bonus);
     var targetCh = CHARS.find(function(c){return c.id===weakest.id;});
-    showSpecialAtkBanner('💚 トリトス → '+(targetCh?targetCh.name:'味方')+' 緊急回復！HP+'+(bonus).toLocaleString(), '#40e080');
+    showSpecialAtkBanner('🔱 トリトス 海神の加護！'+(targetCh?targetCh.name:'味方')+' HP40%以下 緊急回復 +12%！', '#40e080');
   }
 }
 
@@ -5325,6 +5390,26 @@ function applyAlteaEmergency(){
   updatePartyHP();
 }
 
+// ネレイスの緊急回復：HP45%以下全員に1回限り大回復
+var _nereisEmergencyUsed = false;
+function applyNereisEmergency(){
+  if(_nereisEmergencyUsed) return;
+  var nereis = BT.partyHp.find(function(m){return m.hp>0&&m.id===205;});
+  if(!nereis) return;
+  var activeIds = getActiveSkillMembers(BT.partyHp, BT.statusEffects||[]).map(m=>m.id);
+  if(!activeIds.includes(205)) return;
+  var alive = BT.partyHp.filter(function(m){return m.hp>0;});
+  var needHeal = alive.filter(function(m){return m.hp/m.maxHp<=0.45;});
+  if(!needHeal.length) return;
+  _nereisEmergencyUsed = true;
+  needHeal.forEach(function(m){
+    var amt = Math.round(m.maxHp * 0.20); // 20%回復
+    m.hp = Math.min(m.maxHp, m.hp + amt);
+  });
+  showSpecialAtkBanner('🌊 ネレイス 深海の護り！HP45%以下の味方全員 +20%回復！', '#60d8ff');
+  updatePartyHP();
+}
+
 // ヒールポップアップ
 function showHealPopup(amt){
   var area = document.getElementById('battle-enemy-area');
@@ -5338,6 +5423,10 @@ function showHealPopup(amt){
 
 function getPartyDamageReduction(){
   const ap = BT.partyHp.filter(m=>m.hp>0).map(m=>CHARS.find(c=>c.id===m.id)).filter(Boolean);
+  // ネレイス水コンボ軽減フラグ
+  if(BT._nereisShield){
+    BT._nereisShield = false; // 1ターン限り
+  }
   let reduce=0;
   ap.forEach(c=>{
     if(c.role==='tank') reduce+=({4:0.15,6:0.10,14:0.08,20:0.15,23:0.10,62:0.20,63:0.15,69:0.25,75:0.12,79:0.20,87:0.18}[c.id]||0.05);
@@ -5370,6 +5459,20 @@ function applyDamageToMember(tgt, dmg, actionEl){
     sfx('hit');
     updatePartyHP();
     return 0;
+  }
+  // バリア(shield)があればまずバリアを削る
+  if((tgt.shield||0) > 0 && dmg>0){
+    const shieldDmg = Math.min(tgt.shield, dmg);
+    tgt.shield = Math.max(0, tgt.shield - shieldDmg);
+    const remainDmg = dmg - shieldDmg;
+    if(actionEl && shieldDmg>0){
+      actionEl.innerHTML = '<span style="color:#80c0ff;font-weight:800;">🛡️ バリア '+(shieldDmg>0?'-'+shieldDmg.toLocaleString():'全吸収')+'！</span>';
+    }
+    if(remainDmg > 0){
+      tgt.hp = Math.max(0, tgt.hp - remainDmg);
+    }
+    updatePartyHP();
+    return dmg;
   }
   // 通常ダメージ
   tgt.hp = Math.max(0, tgt.hp - dmg);
@@ -5419,20 +5522,29 @@ function replenishHand(aliveIds){
     const need = CARDS_PER_MEMBER - current;
 
     for(let i=0;i<need;i++){
-      if(id===201){
-        // ヒールキャラ：新しいカードを追加しつつ既存をランクアップ
-        const existHeal = BT.hand.find(c=>c.charId===id&&c.isHeal&&(c.cardRank||1)<3);
+      const _rHealerDef = getHealerCard(id, 1);
+      if(_rHealerDef){
+        // ヒーラー：既存カードのランクアップ
+        // 同じカード名が手札にあればランクアップ
+        const newHealDef = getHealerCard(id, 1);
+        const existHeal = newHealDef ? BT.hand.find(c=>c.name===newHealDef.name&&(c.cardRank||1)<3) : null;
         if(existHeal){
-          const newRank = Math.min(3,(existHeal.cardRank||1)+1);
+          const newRank = Math.min(5,(existHeal.cardRank||1)+1);
           existHeal.cardRank = newRank;
           existHeal._rankUp = true;
+          const upgDef = getHealerCard(id, newRank);
+          if(upgDef){
+            existHeal.name = upgDef.name;
+            existHeal.emoji = upgDef.emoji;
+            existHeal.healRate = upgDef.healRate||0.10;
+            existHeal.healType = upgDef.type;
+            existHeal.shieldRate = upgDef.shieldRate||0;
+            existHeal.isShieldCard = upgDef.type==='shield';
+          }
         }
-        BT.hand.push({
-          name:'ヒール',emoji:'💚',dmg:0,comboType:'none',
-          charId:id,charName:ch.name,charAtk:actualAtk,
-          isHeal:true,healRate:0.30,cardRank:1,
-          used:false,selected:false,_isNew:true
-        });
+        const _newHc = buildHealerCardObj(_rHealerDef, id, ch, actualAtk, 1);
+        _newHc._isNew = true;
+        BT.hand.push(_newHc);
       } else {
         const newCard = getCardForChar(ch.attribute);
         // 同一カード（同名・同comboType）が既にあれば★ランクアップ
@@ -5443,10 +5555,11 @@ function replenishHand(aliveIds){
           !c.isUlt && (c.cardRank||1)<3
         );
         if(sameCard){
-          const newRank = Math.min(3,(sameCard.cardRank||1)+1);
+          const newRank = Math.min(5,(sameCard.cardRank||1)+1);
           sameCard.cardRank = newRank;
           sameCard._rankUp = true;
-          sameCard.dmg = (sameCard._baseDmg||sameCard.dmg) * (newRank>=3?1.5:1.25);
+          const _repMul = newRank>=5?5.0:newRank>=4?3.5:newRank>=3?2.5:newRank>=2?1.6:1.0;
+          sameCard.dmg = (sameCard._baseDmg||sameCard.dmg) * _repMul;
         }
         // 常に新カードを追加
         BT.hand.push({
@@ -5466,6 +5579,30 @@ function replenishHand(aliveIds){
   updateComboGauge();
 }
 
+
+// ヒーラーカードオブジェクト生成
+function buildHealerCardObj(def, charId, ch, actualAtk, rank){
+  return {
+    name: def.name,
+    emoji: def.emoji,
+    dmg: 0,
+    comboType: 'none',
+    charId: charId,
+    charName: ch ? ch.name : '???',
+    charAtk: actualAtk,
+    isHeal: def.type !== 'shield',
+    isShieldCard: def.type === 'shield' || def.type === 'shieldHeal',
+    isShieldHeal: def.type === 'shieldHeal', // バリア＋回復兼用
+    healRate: def.healRate || 0,
+    healType: def.type || 'single',
+    shieldRate: def.shieldRate || 0,
+    shieldExtra: def.shield || false,
+    cardRank: rank||1,
+    _baseDmg: 0,
+    used: false, selected: false
+  };
+}
+
 function drawHand(ids){
   BT.hand=[];
   BT.selectedOrder=[];
@@ -5475,14 +5612,11 @@ function drawHand(ids){
     const memberData = BT.partyHp.find(m=>m.id===id);
     const actualAtk = memberData ? memberData.atk : ch.atk;
     for(let i=0;i<CARDS_PER_MEMBER;i++){
-      // アルテア（id:201）はヒールカードを生成
-      if(id===201){
-        BT.hand.push({
-          name:'ヒール', emoji:'💚', dmg:0, comboType:'none',
-          charId:id, charName:ch.name, charAtk:actualAtk,
-          isHeal:true, healRate:0.30, cardRank:1,
-          used:false, selected:false
-        });
+      // ヒーラーキャラは固有ヒールカードを生成
+      const _healerDef = getHealerCard(id, 1);
+      if(_healerDef){
+        const _hc = buildHealerCardObj(_healerDef, id, ch, actualAtk, 1);
+        BT.hand.push(_hc);
       } else {
         const c=getCardForChar(ch.attribute);
         BT.hand.push({...c,charId:id,charName:ch.name,charAtk:actualAtk,cardRank:1,_baseDmg:c.dmg,used:false,selected:false});
@@ -5497,24 +5631,61 @@ function drawHand(ids){
 
 // マージグループ構築（同キャラの複数カードをマージ可能にする）
 function buildMergeGroups(){
-  const groups={};
-  BT.hand.forEach((c,i)=>{
-    if(c.isSpecial||c.isHeal||c.isUlt) return;
-    // キャラではなくカード名+属性でグループ化
-    const key = c.name+'_'+c.comboType;
-    if(!groups[key]) groups[key]=[];
-    groups[key].push(i);
-  });
-  BT.hand.forEach(c=>{ c.mergeGroup=null; c.mergeLevel=1; });
-  Object.entries(groups).forEach(([key,indices])=>{
-    if(indices.length>=2){
-      indices.forEach((idx,pos)=>{
-        BT.hand[idx].mergeGroup=key;
-        BT.hand[idx].mergeGroupSize=indices.length;
-        BT.hand[idx].mergeGroupPos=pos;
-      });
+  BT.hand.forEach(c=>{ c.mergeGroup=null; });
+  // 隣接する同名・同ランクカードを自動融合（1回のみ）
+  autoFuseAdjacentCards();
+}
+
+// 隣接する同名・同ランクカードを融合してランクアップ
+function autoFuseAdjacentCards(){
+  const hand = BT.hand;
+  let fuseCount = 0;
+  for(let i=0; i<hand.length-1; i++){
+    const a = hand[i];
+    const b = hand[i+1];
+    if(a.used||b.used||a.isUlt||b.isUlt) continue;
+    // 同名・同ランクが隣り合っていたら融合
+    if(a.name===b.name && a.comboType===b.comboType &&
+       (a.cardRank||1)===(b.cardRank||1) && (a.cardRank||1)<3){
+      const newRank = Math.min(5,(a.cardRank||1)+1);
+      a.cardRank = newRank;
+      a._rankUp = true;
+      const _fuseMul = newRank>=5?5.0:newRank>=4?3.5:newRank>=3?2.5:newRank>=2?1.6:1.0;
+      a.dmg = (a._baseDmg||a.dmg) * _fuseMul;
+      if(a.isHeal||a.isShieldCard){
+        const upgDef = getHealerCard(a.charId, newRank);
+        if(upgDef){
+          a.name=upgDef.name; a.emoji=upgDef.emoji;
+          a.healRate=upgDef.healRate||0.10; a.healType=upgDef.type;
+          a.shieldRate=upgDef.shieldRate||0;
+          a.isShieldCard=upgDef.type==='shield';
+          a.isHeal=upgDef.type!=='shield';
+        }
+      }
+      // bのcharIdを記録してから削除（融合後に補充カードを追加）
+      const fuseCharId = b.charId;
+      hand.splice(i+1,1);
+      fuseCount++;
+      // 融合で消えた枠に新しいカードを末尾に補充
+      const fuseChar = CHARS.find(c=>c.id===fuseCharId);
+      if(fuseChar){
+        const fuseMember = BT.partyHp.find(m=>m.id===fuseCharId);
+        const fuseAtk = fuseMember ? fuseMember.atk : fuseChar.atk;
+        const fuseHealDef = getHealerCard(fuseCharId, 1);
+        if(fuseHealDef){
+          const nc = buildHealerCardObj(fuseHealDef, fuseCharId, fuseChar, fuseAtk, 1);
+          nc._isNew = true;
+          hand.push(nc);
+        } else {
+          const nc = getCardForChar(fuseChar.attribute);
+          hand.push({...nc, charId:fuseCharId, charName:fuseChar.name,
+            charAtk:fuseAtk, cardRank:1, _baseDmg:nc.dmg,
+            used:false, selected:false, _isNew:true});
+        }
+      }
+      i--; // 再チェック
     }
-  });
+  }
 }
 
 function renderHand(){
@@ -5522,10 +5693,14 @@ function renderHand(){
   const paraIds  = new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='para'  &&s.turns>0)).map(m=>m.id));
   const freezeIds= new Set((BT.partyHp||[]).filter(m=>(m.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0)).map(m=>m.id));
   row.innerHTML = BT.hand.map((c,i)=>{
-    const isHealCard  = c.isHeal;
-    const healAmt     = isHealCard ? Math.round(c.charAtk * c.healRate) : 0;
+    const isHealCard  = c.isHeal || c.isShieldCard;
+    const healRankMul = 1.0; // healRateにランク分を直接反映済み
+    const healAmt     = c.isShieldCard
+      ? Math.round((BT.partyHp[0]?.maxHp||1000)*(c.shieldRate||0.10)*healRankMul)
+      : isHealCard ? Math.round(c.charAtk*(c.healRate||0.15)*healRankMul) : 0;
     const d   = isHealCard ? healAmt : Math.round(c.charAtk * c.dmg);
-    const col = isHealCard ? '#40e080' : (c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)');
+    const healTypeLabel = c.isShieldCard?'🛡️':c.healType==='all'?'全体':'単体';
+    const col = c.isShieldCard?'#80c0ff':isHealCard ? '#40e080' : (c.dmg>=1.8?'#d4a020':c.dmg>=1.4?'var(--teal)':'var(--text)');
     const orderIdx  = BT.selectedOrder.indexOf(i);
     const orderBadge= c.selected ? `<div class="selected-order">${orderIdx+1}</div>` : '';
     const comboCls  = c.comboType !== 'none' ? `combo-${c.comboType}` : 'combo-none';
@@ -5547,6 +5722,10 @@ function renderHand(){
     if(isSpecialCard){
     } else if(isFreezeCard){
       cardStyle += 'border-color:rgba(80,180,255,.8);box-shadow:0 0 10px rgba(80,180,255,.5);background:rgba(0,30,80,.7);opacity:.7;';
+    } else if(cardRank>=5){
+      cardStyle += 'border-color:rgba(255,220,80,1);box-shadow:0 0 28px rgba(255,200,0,.9);background:rgba(60,40,0,.8);';
+    } else if(cardRank>=4){
+      cardStyle += 'border-color:rgba(80,200,255,.95);box-shadow:0 0 22px rgba(40,180,255,.7);background:rgba(0,40,70,.7);';
     } else if(isHealCard && cardRank>=3){
       cardStyle += 'border-color:rgba(255,80,200,.8);box-shadow:0 0 12px rgba(255,80,200,.5);background:rgba(50,0,40,.6);';
     } else if(isHealCard && cardRank>=2){
@@ -5566,10 +5745,15 @@ function renderHand(){
     }
 
     // ランクバッジ
-    const rankBadge = cardRank>=3
-      ? '<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,80,220,.8);z-index:5;">★★★</div>'
-      : cardRank>=2
-      ? '<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#c07000,#ffe040);color:#fff;white-space:nowrap;box-shadow:0 0 8px rgba(255,180,0,.8);z-index:5;">★★</div>'
+    const _RANK_BADGE_STYLES = {
+      2:'background:linear-gradient(90deg,#c07000,#ffe040);box-shadow:0 0 8px rgba(255,180,0,.8);',
+      3:'background:linear-gradient(90deg,#c000a0,#ff60e0);box-shadow:0 0 10px rgba(255,80,220,.8);',
+      4:'background:linear-gradient(90deg,#0060c0,#40c0ff);box-shadow:0 0 12px rgba(40,180,255,.8);',
+      5:'background:linear-gradient(90deg,#c08000,#ffe060,#ffa000);box-shadow:0 0 14px rgba(255,200,0,1);',
+    };
+    const _RANK_STARS = {1:'',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+    const rankBadge = cardRank>=2
+      ? `<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:${cardRank>=5?'8':'9'}px;font-weight:900;padding:1px 8px;border-radius:99px;${_RANK_BADGE_STYLES[cardRank]||_RANK_BADGE_STYLES[2]}color:#fff;white-space:nowrap;z-index:5;">${_RANK_STARS[cardRank]||''}</div>`
       : '';
 
     // バッジ
@@ -5579,18 +5763,18 @@ function renderHand(){
     // 凍結はカード全体を氷のオーバーレイで覆う
     const freezeOverlay = isFreezeCard ? '<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>' : '';
 
-    // 星レベル情報
-    const selGroup = c.mergeGroup && c.selected
-      ? BT.hand.filter((x,xi)=>x.mergeGroup===c.mergeGroup&&x.selected&&!x.used).length : 0;
-    const starLv = selGroup>=3?3:selGroup>=2?2:1;
-    const mergeCls = c.selected && c.mergeGroup ? (starLv>=3?'star3':starLv>=2?'star2':'') : '';
-    const STAR_CHARS = {1:'★', 2:'★★', 3:'★★★'};
-    const mergeBadge = c.selected && c.mergeGroup && starLv>=2
-      ? `<div class="star-badge ${starLv>=3?'s3':'s2'}">${STAR_CHARS[starLv]}</div>` : '';
-    // 星レベル時の威力表示
-    const starMul = starLv>=3?2.5:starLv>=2?1.6:1.0;
+    // カードの現在のランク（cardRankに基づく・選択状態とは無関係）
+    const cardRk = c.cardRank||1;
+    const mergeCls = cardRk>=5?'star5':cardRk>=4?'star4':cardRk>=3?'star3':cardRk>=2?'star2':'';
+    const STAR_CHARS = {1:'★',2:'★★',3:'★★★',4:'★★★★',5:'★★★★★'};
+    const STAR_CLS   = {1:'',2:'s2',3:'s3',4:'s4',5:'s5'};
+    // ランクバッジは常時表示（選択状態無関係）
+    const mergeBadge = cardRk>=2
+      ? `<div class="star-badge ${STAR_CLS[cardRk]||'s2'}">${STAR_CHARS[cardRk]||'★'}</div>` : '';
+    // ★ランクに応じた威力倍率
+    const starMul = cardRk>=5?5.0:cardRk>=4?3.5:cardRk>=3?2.5:cardRk>=2?1.6:1.0;
     const displayD = isHealCard?d:Math.round(d*starMul);
-    const displayCol = starLv>=3?'#ff80e0':starLv>=2?'#ffe040':col;
+    const displayCol = cardRk>=5?'#ffdd00':cardRk>=4?'#60d8ff':cardRk>=3?'#ff80e0':cardRk>=2?'#ffe040':col;
 
     const isNewCard = !!c._isNew;
     const slideDelay = isNewCard ? `animation-delay:${i*55}ms;` : '';
@@ -5625,7 +5809,7 @@ function renderHand(){
       ${isSpecialCard?'<div class="special-badge">✨特殊</div>':''}
       <div class="card-em" style="${isFreezeCard?'filter:grayscale(.5);':''}">${isHealCard?'💚':c.emoji}</div>
       <div class="card-nm">${c.name}</div>
-      <div class="card-dmg" style="color:${displayCol}">${isSpecialCard?'✨特殊':(isHealCard?'💊+'+d:displayD)}</div>
+      <div class="card-dmg" style="color:${displayCol}">${isSpecialCard?'✨特殊':(c.isShieldCard?'🛡️+'+d:(isHealCard?healTypeLabel+'💊+'+d:displayD))}</div>
       ${isHealCard?'':comboLabel}
       <div class="card-own">${c.charName}</div>
     </div>`;
@@ -5705,26 +5889,7 @@ function toggleCard(i){
 }
 
 // マージグループ構築（同キャラの複数カードをマージ可能にする）
-function buildMergeGroups(){
-  const groups={};
-  BT.hand.forEach((c,i)=>{
-    if(c.isSpecial||c.isHeal||c.isUlt) return;
-    // キャラではなくカード名+属性でグループ化
-    const key = c.name+'_'+c.comboType;
-    if(!groups[key]) groups[key]=[];
-    groups[key].push(i);
-  });
-  BT.hand.forEach(c=>{ c.mergeGroup=null; c.mergeLevel=1; });
-  Object.entries(groups).forEach(([key,indices])=>{
-    if(indices.length>=2){
-      indices.forEach((idx,pos)=>{
-        BT.hand[idx].mergeGroup=key;
-        BT.hand[idx].mergeGroupSize=indices.length;
-        BT.hand[idx].mergeGroupPos=pos;
-      });
-    }
-  });
-}
+
 
 function updateComboGauge(){
   updateComboGaugeFor(
@@ -5876,19 +6041,47 @@ function executeAttack(){
       setTimeout(()=>activateUlt_effect(c.charId, c.ultDef, BT.partyHp.find(m=>m.id===c.charId)), btDelay(400));
     } else if(c.isSpecial){
       specialsToExec.push(c);
-    } else if(c.isHeal){
-      const healAmt = Math.round(c.charAtk * (c.healRate||0.30));
+    } else if(c.isHeal || c.isShieldCard){
+      const rankMul = 1.0; // healRateにランク分を直接反映済み
       const alive = BT.partyHp.filter(m=>m.hp>0);
-      const weakest = alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b, alive[0]);
-      if(weakest){ weakest.hp = Math.min(weakest.maxHp, weakest.hp + healAmt); totalHeal += healAmt; }
+      if(c.isShieldCard){
+        // バリアカード（グラン）：味方全員にシールド付与
+        const aliveM = BT.partyHp.filter(m=>m.hp>0);
+        const avgMaxHp = aliveM.reduce((s,m)=>s+m.maxHp,0) / Math.max(1,aliveM.length);
+        const shieldAmt = Math.round(avgMaxHp * (c.shieldRate||0.10) * rankMul);
+        aliveM.forEach(m=>{ m.shield=(m.shield||0)+shieldAmt; });
+        totalHeal += shieldAmt;
+        // shieldHeal（深海の守護）はバリア＋回復も
+        if(c.isShieldHeal && c.healRate>0){
+          const healAmt2 = Math.round(c.charAtk*(c.healRate||0.05)*rankMul);
+          aliveM.forEach(m=>{ m.hp=Math.min(m.maxHp,m.hp+healAmt2); });
+          showSpecialAtkBanner('⚒️ '+c.name+'！バリア+'+shieldAmt.toLocaleString()+'＋回復+'+healAmt2.toLocaleString()+'！', '#ffc060');
+        } else {
+          showSpecialAtkBanner('🛡️ '+c.name+'！味方全員にバリア+'+shieldAmt.toLocaleString()+'付与！', '#80c0ff');
+        }
+        updatePartyHP();
+      } else {
+        const healAmt = Math.round(c.charAtk * (c.healRate||0.15) * rankMul);
+        if(c.healType==='all'){
+          // 全体回復
+          alive.forEach(m=>{ m.hp=Math.min(m.maxHp, m.hp+healAmt); });
+          totalHeal += healAmt;
+        } else {
+          // 最もHPの低い味方を回復
+          const weakest = alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b, alive[0]);
+          if(weakest){ weakest.hp=Math.min(weakest.maxHp, weakest.hp+healAmt); totalHeal+=healAmt; }
+        }
+        // ネレイスの深海の奔流：被ダメ軽減フラグ
+        if(c.shieldExtra){ BT._nereisShield=true; }
+      }
       BT.combo = Math.max(0, BT.combo);
-      // Ultスタック加算（ヒールカードでも）
       if(c.charId) addUltStack(c.charId);
       c.used=true; c.selected=false;
     } else {
       const grpCnt = c.mergeGroup ? (starGroupCounts[c.mergeGroup]||1) : 1;
       // 星レベル倍率：★1=×1.0、★2=×1.6、★3=×2.5
-      const starMul = grpCnt>=3 ? 2.5 : grpCnt>=2 ? 1.6 : 1.0;
+      // 実際の威力はcardRankで管理、grpCntは選択時マージなし
+      const starMul = 1.0; // rankはcardRankに反映済み
       const grpIdx = c.mergeGroup ? sel.filter(x=>x.mergeGroup===c.mergeGroup).indexOf(c) : 0;
       if(c.mergeGroup && grpIdx > 0){
         // ★2・★3の2枚目・3枚目はスキップ（倍率は1枚目に集約）
@@ -6436,7 +6629,15 @@ function updatePartyHP(){
       `<div style="width:${Math.floor(14/maxStk)-1}px;height:3px;border-radius:1px;background:${i<stack?(ready?'#ffcc00':'#8040ff'):'rgba(255,255,255,.1)'};transition:background .2s;"></div>`
     ).join('');
     const ultBar = `<div style="display:flex;gap:1px;margin-top:3px;" title="${def.name}">${ultPips}</div>`;
-    return`<div class="member-hp"><div class="member-nm">${ch?ch.emoji:''} ${ch?ch.name:m.id}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${Math.max(0,pct)}%;background:${col}"></div></div>${ibBar}${ultBar}<div class="member-hp-val" style="color:${ready?'#ffcc00':'var(--text3)'};">${ready?'⚡Ult READY':m.hp+'/'+m.maxHp}</div></div>`;
+    // バリアバー（shield）
+    const shield = m.shield||0;
+    const shieldBar = shield>0 ? `<div style="display:flex;align-items:center;gap:3px;margin-top:2px;">
+      <div style="flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:1px;overflow:hidden;">
+        <div style="height:100%;width:100%;background:linear-gradient(90deg,#60a0ff,#a0d0ff);border-radius:1px;"></div>
+      </div>
+      <div style="font-size:7px;color:#80c0ff;white-space:nowrap;">🛡️${shield.toLocaleString()}</div>
+    </div>` : '';
+    return`<div class="member-hp"><div class="member-nm">${ch?ch.emoji:''} ${ch?ch.name:m.id}</div><div class="member-hp-bar"><div class="member-hp-fill" style="width:${Math.max(0,pct)}%;background:${col}"></div></div>${shieldBar}${ibBar}${ultBar}<div class="member-hp-val" style="color:${ready?'#ffcc00':'var(--text3)'};">${ready?'⚡Ult READY':m.hp+'/'+m.maxHp}</div></div>`;
   }).join('');
 }
 
@@ -14079,7 +14280,8 @@ function initMultiEnemies(quest){
   // 倍速ボタンUIを現在の設定に同期
   if(document.getElementById('speed-btn-'+BT_SPEED)) setBattleSpeed(BT_SPEED);
   _alteaEmergencyUsed = false; // アルテア緊急回復リセット
-  _tritosEmergencyUsed = false; // トリトス緊急回復リセット
+  _tritosEmergencyUsed = false;
+  _nereisEmergencyUsed = false; // トリトス緊急回復リセット
   document.getElementById('focus-target-disp').style.display='none';
   // 後方互換：BT.enemyHpをメイン敵HPに設定
   BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
