@@ -7808,32 +7808,32 @@ function onRogueBattleWin(quest){
           if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
           if(!S.ownedTitles.includes('深淵の最奥踏破者')) S.ownedTitles.push('深淵の最奥踏破者');
         }
-        // 15F踏破（禁域クリア）
-        if(r.isAbyssRun && effectiveMax>=ROGUE_ABYSS_FLOOR){
-          if(!S.ownedIcons.includes('🗝️')) S.ownedIcons.push('🗝️');
-          if(!S.ownedTitles.includes('深淵禁域踏破者')) S.ownedTitles.push('深淵禁域踏破者');
-          const abyssClearBonus=2000;
-          S.roguePoints=(S.roguePoints||0)+abyssClearBonus;
-          S.roguePassPoints=(S.roguePassPoints||0)+abyssClearBonus;
-          r.score=(r.score||0)+abyssClearBonus;
-          if(end) end.textContent='🗝️ 深淵禁域15F完全踏破！ RP +'+(pts+abyssClearBonus)+' (×5倍！)';
-          r.active=false; S.rogueRun=null;
-          BT.fromScreen='rogue';
-          const backBtn2=document.getElementById('end-btn-back');
-          const homeBtn2=document.getElementById('end-btn-home');
-          if(backBtn2) backBtn2.textContent='← ローグへ';
-          if(homeBtn2) homeBtn2.style.display='none';
-          saveGame(); return;
-        }
-        // 深淵禁域の鍵を持っていれば禁域ゲートへ
-        if(false){ // dummy
-          if(r.abyssKeyUnlocked && !r.isAbyssRun){
-            r.pendingAbyssGate=true;
-            r.pendingAbyssPts=pts;
-            if(end) end.textContent='🗝️ 10F踏破！深淵禁域への扉が現れた…';
-            saveGame(); return;
-          }
-        }
+      }
+      // 15F踏破（禁域クリア）
+      if(r.isAbyssRun && effectiveMax>=ROGUE_ABYSS_FLOOR){
+        if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+        if(!S.ownedIcons.includes('🗝️')) S.ownedIcons.push('🗝️');
+        if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+        if(!S.ownedTitles.includes('深淵禁域踏破者')) S.ownedTitles.push('深淵禁域踏破者');
+        const abyssClearBonus=2000;
+        S.roguePoints=(S.roguePoints||0)+abyssClearBonus;
+        S.roguePassPoints=(S.roguePassPoints||0)+abyssClearBonus;
+        r.score=(r.score||0)+abyssClearBonus;
+        if(end) end.textContent='🗝️ 深淵禁域15F完全踏破！ RP +'+(pts+abyssClearBonus)+' (×5倍！)';
+        r.active=false; S.rogueRun=null;
+        BT.fromScreen='rogue';
+        const backBtn2=document.getElementById('end-btn-back');
+        const homeBtn2=document.getElementById('end-btn-home');
+        if(backBtn2) backBtn2.textContent='← ローグへ';
+        if(homeBtn2) homeBtn2.style.display='none';
+        saveGame(); return;
+      }
+      // 深淵禁域の鍵を持っていれば禁域ゲートへ（NORMAL/HARD問わず）
+      if(r.abyssKeyUnlocked && !r.isAbyssRun && effectiveMax>=ROGUE_EXTENDED_FLOOR){
+        r.pendingAbyssGate=true;
+        r.pendingAbyssPts=pts;
+        if(end) end.textContent='🗝️ 10F踏破！深淵禁域への扉が現れた…';
+        saveGame(); return;
       }
       r.active=false; S.rogueRun=null;
       BT.fromScreen='rogue';
