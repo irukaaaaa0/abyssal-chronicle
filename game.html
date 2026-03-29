@@ -5964,6 +5964,9 @@ function runAutoTurn(){
     .map((c,i)=>({...c,i}))
     .filter(c=>!c.used)
     .sort((a,b)=>{
+      // Ultカードを最優先（常にトップ）
+      if(a.isUlt && !b.isUlt) return -1;
+      if(!a.isUlt && b.isUlt) return 1;
       // ヒール優先：needsHeal&&autoHealがONの時ヒールカードを先頭に
       if(bs.autoHeal && needsHeal){
         if(a.isHeal && !b.isHeal) return -1;
@@ -5989,6 +5992,8 @@ function runAutoTurn(){
     const alreadySel = charSelectCount[c.charId]||0;
     if(isPara && alreadySel >= 1) continue;
 
+    // Ultカードは無条件で選択（スキップしない）
+    if(c.isUlt){ charSelectCount[c.charId]=(charSelectCount[c.charId]||0)+1; available.push(c); continue; }
     // ヒールカード：設定OFFまたはHP80%以上全員ならスキップ
     if(c.isHeal){
       if(!bs.autoHeal) continue;
