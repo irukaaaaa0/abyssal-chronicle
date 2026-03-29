@@ -2442,6 +2442,13 @@ async function saveToCloud(){
     craftPoints: S.craftPoints||{R:0,SR:0,SSR:0,UR:0},
     craftMaterials: S.craftMaterials||{},
     bagItems: S.bagItems||{},
+    roguePoints: S.roguePoints||0,
+    roguePassPoints: S.roguePassPoints||0,
+    roguePassClaimed: S.roguePassClaimed||[],
+    roguePassLap: S.roguePassLap||0,
+    rogueRun: S.rogueRun||null,
+    ownedTitles: S.ownedTitles||[],
+    towerDayBest: S.towerDayBest||0,
     lastSaved: new Date().toISOString()
   };
   S.lastSaved = saveData.lastSaved; // ローカルも同期
