@@ -4842,6 +4842,24 @@ function initBattle(quest,pids){
   goTo('battle');
   // ★オートがONなら画面遷移後すぐに開始
   if(BT.auto) setTimeout(()=>{ if(BT.active && BT_PHASE==='player') runAutoTurn(); }, 300);
+  // 禁域：戦闘開始時に特殊能力を警告
+  if(quest&&quest.isAbyssQuest){
+    setTimeout(()=>{
+      const _ae=quest.enemy;
+      const _ab=_ae&&_ae.abyssAbility;
+      const _tl=_ae&&_ae.abyssTurnLimit;
+      const ABYSS_LABELS={
+        undying:'不死（HP0→30%復活）',doubleAtk:'2回攻撃',reflect:'ダメ反射15%',
+        corrosion:'腐食（ATK削減）',healAbsorb:'回復吸収30%',berserker:'狂化HP50%↓×2',
+        ultSeal:'Ult封印3T',copyAtk:'コピー攻撃',multiPhase:'形態変化',
+        shieldBreak:'バリア貫通',debuffStorm:'デバフ嵐×2',lifeSteal:'HP吸収30%',
+        chaosField:'混沌場（バフ半減）',allDebuff:'全デバフ付与',trueForm:'真の姿HP50%↓×3',
+      };
+      const lbl=ABYSS_LABELS[_ab]||'';
+      const tlMsg=_tl?(' ⏱'+_tl+'T制限'):' ';
+      showSpecialAtkBanner('🗝️ 禁域'+tlMsg+(lbl?'⚠️'+lbl:''),'#ff4060');
+    },400);
+  }
 }
 
 // 遷移元画面を設定してから戦闘開始
@@ -5876,6 +5894,8 @@ function executeAttack(){
         else{const weakest=alive.reduce((a,b)=>(a.hp/a.maxHp)<(b.hp/b.maxHp)?a:b,alive[0]);if(weakest){weakest.hp=Math.min(weakest.maxHp,weakest.hp+healAmt);totalHeal+=healAmt;}}
       }
       if(c.charId) addUltStack(c.charId);
+      // 禁域：1撃ダメ上限チェック
+      // （敵側のabyssDmgCapは表示のみ・実際の制限はここで）
       BT.combo=Math.max(0,BT.combo);
     } else {
       const starMul=((c.cardRank||1)>=5?5.0:(c.cardRank||1)>=4?3.5:(c.cardRank||1)>=3?2.5:(c.cardRank||1)>=2?1.6:1.0);
@@ -5886,6 +5906,8 @@ function executeAttack(){
       BT.combo++;
       cb = 1 + BT.combo * 0.1;
       if(c.charId) addUltStack(c.charId);
+      // 禁域：1撃ダメ上限チェック
+      // （敵側のabyssDmgCapは表示のみ・実際の制限はここで）
     }
     c.used = true;
     c.selected = false;
@@ -6277,6 +6299,24 @@ function afterEnemyAttacks(){
     applyURHealerBonus();
     applyAlteaEmergency();
     applyNereisEmergency();
+    // 禁域ターン制限チェック
+    if(BT.quest&&BT.quest.isAbyssQuest){
+      const _ene=BT_ENEMIES&&BT_ENEMIES.length>0?BT_ENEMIES[0]:null;
+      const _tl=_ene&&_ene.abyssTurnLimit;
+      if(_tl){
+        BT._abyssTurnCount=(BT._abyssTurnCount||0)+1;
+        if(BT._abyssTurnCount>=_tl){
+          // ターン超過：全員即死
+          BT.partyHp.forEach(m=>{m.hp=0;});
+          updatePartyHP();
+          showSpecialAtkBanner('⌛ ターン制限超過！全員消滅！','#ff0000');
+          setTimeout(()=>{if(BT.active)loseRogue();},1000);
+          return;
+        }
+        const _rem=_tl-BT._abyssTurnCount;
+        if(_rem<=3) showSpecialAtkBanner('⚠️ 残り'+_rem+'ターン！','#ff4040');
+      }
+    }
     // アムネジア(210) 毎ターン敵デバフ-1 → 味方HP+3%
     if(BT.partyHp.some(function(m){return m.id===210&&m.hp>0;})){
       var _had=false;
@@ -7261,12 +7301,12 @@ function renderRogue(){
 
 function renderRogueRunCard(){
   const r=S.rogueRun;
-  const mode=r.isAbyssRun?'🗝️ ABYSS':r.hard?'HARD':'NORMAL';
+  const mode=r.isAbyssRun?'🗝️ ABYSS ':r.hard?'HARD':'NORMAL';
   const modeCol=r.isAbyssRun?'#ff6080':r.hard?'#ffd8a0':'#bfe9ff';
   const coins=r.coins||0;
   const gifts=(r.gifts||[]).map(g=>`<span title="${g.desc||''}" style="display:inline-flex;align-items:center;gap:3px;margin:3px 4px 0 0;padding:3px 9px;border-radius:999px;background:${g.type==='curse'?'rgba(120,20,20,.45)':g.type==='rare'?'rgba(90,55,0,.45)':g.type==='unique'?'rgba(55,10,95,.45)':'rgba(8,55,28,.45)'};border:.5px solid ${g.type==='curse'?'rgba(200,50,50,.55)':g.type==='rare'?'rgba(200,150,0,.55)':g.type==='unique'?'rgba(140,50,200,.55)':'rgba(28,120,75,.45)'};font-size:10px;color:${g.type==='curse'?'#ff9090':g.type==='rare'?'#ffe080':g.type==='unique'?'#d080ff':'#80e0b0'};">${g.emoji} ${g.name}</span>`).join('');
   return `
-    <div style="background:rgba(0,20,40,.4);border:.5px solid rgba(30,120,200,.3);border-radius:14px;padding:14px;margin-bottom:12px;">
+    ${abyssWarn}<div style="background:${r.isAbyssRun?'rgba(60,0,15,.5)':'rgba(0,20,40,.4)'};border:.5px solid ${r.isAbyssRun?'rgba(255,60,80,.4)':'rgba(30,120,200,.3)'};border-radius:14px;padding:14px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div>
           <div style="font-size:10px;color:rgba(160,210,240,.6);">進行中のラン</div>
@@ -7766,6 +7806,25 @@ function getRogueTotalEffect(){
     if(e.dotPct)         eff.dotPct+=e.dotPct;
     if(e.startShieldPct) eff.startShieldPct+=e.startShieldPct;
   });
+  // ─── 深淵禁域：遺物バフを強制圧縮 ───
+  // フロアごとにバフ上限を設定（どれだけ積んでも超えられない）
+  if(r.isAbyssRun && r.floor>=11){
+    // ATKバフ上限：11F=+30%・12F=+20%・13F=+15%・14F=+10%・15F=+5%
+    const atkCaps=[0,0,0,0,0,0,0,0,0,0,0,1.30,1.20,1.15,1.10,1.05];
+    const hpCaps =[0,0,0,0,0,0,0,0,0,0,0,1.25,1.18,1.12,1.08,1.03];
+    const atkCap = atkCaps[r.floor]||1.05;
+    const hpCap  = hpCaps[r.floor]||1.03;
+    eff.atkMul      = Math.min(eff.atkMul, atkCap);
+    eff.hpMul       = Math.min(eff.hpMul,  hpCap);
+    // 被ダメ軽減は最大5%のみ有効
+    eff.dmgTakenMul = Math.max(eff.dmgTakenMul, 0.95);
+    // バリアシールドは起動時のみ1%まで
+    eff.startShieldPct = Math.min(eff.startShieldPct, 0.01);
+    // 毎T回復は0.5%まで
+    eff.healPct = Math.min(eff.healPct, 0.005);
+    // カード追加選択は禁止
+    eff.extraPick = 0;
+  }
   return eff;
 }
 
@@ -7866,61 +7925,95 @@ function onRogueBattleWin(quest){
 //  🗝️ 深淵禁域（11〜15F）敵定義
 // ================================================================
 const ABYSS_ENEMY_TYPES = {
-  // 11F: 不死の深淵守護者
+  // ─── 11F ─── バフ希釈＋圧倒的HP・攻撃力
   11: {
-    battle:{name:'不死の深淵守護者',emoji:'💀',hp:800000,atk:12000,spd:3,
-      abyssAbility:'undying', // 一度HPが0になっても1回だけHP30%で復活
-      statusPatterns:[{type:'poison',prob:0.35,stacks:2},{type:'burn',prob:0.25,stacks:1}]},
-    elite: {name:'深淵の双頭龍',emoji:'🐲',hp:1400000,atk:15000,spd:4,
-      abyssAbility:'doubleAtk', // 毎ターン2回攻撃
-      statusPatterns:[{type:'freeze',prob:0.30,stacks:1},{type:'para',prob:0.25,stacks:1}]},
-    boss:  {name:'深淵禁域の番人【試練I】',emoji:'🕳️',hp:3000000,atk:18000,spd:4,boss:true,
-      abyssAbility:'reflect', // 受けたダメージの10%を攻撃者に反射
-      statusPatterns:[{type:'freeze',prob:0.28,stacks:1},{type:'poison',prob:0.25,stacks:2},{type:'para',prob:0.20,stacks:1}]},
+    battle:{name:'不死の深淵守護者',emoji:'💀',
+      hp:80000000, atk:120000, spd:4,         // HP8000万・ATK12万
+      abyssAbility:'undying',                  // HP0→HP30%で1回復活
+      abyssDmgCap:500000,                      // 1撃あたり50万ダメ上限
+      statusPatterns:[{type:'poison',prob:0.50,stacks:3},{type:'burn',prob:0.40,stacks:2}]},
+    elite:{name:'深淵の双頭龍',emoji:'🐲',
+      hp:150000000, atk:140000, spd:5,         // HP1.5億・ATK14万
+      abyssAbility:'doubleAtk',                // 毎ターン2回攻撃
+      abyssDmgCap:800000,
+      statusPatterns:[{type:'freeze',prob:0.45,stacks:2},{type:'para',prob:0.40,stacks:1}]},
+    boss:{name:'深淵禁域の番人〖試練Ⅰ〗',emoji:'🕳️',
+      hp:500000000, atk:180000, spd:5, boss:true, // HP5億・ATK18万
+      abyssAbility:'reflect',                  // 受けたダメの15%反射
+      abyssTurnLimit:20,                       // 20ターン以内に倒せないと即死
+      statusPatterns:[{type:'freeze',prob:0.45,stacks:2},{type:'poison',prob:0.40,stacks:3},{type:'para',prob:0.35,stacks:1}]},
   },
+  // ─── 12F ───
   12: {
-    battle:{name:'腐蝕の深淵魔獣',emoji:'🫀',hp:1000000,atk:14000,spd:3,
-      abyssAbility:'corrosion', // 攻撃するたびに対象のATKを5%下げる（最大3回）
-      statusPatterns:[{type:'poison',prob:0.45,stacks:3},{type:'burn',prob:0.30,stacks:2}]},
-    elite: {name:'深淵の浸食者',emoji:'🦠',hp:1800000,atk:16000,spd:4,
-      abyssAbility:'healAbsorb', // 味方が回復するたびに敵のHPも5%回復
-      statusPatterns:[{type:'para',prob:0.35,stacks:1},{type:'poison',prob:0.30,stacks:2}]},
-    boss:  {name:'深淵禁域の支配者【試練II】',emoji:'🌑',hp:4500000,atk:20000,spd:5,boss:true,
-      abyssAbility:'berserker', // HP50%以下になると全ステータス1.5倍
-      statusPatterns:[{type:'freeze',prob:0.30,stacks:2},{type:'poison',prob:0.30,stacks:3},{type:'burn',prob:0.25,stacks:2}]},
+    battle:{name:'腐蝕の深淵魔獣',emoji:'🫀',
+      hp:120000000, atk:150000, spd:4,
+      abyssAbility:'corrosion',                // 攻撃のたびATK-8%（最大5回）
+      abyssDmgCap:600000,
+      statusPatterns:[{type:'poison',prob:0.60,stacks:3},{type:'burn',prob:0.45,stacks:2}]},
+    elite:{name:'深淵の浸食者',emoji:'🦠',
+      hp:250000000, atk:170000, spd:5,
+      abyssAbility:'healAbsorb',               // 味方回復量の30%を敵HP回復
+      abyssDmgCap:1000000,
+      statusPatterns:[{type:'para',prob:0.50,stacks:1},{type:'poison',prob:0.45,stacks:3}]},
+    boss:{name:'深淵禁域の支配者〖試練Ⅱ〗',emoji:'🌑',
+      hp:900000000, atk:220000, spd:5, boss:true,
+      abyssAbility:'berserker',                // HP50%以下で全能力×2
+      abyssTurnLimit:18,
+      statusPatterns:[{type:'freeze',prob:0.50,stacks:2},{type:'poison',prob:0.50,stacks:3},{type:'burn',prob:0.45,stacks:2}]},
   },
+  // ─── 13F ───
   13: {
-    battle:{name:'時間喰らいの深淵怪',emoji:'⌛',hp:1200000,atk:15000,spd:3,
-      abyssAbility:'ultSeal', // 戦闘開始から3ターン、プレイヤーのUltを封印
-      statusPatterns:[{type:'freeze',prob:0.35,stacks:1},{type:'para',prob:0.30,stacks:1}]},
-    elite: {name:'深淵の鏡像',emoji:'🪞',hp:2200000,atk:17000,spd:4,
-      abyssAbility:'copyAtk', // プレイヤーが選択した枚数分だけ追加攻撃
-      statusPatterns:[{type:'burn',prob:0.40,stacks:2},{type:'poison',prob:0.35,stacks:2}]},
-    boss:  {name:'深淵禁域の王【試練III】',emoji:'👑',hp:6000000,atk:22000,spd:5,boss:true,
-      abyssAbility:'multiPhase', // HP70%・40%で形態変化、能力が変わる
-      statusPatterns:[{type:'freeze',prob:0.35,stacks:2},{type:'para',prob:0.30,stacks:1},{type:'poison',prob:0.30,stacks:3}]},
+    battle:{name:'時間喰らいの深淵怪',emoji:'⌛',
+      hp:180000000, atk:180000, spd:4,
+      abyssAbility:'ultSeal',                  // 最初3ターンUlt封印
+      abyssTurnLimit:15,                       // 15ターン以内に倒せないとHP全回復
+      statusPatterns:[{type:'freeze',prob:0.55,stacks:2},{type:'para',prob:0.50,stacks:1}]},
+    elite:{name:'深淵の鏡像',emoji:'🪞',
+      hp:400000000, atk:200000, spd:5,
+      abyssAbility:'copyAtk',                  // プレイヤー選択枚数×追加攻撃
+      abyssDmgCap:1500000,
+      statusPatterns:[{type:'burn',prob:0.55,stacks:3},{type:'poison',prob:0.50,stacks:3}]},
+    boss:{name:'深淵禁域の王〖試練Ⅲ〗',emoji:'👑',
+      hp:1500000000, atk:250000, spd:5, boss:true,
+      abyssAbility:'multiPhase',               // HP70%・40%で形態変化
+      abyssTurnLimit:15,
+      statusPatterns:[{type:'freeze',prob:0.55,stacks:3},{type:'para',prob:0.50,stacks:1},{type:'poison',prob:0.50,stacks:3}]},
   },
+  // ─── 14F ───
   14: {
-    battle:{name:'深淵の意志・前衛',emoji:'🌀',hp:1500000,atk:17000,spd:4,
-      abyssAbility:'shieldBreak', // バリアを無視してHPにダメージ
-      statusPatterns:[{type:'para',prob:0.40,stacks:1},{type:'freeze',prob:0.30,stacks:1}]},
-    elite: {name:'深淵の意志・中枢',emoji:'🧠',hp:3000000,atk:19000,spd:4,
-      abyssAbility:'debuffStorm', // 毎ターン全員にランダムデバフ付与
-      statusPatterns:[{type:'poison',prob:0.50,stacks:3},{type:'burn',prob:0.40,stacks:2},{type:'freeze',prob:0.35,stacks:1}]},
-    boss:  {name:'深淵禁域の神格【試練IV】',emoji:'🩸',hp:9000000,atk:25000,spd:5,boss:true,
-      abyssAbility:'lifeSteal', // 攻撃ダメージの20%をHP回復
-      statusPatterns:[{type:'freeze',prob:0.40,stacks:2},{type:'poison',prob:0.40,stacks:3},{type:'para',prob:0.35,stacks:1},{type:'burn',prob:0.30,stacks:2}]},
+    battle:{name:'深淵の意志・前衛',emoji:'🌀',
+      hp:300000000, atk:220000, spd:5,
+      abyssAbility:'shieldBreak',              // バリア無視＋被ダメ無効化不可
+      abyssDmgCap:2000000,
+      statusPatterns:[{type:'para',prob:0.60,stacks:1},{type:'freeze',prob:0.55,stacks:2}]},
+    elite:{name:'深淵の意志・中枢',emoji:'🧠',
+      hp:600000000, atk:250000, spd:5,
+      abyssAbility:'debuffStorm',              // 毎ターン全員ランダムデバフ×2
+      abyssDmgCap:2500000,
+      statusPatterns:[{type:'poison',prob:0.65,stacks:3},{type:'burn',prob:0.60,stacks:3},{type:'freeze',prob:0.55,stacks:2}]},
+    boss:{name:'深淵禁域の神格〖試練Ⅳ〗',emoji:'🩸',
+      hp:3000000000, atk:300000, spd:5, boss:true,
+      abyssAbility:'lifeSteal',                // 与ダメ30%HP吸収＋バフ全解除
+      abyssTurnLimit:12,
+      statusPatterns:[{type:'freeze',prob:0.60,stacks:3},{type:'poison',prob:0.60,stacks:3},{type:'para',prob:0.55,stacks:2},{type:'burn',prob:0.55,stacks:3}]},
   },
+  // ─── 15F ─── 最終試練
   15: {
-    battle:{name:'原初の混沌体・断片',emoji:'☯️',hp:2000000,atk:20000,spd:4,
-      abyssAbility:'chaosField', // 全てのデバフが1.5倍の効果
-      statusPatterns:[{type:'freeze',prob:0.45,stacks:2},{type:'poison',prob:0.45,stacks:3}]},
-    elite: {name:'原初の混沌体・核',emoji:'💫',hp:4000000,atk:22000,spd:5,
-      abyssAbility:'allDebuff', // 攻撃時に全種デバフをランダム付与
-      statusPatterns:[{type:'para',prob:0.50,stacks:1},{type:'freeze',prob:0.45,stacks:2},{type:'poison',prob:0.45,stacks:3},{type:'burn',prob:0.40,stacks:2}]},
-    boss:  {name:'〖深淵の根源〗混沌神の化身【最終試練】',emoji:'🌌',hp:15000000,atk:30000,spd:5,boss:true,
-      abyssAbility:'trueForm', // HP50%で真の姿に変化。全能力2倍・全デバフ完全耐性
-      statusPatterns:[{type:'freeze',prob:0.50,stacks:3},{type:'poison',prob:0.50,stacks:3},{type:'para',prob:0.45,stacks:2},{type:'burn',prob:0.45,stacks:3}]},
+    battle:{name:'原初の混沌体・断片',emoji:'☯️',
+      hp:500000000, atk:280000, spd:5,
+      abyssAbility:'chaosField',               // プレイヤーの遺物バフ効果を半減
+      abyssDmgCap:3000000,
+      statusPatterns:[{type:'freeze',prob:0.65,stacks:3},{type:'poison',prob:0.65,stacks:3}]},
+    elite:{name:'原初の混沌体・核',emoji:'💫',
+      hp:1000000000, atk:320000, spd:5,
+      abyssAbility:'allDebuff',                // 攻撃時に全デバフをランダム付与×2
+      abyssDmgCap:3500000,
+      statusPatterns:[{type:'para',prob:0.70,stacks:2},{type:'freeze',prob:0.65,stacks:3},{type:'poison',prob:0.65,stacks:3},{type:'burn',prob:0.60,stacks:3}]},
+    boss:{name:'〖深淵の根源〗混沌神の化身【最終試練】',emoji:'🌌',
+      hp:9999999999, atk:400000, spd:5, boss:true, // HP100億
+      abyssAbility:'trueForm',                 // HP50%で真の姿：全能力×3・デバフ完全耐性
+      abyssTurnLimit:10,                       // 10ターン以内に削り切れないと全滅
+      statusPatterns:[{type:'freeze',prob:0.70,stacks:3},{type:'poison',prob:0.70,stacks:3},{type:'para',prob:0.65,stacks:2},{type:'burn',prob:0.65,stacks:3}]},
   },
 };
 
@@ -14347,7 +14440,8 @@ function initMultiEnemies(quest){
   BT._chaosmaFreeze=false;
   BT._chaosmaPoison=false;
   BT._chaosmaburn=false;
-  BT._chaosmaAttr=null; // トリトス緊急回復リセット
+  BT._chaosmaAttr=null;
+  BT._abyssTurnCount=0; // トリトス緊急回復リセット
   document.getElementById('focus-target-disp').style.display='none';
   // 後方互換：BT.enemyHpをメイン敵HPに設定
   BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
@@ -14424,7 +14518,8 @@ function toggleFocusTarget(idx){
   BT._chaosmaFreeze=false;
   BT._chaosmaPoison=false;
   BT._chaosmaburn=false;
-  BT._chaosmaAttr=null; // トリトス緊急回復リセット
+  BT._chaosmaAttr=null;
+  BT._abyssTurnCount=0; // トリトス緊急回復リセット
     document.getElementById('focus-target-disp').style.display='none';
     showToast('集中狙いを解除しました');
   } else {
@@ -14488,7 +14583,8 @@ function damageEnemy(idx, dmg){
   BT._chaosmaFreeze=false;
   BT._chaosmaPoison=false;
   BT._chaosmaburn=false;
-  BT._chaosmaAttr=null; // トリトス緊急回復リセット
+  BT._chaosmaAttr=null;
+  BT._abyssTurnCount=0; // トリトス緊急回復リセット
     document.getElementById('focus-target-disp').style.display='none';
   }
 }
