@@ -6849,6 +6849,7 @@ function renderTower(){
 // ================================================================
 const ROGUE_MAX_FLOOR = 5;
 const ROGUE_EXTENDED_FLOOR = 10;
+const ROGUE_ABYSS_FLOOR = 15; // 深淵禁域：10F踏破後+5F
 
 const ROGUE_PASS_TIERS = [
   {req:   30, reward:{gem:100}},
@@ -6909,6 +6910,10 @@ const ROGUE_GIFTS = [
   {id:'g_dmgred',  name:'深海の堅牢',  emoji:'🪨', type:'unique', desc:'被ダメージ -15%',                  effect:{dmgTakenMul:0.85}},
   {id:'g_atkhp',   name:'混沌の欠片',  emoji:'🌀', type:'rare',   desc:'ATK +15% & 被ダメ -10%',           effect:{atkMul:1.15, dmgTakenMul:0.90}},
   {id:'g_abyss',   name:'深淵の核',    emoji:'🕳️', type:'unique', desc:'ATK +30% & HP上限 -10%',           effect:{atkMul:1.30, hpMul:0.90}},
+  // ─── 深淵禁域の鍵（特殊：1個限り） ───
+  {id:'g_abyss_key', name:'深淵禁域の鍵', emoji:'🗝️', type:'unique',
+   desc:'10F踏破後、深淵禁域（11〜15F）への挑戦権を得る。強力だが試練の道。',
+   effect:{abyssKey:true}},
   // ─── 呪い系 ───
   {id:'c_atk',     name:'錆の呪い',    emoji:'☠️', type:'curse',  desc:'ATK -12%',                        effect:{atkMul:0.88}},
   {id:'c_hp',      name:'圧壊水圧',    emoji:'💀', type:'curse',  desc:'最大HP -12%',                     effect:{hpMul:0.88}},
@@ -7059,6 +7064,22 @@ const ROGUE_EVENTS = [
        outcome:(r)=>{ return {text:'旅人は黙って去っていった。'}; }},
     ]
   },
+  ,{
+    id:'e_abyss_gate', name:'深淵禁域への扉', emoji:'🗝️',
+    desc:'闇の中に禁じられた扉が佇んでいる。開ければ更なる深淵へ続くという。',
+    choices:[
+      {label:'扉に触れる（深淵禁域の鍵を入手）', subdesc:'10F後に15Fまで挑戦可能',
+       outcome:(r)=>{
+         if(r.abyssKeyUnlocked){return {text:'すでに深淵禁域の鍵を持っている。'};}
+         r.abyssKeyUnlocked=true;
+         r.gifts=r.gifts||[];
+         r.gifts.push({id:'g_abyss_key',name:'深淵禁域の鍵',emoji:'🗝️',type:'unique',effect:{abyssKey:true},desc:'10F踏破後に深淵禁域へ挑戦可能'});
+         return {text:'🗝️ 深淵禁域の鍵を入手した！10F踏破後に禁域へ挑戦できる。'};
+       }},
+      {label:'無視して通過', subdesc:'',
+       outcome:(r)=>({text:'扉には触れなかった。'})},
+    ]
+  }
   ,{
     id:'e_poison_spring', name:'毒の泉', emoji:'☠️',
     desc:'怪しい緑色の泉が湧いている。飲めば力が得られるかもしれないが…',
@@ -7225,6 +7246,7 @@ function renderRogue(){
     return;
   }
   if(S.rogueRun.pendingDeepGate){ renderDeepGateUI(); return; }
+  if(S.rogueRun.pendingAbyssGate){ renderAbyssGateUI(); return; }
   if(S.rogueRun.pendingGifts&&S.rogueRun.pendingGifts.length){
     el.innerHTML=renderGiftPickUI(); return;
   }
@@ -7239,8 +7261,8 @@ function renderRogue(){
 
 function renderRogueRunCard(){
   const r=S.rogueRun;
-  const mode=r.hard?'HARD':'NORMAL';
-  const modeCol=r.hard?'#ffd8a0':'#bfe9ff';
+  const mode=r.isAbyssRun?'🗝️ ABYSS':r.hard?'HARD':'NORMAL';
+  const modeCol=r.isAbyssRun?'#ff6080':r.hard?'#ffd8a0':'#bfe9ff';
   const coins=r.coins||0;
   const gifts=(r.gifts||[]).map(g=>`<span title="${g.desc||''}" style="display:inline-flex;align-items:center;gap:3px;margin:3px 4px 0 0;padding:3px 9px;border-radius:999px;background:${g.type==='curse'?'rgba(120,20,20,.45)':g.type==='rare'?'rgba(90,55,0,.45)':g.type==='unique'?'rgba(55,10,95,.45)':'rgba(8,55,28,.45)'};border:.5px solid ${g.type==='curse'?'rgba(200,50,50,.55)':g.type==='rare'?'rgba(200,150,0,.55)':g.type==='unique'?'rgba(140,50,200,.55)':'rgba(28,120,75,.45)'};font-size:10px;color:${g.type==='curse'?'#ff9090':g.type==='rare'?'#ffe080':g.type==='unique'?'#d080ff':'#80e0b0'};">${g.emoji} ${g.name}</span>`).join('');
   return `
@@ -7409,6 +7431,72 @@ function leaveRogueShop(){
   const r=S.rogueRun; if(!r) return;
   r.pendingShop=false; r.shopItems=null;
   advanceRogueRow();
+}
+
+
+// ─── 深淵禁域への門（10F→15F 禁域モード）───
+function renderAbyssGateUI(){
+  const el=document.getElementById('rogue-content'); if(!el) return;
+  const r=S.rogueRun;
+  const gifts=(r.gifts||[]).length;
+  el.innerHTML=`
+    <div style="background:rgba(60,0,20,.7);border:1px solid rgba(255,30,80,.5);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🗝️</div>
+      <div style="font-size:16px;font-weight:900;color:#ff6080;letter-spacing:.08em;margin-bottom:8px;">深淵禁域への扉</div>
+      <div style="font-size:10px;color:rgba(255,150,150,.7);background:rgba(80,0,0,.4);border-radius:8px;padding:8px 12px;margin-bottom:12px;">
+        ⚠️ 現在の所持遺物：${gifts}個
+      </div>
+      <div style="font-size:11px;color:rgba(255,180,180,.85);line-height:1.9;margin-bottom:18px;text-align:left;">
+        深淵禁域は<b style="color:#ff4060;">11F〜15F</b>で構成される極限の試練。<br>
+        <b style="color:#ff8080;">・全ての敵が超強化（HP数百万〜1500万）</b><br>
+        <b style="color:#ff8080;">・敵が特殊能力を所持（反射・不死・全デバフ付与等）</b><br>
+        <b style="color:#ff8080;">・1ターンで全滅する可能性あり</b><br>
+        <span style="color:rgba(255,150,150,.65);font-size:10px;">遺物を大量に集めていないと突破不可能。</span><br><br>
+        <b style="color:#ffcc00;">15F踏破報酬：ローグポイント×5倍</b><br>
+        <b style="color:#ffcc00;">称号「深淵禁域踏破者」・アイコン🗝️獲得</b>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="acceptAbyssGate()" style="padding:14px;border-radius:12px;border:1px solid rgba(255,60,80,.6);background:rgba(100,0,20,.6);color:#ff8080;font-size:14px;font-weight:900;cursor:pointer;">
+          🗝️ 禁域に踏み込む（11F〜15F）
+        </button>
+        <button onclick="rejectAbyssGate()" style="padding:12px;border-radius:12px;border:.5px solid rgba(100,40,40,.4);background:rgba(20,0,10,.4);color:rgba(220,140,140,.7);font-size:12px;cursor:pointer;">
+          撤退する（10F踏破として報酬を受け取る）
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function acceptAbyssGate(){
+  const r=S.rogueRun; if(!r||!r.active) return;
+  r.pendingAbyssGate=false;
+  r.isAbyssRun=true;
+  r.maxFloor=ROGUE_ABYSS_FLOOR;
+  r.floor=11;
+  r.rowIndex=0;
+  r.chosenCols=[];
+  r.shopItems=null;
+  // 11F開始時 HP 10%のみ回復（極限状態で始まる）
+  if(r.partyState&&r.partyState.length)
+    r.partyState=r.partyState.map(m=>({...m,hp:Math.round((m.hp||0)*1.10)}));
+  showToast('🗝️ 深淵禁域へ踏み込んだ…引き返せない。');
+  saveGame(); renderRogue();
+}
+
+function rejectAbyssGate(){
+  const r=S.rogueRun; if(!r) return;
+  r.pendingAbyssGate=false;
+  const gatePts=r.pendingAbyssPts||0;
+  const clearBonus=300;
+  S.roguePoints=(S.roguePoints||0)+clearBonus;
+  S.roguePassPoints=(S.roguePassPoints||0)+clearBonus;
+  r.score=(r.score||0)+clearBonus;
+  if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+  if(!S.ownedIcons.includes('🗝️')) S.ownedIcons.push('🗝️');
+  r.active=false; S.rogueRun=null;
+  saveGame();
+  showToast('🏁 10F踏破！ RP +'+(gatePts+clearBonus)+' 獲得！');
+  renderRogue();
 }
 
 // ─── 深淵最奥への門（HARD 5F→10F 延長イベント） ───
@@ -7615,10 +7703,26 @@ function startRogueBattle(nodeType){
   const r=S.rogueRun; if(!r||!r.active) return;
   const ap=S.party.filter(id=>id!==-1);
   if(!ap.length){ showToast('パーティを編成してください'); return; }
-  const enemy=getRogueEnemy(nodeType,r.floor,r.hard);
-  let enemies=null;
-  if(r.hard&&r.floor>=6&&nodeType!=='boss') enemies=buildRogueMultiEnemies(r.floor,enemy);
-  const quest={id:'rogue_'+r.floor+'_'+nodeType,name:enemy.name,enemy,enemies,gold:0,gem:0,boss:nodeType==='boss',bgColor:['#00060f','#001020'],story:[],isRogue:true,rogueNodeType:nodeType};
+
+  let enemy,enemies=null,bgColor=['#00060f','#001020'];
+
+  if(r.isAbyssRun && r.floor>=11){
+    // 深淵禁域モード
+    enemy=getAbyssEnemy(nodeType,r.floor);
+    if(nodeType!=='boss') enemies=buildAbyssMultiEnemies(r.floor,enemy);
+    bgColor=['#0a0005','#200010']; // 深紅の背景
+  } else {
+    enemy=getRogueEnemy(nodeType,r.floor,r.hard);
+    if(r.hard&&r.floor>=6&&nodeType!=='boss') enemies=buildRogueMultiEnemies(r.floor,enemy);
+  }
+
+  const quest={
+    id:'rogue_'+r.floor+'_'+nodeType,
+    name:enemy.name,enemy,enemies,gold:0,gem:0,
+    boss:nodeType==='boss',bgColor,story:[],
+    isRogue:true,rogueNodeType:nodeType,
+    isAbyssQuest:!!(r.isAbyssRun&&r.floor>=11),
+  };
   sfx('click'); BT.fromScreen='rogue'; initBattle(quest,ap);
 }
 
@@ -7674,7 +7778,8 @@ function onRogueBattleWin(quest){
   const end=document.getElementById('end-rw-val');
   if(type==='boss'){
     const base=60+(r.floor-1)*35;
-    const pts=base+(r.hard?40:0);
+    const abyssFloorMul = (r.isAbyssRun&&r.floor>=11) ? 5 : 1; // 禁域はRP×5
+    const pts=Math.round((base+(r.hard?40:0))*abyssFloorMul);
     S.roguePoints=(S.roguePoints||0)+pts;
     S.roguePassPoints=(S.roguePassPoints||0)+pts;
     r.score=(r.score||0)+pts;
@@ -7703,6 +7808,32 @@ function onRogueBattleWin(quest){
           if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
           if(!S.ownedTitles.includes('深淵の最奥踏破者')) S.ownedTitles.push('深淵の最奥踏破者');
         }
+        // 15F踏破（禁域クリア）
+        if(r.isAbyssRun && effectiveMax>=ROGUE_ABYSS_FLOOR){
+          if(!S.ownedIcons.includes('🗝️')) S.ownedIcons.push('🗝️');
+          if(!S.ownedTitles.includes('深淵禁域踏破者')) S.ownedTitles.push('深淵禁域踏破者');
+          const abyssClearBonus=2000;
+          S.roguePoints=(S.roguePoints||0)+abyssClearBonus;
+          S.roguePassPoints=(S.roguePassPoints||0)+abyssClearBonus;
+          r.score=(r.score||0)+abyssClearBonus;
+          if(end) end.textContent='🗝️ 深淵禁域15F完全踏破！ RP +'+(pts+abyssClearBonus)+' (×5倍！)';
+          r.active=false; S.rogueRun=null;
+          BT.fromScreen='rogue';
+          const backBtn2=document.getElementById('end-btn-back');
+          const homeBtn2=document.getElementById('end-btn-home');
+          if(backBtn2) backBtn2.textContent='← ローグへ';
+          if(homeBtn2) homeBtn2.style.display='none';
+          saveGame(); return;
+        }
+        // 深淵禁域の鍵を持っていれば禁域ゲートへ
+        if(false){ // dummy
+          if(r.abyssKeyUnlocked && !r.isAbyssRun){
+            r.pendingAbyssGate=true;
+            r.pendingAbyssPts=pts;
+            if(end) end.textContent='🗝️ 10F踏破！深淵禁域への扉が現れた…';
+            saveGame(); return;
+          }
+        }
       }
       r.active=false; S.rogueRun=null;
       BT.fromScreen='rogue';
@@ -7728,6 +7859,91 @@ function onRogueBattleWin(quest){
   if(end) end.textContent='✨ 深淵の遺物選択へ！ 🪙+'+coinGain;
   BT.fromScreen='rogue';
   saveGame();
+}
+
+
+// ================================================================
+//  🗝️ 深淵禁域（11〜15F）敵定義
+// ================================================================
+const ABYSS_ENEMY_TYPES = {
+  // 11F: 不死の深淵守護者
+  11: {
+    battle:{name:'不死の深淵守護者',emoji:'💀',hp:800000,atk:12000,spd:3,
+      abyssAbility:'undying', // 一度HPが0になっても1回だけHP30%で復活
+      statusPatterns:[{type:'poison',prob:0.35,stacks:2},{type:'burn',prob:0.25,stacks:1}]},
+    elite: {name:'深淵の双頭龍',emoji:'🐲',hp:1400000,atk:15000,spd:4,
+      abyssAbility:'doubleAtk', // 毎ターン2回攻撃
+      statusPatterns:[{type:'freeze',prob:0.30,stacks:1},{type:'para',prob:0.25,stacks:1}]},
+    boss:  {name:'深淵禁域の番人【試練I】',emoji:'🕳️',hp:3000000,atk:18000,spd:4,boss:true,
+      abyssAbility:'reflect', // 受けたダメージの10%を攻撃者に反射
+      statusPatterns:[{type:'freeze',prob:0.28,stacks:1},{type:'poison',prob:0.25,stacks:2},{type:'para',prob:0.20,stacks:1}]},
+  },
+  12: {
+    battle:{name:'腐蝕の深淵魔獣',emoji:'🫀',hp:1000000,atk:14000,spd:3,
+      abyssAbility:'corrosion', // 攻撃するたびに対象のATKを5%下げる（最大3回）
+      statusPatterns:[{type:'poison',prob:0.45,stacks:3},{type:'burn',prob:0.30,stacks:2}]},
+    elite: {name:'深淵の浸食者',emoji:'🦠',hp:1800000,atk:16000,spd:4,
+      abyssAbility:'healAbsorb', // 味方が回復するたびに敵のHPも5%回復
+      statusPatterns:[{type:'para',prob:0.35,stacks:1},{type:'poison',prob:0.30,stacks:2}]},
+    boss:  {name:'深淵禁域の支配者【試練II】',emoji:'🌑',hp:4500000,atk:20000,spd:5,boss:true,
+      abyssAbility:'berserker', // HP50%以下になると全ステータス1.5倍
+      statusPatterns:[{type:'freeze',prob:0.30,stacks:2},{type:'poison',prob:0.30,stacks:3},{type:'burn',prob:0.25,stacks:2}]},
+  },
+  13: {
+    battle:{name:'時間喰らいの深淵怪',emoji:'⌛',hp:1200000,atk:15000,spd:3,
+      abyssAbility:'ultSeal', // 戦闘開始から3ターン、プレイヤーのUltを封印
+      statusPatterns:[{type:'freeze',prob:0.35,stacks:1},{type:'para',prob:0.30,stacks:1}]},
+    elite: {name:'深淵の鏡像',emoji:'🪞',hp:2200000,atk:17000,spd:4,
+      abyssAbility:'copyAtk', // プレイヤーが選択した枚数分だけ追加攻撃
+      statusPatterns:[{type:'burn',prob:0.40,stacks:2},{type:'poison',prob:0.35,stacks:2}]},
+    boss:  {name:'深淵禁域の王【試練III】',emoji:'👑',hp:6000000,atk:22000,spd:5,boss:true,
+      abyssAbility:'multiPhase', // HP70%・40%で形態変化、能力が変わる
+      statusPatterns:[{type:'freeze',prob:0.35,stacks:2},{type:'para',prob:0.30,stacks:1},{type:'poison',prob:0.30,stacks:3}]},
+  },
+  14: {
+    battle:{name:'深淵の意志・前衛',emoji:'🌀',hp:1500000,atk:17000,spd:4,
+      abyssAbility:'shieldBreak', // バリアを無視してHPにダメージ
+      statusPatterns:[{type:'para',prob:0.40,stacks:1},{type:'freeze',prob:0.30,stacks:1}]},
+    elite: {name:'深淵の意志・中枢',emoji:'🧠',hp:3000000,atk:19000,spd:4,
+      abyssAbility:'debuffStorm', // 毎ターン全員にランダムデバフ付与
+      statusPatterns:[{type:'poison',prob:0.50,stacks:3},{type:'burn',prob:0.40,stacks:2},{type:'freeze',prob:0.35,stacks:1}]},
+    boss:  {name:'深淵禁域の神格【試練IV】',emoji:'🩸',hp:9000000,atk:25000,spd:5,boss:true,
+      abyssAbility:'lifeSteal', // 攻撃ダメージの20%をHP回復
+      statusPatterns:[{type:'freeze',prob:0.40,stacks:2},{type:'poison',prob:0.40,stacks:3},{type:'para',prob:0.35,stacks:1},{type:'burn',prob:0.30,stacks:2}]},
+  },
+  15: {
+    battle:{name:'原初の混沌体・断片',emoji:'☯️',hp:2000000,atk:20000,spd:4,
+      abyssAbility:'chaosField', // 全てのデバフが1.5倍の効果
+      statusPatterns:[{type:'freeze',prob:0.45,stacks:2},{type:'poison',prob:0.45,stacks:3}]},
+    elite: {name:'原初の混沌体・核',emoji:'💫',hp:4000000,atk:22000,spd:5,
+      abyssAbility:'allDebuff', // 攻撃時に全種デバフをランダム付与
+      statusPatterns:[{type:'para',prob:0.50,stacks:1},{type:'freeze',prob:0.45,stacks:2},{type:'poison',prob:0.45,stacks:3},{type:'burn',prob:0.40,stacks:2}]},
+    boss:  {name:'〖深淵の根源〗混沌神の化身【最終試練】',emoji:'🌌',hp:15000000,atk:30000,spd:5,boss:true,
+      abyssAbility:'trueForm', // HP50%で真の姿に変化。全能力2倍・全デバフ完全耐性
+      statusPatterns:[{type:'freeze',prob:0.50,stacks:3},{type:'poison',prob:0.50,stacks:3},{type:'para',prob:0.45,stacks:2},{type:'burn',prob:0.45,stacks:3}]},
+  },
+};
+
+function getAbyssEnemy(type,floor){
+  const def=ABYSS_ENEMY_TYPES[floor]||ABYSS_ENEMY_TYPES[15];
+  const e=def[type]||def.battle;
+  return {...e, maxHp:e.hp, isAbyssEnemy:true};
+}
+
+function buildAbyssMultiEnemies(floor,mainEnemy){
+  // 13F以降は3体、それ以前は2体
+  const count=floor>=13?3:2;
+  const result=[{...mainEnemy,maxHp:mainEnemy.hp}];
+  const subs={
+    11:[{name:'深淵守護の従者',emoji:'👤',hp:Math.round(mainEnemy.hp*0.4),atk:Math.round(mainEnemy.atk*0.7),spd:3,statusPatterns:[{type:'para',prob:0.25,stacks:1}]}],
+    12:[{name:'浸食の分裂体',emoji:'🦠',hp:Math.round(mainEnemy.hp*0.5),atk:Math.round(mainEnemy.atk*0.8),spd:3,statusPatterns:[{type:'poison',prob:0.40,stacks:2}]}],
+    13:[{name:'鏡像の残影',emoji:'🪞',hp:Math.round(mainEnemy.hp*0.5),atk:Math.round(mainEnemy.atk*0.8),spd:4,statusPatterns:[{type:'freeze',prob:0.35,stacks:1}]},{name:'鏡像の幻',emoji:'👁️',hp:Math.round(mainEnemy.hp*0.3),atk:Math.round(mainEnemy.atk*0.6),spd:3,statusPatterns:[{type:'burn',prob:0.35,stacks:2}]}],
+    14:[{name:'意志の断片A',emoji:'🌀',hp:Math.round(mainEnemy.hp*0.5),atk:Math.round(mainEnemy.atk*0.75),spd:4,statusPatterns:[{type:'para',prob:0.40,stacks:1}]},{name:'意志の断片B',emoji:'🌀',hp:Math.round(mainEnemy.hp*0.5),atk:Math.round(mainEnemy.atk*0.75),spd:4,statusPatterns:[{type:'poison',prob:0.40,stacks:2}]}],
+    15:[{name:'混沌の欠片α',emoji:'✨',hp:Math.round(mainEnemy.hp*0.35),atk:Math.round(mainEnemy.atk*0.8),spd:5,statusPatterns:[{type:'freeze',prob:0.45,stacks:2}]},{name:'混沌の欠片β',emoji:'💫',hp:Math.round(mainEnemy.hp*0.35),atk:Math.round(mainEnemy.atk*0.8),spd:5,statusPatterns:[{type:'poison',prob:0.45,stacks:3}]}],
+  };
+  const subList=subs[floor]||subs[15];
+  for(let i=0;i<Math.min(count-1,subList.length);i++) result.push({...subList[i],maxHp:subList[i].hp,isAbyssEnemy:true});
+  return result;
 }
 
 function rollRogueItem(opts){ return ROGUE_GIFTS.filter(g=>g.type!=='curse')[Math.floor(Math.random()*ROGUE_GIFTS.filter(g=>g.type!=='curse').length)]; }
