@@ -1459,7 +1459,7 @@ function onPvpEnd(won, quest){
         <div class="gacha-sub" id="gacha-banner-sub">-</div>
       </div>
       <div class="rate-row" style="align-items:center;" id="rate-row-display">
-        <div class="rate-pill ur" id="rate-ur">UR 0.1%</div>
+        <div class="rate-pill ur" id="rate-ur">UR 1.0%</div>
         <div class="rate-pill ssr" id="rate-ssr">SSR 1.9%</div>
         <div class="rate-pill sr">SR 13%</div>
         <div class="rate-pill r">R 85%</div>
@@ -2660,6 +2660,13 @@ const HEALER_CARDS = {
     {name:'深海の加護', emoji:'🌊', healRate:1.40, type:'all',    desc:'ATK×140%回復＋被ダメ軽減', shield:true},
     {name:'深淵の水神', emoji:'🔱', healRate:2.50, type:'all',    desc:'ATK×250%回復＋被ダメ軽減', shield:true},
   ],
+  210: [
+    {name:'忘却の滴',    emoji:'🪼', healRate:0.80, type:'single', desc:'ATK×80%回復（最低HP味方）'},
+    {name:'慈雨の恵み',  emoji:'💧', healRate:0.55, type:'all',    desc:'ATK×55%回復（全体）'},
+    {name:'忘却の奔流',  emoji:'🌊', healRate:1.10, type:'all',    desc:'ATK×110%回復（全体）'},
+    {name:'深海の記憶',  emoji:'🔮', healRate:1.50, type:'all',    desc:'ATK×150%回復（全体）'},
+    {name:'忘却神の慈悲', emoji:'☁️', healRate:2.50, type:'all',    desc:'ATK×250%回復（全体）'},
+  ],
   208: [
     {name:'鍛造の盾',   emoji:'🛡️', type:'shield',    shieldRate:0.10, healRate:0,    desc:'バリア(MaxHP10%)'},
     {name:'深海の守護', emoji:'⚒️', type:'shieldHeal', shieldRate:0.08, healRate:0.60, desc:'バリア(8%)＋ATK×60%回復'},
@@ -2699,6 +2706,12 @@ const ULT_DEFS = {
   201:{name:'深海の奇跡',   stacks:4,emoji:'💚',effect:'party_heal', pct:0.50,desc:'HP50%回復'},
   205:{name:'深淵の水姫',   stacks:4,emoji:'🌊',effect:'party_heal', pct:0.45,desc:'HP45%回復'},
   208:{name:'奈落の鎧神',   stacks:3,emoji:'⚒️',effect:'party_shield',pct:0.30,desc:'バリア30%'},
+  209:{name:'大海崩壊',     stacks:3,emoji:'🐋',effect:'aoe_atk',    mul:7.0,  desc:'全敵ATK×7 + 次ターン手札リフレッシュ'},
+  210:{name:'忘却の嵐',     stacks:4,emoji:'🪼',effect:'party_heal', pct:0.45, desc:'全体HP45%回復 + 敵デバフ全解除→その分追加回復'},
+  211:{name:'天帝雷獄',     stacks:3,emoji:'🌩️',effect:'ultra_atk',  mul:11.0, desc:'ATK×11 麻痺中なら×1.5追加'},
+  212:{name:'絶対零度',     stacks:3,emoji:'💀',effect:'debuff_all', type:'freeze',stacks2:2,desc:'全敵凍結×2 + カウンターフリーズ3T'},
+  213:{name:'聖炎審判',     stacks:3,emoji:'🔥',effect:'debuff_all', type:'burn',stacks2:3,desc:'全敵炎症×3 + デバフ持ちに即時ダメージ'},
+  214:{name:'混沌解放',     stacks:4,emoji:'☯️',effect:'party_shield',pct:0.35, desc:'全体バリア35% + 敵属性無効化1ターン'},
 };
 function getUltDef(charId,ch){
   if(ULT_DEFS[charId]) return ULT_DEFS[charId];
@@ -2784,6 +2797,19 @@ const CHARS=[
   {id:65, name:'海神の申し子トリトス', emoji:'🔱',rarity:'UR',bg:'rgba(0,30,60,.7)',    border:'rgba(30,180,255,.9)', hp:1900,atk:340,level:1,attribute:'water',role:'support',skillName:'海神の加護',skillDesc:'毎ターンHP5%回復。HP50%以下の味方に追加7%緊急回復（1回限り）。'},
   {id:66, name:'崩壊の終焉神エンドロス',emoji:'💀',rarity:'UR',bg:'rgba(20,0,20,.7)',   border:'rgba(180,0,180,.9)', hp:1750,atk:290,level:1,attribute:'dark',role:'debuffer',skillName:'終焉の毒霧',skillDesc:'攻撃時35%で毒スタック付与'},
   {id:67, name:'旧破の真神ゼロス',     emoji:'⭕',rarity:'UR',bg:'rgba(0,0,0,.8)',      border:'rgba(255,255,255,.9)',hp:2000,atk:350,level:1,attribute:'none',role:'attacker',skillName:'真神の一撃',skillDesc:'無属性コンボのボーナス+25%'},
+  // ===== 新規追加UR (id:209〜214) =====
+  {id:209,name:'蒼穹の潮王ポセイア',  emoji:'🐋',rarity:'UR',bg:'rgba(0,25,60,.4)',  border:'rgba(40,180,255,.85)', hp:2050,atk:320,level:1,attribute:'water',role:'attacker',
+   skillName:'逆流崩撃',skillDesc:'水属性カードを3枚以上使うと、その次のターン開始時に手札を全てリフレッシュし★2以上のカードが1枚確定出現する。（1戦2回まで）',limited:true},
+  {id:210,name:'記憶の海蛸アムネジア', emoji:'🪼',rarity:'UR',bg:'rgba(10,0,40,.4)', border:'rgba(140,80,255,.85)',  hp:2400,atk:180,level:1,attribute:'water',role:'support',
+   skillName:'忘却の慈雨',skillDesc:'毎ターン最もHPが低い味方を優先的にHP7%回復。さらに毎ターン終了時、敵の状態異常スタック数を1つ減少させる代わりに味方全体HP3%を追加回復する。',limited:true},
+  {id:211,name:'嵐刃の天帝カルキアス',emoji:'🌩️',rarity:'UR',bg:'rgba(40,40,0,.4)', border:'rgba(255,230,50,.85)',  hp:1850,atk:410,level:1,attribute:'thunder',role:'attacker',
+   skillName:'天帝超電撃',skillDesc:'雷属性コンボ時、全体ダメージ+35%。選択したカードが多いほど威力上昇（選択枚数×5%追加、最大+25%）。麻痺中の敵には確定クリティカル（×1.5倍）。',limited:true},
+  {id:212,name:'氷獄の死神フロスター', emoji:'💀',rarity:'UR',bg:'rgba(0,15,40,.4)', border:'rgba(160,230,255,.85)', hp:1900,atk:330,level:1,attribute:'ice',role:'debuffer',
+   skillName:'絶対零度葬',skillDesc:'攻撃時50%で敵全体に凍結1スタックを付与。凍結中の敵が攻撃するたびに、その攻撃を50%の確率で無効化する。（カウンターフリーズ）',limited:true},
+  {id:213,name:'光焔の審判者セラフィム',emoji:'🔥',rarity:'UR',bg:'rgba(30,15,0,.4)', border:'rgba(255,160,60,.85)',  hp:2000,atk:360,level:1,attribute:'light',role:'debuffer',
+   skillName:'聖炎断罪',skillDesc:'光属性コンボ時、敵全体に炎症×1付与。さらに炎症状態の敵への全ダメージ+25%。デバフを2種類以上持つ敵にはこの効果が2倍になる。（複合デバフ特化）',limited:true},
+  {id:214,name:'原初の混沌神カオスマ', emoji:'☯️',rarity:'UR',bg:'rgba(5,5,5,.6)',   border:'rgba(180,180,255,.85)', hp:2500,atk:280,level:1,attribute:'none',role:'tank',
+   skillName:'混沌適応',skillDesc:'戦闘開始時、敵の属性に応じて自動変化：炎→被ダメ-25%・氷→全体回復+5%/T・雷→麻痺無効・水→凍結無効・闇→毒無効・光→炎症無効。全コンボ+10%。',limited:true},
   // ===== 追加SSR (id:68〜79) =====
   {id:68, name:'紫炎の術師',           emoji:'🔮',rarity:'SSR',bg:'rgba(80,0,80,.25)',  border:'rgba(200,50,200,.6)', hp:870,atk:148,level:1,attribute:'dark',role:'debuffer',skillName:'紫炎の呪縛',skillDesc:'攻撃時25%で炎症付与'},
   {id:69, name:'鋼鉄の要塞',           emoji:'🤖',rarity:'SSR',bg:'rgba(60,60,60,.25)', border:'rgba(180,180,180,.6)',hp:1100,atk:110,level:1,attribute:'none',role:'tank',skillName:'鋼鉄の要塞',skillDesc:'被ダメージ-25%、ヘイト最大'},
@@ -4035,6 +4061,33 @@ let BANNERS=[
     limitedIds:[207,208],
     pity:100, period:'期間限定開催中',
   },
+  {
+    id:16, name:'継承と封印 -Thunder & Frost-', icon:'⚡', limited:true, active:true,
+    sub:'★限定★ 嵐刃の天帝カルキアス・氷獄の死神フロスター（UR）/ 嵐の女帝・霜刃の剣聖（SSR）',
+    color:'rgba(30,30,0,.5)', border:'rgba(180,230,255,.6)',
+    pickup:['UR','SSR'],
+    pickupIds:[211,212,70,78],
+    limitedIds:[211,212],
+    pity:100, period:'期間限定開催中',
+  },
+  {
+    id:17, name:'深海記憶 -Abyss Memory-', icon:'🪼', limited:true, active:true,
+    sub:'★限定★ 蒼穹の潮王ポセイア・記憶の海蛸アムネジア（UR）/ 深海の歌姫・翠玉の守護竜（SSR）',
+    color:'rgba(0,20,60,.5)', border:'rgba(100,200,255,.65)',
+    pickup:['UR','SSR'],
+    pickupIds:[209,210,76,72],
+    limitedIds:[209,210],
+    pity:100, period:'期間限定開催中',
+  },
+  {
+    id:18, name:'混沌審判 -Chaos Trial-', icon:'☯️', limited:true, active:true,
+    sub:'★限定★ 原初の混沌神カオスマ・光焔の審判者セラフィム（UR）/ 嵐の女帝・月影の暗殺者（SSR）',
+    color:'rgba(10,5,20,.55)', border:'rgba(180,130,255,.65)',
+    pickup:['UR','SSR'],
+    pickupIds:[214,213,70,74],
+    limitedIds:[214,213],
+    pity:100, period:'期間限定開催中',
+  },
 ];
 
 // 限定バナーのアクティブ状態（管理画面から制御可能）
@@ -4140,7 +4193,7 @@ function renderBannerDetail(){
   // レート表示更新
   var urRateEl=document.getElementById('rate-ur');
   var pityEl=document.getElementById('rate-pity');
-  if(urRateEl) urRateEl.textContent='UR 0.1%';
+  if(urRateEl) urRateEl.textContent='UR 1.0%';
   if(pityEl) pityEl.textContent='天井 '+pityMax+'回';
 
   // カウントダウン表示
@@ -4229,7 +4282,7 @@ function doGacha(count){
       // 天井: 限定バナーはUR確定、恒常はUR/SSR 50/50
       rar='UR'; // 天井はUR確定
       S.pityPerBanner[currentBanner]=0;
-    } else if(r<0.001){ // UR率0.1%（限定・恒常共通）
+    } else if(r<0.01){ // UR率1.0%（上方修正）
       rar='UR'; S.pityPerBanner[currentBanner]=0;
     } else if(r<0.02){  rar='SSR'; }
     else if(r<0.15){    rar='SR'; }
@@ -4730,6 +4783,21 @@ function initBattle(quest,pids){
       m.ironBarrier = 0;
     });
   }
+  // カオスマ(214): 混沌適応 - 敵の属性に応じて自動バフ
+  var hasChaosma = BT.partyHp.some(function(m){return m.id===214&&m.hp>0;});
+  if(hasChaosma){
+    var eAttr = (quest&&quest.enemy&&quest.enemy.attribute)||'none';
+    BT._chaosmaAttr = eAttr;
+    if(eAttr==='fire')    { BT._chaosmaDmgReduce=0.25; }
+    if(eAttr==='ice')     { BT._chaosmaHealPct=0.05; }
+    if(eAttr==='thunder') { BT._chaosmaPara=true; }
+    if(eAttr==='water')   { BT._chaosmaFreeze=true; }
+    if(eAttr==='dark')    { BT._chaosmaPoison=true; }
+    if(eAttr==='light')   { BT._chaosmaburn=true; }
+    if(eAttr==='fire') showSpecialAtkBanner('☯️ カオスマ 混沌適応：炎→被ダメ-25%！','#ff8060');
+    if(eAttr==='ice')  showSpecialAtkBanner('☯️ カオスマ 混沌適応：氷→毎T全体+5%回復！','#80d8ff');
+    if(eAttr==='thunder') showSpecialAtkBanner('☯️ カオスマ 混沌適応：雷→麻痺無効！','#ffe060');
+  }
 
   // ================================================================
   //  ROGUE: ラン中のHP持ち越し＆バフ/デバフ補正
@@ -5212,7 +5280,7 @@ function getPartyMaxSelect(){
   const activeMembers = getActiveSkillMembers(BT.partyHp, statusArr);
   let bonus=0;
   activeMembers.forEach(function(m){
-    if(m.id===1||m.id===59||m.id===200) bonus+=1; // アルカナ/ヴォイド/イブリス
+    if(m.id===1||m.id===59||m.id===200||m.id===206||m.id===211) bonus+=1; // アルカナ/ヴォイド/イブリス/エルドス/シオン
   });
   // 麻痺はキャラ個別管理（カード選択時に制限）
   // ローグの「追加判断」（+1まで）
@@ -5231,19 +5299,14 @@ function getPartyHealRate(){
   ap.forEach(function(c){
     if(c.role==='support'){
       var healMap = {
-        65:0.08,   // トリトス：8%
-        201:0.08,  // アルテア：8%
-        205:0.06,  // ネレイス：6%
-        208:0.02,  // グラン：2%
-        9:0.03,
-        12:0.025,
-        72:0.04,
-        76:0.04,
-        21:0.02,
-        84:0.015,
-        89:0.025,
+        65:0.08,   // トリトス（UR）：8%
+        201:0.08,  // アルテア（UR）：8%
+        205:0.06,  // ネレイス（UR）：6%
+        208:0.02,  // グラン（UR）：2%
+        210:0.04,  // ルーナ（UR）：4%
       };
-      rate += (healMap[c.id] || 0.01);
+      if(!healMap[c.id]) return;
+      rate += healMap[c.id];
     }
   });
   return rate;
@@ -5339,6 +5402,15 @@ function applyTankHate(){
 
 function applyDamageToMember(tgt, dmg, actionEl){
   if(!tgt) return 0;
+  // カオスマ(214) 混沌適応：炎属性敵の被ダメ-25%
+  if(BT._chaosmaDmgReduce && dmg>0){
+    dmg=Math.round(dmg*(1-BT._chaosmaDmgReduce));
+  }
+  // フロスター(212) カウンターフリーズ：凍結中の敵が攻撃時50%無効
+  if(BT._frostCounter && dmg>0 && Math.random()<0.5){
+    if(actionEl) actionEl.innerHTML='<span style="color:#80d8ff;font-weight:800;">❄️ カウンターフリーズ！攻撃無効！</span>';
+    sfx('hit'); updatePartyHP(); return 0;
+  }
   // グラン(208) 鉄像バリア：攻撃を無効化（3回）
   if((tgt.ironBarrier||0) > 0 && dmg>0){
     tgt.ironBarrier = Math.max(0, (tgt.ironBarrier||0) - 1);
@@ -5807,7 +5879,9 @@ function executeAttack(){
       BT.combo=Math.max(0,BT.combo);
     } else {
       const starMul=((c.cardRank||1)>=5?5.0:(c.cardRank||1)>=4?3.5:(c.cardRank||1)>=3?2.5:(c.cardRank||1)>=2?1.6:1.0);
-      const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus) * starMul);
+      // カルキアス(211) 天帝超電撃：選択枚数×5%ボーナス（雷属性カードのみ・最大+25%）
+      const _karkBonus=(c.comboType==='thunder'&&BT.partyHp.some(function(m){return m.id===211&&m.hp>0;}))?Math.min(0.25,sel.length*0.05):0;
+      const dmg = Math.round(c.charAtk * c.dmg * cb * (1+typeBonus) * starMul * (1+_karkBonus));
       total += dmg;
       BT.combo++;
       cb = 1 + BT.combo * 0.1;
@@ -6198,6 +6272,20 @@ function afterEnemyAttacks(){
     applyURHealerBonus();
     applyAlteaEmergency();
     applyNereisEmergency();
+    // アムネジア(210) 毎ターン敵デバフ-1 → 味方HP+3%
+    if(BT.partyHp.some(function(m){return m.id===210&&m.hp>0;})){
+      var _had=false;
+      if(enemyStatuses&&enemyStatuses.length>0){
+        var _s=enemyStatuses[0]; if(_s&&_s.stacks>1){_s.stacks--;_had=true;}
+        else if(_s&&_s.stacks<=1){enemyStatuses.splice(0,1);_had=true;}
+      }
+      if(_had){ BT.partyHp.filter(function(m){return m.hp>0;}).forEach(function(m){m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*0.03));}); updatePartyHP(); }
+    }
+    // カオスマ(214) 混沌適応：氷属性敵のとき毎T全体HP+5%
+    if(BT._chaosmaHealPct && BT.partyHp.some(function(m){return m.id===214&&m.hp>0;})){
+      BT.partyHp.filter(function(m){return m.hp>0;}).forEach(function(m){m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*BT._chaosmaHealPct));});
+      updatePartyHP();
+    }
     updatePartyHP();
   }
 
@@ -14030,7 +14118,15 @@ function initMultiEnemies(quest){
   _tritosEmergencyUsed = false;
   _alteaEmergencyUsed = false;
   _nereisEmergencyUsed = false;
-  _granFireShieldCount = 0; // トリトス緊急回復リセット
+  _granFireShieldCount = 0;
+  BT._frostCounter=false;
+  BT._chaosmaDmgReduce=0;
+  BT._chaosmaHealPct=0;
+  BT._chaosmaPara=false;
+  BT._chaosmaFreeze=false;
+  BT._chaosmaPoison=false;
+  BT._chaosmaburn=false;
+  BT._chaosmaAttr=null; // トリトス緊急回復リセット
   document.getElementById('focus-target-disp').style.display='none';
   // 後方互換：BT.enemyHpをメイン敵HPに設定
   BT.enemyHp = BT_ENEMIES.reduce(function(s,e){return s+e.hp;},0);
@@ -14099,7 +14195,15 @@ function toggleFocusTarget(idx){
   _tritosEmergencyUsed = false;
   _alteaEmergencyUsed = false;
   _nereisEmergencyUsed = false;
-  _granFireShieldCount = 0; // トリトス緊急回復リセット
+  _granFireShieldCount = 0;
+  BT._frostCounter=false;
+  BT._chaosmaDmgReduce=0;
+  BT._chaosmaHealPct=0;
+  BT._chaosmaPara=false;
+  BT._chaosmaFreeze=false;
+  BT._chaosmaPoison=false;
+  BT._chaosmaburn=false;
+  BT._chaosmaAttr=null; // トリトス緊急回復リセット
     document.getElementById('focus-target-disp').style.display='none';
     showToast('集中狙いを解除しました');
   } else {
@@ -14155,7 +14259,15 @@ function damageEnemy(idx, dmg){
   _tritosEmergencyUsed = false;
   _alteaEmergencyUsed = false;
   _nereisEmergencyUsed = false;
-  _granFireShieldCount = 0; // トリトス緊急回復リセット
+  _granFireShieldCount = 0;
+  BT._frostCounter=false;
+  BT._chaosmaDmgReduce=0;
+  BT._chaosmaHealPct=0;
+  BT._chaosmaPara=false;
+  BT._chaosmaFreeze=false;
+  BT._chaosmaPoison=false;
+  BT._chaosmaburn=false;
+  BT._chaosmaAttr=null; // トリトス緊急回復リセット
     document.getElementById('focus-target-disp').style.display='none';
   }
 }

@@ -8,38 +8,31 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--bg:#020a14;--text:#c8e8ff;--text2:rgba(160,210,240,.7);--text3:rgba(100,150,200,.45);--border:rgba(30,80,160,.3);}
 body{background:var(--bg);color:var(--text);font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:50px;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 25% 10%,rgba(0,40,120,.35),transparent 55%),radial-gradient(ellipse at 75% 90%,rgba(0,60,40,.25),transparent 55%);pointer-events:none;z-index:0;}
-
-/* HEADER */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 25% 10%,rgba(0,40,120,.35),transparent 55%),radial-gradient(ellipse at 75% 90%,rgba(0,60,40,.2),transparent 55%);pointer-events:none;z-index:0;}
 .header{padding:22px 16px 14px;text-align:center;position:relative;z-index:1;}
 .header-logo{font-size:10px;letter-spacing:.25em;color:var(--text3);margin-bottom:4px;}
 .header-title{font-size:22px;font-weight:900;color:#bfe9ff;letter-spacing:.1em;}
 .header-sub{font-size:9px;color:var(--text3);margin-top:5px;line-height:1.6;}
 .back-btn{position:absolute;left:14px;top:22px;padding:6px 12px;border-radius:8px;border:.5px solid var(--border);background:rgba(0,15,35,.55);color:var(--text2);font-size:10px;text-decoration:none;}
-
-/* TIER */
 .tier-wrap{padding:0 8px;position:relative;z-index:1;}
 .tier-section{margin-bottom:8px;}
 .tier-header{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px 12px 0 0;border:.5px solid;}
 .tier-label{font-size:14px;font-weight:900;letter-spacing:.08em;}
 .tier-count{font-size:9px;opacity:.6;margin-left:auto;}
 .tier-body{border:.5px solid;border-top:none;border-radius:0 0 12px 12px;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-
-/* ティア別 */
 .t-ss .tier-header{background:linear-gradient(90deg,rgba(255,50,50,.28),rgba(255,130,0,.18));border-color:rgba(255,70,30,.45);color:#ff7050;}
 .t-ss .tier-body{background:rgba(35,5,0,.45);border-color:rgba(255,70,30,.35);}
-.t-s  .tier-header{background:linear-gradient(90deg,rgba(255,165,0,.28),rgba(255,210,0,.18));border-color:rgba(255,185,0,.45);color:#ffc840;}
-.t-s  .tier-body{background:rgba(28,18,0,.45);border-color:rgba(255,185,0,.3);}
-.t-a  .tier-header{background:linear-gradient(90deg,rgba(60,200,80,.22),rgba(0,210,130,.14));border-color:rgba(40,200,90,.42);color:#50e080;}
-.t-a  .tier-body{background:rgba(0,22,8,.45);border-color:rgba(40,200,90,.3);}
-.t-b  .tier-header{background:linear-gradient(90deg,rgba(40,130,255,.22),rgba(80,190,255,.14));border-color:rgba(40,130,255,.42);color:#70b8ff;}
-.t-b  .tier-body{background:rgba(0,10,28,.45);border-color:rgba(40,130,255,.3);}
-.t-c  .tier-header{background:linear-gradient(90deg,rgba(120,80,220,.22),rgba(160,100,230,.14));border-color:rgba(120,80,220,.42);color:#b070ff;}
-.t-c  .tier-body{background:rgba(8,0,22,.45);border-color:rgba(120,80,220,.3);}
-
-/* CARD */
+.t-s .tier-header{background:linear-gradient(90deg,rgba(255,165,0,.28),rgba(255,210,0,.18));border-color:rgba(255,185,0,.45);color:#ffc840;}
+.t-s .tier-body{background:rgba(28,18,0,.45);border-color:rgba(255,185,0,.3);}
+.t-a .tier-header{background:linear-gradient(90deg,rgba(60,200,80,.22),rgba(0,210,130,.14));border-color:rgba(40,200,90,.42);color:#50e080;}
+.t-a .tier-body{background:rgba(0,22,8,.45);border-color:rgba(40,200,90,.3);}
+.t-b .tier-header{background:linear-gradient(90deg,rgba(40,130,255,.22),rgba(80,190,255,.14));border-color:rgba(40,130,255,.42);color:#70b8ff;}
+.t-b .tier-body{background:rgba(0,10,28,.45);border-color:rgba(40,130,255,.3);}
+.t-c .tier-header{background:linear-gradient(90deg,rgba(120,80,220,.22),rgba(160,100,230,.14));border-color:rgba(120,80,220,.42);color:#b070ff;}
+.t-c .tier-body{background:rgba(8,0,22,.45);border-color:rgba(120,80,220,.3);}
 .card{background:rgba(0,12,30,.65);border:.5px solid rgba(30,80,160,.28);border-radius:10px;padding:10px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;position:relative;}
 .card.lim::after{content:'限定';position:absolute;top:4px;right:4px;font-size:6px;background:linear-gradient(90deg,#b07000,#ffd840);color:#000;border-radius:3px;padding:1px 4px;font-weight:900;}
+.card.new::before{content:'NEW';position:absolute;top:4px;left:4px;font-size:6px;background:linear-gradient(90deg,#006080,#00d4ff);color:#fff;border-radius:3px;padding:1px 4px;font-weight:900;}
 .c-em{font-size:26px;line-height:1.1;}
 .c-name{font-size:8px;font-weight:800;color:var(--text);line-height:1.35;}
 .c-role{font-size:7px;padding:1px 6px;border-radius:3px;font-weight:700;margin-top:1px;}
@@ -47,19 +40,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .r-sup{background:rgba(20,160,80,.3);color:#50e090;}
 .r-deb{background:rgba(120,40,200,.3);color:#b870ff;}
 .r-tnk{background:rgba(40,100,200,.3);color:#70b8ff;}
-/* スキル欄 */
 .c-skill-name{font-size:7.5px;font-weight:700;color:rgba(200,230,255,.75);margin-top:3px;}
 .c-skill{font-size:6.5px;color:var(--text3);line-height:1.45;}
-/* Ult欄 */
+.c-unique{margin-top:4px;width:100%;background:rgba(0,200,255,.06);border:.5px solid rgba(0,200,255,.2);border-radius:6px;padding:4px 5px;}
+.c-unique-lbl{font-size:6px;color:rgba(0,220,255,.6);font-weight:700;margin-bottom:1px;}
+.c-unique-txt{font-size:6.5px;color:rgba(140,220,255,.75);line-height:1.35;}
 .c-ult{margin-top:4px;width:100%;background:rgba(255,200,0,.06);border:.5px solid rgba(255,180,0,.2);border-radius:6px;padding:4px 5px;}
 .c-ult-name{font-size:7px;font-weight:800;color:#ffc840;}
 .c-ult-desc{font-size:6.5px;color:rgba(255,210,100,.55);line-height:1.35;}
 .c-ult-tag{font-size:6px;background:rgba(255,160,0,.15);color:#ffb840;border-radius:3px;padding:1px 4px;margin-top:2px;display:inline-block;}
-/* ステータス */
 .c-stats{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;justify-content:center;}
 .c-stat{font-size:6px;background:rgba(255,255,255,.05);border-radius:3px;padding:1px 5px;color:var(--text2);}
-
-/* NOTE */
 .note{margin:14px 8px 0;padding:12px 14px;background:rgba(0,14,32,.55);border:.5px solid var(--border);border-radius:12px;position:relative;z-index:1;}
 .note h3{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:8px;}
 .note p{font-size:8.5px;color:var(--text3);line-height:1.75;}
@@ -69,98 +60,74 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </style>
 </head>
 <body>
-
 <div class="header">
   <a href="game.html" class="back-btn">← ゲームへ</a>
   <div class="header-logo">ABYSSAL CHRONICLE</div>
   <div class="header-title">🏆 UR ティアリスト</div>
-  <div class="header-sub">v0.5.3 更新 ／ スキル・必殺技・ATK・役割を総合評価<br>クエスト・ローグライク・無限塔 全コンテンツ基準</div>
+  <div class="header-sub">v0.5.3 更新 ／ スキル・固有効果・Ult・ステータス総合評価<br>NEW = 新規追加キャラクター</div>
 </div>
 
 <div class="tier-wrap">
 
 <!-- ======= SS ======= -->
 <div class="tier-section t-ss">
-  <div class="tier-header">
-    <span style="font-size:18px;">👑</span>
-    <span class="tier-label">SS — 環境最強・必須級</span>
-    <span class="tier-count">5体</span>
-  </div>
+  <div class="tier-header"><span style="font-size:18px;">👑</span><span class="tier-label">SS — 環境最強・必須級</span><span class="tier-count">6体</span></div>
   <div class="tier-body">
 
-    <!-- ライカ：ATK420 最高ATK・雷コンボ超火力・麻痺シナジー -->
     <div class="card lim">
-      <div class="c-em">⚡</div>
-      <div class="c-name">雷神の申し子ライカ</div>
+      <div class="c-em">⚡</div><div class="c-name">雷神の申し子ライカ</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">雷帝解放</div>
-      <div class="c-skill">雷コンボ全体+45%<br>麻痺中の敵+25%</div>
-      <div class="c-ult">
-        <div class="c-ult-name">⚡ 雷帝解放・極</div>
-        <div class="c-ult-desc">ATK×9 単体超火力</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">雷コンボ+45%・麻痺中+25%</div>
+      <div class="c-ult"><div class="c-ult-name">⚡ 雷帝解放・極</div><div class="c-ult-desc">ATK×9 単体</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 420</span><span class="c-stat">HP 1750</span></div>
     </div>
 
-    <!-- エルドス：ATK400 闇コンボ+50%・カード+1・毒付与 -->
     <div class="card lim">
-      <div class="c-em">🗡️</div>
-      <div class="c-name">旧破の剣神エルドス</div>
-      <div class="c-role r-atk">ATK</div>
-      <div class="c-skill-name">旧破一刀</div>
-      <div class="c-skill">闇コンボ+50%・カード+1<br>毒スタック付与率+30%</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🗡️ 旧破の顕現</div>
-        <div class="c-ult-desc">ATK×8 単体 (default)</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 400</span><span class="c-stat">HP 1800</span></div>
-    </div>
-
-    <!-- イブリス：ATK380 闇コンボ+55%・カード+1 最高バフ率 -->
-    <div class="card lim">
-      <div class="c-em">🩸</div>
-      <div class="c-name">深淵神イブリス</div>
+      <div class="c-em">🩸</div><div class="c-name">深淵神イブリス</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">深淵崩壊撃</div>
-      <div class="c-skill">闇コンボ全体+55%<br>カード選択+1枚</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🌑 旧破神の降臨</div>
-        <div class="c-ult-desc">ATK×12 単体 全UR最大倍率</div>
-        <div class="c-ult-tag">Ult5ゲージ</div>
-      </div>
+      <div class="c-skill">闇コンボ+55%・カード+1枚</div>
+      <div class="c-ult"><div class="c-ult-name">🌑 旧破神の降臨</div><div class="c-ult-desc">ATK×12 単体 全UR最大倍率</div><div class="c-ult-tag">Ult5ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 380</span><span class="c-stat">HP 1900</span></div>
     </div>
 
-    <!-- ネレイス：ATK260 毎T全体6%回復・被ダメ軽減 最強ヒーラー -->
+    <div class="card lim new">
+      <div class="c-em">🌩️</div><div class="c-name">嵐刃の天帝カルキアス</div>
+      <div class="c-role r-atk">ATK</div>
+      <div class="c-skill-name">天帝超電撃</div>
+      <div class="c-skill">雷コンボ+35%・麻痺中確定クリティカル×1.5</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：枚数ボーナス</div><div class="c-unique-txt">選択枚数×5%追加（最大+25%）</div></div>
+      <div class="c-ult"><div class="c-ult-name">🌩️ 天帝雷獄</div><div class="c-ult-desc">ATK×11 麻痺中は×1.5追加</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 410</span><span class="c-stat">HP 1850</span></div>
+    </div>
+
     <div class="card lim">
-      <div class="c-em">🌊</div>
-      <div class="c-name">深淵の水姫ネレイス</div>
+      <div class="c-em">🌊</div><div class="c-name">深淵の水姫ネレイス</div>
       <div class="c-role r-sup">回復</div>
       <div class="c-skill-name">深海の加護</div>
-      <div class="c-skill">毎T全体6%回復<br>水コンボ時全員被ダメ-30%</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🌊 深淵の水姫</div>
-        <div class="c-ult-desc">全体HP45%回復</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
+      <div class="c-skill">毎T全体6%回復・水コンボ被ダメ-30%</div>
+      <div class="c-ult"><div class="c-ult-name">🌊 深淵の水姫</div><div class="c-ult-desc">全体HP45%回復</div><div class="c-ult-tag">Ult4ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 260</span><span class="c-stat">HP 2200</span></div>
     </div>
 
-    <!-- グラン：開幕バリア+炎コンボ追加バリア 唯一のバリア特化 -->
     <div class="card lim">
-      <div class="c-em">⚒️</div>
-      <div class="c-name">奈落の鍛冶神グラン</div>
+      <div class="c-em">⚒️</div><div class="c-name">奈落の鍛冶神グラン</div>
       <div class="c-role r-sup">回復</div>
       <div class="c-skill-name">深海鍛造</div>
-      <div class="c-skill">開幕全体バリアMaxHP10%<br>炎コンボ+5%バリア(3回)</div>
-      <div class="c-ult">
-        <div class="c-ult-name">⚒️ 奈落の鎧神</div>
-        <div class="c-ult-desc">全体バリア+30%</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">開幕バリア10%・炎コンボ+5%バリア(3回)</div>
+      <div class="c-ult"><div class="c-ult-name">⚒️ 奈落の鎧神</div><div class="c-ult-desc">全体バリア+30%</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 240</span><span class="c-stat">HP 2400</span></div>
+    </div>
+
+    <div class="card lim new">
+      <div class="c-em">☯️</div><div class="c-name">原初の混沌神カオスマ</div>
+      <div class="c-role r-tnk">タンク</div>
+      <div class="c-skill-name">混沌適応</div>
+      <div class="c-skill">全コンボ+10%</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：敵属性検知</div><div class="c-unique-txt">炎→被ダメ-25% / 氷→毎T+5%回復<br>雷→麻痺無効 / 水→凍結無効<br>闇→毒無効 / 光→炎症無効</div></div>
+      <div class="c-ult"><div class="c-ult-name">☯️ 混沌解放</div><div class="c-ult-desc">全体バリア35%+敵属性1T無効</div><div class="c-ult-tag">Ult4ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 280</span><span class="c-stat">HP 2500</span></div>
     </div>
 
   </div>
@@ -168,101 +135,73 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ======= S ======= -->
 <div class="tier-section t-s">
-  <div class="tier-header">
-    <span style="font-size:16px;">⭐</span>
-    <span class="tier-label">S — 強力・汎用性高</span>
-    <span class="tier-count">6体</span>
-  </div>
+  <div class="tier-header"><span style="font-size:16px;">⭐</span><span class="tier-label">S — 強力・汎用性高</span><span class="tier-count">7体</span></div>
   <div class="tier-body">
 
-    <!-- ヴォイド：ATK320 全カード+1 常設URで最強クラスのユーティリティ -->
     <div class="card lim">
-      <div class="c-em">🌌</div>
-      <div class="c-name">虚空の支配者ヴォイド</div>
+      <div class="c-em">🗡️</div><div class="c-name">旧破の剣神エルドス</div>
+      <div class="c-role r-atk">ATK</div>
+      <div class="c-skill-name">旧破一刀</div>
+      <div class="c-skill">闇コンボ+50%・毒+30%・カード+1</div>
+      <div class="c-ult"><div class="c-ult-name">🗡️ 旧破の顕現</div><div class="c-ult-desc">ATK×8 単体</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 400</span><span class="c-stat">HP 1800</span></div>
+    </div>
+
+    <div class="card lim new">
+      <div class="c-em">🔥</div><div class="c-name">光焔の審判者セラフィム</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">聖炎断罪</div>
+      <div class="c-skill">光コンボ炎症×1付与・炎症中+25%</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：複合デバフ増幅</div><div class="c-unique-txt">デバフ2種以上持つ敵に効果2倍</div></div>
+      <div class="c-ult"><div class="c-ult-name">🔥 聖炎審判</div><div class="c-ult-desc">全敵炎症×3付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 360</span><span class="c-stat">HP 2000</span></div>
+    </div>
+
+    <div class="card lim new">
+      <div class="c-em">💀</div><div class="c-name">氷獄の死神フロスター</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">絶対零度葬</div>
+      <div class="c-skill">50%で敵全体凍結付与</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：カウンターフリーズ</div><div class="c-unique-txt">凍結中の敵の攻撃を50%で無効化</div></div>
+      <div class="c-ult"><div class="c-ult-name">💀 絶対零度</div><div class="c-ult-desc">全敵凍結×2＋カウンター3T</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 330</span><span class="c-stat">HP 1900</span></div>
+    </div>
+
+    <div class="card lim">
+      <div class="c-em">🌌</div><div class="c-name">虚空の支配者ヴォイド</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">虚空掌握</div>
-      <div class="c-skill">全カード+1枚選択可能<br>（常時発動）</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🌌 虚空掌握・極</div>
-        <div class="c-ult-desc">ATK×10 単体</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
+      <div class="c-skill">全カード+1枚選択可能（常時）</div>
+      <div class="c-ult"><div class="c-ult-name">🌌 虚空掌握・極</div><div class="c-ult-desc">ATK×10 単体</div><div class="c-ult-tag">Ult4ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 320</span><span class="c-stat">HP 1700</span></div>
     </div>
 
-    <!-- ゼロス：ATK350 無属性+25% 汎用性トップ -->
     <div class="card">
-      <div class="c-em">⭕</div>
-      <div class="c-name">旧破の真神ゼロス</div>
+      <div class="c-em">⭕</div><div class="c-name">旧破の真神ゼロス</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">真神の一撃</div>
-      <div class="c-skill">無属性コンボ+25%<br>属性縛りなし・常設最強ATK</div>
-      <div class="c-ult">
-        <div class="c-ult-name">⚔️ 深海の一撃</div>
-        <div class="c-ult-desc">ATK×6 単体</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">無属性コンボ+25%・属性縛りなし</div>
+      <div class="c-ult"><div class="c-ult-name">⚔️ 深海の一撃</div><div class="c-ult-desc">ATK×6 単体</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 350</span><span class="c-stat">HP 2000</span></div>
     </div>
 
-    <!-- トリトス：毎T8%回復+緊急回復 常設最強ヒーラー -->
-    <div class="card">
-      <div class="c-em">🔱</div>
-      <div class="c-name">海神の申し子トリトス</div>
-      <div class="c-role r-sup">回復</div>
-      <div class="c-skill-name">海神の加護</div>
-      <div class="c-skill">毎T HP8%回復<br>HP50%以下で+12%緊急回復(1回)</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🔱 海神の守護</div>
-        <div class="c-ult-desc">全体HP40%回復</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 340</span><span class="c-stat">HP 1900</span></div>
-    </div>
-
-    <!-- ミラ：弱体解析(被ダメ+12%) デバフ支援最強 -->
     <div class="card lim">
-      <div class="c-em">🔭</div>
-      <div class="c-name">深界の観測者ミラ</div>
-      <div class="c-role r-deb">デバフ</div>
-      <div class="c-skill-name">深界観測</div>
-      <div class="c-skill">光コンボ時弱体解析付与<br>全敵被ダメ+12%（2ターン）</div>
-      <div class="c-ult">
-        <div class="c-ult-name">💜 深淵の呪縛</div>
-        <div class="c-ult-desc">全敵に光属性デバフ付与</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 320</span><span class="c-stat">HP 1950</span></div>
-    </div>
-
-    <!-- アルテア：全カードヒール+緊急回復 HP55%緊急回復で生存力最高 -->
-    <div class="card lim">
-      <div class="c-em">⭐</div>
-      <div class="c-name">星海の巫女アルテア</div>
+      <div class="c-em">⭐</div><div class="c-name">星海の巫女アルテア</div>
       <div class="c-role r-sup">回復</div>
       <div class="c-skill-name">星の祝福</div>
-      <div class="c-skill">全カードヒール化(ATK×30%)<br>HP55%以下で緊急回復(1回)</div>
-      <div class="c-ult">
-        <div class="c-ult-name">💚 深海の奇跡</div>
-        <div class="c-ult-desc">全体HP50%回復 全UR最大</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
+      <div class="c-skill">全カードヒール化・HP55%緊急回復</div>
+      <div class="c-ult"><div class="c-ult-name">💚 深海の奇跡</div><div class="c-ult-desc">全体HP50%回復 全UR最大</div><div class="c-ult-tag">Ult4ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 180</span><span class="c-stat">HP 2100</span></div>
     </div>
 
-    <!-- ヴァルシア：凍結付与+50%・凍結中+20% 凍結特化最強 -->
-    <div class="card lim">
-      <div class="c-em">🌨️</div>
-      <div class="c-name">氷獄の白妖ヴァルシア</div>
-      <div class="c-role r-deb">デバフ</div>
-      <div class="c-skill-name">白霧氷葬</div>
-      <div class="c-skill">氷コンボ凍結付与+50%<br>凍結中の敵へのダメージ+20%</div>
-      <div class="c-ult">
-        <div class="c-ult-name">❄️ 永久凍土</div>
-        <div class="c-ult-desc">全敵に凍結×2付与</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 290</span><span class="c-stat">HP 2000</span></div>
+    <div class="card lim new">
+      <div class="c-em">🪼</div><div class="c-name">記憶の海蛸アムネジア</div>
+      <div class="c-role r-sup">回復</div>
+      <div class="c-skill-name">忘却の慈雨</div>
+      <div class="c-skill">毎T最低HP優先7%回復</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：デバフ変換回復</div><div class="c-unique-txt">敵デバフを1消費→味方全体+3%追加回復</div></div>
+      <div class="c-ult"><div class="c-ult-name">🪼 忘却の嵐</div><div class="c-ult-desc">全体HP45%回復</div><div class="c-ult-tag">Ult4ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 180</span><span class="c-stat">HP 2400</span></div>
     </div>
 
   </div>
@@ -270,86 +209,62 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ======= A ======= -->
 <div class="tier-section t-a">
-  <div class="tier-header">
-    <span style="font-size:16px;">🔥</span>
-    <span class="tier-label">A — 十分強力・活躍場面多数</span>
-    <span class="tier-count">5体</span>
-  </div>
+  <div class="tier-header"><span style="font-size:16px;">🔥</span><span class="tier-label">A — 十分強力・活躍場面多数</span><span class="tier-count">6体</span></div>
   <div class="tier-body">
 
-    <!-- ザクライア：ATK360 常設最高ATK・雷コンボ+20% -->
-    <div class="card">
-      <div class="c-em">⚡</div>
-      <div class="c-name">雷帝ザクライア</div>
+    <div class="card lim new">
+      <div class="c-em">🐋</div><div class="c-name">蒼穹の潮王ポセイア</div>
       <div class="c-role r-atk">ATK</div>
-      <div class="c-skill-name">雷帝の裁き</div>
-      <div class="c-skill">雷コンボ+20%<br>常設UR最高ATK(360)</div>
-      <div class="c-ult">
-        <div class="c-ult-name">⚡ 雷帝の裁き</div>
-        <div class="c-ult-desc">ATK×9 単体 高火力</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 360</span><span class="c-stat">HP 1450</span></div>
+      <div class="c-skill-name">逆流崩撃</div>
+      <div class="c-skill">水カード3枚以上使用で翌T手札リフレッシュ</div>
+      <div class="c-unique"><div class="c-unique-lbl">★ 固有：★2確定出現</div><div class="c-unique-txt">リフレッシュ時に★2カード確定1枚（1戦2回）</div></div>
+      <div class="c-ult"><div class="c-ult-name">🐋 大海崩壊</div><div class="c-ult-desc">全敵ATK×7</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 320</span><span class="c-stat">HP 2050</span></div>
     </div>
 
-    <!-- フレアノス：ATK340 炎コンボ+20% 炎パTOP -->
+    <div class="card">
+      <div class="c-em">🔱</div><div class="c-name">海神の申し子トリトス</div>
+      <div class="c-role r-sup">回復</div>
+      <div class="c-skill-name">海神の加護</div>
+      <div class="c-skill">毎T HP8%回復・HP50%以下緊急+12%</div>
+      <div class="c-ult"><div class="c-ult-name">🔱 海神の守護</div><div class="c-ult-desc">全体HP40%回復</div><div class="c-ult-tag">Ult4ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 340</span><span class="c-stat">HP 1900</span></div>
+    </div>
+
     <div class="card lim">
-      <div class="c-em">🌋</div>
-      <div class="c-name">炎獄神フレアノス</div>
+      <div class="c-em">🔭</div><div class="c-name">深界の観測者ミラ</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">深界観測</div>
+      <div class="c-skill">光コンボ弱体解析(全敵被ダメ+12% 2T)</div>
+      <div class="c-ult"><div class="c-ult-name">🔭 深界観測・極</div><div class="c-ult-desc">全敵光デバフ付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 320</span><span class="c-stat">HP 1950</span></div>
+    </div>
+
+    <div class="card lim">
+      <div class="c-em">🌨️</div><div class="c-name">氷獄の白妖ヴァルシア</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">白霧氷葬</div>
+      <div class="c-skill">氷コンボ凍結+50%・凍結中+20%</div>
+      <div class="c-ult"><div class="c-ult-name">❄️ 永久凍土</div><div class="c-ult-desc">全敵凍結×2付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 290</span><span class="c-stat">HP 2000</span></div>
+    </div>
+
+    <div class="card lim">
+      <div class="c-em">🌋</div><div class="c-name">炎獄神フレアノス</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">炎帝の怒り</div>
-      <div class="c-skill">炎コンボ+20%<br>炎パーティの要</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🌋 炎帝の怒り</div>
-        <div class="c-ult-desc">全敵ATK×6 AOE</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">炎コンボ+20%・炎パーティの要</div>
+      <div class="c-ult"><div class="c-ult-name">🌋 炎帝の怒り</div><div class="c-ult-desc">全敵ATK×6 AOE</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 340</span><span class="c-stat">HP 1550</span></div>
     </div>
 
-    <!-- カルドス：炎症×2付与率+40% デバフ&炎パで輝く -->
-    <div class="card lim">
-      <div class="c-em">🔱</div>
-      <div class="c-name">業炎の覇王カルドス</div>
-      <div class="c-role r-deb">デバフ</div>
-      <div class="c-skill-name">業火滅却</div>
-      <div class="c-skill">炎コンボ炎症×2付与率+40%<br>持続ダメージ特化</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🔥 炎獄の烙印</div>
-        <div class="c-ult-desc">全敵に炎症×3付与</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 350</span><span class="c-stat">HP 1850</span></div>
-    </div>
-
-    <!-- アイギス：被ダメ-20%・凍結付与率+20% タンク最強 -->
     <div class="card">
-      <div class="c-em">❄️</div>
-      <div class="c-name">氷結の神后アイギス</div>
-      <div class="c-role r-tnk">タンク</div>
-      <div class="c-skill-name">永久凍土</div>
-      <div class="c-skill">被ダメ-20%・凍結付与率+20%<br>防御・凍結両立</div>
-      <div class="c-ult">
-        <div class="c-ult-name">❄️ 永久凍土</div>
-        <div class="c-ult-desc">全敵に凍結×2付与</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 280</span><span class="c-stat">HP 1800</span></div>
-    </div>
-
-    <!-- エンドロス：ATK290 毒付与率35% 毒デバフ最強 -->
-    <div class="card">
-      <div class="c-em">💀</div>
-      <div class="c-name">崩壊の終焉神エンドロス</div>
-      <div class="c-role r-deb">デバフ</div>
-      <div class="c-skill-name">終焉の毒霧</div>
-      <div class="c-skill">攻撃35%で毒スタック付与<br>全常設デバフ最高確率</div>
-      <div class="c-ult">
-        <div class="c-ult-name">☠️ 深淵崩落</div>
-        <div class="c-ult-desc">全敵に毒×3付与</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 290</span><span class="c-stat">HP 1750</span></div>
+      <div class="c-em">⚡</div><div class="c-name">雷帝ザクライア</div>
+      <div class="c-role r-atk">ATK</div>
+      <div class="c-skill-name">雷帝の裁き</div>
+      <div class="c-skill">雷コンボ+20%・常設最高ATK</div>
+      <div class="c-ult"><div class="c-ult-name">⚡ 雷帝の裁き</div><div class="c-ult-desc">ATK×9 単体</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 360</span><span class="c-stat">HP 1450</span></div>
     </div>
 
   </div>
@@ -357,71 +272,61 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ======= B ======= -->
 <div class="tier-section t-b">
-  <div class="tier-header">
-    <span style="font-size:16px;">💙</span>
-    <span class="tier-label">B — 平均的・編成次第で活躍</span>
-    <span class="tier-count">4体</span>
-  </div>
+  <div class="tier-header"><span style="font-size:16px;">💙</span><span class="tier-label">B — 平均的・編成次第で活躍</span><span class="tier-count">6体</span></div>
   <div class="tier-body">
 
-    <!-- アルカナ：ATK280 全カード+1 ヴォイドの劣化版だがUlt強力 -->
+    <div class="card lim">
+      <div class="c-em">🔱</div><div class="c-name">業炎の覇王カルドス</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">業火滅却</div>
+      <div class="c-skill">炎コンボ炎症×2付与率+40%</div>
+      <div class="c-ult"><div class="c-ult-name">🔥 炎獄の烙印</div><div class="c-ult-desc">全敵炎症×3付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 350</span><span class="c-stat">HP 1850</span></div>
+    </div>
+
     <div class="card">
-      <div class="c-em">🌑</div>
-      <div class="c-name">旧破神アルカナ</div>
+      <div class="c-em">❄️</div><div class="c-name">氷結の神后アイギス</div>
+      <div class="c-role r-tnk">タンク</div>
+      <div class="c-skill-name">永久凍土</div>
+      <div class="c-skill">被ダメ-20%・凍結付与率+20%</div>
+      <div class="c-ult"><div class="c-ult-name">❄️ 永久凍土</div><div class="c-ult-desc">全敵凍結×2付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 280</span><span class="c-stat">HP 1800</span></div>
+    </div>
+
+    <div class="card">
+      <div class="c-em">💀</div><div class="c-name">崩壊の終焉神エンドロス</div>
+      <div class="c-role r-deb">デバフ</div>
+      <div class="c-skill-name">終焉の毒霧</div>
+      <div class="c-skill">攻撃35%で毒スタック付与</div>
+      <div class="c-ult"><div class="c-ult-name">☠️ 深淵崩落</div><div class="c-ult-desc">全敵毒×3付与</div><div class="c-ult-tag">Ult4ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 290</span><span class="c-stat">HP 1750</span></div>
+    </div>
+
+    <div class="card">
+      <div class="c-em">🌑</div><div class="c-name">旧破神アルカナ</div>
       <div class="c-role r-atk">ATK</div>
       <div class="c-skill-name">フルドライブ</div>
-      <div class="c-skill">全カード+1枚選択可能<br>ヴォイドと同効果・ATK低め</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🌑 旧破の顕現</div>
-        <div class="c-ult-desc">ATK×8 単体 コスパ良</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">全カード+1枚選択可能</div>
+      <div class="c-ult"><div class="c-ult-name">🌑 旧破の顕現</div><div class="c-ult-desc">ATK×8 単体</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 280</span><span class="c-stat">HP 1500</span></div>
     </div>
 
-    <!-- ヴォルガII：被ダメ-15% アイギスより低いがHP高め -->
     <div class="card">
-      <div class="c-em">🐉</div>
-      <div class="c-name">深淵竜王ヴォルガII</div>
+      <div class="c-em">🐉</div><div class="c-name">深淵竜王ヴォルガII</div>
       <div class="c-role r-tnk">タンク</div>
       <div class="c-skill-name">竜王の鱗</div>
-      <div class="c-skill">被ダメ-15%・ヘイト最大<br>アイギスより軽減率低め</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🐉 竜王の守護</div>
-        <div class="c-ult-desc">全体バリア+30%</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">被ダメ-15%・ヘイト最大</div>
+      <div class="c-ult"><div class="c-ult-name">🐉 竜王の守護</div><div class="c-ult-desc">全体バリア+30%</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 310</span><span class="c-stat">HP 1650</span></div>
     </div>
 
-    <!-- アステリア：麻痺付与25% イグリスより低いがATK高め -->
     <div class="card">
-      <div class="c-em">💫</div>
-      <div class="c-name">星滅の魔神アステリア</div>
+      <div class="c-em">💫</div><div class="c-name">星滅の魔神アステリア</div>
       <div class="c-role r-deb">デバフ</div>
       <div class="c-skill-name">星滅の閃光</div>
-      <div class="c-skill">攻撃25%で麻痺付与<br>麻痺デバフ2番手</div>
-      <div class="c-ult">
-        <div class="c-ult-name">💫 星滅閃光</div>
-        <div class="c-ult-desc">全敵に麻痺付与+ATK×5</div>
-        <div class="c-ult-tag">Ult4ゲージ</div>
-      </div>
+      <div class="c-skill">攻撃25%で麻痺付与</div>
+      <div class="c-ult"><div class="c-ult-name">💫 星滅閃光</div><div class="c-ult-desc">全敵麻痺+ATK×5</div><div class="c-ult-tag">Ult4ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 330</span><span class="c-stat">HP 1500</span></div>
-    </div>
-
-    <!-- 崩壊の始原神：炎コンボ+15% フレアノスの劣化 -->
-    <div class="card">
-      <div class="c-em">💀</div>
-      <div class="c-name">崩壊の始原神</div>
-      <div class="c-role r-atk">ATK</div>
-      <div class="c-skill-name">崩壊炎撃</div>
-      <div class="c-skill">炎コンボ+15%<br>フレアノス未所持時に採用</div>
-      <div class="c-ult">
-        <div class="c-ult-name">💀 崩壊炎爆</div>
-        <div class="c-ult-desc">全敵ATK×5 AOE</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
-      <div class="c-stats"><span class="c-stat">ATK 260</span><span class="c-stat">HP 1600</span></div>
     </div>
 
   </div>
@@ -429,45 +334,42 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- ======= C ======= -->
 <div class="tier-section t-c">
-  <div class="tier-header">
-    <span style="font-size:16px;">💜</span>
-    <span class="tier-label">C — 育成優先度低め</span>
-    <span class="tier-count">1体</span>
-  </div>
+  <div class="tier-header"><span style="font-size:16px;">💜</span><span class="tier-label">C — 育成優先度低め</span><span class="tier-count">2体</span></div>
   <div class="tier-body">
 
-    <!-- イグリス：麻痺30%だがATK・HP低め・Ultも汎用 -->
     <div class="card">
-      <div class="c-em">🕳️</div>
-      <div class="c-name">深淵の使徒イグリス</div>
+      <div class="c-em">💀</div><div class="c-name">崩壊の始原神</div>
+      <div class="c-role r-atk">ATK</div>
+      <div class="c-skill-name">崩壊炎撃</div>
+      <div class="c-skill">炎コンボ+15%・フレアノス未所持時</div>
+      <div class="c-ult"><div class="c-ult-name">💀 崩壊炎爆</div><div class="c-ult-desc">全敵ATK×5 AOE</div><div class="c-ult-tag">Ult3ゲージ</div></div>
+      <div class="c-stats"><span class="c-stat">ATK 260</span><span class="c-stat">HP 1600</span></div>
+    </div>
+
+    <div class="card">
+      <div class="c-em">🕳️</div><div class="c-name">深淵の使徒イグリス</div>
       <div class="c-role r-deb">デバフ</div>
       <div class="c-skill-name">深淵の呪縛</div>
-      <div class="c-skill">攻撃30%で麻痺付与<br>HP・ATK共に最低水準</div>
-      <div class="c-ult">
-        <div class="c-ult-name">🕳️ 深淵の絶呪</div>
-        <div class="c-ult-desc">全敵に麻痺×2付与</div>
-        <div class="c-ult-tag">Ult3ゲージ</div>
-      </div>
+      <div class="c-skill">攻撃30%で麻痺付与・HP・ATK低め</div>
+      <div class="c-ult"><div class="c-ult-name">🕳️ 深淵の絶呪</div><div class="c-ult-desc">全敵麻痺×2付与</div><div class="c-ult-tag">Ult3ゲージ</div></div>
       <div class="c-stats"><span class="c-stat">ATK 300</span><span class="c-stat">HP 1400</span></div>
     </div>
 
   </div>
 </div>
 
-</div><!-- tier-wrap -->
+</div>
 
-<!-- 評価基準 -->
 <div class="note">
   <h3>📌 評価基準・コメント</h3>
   <p>
-    ・<b style="color:#ffc840;">SS</b>：どのコンテンツでも圧倒的な活躍。パーティに入れない理由がない。<br>
-    ・<b style="color:#ffc840;">S</b>：非常に強力。特定コンテンツで輝く・またはどこでも安定して強い。<br>
-    ・<b style="color:#50e080;">A</b>：十分に強力。属性・コンボを合わせることで真価を発揮する。<br>
-    ・<b style="color:#70b8ff;">B</b>：平均的。上位の同役割キャラがいる場合は優先度下がる。<br>
-    ・<b style="color:#b070ff;">C</b>：現環境ではやや厳しい。育成素材が余れば検討程度。<br>
-    ・全評価はスキル倍率・Ult効果・ATK・HP・役割の総合判断。<br>
-    ・限定かどうかは評価に影響しません（純粋な性能比較）。<br>
-    ・バージョンアップにより評価が変動する場合があります。
+    ・<b style="color:#ff7050;">SS</b>：どのコンテンツでも圧倒的。固有効果が戦闘の仕組みを変えるレベル。<br>
+    ・<b style="color:#ffc840;">S</b>：非常に強力。固有効果や高い汎用性で常にパーティの中心となれる。<br>
+    ・<b style="color:#50e080;">A</b>：十分に強力。特定コンテンツや属性編成で真価を発揮する。<br>
+    ・<b style="color:#70b8ff;">B</b>：平均的。上位の同役割キャラがいる場合は優先度が下がる。<br>
+    ・<b style="color:#b070ff;">C</b>：現環境ではやや厳しい。上位互換が揃っている。<br>
+    ・評価は限定/常設関係なく純粋な性能比較です。<br>
+    ・NEWキャラは固有効果の独自性・実用性を重視して評価しています。
   </p>
 </div>
 
@@ -476,10 +378,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="lg"><div class="ld" style="background:#50e090;"></div>サポート・回復</div>
   <div class="lg"><div class="ld" style="background:#b870ff;"></div>デバッファー</div>
   <div class="lg"><div class="ld" style="background:#70b8ff;"></div>タンク</div>
-  <div class="lg"><div class="ld" style="background:linear-gradient(90deg,#b07000,#ffd840);"></div>限定キャラ</div>
+  <div class="lg"><div class="ld" style="background:linear-gradient(90deg,#b07000,#ffd840);border-radius:2px;width:12px;"></div>限定</div>
+  <div class="lg"><div class="ld" style="background:linear-gradient(90deg,#006080,#00d4ff);border-radius:2px;width:12px;"></div>NEW</div>
 </div>
 
 <div style="text-align:center;padding:22px;font-size:8px;color:rgba(100,140,180,.35);">ABYSSAL CHRONICLE — URキャラ ティアリスト v0.5.3</div>
-
 </body>
 </html>
