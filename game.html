@@ -7863,31 +7863,7 @@ function onRogueBattleWin(quest){
     r.score=(r.score||0)+pts;
     const effectiveMax = r.maxFloor || ROGUE_MAX_FLOOR;
     if(r.floor>=effectiveMax){
-      // HARD + 5F踏破 + まだ延長してない場合 → 深淵最奥への門イベント
-      if(r.hard && effectiveMax===ROGUE_MAX_FLOOR){
-        const pts5F=pts;
-        r.pendingDeepGate=true;
-        r.pendingDeepGatePts=pts5F;
-        BT.fromScreen='rogue';
-        if(end) end.textContent='🏁 5F踏破！ 深淵の声が響く…';
-        saveGame(); return;
-      }
-      const clearBonus=r.hard?280:120;
-      S.roguePoints=(S.roguePoints||0)+clearBonus;
-      S.roguePassPoints=(S.roguePassPoints||0)+clearBonus;
-      r.score=(r.score||0)+clearBonus;
-      const floorLabel=effectiveMax+'F';
-      if(end) end.textContent='🏁 '+floorLabel+'踏破！ RP +'+(pts+clearBonus)+'（合計 '+r.score+'）';
-      if(r.hard){
-        if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
-        if(!S.ownedIcons.includes('⚒️')) S.ownedIcons.push('⚒️');
-        if(effectiveMax>=ROGUE_EXTENDED_FLOOR){
-          if(!S.ownedIcons.includes('🕳️')) S.ownedIcons.push('🕳️');
-          if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
-          if(!S.ownedTitles.includes('深淵の最奥踏破者')) S.ownedTitles.push('深淵の最奥踏破者');
-        }
-      }
-      // 15F踏破（禁域クリア）
+      // ① 最優先：深淵禁域15F踏破（禁域クリア）
       if(r.isAbyssRun && effectiveMax>=ROGUE_ABYSS_FLOOR){
         if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
         if(!S.ownedIcons.includes('🗝️')) S.ownedIcons.push('🗝️');
@@ -7906,13 +7882,37 @@ function onRogueBattleWin(quest){
         if(homeBtn2) homeBtn2.style.display='none';
         saveGame(); return;
       }
-      // 深淵禁域の鍵を持っていれば禁域ゲートへ（フロア数問わず最終フロア踏破で発動）
+      // ② 次優先：深淵禁域の鍵を持っていれば → 禁域ゲートへ（NORMAL/HARD・フロア数問わず）
       if(r.abyssKeyUnlocked && !r.isAbyssRun){
         r.pendingAbyssGate=true;
         r.pendingAbyssPts=pts;
         const abyssFloorMsg = effectiveMax>=ROGUE_EXTENDED_FLOOR ? '10F' : '5F';
         if(end) end.textContent='🗝️ '+abyssFloorMsg+'踏破！深淵禁域への扉が現れた…';
         saveGame(); return;
+      }
+      // ③ HARD + 5F踏破 + 鍵なし → 深淵最奥への門（6〜10F延長）
+      if(r.hard && effectiveMax===ROGUE_MAX_FLOOR){
+        r.pendingDeepGate=true;
+        r.pendingDeepGatePts=pts;
+        BT.fromScreen='rogue';
+        if(end) end.textContent='🏁 5F踏破！ 深淵の声が響く…';
+        saveGame(); return;
+      }
+      // ④ 通常クリア
+      const clearBonus=r.hard?280:120;
+      S.roguePoints=(S.roguePoints||0)+clearBonus;
+      S.roguePassPoints=(S.roguePassPoints||0)+clearBonus;
+      r.score=(r.score||0)+clearBonus;
+      const floorLabel=effectiveMax+'F';
+      if(end) end.textContent='🏁 '+floorLabel+'踏破！ RP +'+(pts+clearBonus)+'（合計 '+r.score+'）';
+      if(r.hard){
+        if(!Array.isArray(S.ownedIcons)) S.ownedIcons=['🌊'];
+        if(!S.ownedIcons.includes('⚒️')) S.ownedIcons.push('⚒️');
+        if(effectiveMax>=ROGUE_EXTENDED_FLOOR){
+          if(!S.ownedIcons.includes('🕳️')) S.ownedIcons.push('🕳️');
+          if(!Array.isArray(S.ownedTitles)) S.ownedTitles=[];
+          if(!S.ownedTitles.includes('深淵の最奥踏破者')) S.ownedTitles.push('深淵の最奥踏破者');
+        }
       }
       r.active=false; S.rogueRun=null;
       BT.fromScreen='rogue';
