@@ -5641,8 +5641,12 @@ function renderHand(){
     else if(isParaCard) cardStyle+='border-color:rgba(220,180,0,.6);';
     else if(isBurn) cardStyle+='border-color:rgba(220,80,20,.6);';
     else if(isPoison) cardStyle+='border-color:rgba(80,200,20,.6);';
-    // Ultカード
-    if(c.isUlt){return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ult-card-pulse" style="border-color:rgba(255,200,0,.9)!important;background:linear-gradient(180deg,rgba(80,50,0,.7),rgba(40,20,0,.6))!important;position:relative;${slideDelay}" onclick="toggleCard(${i})" onmousedown="startLongPress(${i})" onmouseup="endLongPress()" onmouseleave="endLongPress()" ontouchstart="startLongPress(${i})" ontouchend="endLongPress()"><div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:linear-gradient(90deg,#ff8000,#ffcc00);color:#fff;white-space:nowrap;z-index:5;">⚡必殺</div>${c.selected?`<div class="selected-order">${BT.selectedOrder.indexOf(i)+1}</div>`:''}<div style="font-size:22px;">${c.emoji}</div><div style="font-size:7px;color:#ffe080;text-align:center;font-weight:700;">${c.name}</div><div style="font-size:8px;color:#ffcc00;font-weight:800;">ULTIMATE</div><div style="font-size:6px;color:rgba(255,200,100,.7);">${c.charName}</div></div>`;}
+    // Ultカード（凍結中は凍結表示）
+    if(c.isUlt){
+      const _ultFrozen=freezeIds.has(c.charId);
+      const _ultFreezeOv=_ultFrozen?'<div style="position:absolute;inset:0;border-radius:10px;background:rgba(0,80,200,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;pointer-events:none;"><div style="font-size:18px;">❄️</div><div style="font-size:8px;color:#80d8ff;font-weight:700;margin-top:2px;">凍結中</div></div>':'';
+      return`<div class="battle-card ${c.selected?'selected':''} ${c.used?'used':''} ${_ultFrozen?'':'ult-card-pulse'}" style="border-color:${_ultFrozen?'rgba(80,180,255,.8)':'rgba(255,200,0,.9)'}!important;background:${_ultFrozen?'rgba(0,30,80,.7)':'linear-gradient(180deg,rgba(80,50,0,.7),rgba(40,20,0,.6))'}!important;position:relative;opacity:${_ultFrozen?.6:1};${slideDelay}" onclick="toggleCard(${i})" onmousedown="startLongPress(${i})" onmouseup="endLongPress()" onmouseleave="endLongPress()" ontouchstart="startLongPress(${i})" ontouchend="endLongPress()">${_ultFreezeOv}<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 8px;border-radius:99px;background:${_ultFrozen?'linear-gradient(90deg,#0060c0,#40c0ff)':'linear-gradient(90deg,#ff8000,#ffcc00)'};color:#fff;white-space:nowrap;z-index:5;">${_ultFrozen?'❄️凍結':'⚡必殺'}</div>${c.selected?`<div class="selected-order">${BT.selectedOrder.indexOf(i)+1}</div>`:''}<div style="font-size:22px;${_ultFrozen?'filter:grayscale(.5);':''}">${c.emoji}</div><div style="font-size:7px;color:${_ultFrozen?'#80d8ff':'#ffe080'};text-align:center;font-weight:700;">${c.name}</div><div style="font-size:8px;color:${_ultFrozen?'#80d8ff':'#ffcc00'};font-weight:800;">ULTIMATE</div><div style="font-size:6px;color:rgba(255,200,100,.7);">${c.charName}</div></div>`;
+    }
     // 威力表示
     const starMul=cardRk>=5?5.0:cardRk>=4?3.5:cardRk>=3?2.5:cardRk>=2?1.6:1.0;
     const dispD=isHealCard?d:Math.round(d*starMul);
@@ -5712,9 +5716,11 @@ function toggleCard(i){
   if(!BT.hand[i].selected){
     const card = BT.hand[i];
     const owner = BT.partyHp.find(m=>m.id===card.charId);
-    // 凍結チェック：凍結中は選択不可
+    // 凍結チェック：凍結中は選択不可（Ultカードも含む）
     const isFrozenCard = owner && (owner.statuses||[]).some(s=>s.type==='freeze'&&s.turns>0);
     if(isFrozenCard){ showToast('❄️ '+card.charName+' は凍結中！カードを選択できません'); return; }
+    // Ultカードも凍結中は選択不可
+    if(card.isUlt && isFrozenCard){ showToast('❄️ '+card.charName+' は凍結中！必殺技も使用できません'); return; }
     // 麻痺チェック：麻痺中のキャラはカード1枚のみ選択可能
     const isPara = owner && (owner.statuses||[]).some(s=>s.type==='para'&&s.turns>0);
     if(isPara){
@@ -6021,8 +6027,13 @@ function runAutoTurn(){
     const alreadySel = charSelectCount[c.charId]||0;
     if(isPara && alreadySel >= 1) continue;
 
-    // Ultカードは無条件で選択（スキップしない）
-    if(c.isUlt){ charSelectCount[c.charId]=(charSelectCount[c.charId]||0)+1; available.push(c); continue; }
+    // Ultカードは凍結中のみスキップ、それ以外は無条件選択
+    if(c.isUlt){
+      if(isFrozen) continue; // 凍結中キャラのUltは使えない
+      charSelectCount[c.charId]=(charSelectCount[c.charId]||0)+1;
+      available.push(c);
+      continue;
+    }
     // ヒールカード：設定OFFまたはHP80%以上全員ならスキップ
     if(c.isHeal){
       if(!bs.autoHeal) continue;
@@ -7895,11 +7906,12 @@ function onRogueBattleWin(quest){
         if(homeBtn2) homeBtn2.style.display='none';
         saveGame(); return;
       }
-      // 深淵禁域の鍵を持っていれば禁域ゲートへ（NORMAL/HARD問わず）
-      if(r.abyssKeyUnlocked && !r.isAbyssRun && effectiveMax>=ROGUE_EXTENDED_FLOOR){
+      // 深淵禁域の鍵を持っていれば禁域ゲートへ（フロア数問わず最終フロア踏破で発動）
+      if(r.abyssKeyUnlocked && !r.isAbyssRun){
         r.pendingAbyssGate=true;
         r.pendingAbyssPts=pts;
-        if(end) end.textContent='🗝️ 10F踏破！深淵禁域への扉が現れた…';
+        const abyssFloorMsg = effectiveMax>=ROGUE_EXTENDED_FLOOR ? '10F' : '5F';
+        if(end) end.textContent='🗝️ '+abyssFloorMsg+'踏破！深淵禁域への扉が現れた…';
         saveGame(); return;
       }
       r.active=false; S.rogueRun=null;
