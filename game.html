@@ -15585,9 +15585,9 @@ function setBattleSpeed(speed){
   sfx('click');
 }
 
-// 倍速対応のsetTimeout（オートバトル中のみ短縮）
+// 倍速対応のsetTimeout（手動・オート両方で有効）
 function btDelay(ms){
-  return BT.auto ? Math.max(50, Math.round(ms / BT_SPEED)) : ms;
+  return Math.max(50, Math.round(ms / BT_SPEED));
 }
 
 function formatLastLogin(dateStr){
