@@ -421,7 +421,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .auto-btn:hover{background:rgba(120,60,10,.4);}
 
 /* コンボゲージ */
-.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.combo-gauge-wrap{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .combo-gauge{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
 .combo-gauge-fill{height:100%;background:linear-gradient(90deg,#10c0a0,#4a90ff,#e0a020);border-radius:2px;transition:width .3s;}
 .combo-lv-txt{font-size:10px;font-weight:500;min-width:50px;text-align:right;}
@@ -1207,7 +1207,7 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 .battle-card.star4{border-color:rgba(80,200,255,.95)!important;background:linear-gradient(180deg,rgba(0,50,80,.7),rgba(0,20,50,.6))!important;box-shadow:0 0 24px rgba(40,180,255,.7)!important;}
 .battle-card.star5{border-color:rgba(255,220,80,1)!important;background:linear-gradient(180deg,rgba(60,40,0,.8),rgba(30,15,0,.7))!important;animation:star5Pulse 1.2s ease-in-out infinite alternate;}
 @keyframes star5Pulse{0%{box-shadow:0 0 20px rgba(255,200,0,.7);}100%{box-shadow:0 0 35px rgba(255,220,80,1);}}
-.star-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 7px;border-radius:99px;white-space:nowrap;z-index:5;}
+.star-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;padding:1px 7px;border-radius:99px;white-space:nowrap;z-index:5;}
 .star-badge.s2{background:linear-gradient(90deg,#c07800,#ffe040);color:#fff;box-shadow:0 0 8px rgba(255,180,0,.7);}
 .star-badge.s3{background:linear-gradient(90deg,#c000a0,#ff60e0);color:#fff;box-shadow:0 0 10px rgba(255,80,220,.8);}
 .star-badge.s4{background:linear-gradient(90deg,#0060c0,#40c0ff);color:#fff;box-shadow:0 0 12px rgba(40,180,255,.8);}
@@ -1222,6 +1222,268 @@ body{background:var(--bg);color:var(--text);font-family:'Yu Gothic','Hiragino Sa
 /* ===== Ultカード ===== */
 .ult-card-pulse{animation:ultCardPulse .8s ease-in-out infinite alternate;}
 @keyframes ultCardPulse{0%{box-shadow:0 0 8px rgba(255,180,0,.5);}100%{box-shadow:0 0 20px rgba(255,200,0,.9);}}
+
+/* ============================================================
+   ABYSSAL CHRONICLE — リバース1999風 戦闘UI
+   ============================================================ */
+
+/* --- 全体レイアウト --- */
+#screen-battle{
+  flex-direction:column;height:100%;
+  background:transparent;overflow:hidden;position:relative;
+}
+
+/* --- ヘッダー --- */
+.battle-header{
+  position:relative;z-index:10;
+  padding:8px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(2,4,12,.7);
+  border-bottom:.5px solid rgba(30,80,160,.25);
+  flex-shrink:0;backdrop-filter:blur(8px);
+}
+.battle-stage-txt{font-size:10px;color:rgba(160,210,240,.6);letter-spacing:.1em;}
+.turn-counter{font-size:11px;font-weight:700;color:#bfe9ff;background:rgba(0,20,50,.5);padding:3px 10px;border-radius:99px;border:.5px solid rgba(40,100,200,.3);}
+.combo-txt{font-size:10px;color:var(--teal);}
+
+/* --- 敵エリア（中央大きく） --- */
+.enemy-area{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:12px 16px 6px;
+  position:relative;z-index:5;
+  min-height:0;
+}
+/* 敵アイコン大型化 */
+.enemy-ico{
+  font-size:96px;
+  line-height:1;
+  filter:drop-shadow(0 0 24px rgba(100,180,255,.3));
+  animation:enemyFloat 3s ease-in-out infinite;
+  transition:transform .1s;
+}
+.enemy-ico.hit{
+  animation:enemyHit .25s ease-out;
+  filter:drop-shadow(0 0 20px rgba(255,80,80,.8)) brightness(2);
+}
+@keyframes enemyHit{
+  0%{transform:scale(1);}
+  30%{transform:scale(.88) translateX(8px);}
+  60%{transform:scale(1.06) translateX(-4px);}
+  100%{transform:scale(1);}
+}
+@keyframes enemyFloat{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+}
+.enemy-nm{
+  font-size:15px;font-weight:700;
+  margin:8px 0 4px;
+  color:#c8e8ff;letter-spacing:.04em;
+  text-shadow:0 0 12px rgba(100,180,255,.5);
+}
+.enemy-hp-bar{
+  width:240px;height:6px;
+  background:rgba(255,255,255,.08);
+  border-radius:3px;overflow:hidden;
+  box-shadow:0 0 8px rgba(200,30,30,.2);
+}
+.enemy-hp-fill{
+  height:100%;
+  background:linear-gradient(90deg,#cc3030,#ff6060);
+  border-radius:3px;transition:width .5s;
+}
+.enemy-hp-txt{font-size:10px;color:var(--text2);margin-top:3px;}
+
+/* --- ダメージフロート --- */
+.dmg-float{
+  position:fixed;z-index:9999;
+  font-weight:900;pointer-events:none;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+  animation:dmgFloat .9s ease-out forwards;
+}
+.dmg-float.normal{font-size:22px;color:#fff;}
+.dmg-float.critical{font-size:32px;color:#ffdd00;text-shadow:0 0 16px rgba(255,200,0,.9);}
+.dmg-float.heal{font-size:20px;color:#40ff80;}
+.dmg-float.miss{font-size:16px;color:rgba(200,200,200,.7);}
+@keyframes dmgFloat{
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  20%{transform:translateY(-18px) scale(1.15);}
+  100%{opacity:0;transform:translateY(-55px) scale(.8);}
+}
+
+/* --- 画面シェイク --- */
+@keyframes screenShake{
+  0%,100%{transform:translate(0,0);}
+  20%{transform:translate(-6px,3px);}
+  40%{transform:translate(5px,-4px);}
+  60%{transform:translate(-4px,2px);}
+  80%{transform:translate(3px,-2px);}
+}
+.screen-shake{animation:screenShake .35s ease-out;}
+
+/* --- 攻撃エフェクトオーバーレイ --- */
+#atk-effect-layer{
+  position:fixed;inset:0;z-index:8000;
+  pointer-events:none;overflow:hidden;
+}
+.atk-slash{
+  position:absolute;
+  background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,.9) 50%,transparent 70%);
+  border-radius:50%;
+  animation:slashAnim .3s ease-out forwards;
+}
+@keyframes slashAnim{
+  0%{opacity:0;transform:scale(0) rotate(-20deg);}
+  40%{opacity:1;transform:scale(1.2) rotate(0deg);}
+  100%{opacity:0;transform:scale(1.8) rotate(10deg);}
+}
+
+/* パーティクル */
+.atk-particle{
+  position:absolute;border-radius:50%;
+  animation:particleFly .6s ease-out forwards;
+}
+@keyframes particleFly{
+  0%{opacity:1;transform:translate(0,0) scale(1);}
+  100%{opacity:0;transform:translate(var(--px),var(--py)) scale(0);}
+}
+
+/* --- カードエリア（リバース1999風：下部大きく） --- */
+.card-hand{
+  padding:6px 8px 8px;
+  background:rgba(2,6,14,.5);
+  border-top:.5px solid rgba(255,255,255,.06);
+  flex-shrink:0;position:relative;z-index:10;
+  backdrop-filter:blur(14px);
+}
+.cards-row{
+  display:flex;gap:6px;
+  overflow-x:auto;
+  padding-top:20px;padding-bottom:4px;
+  justify-content:center;
+}
+.cards-row::-webkit-scrollbar{height:2px;}
+
+/* カード大型化・傾き演出 */
+.battle-card{
+  flex-shrink:0;width:72px;
+  background:rgba(0,15,40,.5);
+  border:.5px solid rgba(30,80,160,.4);
+  border-radius:12px;
+  padding:9px 4px 7px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;
+  transition:border-color .15s,background .15s,transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+  backdrop-filter:blur(8px);
+  position:relative;
+}
+.battle-card:nth-child(odd){transform:rotate(-1.5deg);}
+.battle-card:nth-child(even){transform:rotate(1.5deg);}
+.battle-card:hover{
+  transform:translateY(-14px) rotate(0deg) scale(1.08)!important;
+  z-index:20;
+  box-shadow:0 12px 32px rgba(0,0,0,.6),0 0 20px rgba(30,120,255,.4);
+}
+.battle-card.selected{
+  border-color:var(--teal);
+  background:rgba(10,80,70,.4);
+  transform:translateY(-18px) rotate(0deg) scale(1.1)!important;
+  box-shadow:0 0 20px rgba(16,192,160,.5),0 12px 32px rgba(0,0,0,.5);
+  z-index:20;
+}
+.battle-card.used{opacity:.2;cursor:default;pointer-events:none;transform:none!important;}
+
+/* カード飛翔アニメ（選択して攻撃時）*/
+@keyframes cardFly{
+  0%{transform:translateY(0) scale(1);opacity:1;}
+  60%{transform:translateY(-180px) scale(.7);opacity:.8;}
+  100%{transform:translateY(-280px) scale(.3);opacity:0;}
+}
+.battle-card.flying{animation:cardFly .4s ease-in forwards;}
+
+/* --- HPバー（キャラアイコン付き） --- */
+.party-hp-row{
+  display:flex;gap:5px;
+  padding:5px 8px;
+  background:rgba(2,6,14,.45);
+  flex-shrink:0;position:relative;z-index:10;
+  backdrop-filter:blur(10px);
+  border-top:.5px solid rgba(255,255,255,.04);
+}
+.member-hp{
+  flex:1;min-width:0;
+  background:rgba(0,10,25,.5);
+  border:.5px solid rgba(30,60,120,.3);
+  border-radius:10px;
+  padding:5px 6px;position:relative;
+}
+
+/* Ultゲージを色変え */
+.ult-ready-glow{
+  box-shadow:0 0 10px rgba(255,200,0,.5);
+  border-color:rgba(255,200,0,.6)!important;
+}
+
+/* --- アクションバー --- */
+.battle-actions{
+  display:flex;gap:6px;padding:0 8px 8px;
+  position:relative;z-index:10;flex-shrink:0;
+  align-items:center;
+}
+.battle-btn{
+  flex:1;padding:10px;border-radius:10px;
+  border:.5px solid;font-size:11px;cursor:pointer;
+  font-family:inherit;font-weight:700;
+  transition:background .15s,transform .1s,box-shadow .15s;
+}
+.battle-btn:active{transform:scale(.95);}
+.btn-atk{
+  background:linear-gradient(135deg,rgba(10,60,140,.7),rgba(20,100,200,.5));
+  border-color:rgba(40,140,255,.5);color:#80c8ff;
+  box-shadow:0 0 12px rgba(20,100,200,.3);
+}
+.btn-atk:hover{box-shadow:0 0 20px rgba(20,120,255,.5);}
+.btn-flee{
+  flex:0;padding:10px 12px;
+  background:rgba(40,10,10,.5);border-color:rgba(150,40,40,.4);color:#ff8080;
+}
+
+/* --- Ultカットイン --- */
+#ult-cutin{
+  position:fixed;inset:0;z-index:9500;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0);
+  pointer-events:none;
+}
+#ult-cutin.show{display:flex;animation:ultBg .6s ease forwards;}
+@keyframes ultBg{
+  0%{background:rgba(0,0,0,0);}
+  30%{background:rgba(0,0,0,.85);}
+  80%{background:rgba(0,0,0,.7);}
+  100%{background:rgba(0,0,0,0);}
+}
+.ult-cutin-inner{
+  text-align:center;
+  animation:ultCutinAnim .7s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+@keyframes ultCutinAnim{
+  0%{opacity:0;transform:scale(.4) translateY(40px);}
+  50%{opacity:1;transform:scale(1.15) translateY(-6px);}
+  75%{transform:scale(.95) translateY(2px);}
+  100%{transform:scale(1) translateY(0);}
+}
+.ult-cutin-emoji{font-size:72px;line-height:1;filter:drop-shadow(0 0 30px rgba(255,200,0,.9));}
+.ult-cutin-name{font-size:11px;color:rgba(255,200,100,.7);letter-spacing:.2em;margin-top:4px;}
+.ult-cutin-skill{font-size:28px;font-weight:900;color:#fff;letter-spacing:.1em;margin-top:6px;text-shadow:0 0 30px rgba(255,180,0,1);}
+.ult-cutin-line{width:200px;height:2px;background:linear-gradient(90deg,transparent,#ffcc00,transparent);margin:8px auto;}
+
+/* --- 敵行動予告（位置調整） --- */
+.enemy-intent{
+  margin:0 12px 4px;
+  z-index:10;position:relative;
+}
+
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
@@ -1989,6 +2251,17 @@ function onPvpEnd(won, quest){
     <button class="battle-info-btn" onclick="openBattleInfoPanel()">📋</button>
     <button class="battle-info-btn" onclick="openBattleSettings()" style="background:rgba(40,40,80,.5);border-color:rgba(100,100,200,.4);">⚙️</button>
     <button class="battle-btn btn-flee" onclick="fleeConfirm()">🚪</button>
+  </div>
+  <!-- 攻撃エフェクトレイヤー -->
+  <div id="atk-effect-layer"></div>
+  <!-- Ultカットイン -->
+  <div id="ult-cutin">
+    <div class="ult-cutin-inner">
+      <div class="ult-cutin-emoji" id="ult-cutin-emoji">⚡</div>
+      <div class="ult-cutin-name" id="ult-cutin-name">ULTIMATE</div>
+      <div class="ult-cutin-line"></div>
+      <div class="ult-cutin-skill" id="ult-cutin-skill">必殺技</div>
+    </div>
   </div>
   <!-- 状態異常フルスクリーン演出 -->
   <div class="status-flash" id="status-flash">
@@ -3494,21 +3767,207 @@ function initAudio(){
 function sfx(type){
   if(!AC||!S.seOn)return;
   const t=AC.currentTime;
-  const play=(freq,freq2,dur,vol,wave='sine')=>{
+
+  // 単音生成
+  const play=(freq,freq2,dur,vol,wave='sine',del=0)=>{
     const o=AC.createOscillator(),g=AC.createGain();
     o.type=wave; o.connect(g); g.connect(seGain);
-    o.frequency.setValueAtTime(freq,t);
-    if(freq2)o.frequency.exponentialRampToValueAtTime(freq2,t+dur);
-    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur+.02);
-    o.start(t); o.stop(t+dur+.05);
+    o.frequency.setValueAtTime(freq,t+del);
+    if(freq2)o.frequency.exponentialRampToValueAtTime(freq2,t+del+dur);
+    g.gain.setValueAtTime(vol,t+del);
+    g.gain.exponentialRampToValueAtTime(.001,t+del+dur+.02);
+    o.start(t+del); o.stop(t+del+dur+.06);
   };
-  if(type==='click'){ play(380,180,.09,.12); }
-  else if(type==='gacha'){ play(300,900,.15,.18,'triangle'); play(900,400,.3,.1); }
-  else if(type==='attack'){ play(160,55,.22,.25,'sawtooth'); play(1200,350,.18,.07); }
-  else if(type==='hit'){ play(90,35,.16,.3,'square'); }
-  else if(type==='win'){ [0,.14,.28,.42].forEach((d,i)=>{ const o=AC.createOscillator(),g=AC.createGain(); o.type='sine'; o.connect(g); g.connect(seGain); o.frequency.value=[523,659,784,1047][i]; g.gain.setValueAtTime(.14,t+d); g.gain.exponentialRampToValueAtTime(.001,t+d+.28); o.start(t+d); o.stop(t+d+.32); }); }
-  else if(type==='lose'){ play(200,55,.55,.2,'sawtooth'); }
-  else if(type==='select'){ play(500,600,.07,.09); }
+
+  // ノイズバースト（打撃感・爆発感）
+  const noise=(dur,vol,del=0)=>{
+    try{
+      const buf=AC.createBuffer(1,Math.floor(AC.sampleRate*dur),AC.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+      const src=AC.createBufferSource(),g=AC.createGain(),f=AC.createBiquadFilter();
+      f.type='bandpass'; f.frequency.value=200; f.Q.value=0.8;
+      src.buffer=buf; src.connect(f); f.connect(g); g.connect(seGain);
+      g.gain.setValueAtTime(vol,t+del);
+      g.gain.exponentialRampToValueAtTime(.001,t+del+dur);
+      src.start(t+del); src.stop(t+del+dur+.05);
+    }catch(e){}
+  };
+
+  // ── UI系 ──
+  if(type==='click'){
+    play(420,200,.08,.10);
+  }
+  else if(type==='select'){
+    // カード選択：明るいチン
+    play(660,780,.06,.10,'sine');
+    play(880,0,.04,.05,'sine',.03);
+  }
+  else if(type==='cancel'){
+    play(300,180,.12,.10,'sine');
+  }
+  else if(type==='open'){
+    // メニューを開く
+    play(350,600,.12,.08,'sine');
+  }
+  else if(type==='close'){
+    play(600,350,.10,.08,'sine');
+  }
+  else if(type==='toast'){
+    play(550,700,.07,.07,'sine');
+  }
+
+  // ── 戦闘系 ──
+  else if(type==='attack'){
+    // 通常攻撃：ズバッ
+    noise(.12,.18);
+    play(180,55,.18,.20,'sawtooth',.02);
+    play(1400,300,.12,.06,'',.01);
+  }
+  else if(type==='hit'){
+    // 敵が受けるダメージ
+    noise(.10,.22);
+    play(100,40,.15,.25,'square');
+  }
+  else if(type==='critical'){
+    // クリティカルヒット：派手な打撃
+    noise(.08,.30);
+    play(80,30,.20,.30,'sawtooth');
+    play(1600,200,.15,.10,'',.03);
+    play(440,880,.12,.08,'sine',.05);
+  }
+  else if(type==='combo'){
+    // コンボ発動
+    play(440,550,.08,.12,'sine');
+    play(550,660,.08,.10,'sine',.06);
+    play(660,880,.10,.12,'sine',.12);
+  }
+  else if(type==='ult'){
+    // 必殺技カットイン
+    play(110,220,.30,.22,'sawtooth');
+    play(220,440,.25,.15,'sawtooth',.1);
+    play(880,1760,.20,.12,'sine',.2);
+    play(1760,880,.25,.08,'sine',.35);
+  }
+  else if(type==='heal'){
+    // 回復
+    play(523,784,.18,.10,'sine');
+    play(659,1047,.18,.08,'sine',.08);
+    play(784,1318,.20,.07,'sine',.16);
+  }
+  else if(type==='shield'){
+    // バリア付与
+    play(330,440,.15,.10,'triangle');
+    play(440,550,.15,.08,'triangle',.08);
+    noise(.05,.08,.05);
+  }
+  else if(type==='freeze'){
+    // 凍結付与：シャリン
+    play(1200,800,.18,.08,'sine');
+    play(800,1600,.15,.06,'sine',.06);
+    play(600,1200,.20,.05,'triangle',.12);
+  }
+  else if(type==='burn'){
+    // 炎症付与：ジュワ
+    noise(.15,.15);
+    play(200,80,.20,.12,'sawtooth',.02);
+  }
+  else if(type==='para'){
+    // 麻痺付与：ビリビリ
+    play(400,800,.04,.12,'square');
+    play(800,400,.04,.10,'square',.05);
+    play(400,800,.04,.08,'square',.10);
+  }
+  else if(type==='poison'){
+    // 毒付与：ドロドロ
+    play(150,100,.25,.10,'sawtooth');
+    play(100,150,.20,.08,'sawtooth',.12);
+  }
+  else if(type==='debuff'){
+    // 汎用デバフ
+    play(400,200,.20,.10,'triangle');
+  }
+  else if(type==='levelup'){
+    // レベルアップ
+    [0,.10,.20,.32,.42].forEach((d,i)=>{
+      play([523,659,784,880,1047][i],0,.25,.14,'sine',d);
+    });
+  }
+  else if(type==='win'){
+    // 勝利ファンファーレ
+    [0,.13,.26,.40].forEach((d,i)=>{
+      const o=AC.createOscillator(),g=AC.createGain();
+      o.type='sine'; o.connect(g); g.connect(seGain);
+      o.frequency.value=[523,659,784,1047][i];
+      g.gain.setValueAtTime(.14,t+d);
+      g.gain.exponentialRampToValueAtTime(.001,t+d+.30);
+      o.start(t+d); o.stop(t+d+.34);
+    });
+    play(1047,2094,.35,.10,'sine',.55);
+  }
+  else if(type==='lose'){
+    // 敗北
+    play(300,200,.20,.15,'sawtooth');
+    play(200,80,.40,.18,'sawtooth',.15);
+    play(80,40,.50,.15,'sawtooth',.35);
+  }
+  else if(type==='gacha'){
+    // ガチャ演出
+    play(300,900,.15,.15,'triangle');
+    play(900,600,.20,.10,'sine',.12);
+    play(600,1200,.18,.12,'triangle',.28);
+    play(1200,400,.25,.10,'sine',.42);
+  }
+  else if(type==='gacha_sr'){
+    // SR以上確定演出
+    play(440,880,.20,.15,'sine');
+    play(880,1320,.20,.12,'sine',.15);
+    play(1320,880,.25,.12,'sine',.30);
+    play(660,1320,.30,.15,'triangle',.50);
+  }
+  else if(type==='gacha_ur'){
+    // UR確定演出：超派手
+    play(110,220,.30,.20,'sawtooth');
+    play(220,440,.25,.15,'sawtooth',.15);
+    play(440,880,.25,.12,'triangle',.30);
+    play(880,1760,.30,.14,'sine',.48);
+    play(1760,3520,.25,.10,'sine',.70);
+    noise(.20,.15,.05);
+  }
+  else if(type==='craft'){
+    // 素材合成
+    play(440,660,.12,.10,'triangle');
+    noise(.08,.10,.06);
+    play(880,1100,.15,.08,'sine',.10);
+  }
+  else if(type==='buy'){
+    // ショップ購入
+    play(523,784,.10,.12,'sine');
+    play(784,1047,.12,.10,'sine',.08);
+  }
+  else if(type==='error'){
+    // エラー・失敗
+    play(200,150,.15,.12,'square');
+    play(150,100,.20,.12,'square',.12);
+  }
+  else if(type==='floor_clear'){
+    // フロアクリア（ローグ）
+    play(523,659,.15,.12,'sine');
+    play(659,784,.15,.10,'sine',.12);
+    play(784,1047,.20,.14,'sine',.24);
+  }
+  else if(type==='rogue_item'){
+    // 遺物入手
+    play(660,1320,.20,.12,'triangle');
+    play(1320,660,.25,.10,'triangle',.18);
+    play(440,880,.15,.08,'sine',.30);
+  }
+  else if(type==='boss'){
+    // ボス登場
+    play(80,60,.40,.20,'sawtooth');
+    play(60,40,.50,.18,'sawtooth',.20);
+    noise(.30,.15,.10);
+  }
 }
 
 // ================================================================
@@ -4883,6 +5342,7 @@ function initBattleBg(){
   // 章IDからテーマを決定
   var chId = BT.quest ? BT.quest.chapterId : 0;
   var isBoss = BT.quest && BT.quest.boss;
+  if(isBoss) sfx('boss');
   var isTower = BT.quest && BT.quest.isTower;
 
   // テーマ定義
@@ -5919,6 +6379,13 @@ function executeAttack(){
       BT.combo++;
       cb = 1 + BT.combo * 0.1;
       if(c.charId) addUltStack(c.charId);
+      // エフェクト
+      const _isCrit = starMul>=3.5;
+      const _atkType = _isCrit?'critical':'normal';
+      setTimeout(function(){ showDmgFloat(dmg, _atkType); playEnemyHitAnim(); }, 80);
+      if(_isCrit){ setTimeout(playScreenShake, 100); sfx('critical'); } else { sfx('attack'); }
+      const _areaEl=document.getElementById('battle-enemy-area');
+      setTimeout(function(){ playAtkEffect(c.comboType||'none', _areaEl); }, 60);
       // 禁域：1撃ダメ上限チェック
       // （敵側のabyssDmgCapは表示のみ・実際の制限はここで）
     }
@@ -6478,6 +6945,7 @@ function updateEnemyHP(){
 }
 
 function updatePartyHP(){
+  setTimeout(updateUltReadyGlow, 50);
   document.getElementById('party-hp-row').innerHTML=BT.partyHp.map(m=>{
     const ch=CHARS.find(c=>c.id===m.id),pct=m.hp/m.maxHp*100;
     const col=pct>50?'linear-gradient(90deg,var(--teal),#20d0a0)':pct>25?'linear-gradient(90deg,#c0a020,#e0c040)':'linear-gradient(90deg,#cc3030,#e05050)';
@@ -7267,6 +7735,7 @@ function addCurseToRun(r){
 }
 
 function pendingGiftChoice(r, count, filter){
+  if(count>0) sfx('rogue_item');
   let pool=ROGUE_GIFTS.filter(g=>g.type!=='curse');
   if(filter==='buff') pool=ROGUE_GIFTS.filter(g=>g.type==='buff'||g.type==='rare');
   if(filter==='rare') pool=ROGUE_GIFTS.filter(g=>g.type==='rare'||g.type==='unique');
@@ -7928,6 +8397,7 @@ function onRogueBattleWin(quest){
     r.shopItems=null;
     const healPct=r.hard?0.15:0.25;
     r.partyState=r.partyState.map(m=>({...m,hp:Math.round((m.hp||0)*(1+healPct))}));
+    sfx('floor_clear');
     if(end) end.textContent='➡ '+r.floor+'Fへ進む！ 🪙+'+coinGain;
     pendingGiftChoice(r,1,'any');
     BT.fromScreen='rogue';
@@ -9259,6 +9729,7 @@ function showRankupSequence(queue){
   const ru=queue[0];
   document.getElementById('rankup-rank-num').textContent=ru.rank;
   document.getElementById('rankup-rw-list').innerHTML=ru.rewards.map(r=>`<div class="rankup-rw-item">${r.label}</div>`).join('');
+  sfx('levelup');
   document.getElementById('rankup-overlay').classList.add('show');
   sfx('win');
   document.getElementById('rankup-overlay').dataset.queue=JSON.stringify(queue.slice(1));
@@ -9268,8 +9739,18 @@ function closeRankup(){
   const overlay=document.getElementById('rankup-overlay');
   const rest=JSON.parse(overlay.dataset.queue||'[]');
   overlay.classList.remove('show');
-  if(rest.length) setTimeout(()=>showRankupSequence(rest),400);
-  else refreshHome();
+  if(rest.length){
+    setTimeout(()=>showRankupSequence(rest),400);
+  } else {
+    // ランクアップ後に正しい画面へ遷移
+    refreshHome();
+    const from=BT.fromScreen||'home';
+    if(from==='quest')       goTo('quest');
+    else if(from==='rogue')  goTo('rogue');
+    else if(from==='tower')  goTo('tower');
+    else if(from==='grind')  goTo('grind');
+    else                     goTo('home');
+  }
 }
 
 function calcQuestExp(quest){
@@ -9495,44 +9976,75 @@ function activateUlt_effect(charId,def,member){
   const ef=def.effect, name=ch?ch.name:'???';
   if(ef==='ultra_atk'){
     const dmg=Math.round(member.atk*(def.mul||6.0));
-    damageEnemy(getAttackTargetIndex(),dmg); updateEnemyHP();
-    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」'+dmg.toLocaleString()+'ダメージ！','#ff80ff');
+    const _ch4ult=CHARS.find(c=>c.id===charId);
+    const _attr4ult=_ch4ult?_ch4ult.attribute:'none';
+    playUltCutin(name,def.name,def.emoji||'⚡',function(){
+      damageEnemy(getAttackTargetIndex(),dmg); updateEnemyHP();
+      showDmgFloat(dmg,'critical'); playEnemyHitAnim(); playScreenShake();
+      const _ea=document.getElementById('battle-enemy-area');
+      playAtkEffect(_attr4ult,_ea);
+      showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」'+dmg.toLocaleString()+'ダメージ！','#ff80ff');
+    });
     sfx('select');
     if(areAllEnemiesDead()){setTimeout(winBattle,btDelay(700));return;}
   } else if(ef==='aoe_atk'){
     const dmg=Math.round(member.atk*(def.mul||5.0));
-    if(BT_ENEMIES&&BT_ENEMIES.length>0) BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)damageEnemy(i,dmg);});
-    else BT.enemyHp=Math.max(0,(BT.enemyHp||0)-dmg);
-    updateEnemyHP();
-    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」全敵'+dmg.toLocaleString()+'ダメージ！','#ff6040');
+    const _ch4aoe=CHARS.find(c=>c.id===charId);
+    playUltCutin(name,def.name,def.emoji||'💥',function(){
+      if(BT_ENEMIES&&BT_ENEMIES.length>0) BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)damageEnemy(i,dmg);});
+      else BT.enemyHp=Math.max(0,(BT.enemyHp||0)-dmg);
+      updateEnemyHP();
+      showDmgFloat(dmg,'critical'); playEnemyHitAnim(); playScreenShake();
+      const _ea2=document.getElementById('battle-enemy-area');
+      playAtkEffect(_ch4aoe?_ch4aoe.attribute:'fire',_ea2);
+      showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」全敵'+dmg.toLocaleString()+'ダメージ！','#ff6040');
+    });
     sfx('select');
     if(areAllEnemiesDead()){setTimeout(winBattle,btDelay(700));return;}
   } else if(ef==='debuff_all'){
     const dtype=def.type||'poison', ds=def.stacks2||1;
-    if(BT_ENEMIES&&BT_ENEMIES.length>1){
-      BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)applyEnemyStatusMulti(i,dtype,ds);});
-    } else {
-      const existing=enemyStatuses.find(s=>s.type===dtype);
-      if(existing){if(dtype==='poison')existing.stacks=Math.min(existing.stacks+ds,5);else existing.stacks=Math.min((existing.stacks||1)+ds,5);existing.turns=Math.max(existing.turns,3);}
-      else enemyStatuses.push({type:dtype,stacks:ds,turns:3});
+    const _debuffColors={freeze:'#80d8ff',para:'#ffe060',poison:'#80ff40',burn:'#ff8040'};
+    const _debuffSfx={freeze:'freeze',para:'para',poison:'poison',burn:'burn'};
+    const _debuffCol=_debuffColors[dtype]||'#c040ff';
+    playUltCutin(name,def.name,def.emoji||'☠️',function(){
+      if(BT_ENEMIES&&BT_ENEMIES.length>1){
+        BT_ENEMIES.forEach((_,i)=>{if(BT_ENEMIES[i].hp>0)applyEnemyStatusMulti(i,dtype,ds);});
+      } else {
+        const existing=enemyStatuses.find(s=>s.type===dtype);
+        if(existing){if(dtype==='poison')existing.stacks=Math.min(existing.stacks+ds,5);else existing.stacks=Math.min((existing.stacks||1)+ds,5);existing.turns=Math.max(existing.turns,3);}
+        else enemyStatuses.push({type:dtype,stacks:ds,turns:3});
+        renderEnemyStatuses();
+      }
+      if(def.mul){const dmg2=Math.round(member.atk*def.mul);damageEnemy(getAttackTargetIndex(),dmg2);updateEnemyHP();}
       renderEnemyStatuses();
-    }
-    if(def.mul){const dmg2=Math.round(member.atk*def.mul);damageEnemy(getAttackTargetIndex(),dmg2);updateEnemyHP();}
-    renderEnemyStatuses();
-    showSpecialAtkBanner('⚡ '+name+'「'+def.name+'」全敵に'+dtype+'付与！','#c040ff');
-    sfx('select');
+      const _ea3=document.getElementById('battle-enemy-area');
+      playAtkEffect(dtype==='freeze'?'ice':dtype==='para'?'thunder':dtype==='burn'?'fire':'dark',_ea3);
+      showSpecialAtkBanner('☠️ '+name+'「'+def.name+'」全敵に'+dtype+'付与！',_debuffCol);
+      sfx(_debuffSfx&&_debuffSfx[dtype]?_debuffSfx[dtype]:'debuff');
+    });
+    sfx('debuff');
   } else if(ef==='party_heal'){
     const pct=def.pct||0.25;
-    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*pct));});
-    updatePartyHP();
-    showSpecialAtkBanner('✨ '+name+'「'+def.name+'」HP+'+Math.round(pct*100)+'%回復！','#40e0a0');
-    sfx('select');
+    playUltCutin(name,def.name,def.emoji||'💚',function(){
+      const _healAmt2=Math.round((BT.partyHp.filter(m=>m.hp>0)[0]&&BT.partyHp.filter(m=>m.hp>0)[0].maxHp||1000)*pct);
+      BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*pct));});
+      updatePartyHP();
+      showDmgFloat(_healAmt2,'heal');
+      showSpecialAtkBanner('✨ '+name+'「'+def.name+'」HP+'+Math.round(pct*100)+'%回復！','#40e0a0');
+      sfx('heal');
+    });
+    sfx('heal');
   } else if(ef==='party_shield'){
     const pct=def.pct||0.20;
-    BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.shield=(m.shield||0)+Math.round(m.maxHp*pct);});
-    updatePartyHP();
-    showSpecialAtkBanner('🛡️ '+name+'「'+def.name+'」バリア+'+Math.round(pct*100)+'%！','#60a0ff');
-    sfx('select');
+    playUltCutin(name,def.name,def.emoji||'🛡️',function(){
+      BT.partyHp.filter(m=>m.hp>0).forEach(m=>{m.shield=(m.shield||0)+Math.round(m.maxHp*pct);});
+      updatePartyHP();
+      const _ea4=document.getElementById('battle-enemy-area');
+      playAtkEffect('light',_ea4);
+      showSpecialAtkBanner('🛡️ '+name+'「'+def.name+'」バリア+'+Math.round(pct*100)+'%！','#60a0ff');
+      sfx('shield');
+    });
+    sfx('shield');
   }
   updatePartyHP();
 }
@@ -9584,6 +10096,134 @@ function applyNereisEmergency(){
   need.forEach(function(m){m.hp=Math.min(m.maxHp,m.hp+Math.round(m.maxHp*0.20));});
   showSpecialAtkBanner('🌊 ネレイス 深海の護り！HP45%以下全員+20%！','#60d8ff');
   updatePartyHP();
+}
+
+
+// ================================================================
+//  ✨ 戦闘エフェクトシステム
+// ================================================================
+
+// ダメージフロートテキスト
+function showDmgFloat(dmg, type){
+  // type: 'normal'|'critical'|'heal'|'miss'
+  const el=document.createElement('div');
+  el.className='dmg-float '+(type||'normal');
+  // 敵エリア付近にランダム配置
+  const area=document.getElementById('battle-enemy-area');
+  const rect=area?area.getBoundingClientRect():{left:window.innerWidth/2-60,top:120,width:120,height:200};
+  el.style.left=(rect.left+rect.width*.2+Math.random()*rect.width*.6)+'px';
+  el.style.top=(rect.top+rect.height*.2+Math.random()*rect.height*.3)+'px';
+  if(type==='critical') el.textContent='CRIT! '+dmg.toLocaleString();
+  else if(type==='heal') el.textContent='💚 +'+dmg.toLocaleString();
+  else if(type==='miss') el.textContent='MISS';
+  else el.textContent=dmg.toLocaleString();
+  document.body.appendChild(el);
+  setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 1000);
+}
+
+// 敵ヒットアニメ
+function playEnemyHitAnim(){
+  const ico=document.getElementById('enemy-ico');
+  if(!ico) return;
+  ico.classList.remove('hit');
+  void ico.offsetWidth;
+  ico.classList.add('hit');
+  setTimeout(()=>ico.classList.remove('hit'), 300);
+}
+
+// 画面シェイク
+function playScreenShake(){
+  const sc=document.getElementById('screen-battle');
+  if(!sc) return;
+  sc.classList.remove('screen-shake');
+  void sc.offsetWidth;
+  sc.classList.add('screen-shake');
+  setTimeout(()=>sc.classList.remove('screen-shake'), 400);
+}
+
+// 属性パーティクルエフェクト
+const ATTR_COLORS={
+  fire:['#ff4400','#ff8800','#ffcc00'],
+  ice:['#80d8ff','#40c0ff','#ffffff'],
+  thunder:['#ffff00','#ffe040','#ffffff'],
+  water:['#0088ff','#40c0ff','#80e0ff'],
+  dark:['#8800ff','#cc44ff','#ffffff'],
+  light:['#ffff80','#ffffff','#ffffcc'],
+  none:['#80c0ff','#c0e0ff','#ffffff'],
+};
+function playAtkEffect(comboType, targetEl){
+  const layer=document.getElementById('atk-effect-layer');
+  if(!layer) return;
+  const colors=ATTR_COLORS[comboType]||ATTR_COLORS.none;
+  const rect=targetEl?targetEl.getBoundingClientRect():{left:window.innerWidth/2-50,top:160,width:100,height:100};
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top+rect.height/2;
+  // スラッシュ
+  const slash=document.createElement('div');
+  slash.className='atk-slash';
+  slash.style.cssText='left:'+(cx-60)+'px;top:'+(cy-60)+'px;width:120px;height:120px;';
+  layer.appendChild(slash);
+  setTimeout(()=>{ if(slash.parentNode) slash.parentNode.removeChild(slash); }, 400);
+  // パーティクル
+  for(let i=0;i<12;i++){
+    const p=document.createElement('div');
+    p.className='atk-particle';
+    const size=4+Math.random()*8;
+    const angle=Math.random()*Math.PI*2;
+    const dist=40+Math.random()*80;
+    const px=Math.cos(angle)*dist;
+    const py=Math.sin(angle)*dist;
+    p.style.cssText='left:'+(cx-size/2)+'px;top:'+(cy-size/2)+'px;'
+      +'width:'+size+'px;height:'+size+'px;'
+      +'background:'+colors[Math.floor(Math.random()*colors.length)]+';'
+      +'--px:'+px+'px;--py:'+py+'px;'
+      +'box-shadow:0 0 6px '+colors[0]+';'
+      +'animation-delay:'+Math.random()*.15+'s;';
+    layer.appendChild(p);
+    setTimeout(()=>{ if(p.parentNode) p.parentNode.removeChild(p); }, 800);
+  }
+}
+
+// カード飛翔アニメ
+function playCardFlyAnim(cardIndex){
+  const row=document.getElementById('cards-row');
+  if(!row) return;
+  const cards=row.querySelectorAll('.battle-card');
+  if(cards[cardIndex]){
+    cards[cardIndex].classList.add('flying');
+    setTimeout(()=>cards[cardIndex].classList.remove('flying'), 500);
+  }
+}
+
+// Ultカットイン
+function playUltCutin(charName, skillName, emoji, cb){
+  const el=document.getElementById('ult-cutin');
+  const emojiEl=document.getElementById('ult-cutin-emoji');
+  const nameEl=document.getElementById('ult-cutin-name');
+  const skillEl=document.getElementById('ult-cutin-skill');
+  if(!el) { if(cb) cb(); return; }
+  if(emojiEl) emojiEl.textContent=emoji||'⚡';
+  if(nameEl) nameEl.textContent=charName||'ULTIMATE';
+  if(skillEl) skillEl.textContent=skillName||'必殺技';
+  el.classList.add('show');
+  sfx('ult');
+  setTimeout(()=>{
+    el.classList.remove('show');
+    if(cb) cb();
+  }, 900);
+}
+
+// Ultゲージ満タン時のカードグロー
+function updateUltReadyGlow(){
+  if(!BT.partyHp||!BT.ultStacks) return;
+  BT.partyHp.forEach(function(m){
+    const hpEl=document.querySelector('.member-hp[data-id="'+m.id+'"]');
+    if(!hpEl) return;
+    const def=getUltDef(m.id,CHARS.find(c=>c.id===m.id));
+    const stk=BT.ultStacks[m.id]||0;
+    if(stk>=(def.stacks||3)) hpEl.classList.add('ult-ready-glow');
+    else hpEl.classList.remove('ult-ready-glow');
+  });
 }
 
 function winBattle(){
@@ -9722,7 +10362,11 @@ function winBattle(){
     }
   }
   document.getElementById('battle-end').classList.add('show');
-  if(rankups.length) setTimeout(()=>{ document.getElementById('battle-end').classList.remove('show'); showRankupSequence(rankups); },1800);
+  if(rankups.length) setTimeout(()=>{
+    document.getElementById('battle-end').classList.remove('show');
+    // BT.fromScreenを保存しておく（closeRankupで使う）
+    showRankupSequence(rankups);
+  },1800);
 }
 
 function loseBattle(){
